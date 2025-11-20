@@ -1,5 +1,5 @@
-import Link from "next/link"
-import { Facebook, Mail, Phone, MapPin } from "lucide-react"
+import Link from 'next/link'
+import { Facebook, Instagram, Mail, Phone, MapPin } from 'lucide-react'
 
 export function Footer() {
   return (
@@ -17,33 +17,17 @@ export function Footer() {
               Llevando formación pastoral y vida abundante a las naciones
             </p>
           </div>
-
+          
           <div>
             <h3 className="font-bold text-lg mb-4">Enlaces Rápidos</h3>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="#inicio" className="opacity-80 hover:opacity-100 transition-opacity">
-                  Inicio
-                </Link>
-              </li>
-              <li>
-                <Link href="#nosotros" className="opacity-80 hover:opacity-100 transition-opacity">
-                  Nosotros
-                </Link>
-              </li>
-              <li>
-                <Link href="#directiva" className="opacity-80 hover:opacity-100 transition-opacity">
-                  Directiva
-                </Link>
-              </li>
-              <li>
-                <Link href="#convenciones" className="opacity-80 hover:opacity-100 transition-opacity">
-                  Convenciones
-                </Link>
-              </li>
+              <li><Link href="#inicio" className="opacity-80 hover:opacity-100 transition-opacity">Inicio</Link></li>
+              <li><Link href="#nosotros" className="opacity-80 hover:opacity-100 transition-opacity">Nosotros</Link></li>
+              <li><Link href="#directiva" className="opacity-80 hover:opacity-100 transition-opacity">Directiva</Link></li>
+              <li><Link href="#convenciones" className="opacity-80 hover:opacity-100 transition-opacity">Convenciones</Link></li>
             </ul>
           </div>
-
+          
           <div>
             <h3 className="font-bold text-lg mb-4">Contacto</h3>
             <ul className="space-y-3 text-sm">
@@ -57,24 +41,24 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                <span className="opacity-80">Argentina</span>
+                <span className="opacity-80">Ciudad de México</span>
               </li>
             </ul>
           </div>
-
+          
           <div>
             <h3 className="font-bold text-lg mb-4">Síguenos</h3>
             <div className="flex gap-4">
-              <a
-                href="#"
-                className="w-10 h-10 bg-background/10 hover:bg-primary rounded-full flex items-center justify-center transition-colors"
-              >
+              <a href="#" className="w-10 h-10 bg-background/10 hover:bg-primary rounded-full flex items-center justify-center transition-colors">
                 <Facebook className="h-5 w-5" />
+              </a>
+              <a href="#" className="w-10 h-10 bg-background/10 hover:bg-primary rounded-full flex items-center justify-center transition-colors">
+                <Instagram className="h-5 w-5" />
               </a>
             </div>
           </div>
         </div>
-
+        
         <div className="border-t border-background/20 pt-8 text-center text-sm opacity-80">
           <p>&copy; {new Date().getFullYear()} Vida Abundante. Todos los derechos reservados.</p>
         </div>
