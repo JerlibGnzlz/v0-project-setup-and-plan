@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de Usuario para autenticación
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      UserRole @default(ADMIN)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+// Modelo de Convención
+model Convencion {
+  id          String   @id @default(cuid())
+  titulo      String
+  descripcion String?
+  fecha       DateTime
+  ubicacion   String
+  imagen      String?
+  activa      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("convenciones")
+}
+
+// Modelo de Pastor
+model Pastor {
+  id        String   @id @default(cuid())
+  nombre    String
+  apellido  String
+  email     String?  @unique
+  telefono  String?
+  iglesia   String?
+  cargo     String?
+  foto      String?
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("pastores")
+}
+
+// Modelo de Inscripción
+model Inscripcion {
+  id        String   @id @default(cuid())
+  nombre    String
+  apellido  String
+  email     String
+  telefono  String
+  iglesia   String?
+  mensaje   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("inscripciones")
+}
+
+// Modelo de Imagen de Galería
+model GaleriaImagen {
+  id          String   @id @default(cuid())
+  titulo      String?
+  descripcion String?
+  url         String
+  categoria   String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("galeria_imagenes")
+}
+
+// Modelo de Pago
+model Pago {
+  id            String      @id @default(cuid())
+  monto         Float
+  moneda        String      @default("USD")
+  descripcion   String?
+  pastorId      String?
+  inscripcionId String?
+  estado        EstadoPago  @default(PENDIENTE)
+  metodoPago    String?
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  @@map("pagos")
+}
+
+enum EstadoPago {
+  PENDIENTE
+  COMPLETADO
+  CANCELADO
+  REEMBOLSADO
+}
