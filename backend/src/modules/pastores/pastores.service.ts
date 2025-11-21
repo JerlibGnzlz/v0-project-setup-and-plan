@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common"
-import type { PrismaService } from "../../prisma/prisma.service"
-import type { CreatePastorDto, UpdatePastorDto } from "./dto/pastor.dto"
+import { PrismaService } from "../../prisma/prisma.service"
+import { CreatePastorDto, UpdatePastorDto } from "./dto/pastor.dto"
 
 @Injectable()
 export class PastoresService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async findAll() {
     return this.prisma.pastor.findMany({

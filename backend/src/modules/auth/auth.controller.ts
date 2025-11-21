@@ -1,11 +1,11 @@
 import { Controller, Post, UseGuards, Get } from "@nestjs/common"
-import type { AuthService } from "./auth.service"
-import type { LoginDto, RegisterDto } from "./dto/auth.dto"
+import { AuthService } from "./auth.service"
+import { LoginDto, RegisterDto } from "./dto/auth.dto"
 import { JwtAuthGuard } from "./guards/jwt-auth.guard"
 
 @Controller("auth")
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   @Post("register")
   async register(dto: RegisterDto) {

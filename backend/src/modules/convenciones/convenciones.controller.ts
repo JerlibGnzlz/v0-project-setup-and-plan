@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Delete, UseGuards } from "@nestjs/common"
-import type { ConvencionesService } from "./convenciones.service"
-import type { CreateConvencionDto, UpdateConvencionDto } from "./dto/convencion.dto"
+import { ConvencionesService } from "./convenciones.service"
+import { CreateConvencionDto, UpdateConvencionDto } from "./dto/convencion.dto"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
 
 @Controller("convenciones")
 export class ConvencionesController {
-  constructor(private convencionesService: ConvencionesService) {}
+  constructor(private convencionesService: ConvencionesService) { }
 
   @Get()
   findAll() {

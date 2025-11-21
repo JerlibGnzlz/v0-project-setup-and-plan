@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from "@nestjs/common"
-import type { PastoresService } from "./pastores.service"
-import type { CreatePastorDto, UpdatePastorDto } from "./dto/pastor.dto"
+import { PastoresService } from "./pastores.service"
+import { CreatePastorDto, UpdatePastorDto } from "./dto/pastor.dto"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
 
 @Controller("pastores")
 export class PastoresController {
-  constructor(private pastoresService: PastoresService) {}
+  constructor(private pastoresService: PastoresService) { }
 
   @Get()
   findAll() {

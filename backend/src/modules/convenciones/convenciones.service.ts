@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common"
-import type { PrismaService } from "../../prisma/prisma.service"
-import type { CreateConvencionDto, UpdateConvencionDto } from "./dto/convencion.dto"
+import { PrismaService } from "../../prisma/prisma.service"
+import { CreateConvencionDto, UpdateConvencionDto } from "./dto/convencion.dto"
 
 @Injectable()
 export class ConvencionesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async findAll() {
     return this.prisma.convencion.findMany({

@@ -9,11 +9,11 @@ datasource db {
 
 // Modelo de Usuario para autenticación
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   email     String   @unique
   password  String
-  name      String?
-  role      UserRole @default(ADMIN)
+  nombre    String
+  rol       UserRole @default(ADMIN)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -28,75 +28,107 @@ enum UserRole {
 
 // Modelo de Convención
 model Convencion {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   titulo      String
   descripcion String?
-  fecha       DateTime
+  fechaInicio DateTime @map("fecha_inicio")
+  fechaFin    DateTime @map("fecha_fin")
   ubicacion   String
-  imagen      String?
+  costo       Decimal  @default(0) @db.Decimal(10, 2)
+  cupoMaximo  Int?     @map("cupo_maximo")
+  imagenUrl   String?  @map("imagen_url")
   activa      Boolean  @default(true)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  inscripciones Inscripcion[]
+  galeria       GaleriaImagen[]
+
+  @@index([activa])
+  @@index([fechaInicio])
   @@map("convenciones")
 }
 
 // Modelo de Pastor
 model Pastor {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   nombre    String
   apellido  String
   email     String?  @unique
   telefono  String?
-  iglesia   String?
+  sede      String?
   cargo     String?
-  foto      String?
+  fotoUrl   String?  @map("foto_url")
+  biografia String?
   activo    Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@index([activo])
+  @@index([sede])
   @@map("pastores")
 }
 
 // Modelo de Inscripción
 model Inscripcion {
-  id        String   @id @default(cuid())
-  nombre    String
-  apellido  String
-  email     String
-  telefono  String
-  iglesia   String?
-  mensaje   String?
-  createdAt DateTime @default(now()) @map("created_at")
+  id               String   @id @default(uuid())
+  convencionId     String   @map("convencion_id")
+  nombre           String
+  apellido         String
+  email            String
+  telefono         String?
+  sede             String?
+  tipoInscripcion  String   @default("pastor") @map("tipo_inscripcion")
+  estado           String   @default("pendiente")
+  fechaInscripcion DateTime @default(now()) @map("fecha_inscripcion")
+  notas            String?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
+  convencion Convencion @relation(fields: [convencionId], references: [id], onDelete: Cascade)
+  pagos      Pago[]
+
+  @@index([convencionId])
+  @@index([estado])
   @@map("inscripciones")
 }
 
 // Modelo de Imagen de Galería
 model GaleriaImagen {
-  id          String   @id @default(cuid())
-  titulo      String?
-  descripcion String?
-  url         String
-  categoria   String?
-  createdAt   DateTime @default(now()) @map("created_at")
+  id           String   @id @default(uuid())
+  titulo       String
+  descripcion  String?
+  imagenUrl    String   @map("imagen_url")
+  categoria    String?
+  convencionId String?  @map("convencion_id")
+  orden        Int      @default(0)
+  activa       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  @@map("galeria_imagenes")
+  convencion Convencion? @relation(fields: [convencionId], references: [id], onDelete: SetNull)
+
+  @@index([categoria])
+  @@map("galeria")
 }
 
 // Modelo de Pago
 model Pago {
-  id            String      @id @default(cuid())
-  monto         Float
-  moneda        String      @default("USD")
-  descripcion   String?
-  pastorId      String?
-  inscripcionId String?
-  estado        EstadoPago  @default(PENDIENTE)
-  metodoPago    String?
-  createdAt     DateTime    @default(now()) @map("created_at")
-  updatedAt     DateTime    @updatedAt @map("updated_at")
+  id            String     @id @default(uuid())
+  inscripcionId String     @map("inscripcion_id")
+  monto         Decimal    @db.Decimal(10, 2)
+  metodoPago    String     @map("metodo_pago")
+  estado        EstadoPago @default(PENDIENTE)
+  referencia    String?
+  fechaPago     DateTime?  @map("fecha_pago")
+  notas         String?
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
 
+  inscripcion Inscripcion @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
+
+  @@index([inscripcionId])
+  @@index([estado])
   @@map("pagos")
 }
 
