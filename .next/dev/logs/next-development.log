@@ -1,6 +1,9 @@
-[00:00:01.582] Server  LOG      ✓ Ready in 688ms
-[00:00:05.757] Server  LOG      ○ Compiling / ...
-[00:00:36.887] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+[00:00:01.894] Server  LOG      ✓ Ready in 801ms
+[00:00:13.853] Server  LOG      ○ Compiling / ...
+[00:00:54.721] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:54.721] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/admin","route":"/admin"}
+[00:00:54.721] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/admin color: rgb(120, 120, 120) color: inherit {"dp":"/admin","o":"http://localhost:3000/admin","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.5.0","sv":"0.1.3","ts":1763767232491}
+[00:01:19.341] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
 
 - A server/client branch `if (typeof window !== 'undefined')`.
 - Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
@@ -19,7 +22,7 @@ It can also happen if the client has a browser extension installed which messes 
           <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
             <RedirectBoundary>
               <RedirectErrorBoundary router={{...}}>
-                <InnerLayoutRouter url="/#galeria" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
+                <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
                   <SegmentViewNode type="page" pagePath="/Escritori...">
                     <SegmentTrieNode>
                     <HomePage>
@@ -35,961 +38,461 @@ It can also happen if the client has a browser extension installed which messes 
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "7.530330557566919px"
--                                   width: "3.82042px"
-+                                   height: "5.124982622710701px"
--                                   height: "4.76346px"
-+                                   left: "6.136419310763008%"
--                                   left: "92.1191%"
-+                                   top: "17.113362865195715%"
--                                   top: "14.8199%"
-+                                   animation: "float 22.10200969299198s linear infinite"
-+                                   animationDelay: "2.959011464772577s"
++                                   width: "5.066126443295514px"
+-                                   width: "7.87945px"
++                                   height: "3.706111591856434px"
+-                                   height: "7.53295px"
++                                   left: "24.109110801935486%"
+-                                   left: "1.91223%"
++                                   top: "59.58487032768024%"
+-                                   top: "42.6925%"
++                                   animation: "float 16.314186674189425s linear infinite"
++                                   animationDelay: "4.173578426555572s"
 -                                   animation-name: "float"
--                                   animation-duration: "20.761s"
+-                                   animation-duration: "15.6393s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "2.6403s"
+-                                   animation-delay: "0.534969s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "5.188540721634448px"
--                                   width: "5.66554px"
-+                                   height: "4.340376705157738px"
--                                   height: "7.49636px"
-+                                   left: "83.40394409208776%"
--                                   left: "42.9401%"
-+                                   top: "16.652064663170517%"
--                                   top: "31.7346%"
-+                                   animation: "float 20.17609515261518s linear infinite"
-+                                   animationDelay: "4.768469486318461s"
++                                   width: "4.307898659758876px"
+-                                   width: "4.83634px"
++                                   height: "4.151104618152203px"
+-                                   height: "2.43522px"
++                                   left: "28.549563774251286%"
+-                                   left: "79.9837%"
++                                   top: "12.170315682072264%"
+-                                   top: "58.7169%"
++                                   animation: "float 23.363561508059774s linear infinite"
++                                   animationDelay: "1.6011151567164554s"
 -                                   animation-name: "float"
--                                   animation-duration: "19.2676s"
+-                                   animation-duration: "19.6427s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "1.02911s"
+-                                   animation-delay: "0.844647s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "6.502623761357876px"
--                                   width: "3.64653px"
-+                                   height: "2.298096390515671px"
--                                   height: "7.03407px"
-+                                   left: "51.37203929149111%"
--                                   left: "94.9829%"
-+                                   top: "42.14042157435085%"
--                                   top: "8.80554%"
-+                                   animation: "float 24.06139807460984s linear infinite"
-+                                   animationDelay: "0.7428575960281331s"
++                                   width: "4.624380710371356px"
+-                                   width: "5.26556px"
++                                   height: "5.718496851813136px"
+-                                   height: "3.37838px"
++                                   left: "76.55451413898716%"
+-                                   left: "40.6929%"
++                                   top: "74.79860888790114%"
+-                                   top: "31.7912%"
++                                   animation: "float 18.388619852209448s linear infinite"
++                                   animationDelay: "3.7676149997302675s"
 -                                   animation-name: "float"
--                                   animation-duration: "17.2463s"
+-                                   animation-duration: "24.9236s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "3.19545s"
+-                                   animation-delay: "0.537203s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "6.92737814948093px"
--                                   width: "3.17865px"
-+                                   height: "7.691358385396465px"
--                                   height: "3.19397px"
-+                                   left: "5.57736423310311%"
--                                   left: "41.3725%"
-+                                   top: "85.32080385944934%"
--                                   top: "57.0546%"
-+                                   animation: "float 20.441195724317847s linear infinite"
-+                                   animationDelay: "3.6456633981898863s"
++                                   width: "2.350944264774226px"
+-                                   width: "2.03659px"
++                                   height: "2.7575380092784045px"
+-                                   height: "3.71711px"
++                                   left: "17.567103611936908%"
+-                                   left: "68.1879%"
++                                   top: "14.585228179301634%"
+-                                   top: "99.6614%"
++                                   animation: "float 19.38192815830106s linear infinite"
++                                   animationDelay: "3.3089621923890498s"
 -                                   animation-name: "float"
--                                   animation-duration: "23.9954s"
+-                                   animation-duration: "23.2618s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "1.22595s"
+-                                   animation-delay: "0.333572s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "7.242553396276719px"
--                                   width: "3.9717px"
-+                                   height: "7.453574391312336px"
--                                   height: "7.36886px"
-+                                   left: "81.29922579518788%"
--                                   left: "4.6845%"
-+                                   top: "2.7258818621637926%"
--                                   top: "21.7363%"
-+                                   animation: "float 20.614942375772493s linear infinite"
-+                                   animationDelay: "4.979051978484181s"
++                                   width: "7.210799231673233px"
+-                                   width: "3.53812px"
++                                   height: "5.618265125997498px"
+-                                   height: "7.92016px"
++                                   left: "13.331163698404557%"
+-                                   left: "15.4936%"
++                                   top: "69.7358900255069%"
+-                                   top: "93.8486%"
++                                   animation: "float 21.45311156040613s linear infinite"
++                                   animationDelay: "1.373821559420656s"
 -                                   animation-name: "float"
--                                   animation-duration: "16.5373s"
+-                                   animation-duration: "19.8912s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "1.36546s"
+-                                   animation-delay: "1.24951s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "4.290883411351393px"
--                                   width: "2.42533px"
-+                                   height: "3.9416021621251556px"
--                                   height: "3.64195px"
-+                                   left: "4.146059124423185%"
--                                   left: "74.4845%"
-+                                   top: "28.32745038246266%"
--                                   top: "26.8597%"
-+                                   animation: "float 23.571817687222794s linear infinite"
-+                                   animationDelay: "1.7149994246775002s"
++                                   width: "7.001048952306702px"
+-                                   width: "4.36703px"
++                                   height: "6.058630330974508px"
+-                                   height: "6.33352px"
++                                   left: "11.575143026750512%"
+-                                   left: "30.2627%"
++                                   top: "97.61658249541271%"
+-                                   top: "24.5295%"
++                                   animation: "float 17.41734558342666s linear infinite"
++                                   animationDelay: "1.083522318854973s"
 -                                   animation-name: "float"
--                                   animation-duration: "24.3674s"
+-                                   animation-duration: "24.0583s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "2.21002s"
+-                                   animation-delay: "1.71649s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "5.43307868162535px"
--                                   width: "7.96px"
-+                                   height: "5.690338406175028px"
--                                   height: "5.72086px"
-+                                   left: "91.17417007492898%"
--                                   left: "90.4525%"
-+                                   top: "27.327617194716968%"
--                                   top: "54.0684%"
-+                                   animation: "float 20.610719761280897s linear infinite"
-+                                   animationDelay: "4.821441517847243s"
++                                   width: "7.7967591560259555px"
+-                                   width: "5.35645px"
++                                   height: "5.537390710515613px"
+-                                   height: "3.89984px"
++                                   left: "88.16494820133343%"
+-                                   left: "85.3906%"
++                                   top: "61.966098025650304%"
+-                                   top: "19.3618%"
++                                   animation: "float 21.073157537253927s linear infinite"
++                                   animationDelay: "4.569965397487656s"
 -                                   animation-name: "float"
--                                   animation-duration: "17.2769s"
+-                                   animation-duration: "19.2549s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "3.52204s"
+-                                   animation-delay: "4.66079s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "5.204567106920547px"
--                                   width: "5.35944px"
-+                                   height: "2.0297094002245815px"
--                                   height: "2.53297px"
-+                                   left: "93.89722659683333%"
--                                   left: "3.71046%"
-+                                   top: "17.305291892204266%"
--                                   top: "68.8437%"
-+                                   animation: "float 19.939015660882408s linear infinite"
-+                                   animationDelay: "1.1411261733129385s"
++                                   width: "5.458910020774818px"
+-                                   width: "4.41137px"
++                                   height: "6.14714326991337px"
+-                                   height: "4.413px"
++                                   left: "83.26380092510726%"
+-                                   left: "60.8397%"
++                                   top: "79.45508918218503%"
+-                                   top: "50.2402%"
++                                   animation: "float 20.66339207470006s linear infinite"
++                                   animationDelay: "4.577249609040878s"
 -                                   animation-name: "float"
--                                   animation-duration: "20.012s"
+-                                   animation-duration: "19.631s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "0.260243s"
+-                                   animation-delay: "3.63627s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "4.111283096706021px"
--                                   width: "4.62544px"
-+                                   height: "2.9201693883963173px"
--                                   height: "3.89719px"
-+                                   left: "14.862575683089718%"
--                                   left: "67.0071%"
-+                                   top: "17.535823181890077%"
--                                   top: "80.4715%"
-+                                   animation: "float 23.0949427451904s linear infinite"
-+                                   animationDelay: "0.8394390139015268s"
++                                   width: "7.438064730284718px"
+-                                   width: "4.91405px"
++                                   height: "5.0489397122395445px"
+-                                   height: "7.27445px"
++                                   left: "3.4479226313385514%"
+-                                   left: "36.9119%"
++                                   top: "83.84159221082984%"
+-                                   top: "22.7524%"
++                                   animation: "float 20.221372912450878s linear infinite"
++                                   animationDelay: "1.1832426607472852s"
 -                                   animation-name: "float"
--                                   animation-duration: "20.2912s"
+-                                   animation-duration: "18.8923s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "4.76471s"
+-                                   animation-delay: "2.52327s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "5.772084771590487px"
--                                   width: "6.35291px"
-+                                   height: "4.930824197162452px"
--                                   height: "5.83007px"
-+                                   left: "10.33006620730207%"
--                                   left: "81.772%"
-+                                   top: "38.89328329752656%"
--                                   top: "50.2237%"
-+                                   animation: "float 15.365518499733538s linear infinite"
-+                                   animationDelay: "3.56363248360552s"
++                                   width: "6.647172949239351px"
+-                                   width: "5.44316px"
++                                   height: "3.8584354761164996px"
+-                                   height: "4.27839px"
++                                   left: "22.098114759448173%"
+-                                   left: "1.25514%"
++                                   top: "81.16619716602558%"
+-                                   top: "85.3955%"
++                                   animation: "float 22.5851879127878s linear infinite"
++                                   animationDelay: "4.133418767196528s"
 -                                   animation-name: "float"
--                                   animation-duration: "16.0369s"
+-                                   animation-duration: "20.5721s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "1.92866s"
+-                                   animation-delay: "1.60808s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "6.5471322987982425px"
--                                   width: "4.33763px"
-+                                   height: "4.074588069764245px"
--                                   height: "7.64761px"
-+                                   left: "35.08972209304848%"
--                                   left: "11.152%"
-+                                   top: "34.73988957155045%"
--                                   top: "37.5446%"
-+                                   animation: "float 17.319864667859406s linear infinite"
-+                                   animationDelay: "0.8225956866683193s"
++                                   width: "7.205593360798384px"
+-                                   width: "3.1173px"
++                                   height: "2.6393868939600864px"
+-                                   height: "3.29043px"
++                                   left: "0.5878672433792587%"
+-                                   left: "33.6787%"
++                                   top: "23.17655262642773%"
+-                                   top: "79.2429%"
++                                   animation: "float 23.527899958836187s linear infinite"
++                                   animationDelay: "3.6471924851433317s"
 -                                   animation-name: "float"
--                                   animation-duration: "16.9086s"
+-                                   animation-duration: "18.7619s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "3.12046s"
+-                                   animation-delay: "4.26771s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "4.7904598265006975px"
--                                   width: "3.37781px"
-+                                   height: "6.345283921527024px"
--                                   height: "6.01836px"
-+                                   left: "10.74837081070802%"
--                                   left: "69.7047%"
-+                                   top: "11.779319941532208%"
--                                   top: "63.6611%"
-+                                   animation: "float 20.68948100680642s linear infinite"
-+                                   animationDelay: "2.110935577902931s"
++                                   width: "7.623928091258959px"
+-                                   width: "2.62455px"
++                                   height: "6.333268495567262px"
+-                                   height: "2.36325px"
++                                   left: "48.6471485795311%"
+-                                   left: "7.53411%"
++                                   top: "30.62175244111076%"
+-                                   top: "73.3068%"
++                                   animation: "float 15.893081841073851s linear infinite"
++                                   animationDelay: "2.6503599962228943s"
 -                                   animation-name: "float"
--                                   animation-duration: "23.9752s"
+-                                   animation-duration: "15.4321s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "2.67033s"
+-                                   animation-delay: "2.47672s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "3.4453310196965488px"
--                                   width: "2.32788px"
-+                                   height: "2.4846111532492783px"
--                                   height: "5.18694px"
-+                                   left: "56.12683866465672%"
--                                   left: "81.116%"
-+                                   top: "98.88344347854046%"
--                                   top: "2.41611%"
-+                                   animation: "float 24.149854937540326s linear infinite"
-+                                   animationDelay: "2.011252233012643s"
++                                   width: "6.734935373593092px"
+-                                   width: "7.01899px"
++                                   height: "7.815111113906046px"
+-                                   height: "6.98116px"
++                                   left: "65.06686775770363%"
+-                                   left: "7.07284%"
++                                   top: "81.80519907857857%"
+-                                   top: "5.76428%"
++                                   animation: "float 21.580882361004594s linear infinite"
++                                   animationDelay: "1.7872822980435417s"
 -                                   animation-name: "float"
--                                   animation-duration: "19.3608s"
+-                                   animation-duration: "22.171s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "4.52453s"
+-                                   animation-delay: "0.861149s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "7.192169330466918px"
--                                   width: "3.65866px"
-+                                   height: "2.8875301485438394px"
--                                   height: "6.59139px"
-+                                   left: "14.81581833028941%"
--                                   left: "22.8885%"
-+                                   top: "21.601878722510616%"
--                                   top: "2.39135%"
-+                                   animation: "float 15.223293699832334s linear infinite"
-+                                   animationDelay: "4.229957545036681s"
++                                   width: "4.709613193324268px"
+-                                   width: "4.69018px"
++                                   height: "7.83571579538193px"
+-                                   height: "7.16244px"
++                                   left: "76.90516347638727%"
+-                                   left: "67.3305%"
++                                   top: "77.42712220760063%"
+-                                   top: "64.4996%"
++                                   animation: "float 23.165797773787496s linear infinite"
++                                   animationDelay: "0.7738207065583463s"
 -                                   animation-name: "float"
--                                   animation-duration: "15.5003s"
+-                                   animation-duration: "24.6189s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "0.115402s"
+-                                   animation-delay: "2.30635s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "3.8333398561851597px"
--                                   width: "4.42855px"
-+                                   height: "6.932319759969397px"
--                                   height: "4.43289px"
-+                                   left: "59.90114538831664%"
--                                   left: "9.81672%"
-+                                   top: "74.70204254387622%"
--                                   top: "69.9685%"
-+                                   animation: "float 18.589930056043265s linear infinite"
-+                                   animationDelay: "0.5783078720130219s"
++                                   width: "5.751812337012842px"
+-                                   width: "7.68166px"
++                                   height: "6.53359797980726px"
+-                                   height: "2.39035px"
++                                   left: "29.304526471094448%"
+-                                   left: "47.111%"
++                                   top: "15.959262282675935%"
+-                                   top: "93.4234%"
++                                   animation: "float 15.82278522650735s linear infinite"
++                                   animationDelay: "2.015037370549717s"
 -                                   animation-name: "float"
--                                   animation-duration: "19.9751s"
+-                                   animation-duration: "22.1834s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "1.91368s"
+-                                   animation-delay: "2.36723s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "4.469630434527183px"
--                                   width: "7.91706px"
-+                                   height: "4.377003953191832px"
--                                   height: "5.26978px"
-+                                   left: "11.230662838068127%"
--                                   left: "8.59136%"
-+                                   top: "5.087381421480741%"
--                                   top: "63.8522%"
-+                                   animation: "float 17.68950380011304s linear infinite"
-+                                   animationDelay: "3.6394581416038636s"
++                                   width: "5.567634307198441px"
+-                                   width: "3.13709px"
++                                   height: "4.4444743980463235px"
+-                                   height: "6.92224px"
++                                   left: "59.984802135723704%"
+-                                   left: "95.5008%"
++                                   top: "8.968495085218676%"
+-                                   top: "9.10282%"
++                                   animation: "float 19.00713395917984s linear infinite"
++                                   animationDelay: "1.057950020149383s"
 -                                   animation-name: "float"
--                                   animation-duration: "20.5287s"
+-                                   animation-duration: "23.5286s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "4.40537s"
+-                                   animation-delay: "1.99317s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "6.595999522405068px"
--                                   width: "2.37905px"
-+                                   height: "2.0312283777429254px"
--                                   height: "6.52628px"
-+                                   left: "17.235390139455255%"
--                                   left: "4.96852%"
-+                                   top: "60.55965409722077%"
--                                   top: "51.469%"
-+                                   animation: "float 18.81072991179314s linear infinite"
-+                                   animationDelay: "3.92653014740653s"
++                                   width: "4.463964844066485px"
+-                                   width: "2.16766px"
++                                   height: "4.504528084859136px"
+-                                   height: "5.65536px"
++                                   left: "53.79093042409102%"
+-                                   left: "20.9002%"
++                                   top: "16.89882694661954%"
+-                                   top: "12.5897%"
++                                   animation: "float 19.0832513580364s linear infinite"
++                                   animationDelay: "2.255142468271765s"
 -                                   animation-name: "float"
--                                   animation-duration: "19.9201s"
+-                                   animation-duration: "24.7134s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "3.96473s"
+-                                   animation-delay: "2.42181s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "4.014793717005166px"
--                                   width: "6.86755px"
-+                                   height: "2.6601987967688245px"
--                                   height: "6.25486px"
-+                                   left: "49.68207649928345%"
--                                   left: "52.0232%"
-+                                   top: "54.68273456389292%"
--                                   top: "29.4743%"
-+                                   animation: "float 16.954345137599926s linear infinite"
-+                                   animationDelay: "4.523392749348849s"
++                                   width: "5.241794132733602px"
+-                                   width: "2.53166px"
++                                   height: "3.9198392592252884px"
+-                                   height: "4.03111px"
++                                   left: "85.79757979105541%"
+-                                   left: "18.6894%"
++                                   top: "67.49462441697528%"
+-                                   top: "4.16364%"
++                                   animation: "float 16.428757356112506s linear infinite"
++                                   animationDelay: "4.587255489857226s"
 -                                   animation-name: "float"
--                                   animation-duration: "24.1531s"
+-                                   animation-duration: "18.9597s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "0.0528715s"
+-                                   animation-delay: "4.63315s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "2.650053291095834px"
--                                   width: "5.50476px"
-+                                   height: "7.967817827955405px"
--                                   height: "7.945px"
-+                                   left: "52.000027014213615%"
--                                   left: "97.3614%"
-+                                   top: "46.56591523619188%"
--                                   top: "98.4322%"
-+                                   animation: "float 21.362597606722595s linear infinite"
-+                                   animationDelay: "0.37943470060402884s"
++                                   width: "3.4853670505137235px"
+-                                   width: "7.09598px"
++                                   height: "6.215943906783004px"
+-                                   height: "4.05127px"
++                                   left: "17.475514220821587%"
+-                                   left: "79.9033%"
++                                   top: "39.094914713264195%"
+-                                   top: "47.5416%"
++                                   animation: "float 20.97376028612721s linear infinite"
++                                   animationDelay: "1.8043058324580001s"
 -                                   animation-name: "float"
--                                   animation-duration: "19.5805s"
+-                                   animation-duration: "22.7868s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "2.82255s"
+-                                   animation-delay: "2.7855s"
                                   }}
                                 >
                                 <div
                                   className="absolute rounded-full bg-white/10 backdrop-blur-sm"
                                   style={{
-+                                   width: "2.2567237293754365px"
--                                   width: "5.53186px"
-+                                   height: "3.587624819093404px"
--                                   height: "6.40903px"
-+                                   left: "87.12021149281618%"
--                                   left: "12.1194%"
-+                                   top: "48.41560135081414%"
--                                   top: "21.1915%"
-+                                   animation: "float 21.360170830795894s linear infinite"
-+                                   animationDelay: "0.7240643134491431s"
++                                   width: "3.293181176904298px"
+-                                   width: "3.62254px"
++                                   height: "6.3288222026064025px"
+-                                   height: "5.45891px"
++                                   left: "87.4882167407496%"
+-                                   left: "48.9991%"
++                                   top: "82.14667734805639%"
+-                                   top: "1.50869%"
++                                   animation: "float 20.146335715412235s linear infinite"
++                                   animationDelay: "4.623653519929754s"
 -                                   animation-name: "float"
--                                   animation-duration: "20.8063s"
+-                                   animation-duration: "21.8003s"
 -                                   animation-timing-function: "linear"
 -                                   animation-iteration-count: "infinite"
 -                                   animation-direction: "normal"
 -                                   animation-fill-mode: "none"
 -                                   animation-play-state: "running"
--                                   animation-delay: "2.15983s"
-                                  }}
-                                >
-                              ...
-                        ...
-                  ...
-                ...
-
-[00:00:36.887] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:00:36.888] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:00:36.888] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/#galeria color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/#galeria","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.5.0","sv":"0.1.3","ts":1763763935822}
-[00:21:19.900] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-%s%s https://react.dev/link/hydration-mismatch 
-
-  ...
-    <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
-      <LoadingBoundary name="/" loading={null}>
-        <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
-          <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
-            <RedirectBoundary>
-              <RedirectErrorBoundary router={{...}}>
-                <InnerLayoutRouter url="/#galeria" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
-                  <SegmentViewNode type="page" pagePath="/Escritori...">
-                    <SegmentTrieNode>
-                    <HomePage>
-                      <main>
-                        <Navbar>
-                        <SectionIndicator>
-                        <div id="inicio">
-                          <HeroSection>
-                            <section id="inicio" className="relative m...">
-                              <div>
-                              <div>
-                              <div className="absolute i...">
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "3.161938352797786px"
--                                   width: "2.51726px"
-+                                   height: "7.057401183844823px"
--                                   height: "3.36053px"
-+                                   left: "83.55763424945573%"
--                                   left: "98.3065%"
-+                                   top: "34.20516210713823%"
--                                   top: "36.0028%"
-+                                   animation: "float 23.76101746323863s linear infinite"
-+                                   animationDelay: "2.8361532377623195s"
--                                   animation-name: "float"
--                                   animation-duration: "15.8841s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.375444s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.394876689931849px"
--                                   width: "3.29418px"
-+                                   height: "5.433657159138755px"
--                                   height: "6.28675px"
-+                                   left: "37.668125974875245%"
--                                   left: "39.311%"
-+                                   top: "46.169072699114125%"
--                                   top: "61.2056%"
-+                                   animation: "float 22.665175265349244s linear infinite"
-+                                   animationDelay: "3.8691072951284817s"
--                                   animation-name: "float"
--                                   animation-duration: "23.5261s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "4.29931s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "7.690778235942153px"
--                                   width: "2.37735px"
-+                                   height: "3.728515339028881px"
--                                   height: "7.84145px"
-+                                   left: "1.6969586060974762%"
--                                   left: "30.3211%"
-+                                   top: "14.164267828576216%"
--                                   top: "25.8654%"
-+                                   animation: "float 17.108849758693864s linear infinite"
-+                                   animationDelay: "3.9089084602140014s"
--                                   animation-name: "float"
--                                   animation-duration: "16.6649s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.661843s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.711537276184197px"
--                                   width: "6.60405px"
-+                                   height: "7.597369452817929px"
--                                   height: "2.56641px"
-+                                   left: "8.316434505968473%"
--                                   left: "20.2792%"
-+                                   top: "33.388194677607274%"
--                                   top: "91.302%"
-+                                   animation: "float 17.892751225825357s linear infinite"
-+                                   animationDelay: "3.550903683795688s"
--                                   animation-name: "float"
--                                   animation-duration: "21.5673s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "4.72748s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "7.1962742871466565px"
--                                   width: "3.52176px"
-+                                   height: "4.049060472039408px"
--                                   height: "4.86621px"
-+                                   left: "51.78966875471929%"
--                                   left: "20.2795%"
-+                                   top: "97.95706509349132%"
--                                   top: "50.117%"
-+                                   animation: "float 17.644802812762833s linear infinite"
-+                                   animationDelay: "3.0382965422696078s"
--                                   animation-name: "float"
--                                   animation-duration: "20.4494s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "2.72479s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "6.5204854533727605px"
--                                   width: "3.40768px"
-+                                   height: "7.436972552968255px"
--                                   height: "5.86563px"
-+                                   left: "39.289620413187635%"
--                                   left: "58.6438%"
-+                                   top: "78.47028836620744%"
--                                   top: "92.3183%"
-+                                   animation: "float 20.59000053246379s linear infinite"
-+                                   animationDelay: "0.6449649568721344s"
--                                   animation-name: "float"
--                                   animation-duration: "21.1795s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.786998s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "3.400031330822972px"
--                                   width: "6.90636px"
-+                                   height: "7.955981182760235px"
--                                   height: "4.57664px"
-+                                   left: "9.399068095140105%"
--                                   left: "63.0407%"
-+                                   top: "80.03843138755387%"
--                                   top: "21.3562%"
-+                                   animation: "float 22.26797748583648s linear infinite"
-+                                   animationDelay: "0.916736849162873s"
--                                   animation-name: "float"
--                                   animation-duration: "22.228s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "2.33031s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "2.2680544262916813px"
--                                   width: "7.42764px"
-+                                   height: "5.473763131614071px"
--                                   height: "5.43351px"
-+                                   left: "28.039776363679557%"
--                                   left: "34.0347%"
-+                                   top: "83.26721462988102%"
--                                   top: "28.8044%"
-+                                   animation: "float 20.166542766004415s linear infinite"
-+                                   animationDelay: "2.0896248425658466s"
--                                   animation-name: "float"
--                                   animation-duration: "16.1835s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "1.44685s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "7.260077930639317px"
--                                   width: "2.87074px"
-+                                   height: "3.3560524504659157px"
--                                   height: "6.02487px"
-+                                   left: "32.7145085471189%"
--                                   left: "92.5119%"
-+                                   top: "89.70793197234447%"
--                                   top: "21.5867%"
-+                                   animation: "float 24.454902209181235s linear infinite"
-+                                   animationDelay: "1.500847702982358s"
--                                   animation-name: "float"
--                                   animation-duration: "20.5414s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.41253s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "3.1220903748982654px"
--                                   width: "7.66477px"
-+                                   height: "5.9625526461511535px"
--                                   height: "4.40099px"
-+                                   left: "49.03969059133658%"
--                                   left: "55.4256%"
-+                                   top: "72.40279256218405%"
--                                   top: "37.9937%"
-+                                   animation: "float 21.494969815174674s linear infinite"
-+                                   animationDelay: "2.4822426754324747s"
--                                   animation-name: "float"
--                                   animation-duration: "21.8857s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "4.52053s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "3.721787850685906px"
--                                   width: "6.42873px"
-+                                   height: "7.862708881290322px"
--                                   height: "2.32551px"
-+                                   left: "73.74826115928788%"
--                                   left: "25.9799%"
-+                                   top: "61.61449271928505%"
--                                   top: "29.7435%"
-+                                   animation: "float 18.484964568369474s linear infinite"
-+                                   animationDelay: "2.443552767573967s"
--                                   animation-name: "float"
--                                   animation-duration: "19.9897s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "2.39814s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "7.822746939070133px"
--                                   width: "2.51423px"
-+                                   height: "3.255760494405383px"
--                                   height: "4.57151px"
-+                                   left: "49.731281430478646%"
--                                   left: "40.4949%"
-+                                   top: "87.8329118012856%"
--                                   top: "17.2429%"
-+                                   animation: "float 16.35229350955103s linear infinite"
-+                                   animationDelay: "0.383065846723209s"
--                                   animation-name: "float"
--                                   animation-duration: "20.3649s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "2.82175s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "6.656923173467144px"
--                                   width: "5.35788px"
-+                                   height: "3.8304382204872116px"
--                                   height: "7.7579px"
-+                                   left: "2.37187409141556%"
--                                   left: "91.4388%"
-+                                   top: "82.96163939257535%"
--                                   top: "24.8955%"
-+                                   animation: "float 20.29756191730902s linear infinite"
-+                                   animationDelay: "4.584117057492057s"
--                                   animation-name: "float"
--                                   animation-duration: "17.7154s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "2.47313s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "4.38941232668641px"
--                                   width: "2.24837px"
-+                                   height: "6.2679447028085375px"
--                                   height: "6.29009px"
-+                                   left: "25.272222113651686%"
--                                   left: "72.0335%"
-+                                   top: "86.01735613371865%"
--                                   top: "38.3199%"
-+                                   animation: "float 17.475484843779387s linear infinite"
-+                                   animationDelay: "2.9173842961052987s"
--                                   animation-name: "float"
--                                   animation-duration: "24.4239s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "1.35026s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "2.0722368135104494px"
--                                   width: "4.03201px"
-+                                   height: "6.904739819011479px"
--                                   height: "2.38237px"
-+                                   left: "68.36153526639082%"
--                                   left: "53.1431%"
-+                                   top: "95.27966337367171%"
--                                   top: "11.1158%"
-+                                   animation: "float 24.81696454941128s linear infinite"
-+                                   animationDelay: "2.760635299336147s"
--                                   animation-name: "float"
--                                   animation-duration: "18.0898s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "2.75144s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "6.793964948730248px"
--                                   width: "7.33065px"
-+                                   height: "6.348836333922517px"
--                                   height: "7.08528px"
-+                                   left: "60.73188636917889%"
--                                   left: "14.8258%"
-+                                   top: "75.69834706503543%"
--                                   top: "95.1341%"
-+                                   animation: "float 22.647951832262322s linear infinite"
-+                                   animationDelay: "2.106313834348344s"
--                                   animation-name: "float"
--                                   animation-duration: "17.5007s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "1.67009s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.903581285610242px"
--                                   width: "2.5817px"
-+                                   height: "4.996175160745693px"
--                                   height: "4.81931px"
-+                                   left: "64.32860063128885%"
--                                   left: "77.945%"
-+                                   top: "66.63711648127413%"
--                                   top: "32.1231%"
-+                                   animation: "float 16.557860980833116s linear infinite"
-+                                   animationDelay: "4.997311519928591s"
--                                   animation-name: "float"
--                                   animation-duration: "21.5927s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.16399s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "4.084195752440269px"
--                                   width: "3.82282px"
-+                                   height: "6.915847007551349px"
--                                   height: "2.08047px"
-+                                   left: "37.19914821821961%"
--                                   left: "63.1254%"
-+                                   top: "30.06236720233967%"
--                                   top: "5.09393%"
-+                                   animation: "float 21.582823527954485s linear infinite"
-+                                   animationDelay: "0.1977740275738088s"
--                                   animation-name: "float"
--                                   animation-duration: "24.4809s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.29539s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "6.6111968321151595px"
--                                   width: "4.84561px"
-+                                   height: "4.6518064399661405px"
--                                   height: "7.8208px"
-+                                   left: "35.48165234347284%"
--                                   left: "31.0215%"
-+                                   top: "4.296332418855798%"
--                                   top: "18.6025%"
-+                                   animation: "float 24.043878709261275s linear infinite"
-+                                   animationDelay: "1.9308785449349763s"
--                                   animation-name: "float"
--                                   animation-duration: "16.9733s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "4.21016s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "7.2640143487085735px"
--                                   width: "6.69902px"
-+                                   height: "2.5305809835945716px"
--                                   height: "2.87651px"
-+                                   left: "73.10871673634331%"
--                                   left: "35.9968%"
-+                                   top: "62.981807135119205%"
--                                   top: "47.6107%"
-+                                   animation: "float 19.75581923496731s linear infinite"
-+                                   animationDelay: "0.24257826751701683s"
--                                   animation-name: "float"
--                                   animation-duration: "24.8146s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.98059s"
+-                                   animation-delay: "0.631089s"
                                   }}
                                 >
                               ...
@@ -997,1028 +500,6 @@ It can also happen if the client has a browser extension installed which messes 
                   ...
                 ...
 
-[00:21:19.900] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:21:19.900] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:21:19.900] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/#galeria color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/#galeria","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.5.0","sv":"0.1.3","ts":1763765172897}
-[00:23:12.452] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-%s%s https://react.dev/link/hydration-mismatch 
-
-  ...
-    <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
-      <LoadingBoundary name="/" loading={null}>
-        <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
-          <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
-            <RedirectBoundary>
-              <RedirectErrorBoundary router={{...}}>
-                <InnerLayoutRouter url="/#sedes" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
-                  <SegmentViewNode type="page" pagePath="/Escritori...">
-                    <SegmentTrieNode>
-                    <HomePage>
-                      <main>
-                        <Navbar>
-                        <SectionIndicator>
-                        <div id="inicio">
-                          <HeroSection>
-                            <section id="inicio" className="relative m...">
-                              <div>
-                              <div>
-                              <div className="absolute i...">
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "3.108622311180543px"
--                                   width: "5.83931px"
-+                                   height: "5.596361554441495px"
--                                   height: "5.17352px"
-+                                   left: "71.1452816204845%"
--                                   left: "77.588%"
-+                                   top: "25.867439048869144%"
--                                   top: "27.1462%"
-+                                   animation: "float 17.58062014053304s linear infinite"
-+                                   animationDelay: "4.72984787645433s"
--                                   animation-name: "float"
--                                   animation-duration: "18.3686s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.15695s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "6.554827295948088px"
--                                   width: "6.41991px"
-+                                   height: "4.295651676457166px"
--                                   height: "2.26148px"
-+                                   left: "77.50896280003802%"
--                                   left: "43.3588%"
-+                                   top: "18.879149855279763%"
--                                   top: "17.7669%"
-+                                   animation: "float 24.732978205597725s linear infinite"
-+                                   animationDelay: "4.567789226318695s"
--                                   animation-name: "float"
--                                   animation-duration: "15.7467s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.410658s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "2.346316045655467px"
--                                   width: "6.14367px"
-+                                   height: "3.4761780549839223px"
--                                   height: "3.93553px"
-+                                   left: "27.012185254196254%"
--                                   left: "98.4274%"
-+                                   top: "51.9357375091227%"
--                                   top: "16.8453%"
-+                                   animation: "float 23.264690842884733s linear infinite"
-+                                   animationDelay: "4.392335950095191s"
--                                   animation-name: "float"
--                                   animation-duration: "15.5033s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "4.48635s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.799682009007708px"
--                                   width: "4.89142px"
-+                                   height: "5.708933938496649px"
--                                   height: "3.29637px"
-+                                   left: "53.695552069887995%"
--                                   left: "15.3962%"
-+                                   top: "38.11560052591131%"
--                                   top: "36.2338%"
-+                                   animation: "float 17.25654469116473s linear infinite"
-+                                   animationDelay: "0.19313852374108154s"
--                                   animation-name: "float"
--                                   animation-duration: "17.6945s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.47942s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "6.153547849950492px"
--                                   width: "5.20558px"
-+                                   height: "4.183207256131276px"
--                                   height: "7.76253px"
-+                                   left: "47.63592119423203%"
--                                   left: "54.5178%"
-+                                   top: "12.153468081808416%"
--                                   top: "66.6799%"
-+                                   animation: "float 19.520425775312052s linear infinite"
-+                                   animationDelay: "0.6526159175624419s"
--                                   animation-name: "float"
--                                   animation-duration: "21.4166s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.509136s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "6.158088728422616px"
--                                   width: "6.25136px"
-+                                   height: "3.4742939753117352px"
--                                   height: "6.27802px"
-+                                   left: "94.99756989995475%"
--                                   left: "92.7025%"
-+                                   top: "35.35674868044404%"
--                                   top: "99.9125%"
-+                                   animation: "float 16.647641278260792s linear infinite"
-+                                   animationDelay: "4.389644089434077s"
--                                   animation-name: "float"
--                                   animation-duration: "22.0646s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.08103s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.158272955429506px"
--                                   width: "6.92528px"
-+                                   height: "7.739029337456996px"
--                                   height: "5.93341px"
-+                                   left: "4.4408503735046345%"
--                                   left: "19.9714%"
-+                                   top: "64.36578589674816%"
--                                   top: "27.2376%"
-+                                   animation: "float 16.388461548076386s linear infinite"
-+                                   animationDelay: "0.09555664405017095s"
--                                   animation-name: "float"
--                                   animation-duration: "16.4194s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "4.96945s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "7.39507176781669px"
--                                   width: "3.55121px"
-+                                   height: "4.2442559344545945px"
--                                   height: "4.51704px"
-+                                   left: "44.514521912214654%"
--                                   left: "87.7205%"
-+                                   top: "97.02319155301893%"
--                                   top: "15.9641%"
-+                                   animation: "float 22.842502235158886s linear infinite"
-+                                   animationDelay: "4.951485398978858s"
--                                   animation-name: "float"
--                                   animation-duration: "23.6481s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.86329s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.164198244390813px"
--                                   width: "7.1959px"
-+                                   height: "5.14673640961616px"
--                                   height: "2.10608px"
-+                                   left: "28.387212049483413%"
--                                   left: "35.0205%"
-+                                   top: "39.746025097895476%"
--                                   top: "14.1008%"
-+                                   animation: "float 24.241320080476655s linear infinite"
-+                                   animationDelay: "2.560723021873714s"
--                                   animation-name: "float"
--                                   animation-duration: "15.6439s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.29819s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "4.629950689251768px"
--                                   width: "2.51985px"
-+                                   height: "3.2985830242207843px"
--                                   height: "3.83742px"
-+                                   left: "70.70149597821982%"
--                                   left: "73.7022%"
-+                                   top: "26.865363854900394%"
--                                   top: "73.69%"
-+                                   animation: "float 21.506025413246302s linear infinite"
-+                                   animationDelay: "2.1757127260667977s"
--                                   animation-name: "float"
--                                   animation-duration: "16.2539s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.34394s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "7.796402349768468px"
--                                   width: "7.14428px"
-+                                   height: "3.4394290110278902px"
--                                   height: "6.90184px"
-+                                   left: "93.52645885874047%"
--                                   left: "59.3509%"
-+                                   top: "4.710885396914522%"
--                                   top: "16.8155%"
-+                                   animation: "float 16.185138848520538s linear infinite"
-+                                   animationDelay: "3.1379815679760634s"
--                                   animation-name: "float"
--                                   animation-duration: "15.3526s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "2.71584s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "7.929319107600686px"
--                                   width: "4.00357px"
-+                                   height: "7.592957190266628px"
--                                   height: "7.31255px"
-+                                   left: "86.611838180665%"
--                                   left: "32.4548%"
-+                                   top: "2.4875909324865497%"
--                                   top: "70.0424%"
-+                                   animation: "float 19.981544158689175s linear infinite"
-+                                   animationDelay: "1.041456671893564s"
--                                   animation-name: "float"
--                                   animation-duration: "19.7646s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.152067s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.455297107616701px"
--                                   width: "7.84594px"
-+                                   height: "6.411383363722513px"
--                                   height: "3.42705px"
-+                                   left: "65.91311218371672%"
--                                   left: "35.6762%"
-+                                   top: "88.40255543000924%"
--                                   top: "40.6988%"
-+                                   animation: "float 23.45962827669051s linear infinite"
-+                                   animationDelay: "3.3609171453874183s"
--                                   animation-name: "float"
--                                   animation-duration: "16.5354s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.448814s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "3.8555882467610987px"
--                                   width: "3.78889px"
-+                                   height: "4.119686760788996px"
--                                   height: "2.37593px"
-+                                   left: "45.0126892263062%"
--                                   left: "75.8466%"
-+                                   top: "95.96379977468258%"
--                                   top: "59.9171%"
-+                                   animation: "float 20.845373730766s linear infinite"
-+                                   animationDelay: "3.3943921867961895s"
--                                   animation-name: "float"
--                                   animation-duration: "16.5843s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.215149s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "7.850133130627668px"
--                                   width: "3.34171px"
-+                                   height: "4.33362361588878px"
--                                   height: "7.14548px"
-+                                   left: "72.97401921819696%"
--                                   left: "52.4905%"
-+                                   top: "51.057007238591225%"
--                                   top: "73.0043%"
-+                                   animation: "float 16.996071898176574s linear infinite"
-+                                   animationDelay: "4.9838284767252174s"
--                                   animation-name: "float"
--                                   animation-duration: "19.637s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.16958s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "3.9738868660697513px"
--                                   width: "5.5977px"
-+                                   height: "2.146237035745071px"
--                                   height: "7.68695px"
-+                                   left: "86.5614372518966%"
--                                   left: "71.8911%"
-+                                   top: "4.5324550605647325%"
--                                   top: "92.5575%"
-+                                   animation: "float 20.854981144979863s linear infinite"
-+                                   animationDelay: "2.3172414955233513s"
--                                   animation-name: "float"
--                                   animation-duration: "17.572s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.39981s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.449128415140567px"
--                                   width: "5.78622px"
-+                                   height: "6.276409038802517px"
--                                   height: "2.76385px"
-+                                   left: "17.340278477196%"
--                                   left: "71.607%"
-+                                   top: "56.6618914188149%"
--                                   top: "7.85831%"
-+                                   animation: "float 20.26820355043857s linear infinite"
-+                                   animationDelay: "0.696644415995501s"
--                                   animation-name: "float"
--                                   animation-duration: "23.5755s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.546433s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "2.24786022447952px"
--                                   width: "3.28096px"
-+                                   height: "4.914245878166339px"
--                                   height: "3.37917px"
-+                                   left: "72.78140897978301%"
--                                   left: "75.2248%"
-+                                   top: "25.94854082346267%"
--                                   top: "80.0017%"
-+                                   animation: "float 19.484948195363476s linear infinite"
-+                                   animationDelay: "4.046752119293714s"
--                                   animation-name: "float"
--                                   animation-duration: "19.8425s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.920544s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.83455466140944px"
--                                   width: "7.76381px"
-+                                   height: "5.919748509715684px"
--                                   height: "5.08134px"
-+                                   left: "99.32452348964917%"
--                                   left: "11.3337%"
-+                                   top: "71.52068931416392%"
--                                   top: "5.78426%"
-+                                   animation: "float 23.680489355837764s linear infinite"
-+                                   animationDelay: "1.9462254782836403s"
--                                   animation-name: "float"
--                                   animation-duration: "17.2592s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.0754852s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "6.628238482590028px"
--                                   width: "5.28932px"
-+                                   height: "7.399492684264413px"
--                                   height: "4.09552px"
-+                                   left: "2.642345765109755%"
--                                   left: "43.412%"
-+                                   top: "17.448932161808074%"
--                                   top: "76.139%"
-+                                   animation: "float 22.4234401633229s linear infinite"
-+                                   animationDelay: "2.6970468472206126s"
--                                   animation-name: "float"
--                                   animation-duration: "22.0277s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.79298s"
-                                  }}
-                                >
-                              ...
-                        ...
-                  ...
-                ...
-
-[00:23:12.543] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:23:12.544] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:23:12.544] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/#sedes color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/#sedes","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.5.0","sv":"0.1.3","ts":1763765291570}
-[00:23:24.196] Browser ERROR   `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
-
-If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
-
-For more information, see https://radix-ui.com/primitives/docs/components/dialog
-[00:23:24.197] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:23:24.197] Browser ERROR   `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
-
-If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
-
-For more information, see https://radix-ui.com/primitives/docs/components/dialog
-[00:23:24.197] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:26:23.708] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:26:23.708] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/admin","route":"/admin"}
-[00:26:23.708] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/admin color: rgb(120, 120, 120) color: inherit {"dp":"/admin","o":"http://localhost:3000/admin","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.5.0","sv":"0.1.3","ts":1763765472857}
-[00:26:58.596] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-%s%s https://react.dev/link/hydration-mismatch 
-
-  ...
-    <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
-      <LoadingBoundary name="/" loading={null}>
-        <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
-          <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
-            <RedirectBoundary>
-              <RedirectErrorBoundary router={{...}}>
-                <InnerLayoutRouter url="/#sedes" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
-                  <SegmentViewNode type="page" pagePath="/Escritori...">
-                    <SegmentTrieNode>
-                    <HomePage>
-                      <main>
-                        <Navbar>
-                        <SectionIndicator>
-                        <div id="inicio">
-                          <HeroSection>
-                            <section id="inicio" className="relative m...">
-                              <div>
-                              <div>
-                              <div className="absolute i...">
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "2.5165819641423024px"
--                                   width: "7.99519px"
-+                                   height: "7.7855671584263035px"
--                                   height: "4.87942px"
-+                                   left: "81.49774148738253%"
--                                   left: "0.0447097%"
-+                                   top: "6.066084873554479%"
--                                   top: "69.5377%"
-+                                   animation: "float 18.14481959580902s linear infinite"
-+                                   animationDelay: "1.5288533303989382s"
--                                   animation-name: "float"
--                                   animation-duration: "21.8913s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.58236s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "7.26979460622207px"
--                                   width: "3.42433px"
-+                                   height: "6.813222943835255px"
--                                   height: "6.5053px"
-+                                   left: "6.342881571818504%"
--                                   left: "1.68545%"
-+                                   top: "95.45771218663315%"
--                                   top: "65.8%"
-+                                   animation: "float 19.221617088558997s linear infinite"
-+                                   animationDelay: "4.403326672762477s"
--                                   animation-name: "float"
--                                   animation-duration: "24.1594s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.352595s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.616104883976302px"
--                                   width: "2.86878px"
-+                                   height: "4.955880252003675px"
--                                   height: "5.29944px"
-+                                   left: "84.31719107596437%"
--                                   left: "55.19%"
-+                                   top: "29.182445063998287%"
--                                   top: "86.7305%"
-+                                   animation: "float 20.782802298791466s linear infinite"
-+                                   animationDelay: "1.014111019973396s"
--                                   animation-name: "float"
--                                   animation-duration: "20.9192s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "2.33228s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "6.77012159095149px"
--                                   width: "6.38143px"
-+                                   height: "5.728483339812102px"
--                                   height: "5.96435px"
-+                                   left: "71.77216932759404%"
--                                   left: "49.0505%"
-+                                   top: "63.581794348833384%"
--                                   top: "54.5219%"
-+                                   animation: "float 24.72869292658585s linear infinite"
-+                                   animationDelay: "4.57863152655276s"
--                                   animation-name: "float"
--                                   animation-duration: "23.3461s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "2.1386s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "2.4299584764971067px"
--                                   width: "7.11407px"
-+                                   height: "2.955638389293861px"
--                                   height: "5.24476px"
-+                                   left: "57.10401151632616%"
--                                   left: "88.5836%"
-+                                   top: "21.85380636528467%"
--                                   top: "52.986%"
-+                                   animation: "float 19.595625013799634s linear infinite"
-+                                   animationDelay: "0.11482636316111017s"
--                                   animation-name: "float"
--                                   animation-duration: "22.8093s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.236097s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "6.537598361746074px"
--                                   width: "4.84471px"
-+                                   height: "5.416757218759425px"
--                                   height: "5.26423px"
-+                                   left: "36.904623828560624%"
--                                   left: "0.253748%"
-+                                   top: "71.47447770975565%"
--                                   top: "61.8321%"
-+                                   animation: "float 21.093595725972136s linear infinite"
-+                                   animationDelay: "3.2228533512250452s"
--                                   animation-name: "float"
--                                   animation-duration: "20.3357s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "4.86353s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "4.8761903165019715px"
--                                   width: "2.21893px"
-+                                   height: "2.9170187025450067px"
--                                   height: "4.28768px"
-+                                   left: "20.58414888693897%"
--                                   left: "27.0019%"
-+                                   top: "99.72807981387818%"
--                                   top: "95.7322%"
-+                                   animation: "float 17.36236776226944s linear infinite"
-+                                   animationDelay: "0.8823617797827077s"
--                                   animation-name: "float"
--                                   animation-duration: "17.7737s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.18904s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "2.2349505575791486px"
--                                   width: "7.47001px"
-+                                   height: "4.642928721821852px"
--                                   height: "7.35309px"
-+                                   left: "84.39109088348822%"
--                                   left: "39.8006%"
-+                                   top: "55.45097128008245%"
--                                   top: "55.7295%"
-+                                   animation: "float 24.368978972912412s linear infinite"
-+                                   animationDelay: "4.488614626580223s"
--                                   animation-name: "float"
--                                   animation-duration: "16.6047s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.99229s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.8239137214079495px"
--                                   width: "7.21406px"
-+                                   height: "4.749466116139566px"
--                                   height: "5.3287px"
-+                                   left: "93.84184400585112%"
--                                   left: "28.134%"
-+                                   top: "23.549427854634473%"
--                                   top: "80.4123%"
-+                                   animation: "float 22.364125491245034s linear infinite"
-+                                   animationDelay: "3.441632869987687s"
--                                   animation-name: "float"
--                                   animation-duration: "24.8839s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "2.8594s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "3.4818262093859946px"
--                                   width: "7.2724px"
-+                                   height: "3.504678213104098px"
--                                   height: "6.35733px"
-+                                   left: "30.932405230995364%"
--                                   left: "57.306%"
-+                                   top: "72.34465209385645%"
--                                   top: "67.9212%"
-+                                   animation: "float 21.393269067044812s linear infinite"
-+                                   animationDelay: "0.7367609134270425s"
--                                   animation-name: "float"
--                                   animation-duration: "17.201s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "4.18361s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "3.185226248948738px"
--                                   width: "5.11293px"
-+                                   height: "4.864398102382914px"
--                                   height: "6.82644px"
-+                                   left: "93.71881280060975%"
--                                   left: "71.4977%"
-+                                   top: "77.63046597589268%"
--                                   top: "72.3146%"
-+                                   animation: "float 19.5208994631652s linear infinite"
-+                                   animationDelay: "0.7795320276548517s"
--                                   animation-name: "float"
--                                   animation-duration: "20.1254s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "4.06034s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "3.770867353912016px"
--                                   width: "6.84074px"
-+                                   height: "6.787531574998901px"
--                                   height: "2.08956px"
-+                                   left: "45.070161441478554%"
--                                   left: "88.4942%"
-+                                   top: "43.36762663091386%"
--                                   top: "36.7605%"
-+                                   animation: "float 15.606192084759126s linear infinite"
-+                                   animationDelay: "2.7353246513908354s"
--                                   animation-name: "float"
--                                   animation-duration: "15.3524s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.31003s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "6.967625479996569px"
--                                   width: "4.90152px"
-+                                   height: "5.124959844656728px"
--                                   height: "2.72013px"
-+                                   left: "96.47313247537392%"
--                                   left: "25.1346%"
-+                                   top: "92.36365905826032%"
--                                   top: "7.87943%"
-+                                   animation: "float 24.235577042864577s linear infinite"
-+                                   animationDelay: "2.733241714541311s"
--                                   animation-name: "float"
--                                   animation-duration: "24.676s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.156444s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.9914752162262355px"
--                                   width: "7.90954px"
-+                                   height: "7.000217096796066px"
--                                   height: "5.10035px"
-+                                   left: "47.232466859736554%"
--                                   left: "39.3434%"
-+                                   top: "32.43565980686587%"
--                                   top: "35.5285%"
-+                                   animation: "float 18.535042290003815s linear infinite"
-+                                   animationDelay: "2.0961881793764565s"
--                                   animation-name: "float"
--                                   animation-duration: "19.1141s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.37865s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "4.825746046633013px"
--                                   width: "2.10983px"
-+                                   height: "7.268028567307318px"
--                                   height: "3.44257px"
-+                                   left: "34.8359329853985%"
--                                   left: "69.9135%"
-+                                   top: "20.12248961230427%"
--                                   top: "95.3308%"
-+                                   animation: "float 17.125022286249425s linear infinite"
-+                                   animationDelay: "1.2149832500768216s"
--                                   animation-name: "float"
--                                   animation-duration: "17.2395s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "4.30484s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "2.8825270781380388px"
--                                   width: "4.99342px"
-+                                   height: "6.709284214178431px"
--                                   height: "2.49529px"
-+                                   left: "92.10398923423232%"
--                                   left: "97.4789%"
-+                                   top: "41.76522037137937%"
--                                   top: "13.3013%"
-+                                   animation: "float 23.57322786474235s linear infinite"
-+                                   animationDelay: "0.30382031765085193s"
--                                   animation-name: "float"
--                                   animation-duration: "20.4134s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "1.25545s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "3.6420428587383813px"
--                                   width: "5.19496px"
-+                                   height: "3.743208515222547px"
--                                   height: "5.12416px"
-+                                   left: "19.333152600940227%"
--                                   left: "80.8199%"
-+                                   top: "4.207304994044192%"
--                                   top: "84.6094%"
-+                                   animation: "float 19.629076741826186s linear infinite"
-+                                   animationDelay: "0.5444960185554343s"
--                                   animation-name: "float"
--                                   animation-duration: "20.3398s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.70589s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "5.984738773050231px"
--                                   width: "4.80565px"
-+                                   height: "3.509117429175453px"
--                                   height: "5.76113px"
-+                                   left: "99.89002076621517%"
--                                   left: "77.3255%"
-+                                   top: "65.290651804119%"
--                                   top: "96.4947%"
-+                                   animation: "float 15.606118747512866s linear infinite"
-+                                   animationDelay: "2.8355225945940123s"
--                                   animation-name: "float"
--                                   animation-duration: "16.9103s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "0.301754s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "3.547626989501543px"
--                                   width: "4.92991px"
-+                                   height: "3.1191541930042392px"
--                                   height: "7.78237px"
-+                                   left: "7.973219062063297%"
--                                   left: "93.8328%"
-+                                   top: "87.11703998678831%"
--                                   top: "39.5205%"
-+                                   animation: "float 19.464265640236718s linear infinite"
-+                                   animationDelay: "2.9962397106842036s"
--                                   animation-name: "float"
--                                   animation-duration: "15.0134s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.65632s"
-                                  }}
-                                >
-                                <div
-                                  className="absolute rounded-full bg-white/10 backdrop-blur-sm"
-                                  style={{
-+                                   width: "7.06600165722266px"
--                                   width: "7.64937px"
-+                                   height: "4.117015667940034px"
--                                   height: "5.66843px"
-+                                   left: "43.65769274901999%"
--                                   left: "15.0196%"
-+                                   top: "53.000376221858026%"
--                                   top: "87.8103%"
-+                                   animation: "float 20.65816692860208s linear infinite"
-+                                   animationDelay: "1.7016901997476008s"
--                                   animation-name: "float"
--                                   animation-duration: "22.7679s"
--                                   animation-timing-function: "linear"
--                                   animation-iteration-count: "infinite"
--                                   animation-direction: "normal"
--                                   animation-fill-mode: "none"
--                                   animation-play-state: "running"
--                                   animation-delay: "3.45388s"
-                                  }}
-                                >
-                              ...
-                        ...
-                  ...
-                ...
-
-[00:26:58.596] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:26:58.596] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:26:58.596] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/#sedes color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/#sedes","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.5.0","sv":"0.1.3","ts":1763765517604}
-[00:29:28.352] Browser ERROR   uncaughtError: Error: Failed to load chunk /_next/static/chunks/Escritorio_v0-project-setup-and-plan_app_admin_galeria_page_tsx_a92ddd4c._.js from module [project]/Escritorio/v0-project-setup-and-plan/node_modules/.pnpm/next@16.0.3_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/react-server-dom-turbopack/cjs/react-server-dom-turbopack-client.browser.development.js [app-client] (ecmascript)
-[00:29:35.930] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:29:35.930] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/admin","route":"/admin"}
-[00:29:35.930] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/admin color: rgb(120, 120, 120) color: inherit {"dp":"/admin","o":"http://localhost:3000/admin","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.5.0","sv":"0.1.3","ts":1763765674956}
-[00:29:39.395] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
-[00:29:39.395] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/admin/pagos color: rgb(120, 120, 120) color: inherit {"dp":"/admin/pagos","o":"http://localhost:3000/admin/pagos","sdkn":"@vercel/analytics/next","sdkv":"1.5.0","sv":"0.1.3","ts":1763765678371}
-[00:29:53.616] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/admin color: rgb(120, 120, 120) color: inherit {"dp":"/admin","o":"http://localhost:3000/admin","sdkn":"@vercel/analytics/next","sdkv":"1.5.0","sv":"0.1.3","ts":1763765692614}
+[00:01:19.341] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:01:19.341] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:01:19.341] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.5.0","sv":"0.1.3","ts":1763767257141}
