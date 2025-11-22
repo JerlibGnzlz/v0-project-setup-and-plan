@@ -3,11 +3,12 @@ import { apiClient } from "./client"
 export interface Pastor {
   id: string
   nombre: string
-  email: string
+  apellido: string
+  email?: string
   telefono?: string
-  iglesia?: string
+  sede?: string
   cargo?: string
-  foto?: string
+  fotoUrl?: string
   biografia?: string
   activo: boolean
   createdAt: string

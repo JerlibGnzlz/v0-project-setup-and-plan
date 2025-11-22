@@ -25,17 +25,17 @@ let AuthService = class AuthService {
             data: {
                 email: dto.email,
                 password: hashedPassword,
-                name: dto.name,
-                role: "ADMIN",
+                nombre: dto.name,
+                rol: "ADMIN",
             },
         });
-        const token = this.generateToken(user.id, user.email, user.role);
+        const token = this.generateToken(user.id, user.email, user.rol);
         return {
             user: {
                 id: user.id,
                 email: user.email,
-                name: user.name,
-                role: user.role,
+                name: user.nombre,
+                role: user.rol,
             },
             token,
         };
@@ -51,13 +51,13 @@ let AuthService = class AuthService {
         if (!isPasswordValid) {
             throw new common_1.UnauthorizedException("Credenciales inválidas");
         }
-        const token = this.generateToken(user.id, user.email, user.role);
+        const token = this.generateToken(user.id, user.email, user.rol);
         return {
             user: {
                 id: user.id,
                 email: user.email,
-                name: user.name,
-                role: user.role,
+                name: user.nombre,
+                role: user.rol,
             },
             token,
         };
@@ -69,7 +69,7 @@ let AuthService = class AuthService {
     async validateUser(userId) {
         return this.prisma.user.findUnique({
             where: { id: userId },
-            select: { id: true, email: true, name: true, role: true },
+            select: { id: true, email: true, nombre: true, rol: true },
         });
     }
 };

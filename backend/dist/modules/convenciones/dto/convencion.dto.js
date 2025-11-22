@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateConvencionDto = exports.CreateConvencionDto = void 0;
 const class_validator_1 = require("class-validator");
-const class_transformer_1 = require("class-transformer");
 class CreateConvencionDto {
 }
 exports.CreateConvencionDto = CreateConvencionDto;
@@ -25,19 +24,32 @@ __decorate([
     __metadata("design:type", String)
 ], CreateConvencionDto.prototype, "descripcion", void 0);
 __decorate([
-    (0, class_transformer_1.Type)(() => Date),
-    (0, class_validator_1.IsDate)(),
-    __metadata("design:type", Date)
-], CreateConvencionDto.prototype, "fecha", void 0);
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], CreateConvencionDto.prototype, "fechaInicio", void 0);
+__decorate([
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], CreateConvencionDto.prototype, "fechaFin", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateConvencionDto.prototype, "ubicacion", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateConvencionDto.prototype, "costo", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    __metadata("design:type", Number)
+], CreateConvencionDto.prototype, "cupoMaximo", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateConvencionDto.prototype, "imagen", void 0);
+], CreateConvencionDto.prototype, "imagenUrl", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),
@@ -58,10 +70,14 @@ __decorate([
 ], UpdateConvencionDto.prototype, "descripcion", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => Date),
-    (0, class_validator_1.IsDate)(),
-    __metadata("design:type", Date)
-], UpdateConvencionDto.prototype, "fecha", void 0);
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], UpdateConvencionDto.prototype, "fechaInicio", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], UpdateConvencionDto.prototype, "fechaFin", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
@@ -69,9 +85,19 @@ __decorate([
 ], UpdateConvencionDto.prototype, "ubicacion", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], UpdateConvencionDto.prototype, "costo", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    __metadata("design:type", Number)
+], UpdateConvencionDto.prototype, "cupoMaximo", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], UpdateConvencionDto.prototype, "imagen", void 0);
+], UpdateConvencionDto.prototype, "imagenUrl", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),

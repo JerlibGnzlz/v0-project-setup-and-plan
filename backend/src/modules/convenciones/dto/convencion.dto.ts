@@ -1,53 +1,73 @@
-import { IsString, IsDate, IsBoolean, IsOptional } from "class-validator"
-import { Type } from "class-transformer"
+import { IsString, IsOptional, IsDateString, IsNumber, IsBoolean, IsInt } from 'class-validator';
 
 export class CreateConvencionDto {
   @IsString()
-  titulo: string
+  titulo: string;
 
   @IsOptional()
   @IsString()
-  descripcion?: string
+  descripcion?: string;
 
-  @Type(() => Date)
-  @IsDate()
-  fecha: Date
+  @IsDateString()
+  fechaInicio: string; // ISO 8601 format: "2025-06-15T09:00:00Z"
+
+  @IsDateString()
+  fechaFin: string; // ISO 8601 format: "2025-06-17T18:00:00Z"
 
   @IsString()
-  ubicacion: string
+  ubicacion: string;
+
+  @IsOptional()
+  @IsNumber()
+  costo?: number;
+
+  @IsOptional()
+  @IsInt()
+  cupoMaximo?: number;
 
   @IsOptional()
   @IsString()
-  imagen?: string
+  imagenUrl?: string;
 
   @IsOptional()
   @IsBoolean()
-  activa?: boolean
+  activa?: boolean;
 }
 
 export class UpdateConvencionDto {
   @IsOptional()
   @IsString()
-  titulo?: string
+  titulo?: string;
 
   @IsOptional()
   @IsString()
-  descripcion?: string
+  descripcion?: string;
 
   @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  fecha?: Date
+  @IsDateString()
+  fechaInicio?: string;
+
+  @IsOptional()
+  @IsDateString()
+  fechaFin?: string;
 
   @IsOptional()
   @IsString()
-  ubicacion?: string
+  ubicacion?: string;
+
+  @IsOptional()
+  @IsNumber()
+  costo?: number;
+
+  @IsOptional()
+  @IsInt()
+  cupoMaximo?: number;
 
   @IsOptional()
   @IsString()
-  imagen?: string
+  imagenUrl?: string;
 
   @IsOptional()
   @IsBoolean()
-  activa?: boolean
+  activa?: boolean;
 }

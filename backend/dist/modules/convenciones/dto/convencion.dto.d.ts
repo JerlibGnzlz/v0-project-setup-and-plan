@@ -1,16 +1,22 @@
 export declare class CreateConvencionDto {
     titulo: string;
     descripcion?: string;
-    fecha: Date;
+    fechaInicio: string;
+    fechaFin: string;
     ubicacion: string;
-    imagen?: string;
+    costo?: number;
+    cupoMaximo?: number;
+    imagenUrl?: string;
     activa?: boolean;
 }
 export declare class UpdateConvencionDto {
     titulo?: string;
     descripcion?: string;
-    fecha?: Date;
+    fechaInicio?: string;
+    fechaFin?: string;
     ubicacion?: string;
-    imagen?: string;
+    costo?: number;
+    cupoMaximo?: number;
+    imagenUrl?: string;
     activa?: boolean;
 }

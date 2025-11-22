@@ -18,7 +18,7 @@ let ConvencionesService = class ConvencionesService {
     }
     async findAll() {
         return this.prisma.convencion.findMany({
-            orderBy: { fecha: "desc" },
+            orderBy: { fechaFin: "desc" },
         });
     }
     async findOne(id) {

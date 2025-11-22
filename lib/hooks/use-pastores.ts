@@ -1,5 +1,4 @@
 "use client"
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { pastoresApi, type Pastor } from "@/lib/api/pastores"
 import { toast } from "sonner"

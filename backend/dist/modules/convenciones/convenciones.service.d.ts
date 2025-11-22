@@ -9,13 +9,13 @@ export declare class ConvencionesService {
         updatedAt: Date;
         titulo: string;
         descripcion: string | null;
-        ubicacion: string;
-        activa: boolean;
         fechaInicio: Date;
         fechaFin: Date;
+        ubicacion: string;
         costo: import("@prisma/client/runtime/library").Decimal;
         cupoMaximo: number | null;
         imagenUrl: string | null;
+        activa: boolean;
     }[]>;
     findOne(id: string): Promise<{
         id: string;
@@ -23,13 +23,13 @@ export declare class ConvencionesService {
         updatedAt: Date;
         titulo: string;
         descripcion: string | null;
-        ubicacion: string;
-        activa: boolean;
         fechaInicio: Date;
         fechaFin: Date;
+        ubicacion: string;
         costo: import("@prisma/client/runtime/library").Decimal;
         cupoMaximo: number | null;
         imagenUrl: string | null;
+        activa: boolean;
     }>;
     create(dto: CreateConvencionDto): Promise<{
         id: string;
@@ -37,13 +37,13 @@ export declare class ConvencionesService {
         updatedAt: Date;
         titulo: string;
         descripcion: string | null;
-        ubicacion: string;
-        activa: boolean;
         fechaInicio: Date;
         fechaFin: Date;
+        ubicacion: string;
         costo: import("@prisma/client/runtime/library").Decimal;
         cupoMaximo: number | null;
         imagenUrl: string | null;
+        activa: boolean;
     }>;
     update(id: string, dto: UpdateConvencionDto): Promise<{
         id: string;
@@ -51,13 +51,13 @@ export declare class ConvencionesService {
         updatedAt: Date;
         titulo: string;
         descripcion: string | null;
-        ubicacion: string;
-        activa: boolean;
         fechaInicio: Date;
         fechaFin: Date;
+        ubicacion: string;
         costo: import("@prisma/client/runtime/library").Decimal;
         cupoMaximo: number | null;
         imagenUrl: string | null;
+        activa: boolean;
     }>;
     remove(id: string): Promise<{
         id: string;
@@ -65,12 +65,12 @@ export declare class ConvencionesService {
         updatedAt: Date;
         titulo: string;
         descripcion: string | null;
-        ubicacion: string;
-        activa: boolean;
         fechaInicio: Date;
         fechaFin: Date;
+        ubicacion: string;
         costo: import("@prisma/client/runtime/library").Decimal;
         cupoMaximo: number | null;
         imagenUrl: string | null;
+        activa: boolean;
     }>;
 }
