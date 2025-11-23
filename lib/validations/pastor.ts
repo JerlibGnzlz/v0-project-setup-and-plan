@@ -1,4 +1,3 @@
-
 import { z } from "zod"
 
 export const pastorSchema = z.object({
