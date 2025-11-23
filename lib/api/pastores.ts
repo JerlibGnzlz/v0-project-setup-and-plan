@@ -32,8 +32,15 @@ export const pastoresApi = {
   },
 
   create: async (data: Omit<Pastor, "id" | "createdAt" | "updatedAt">): Promise<Pastor> => {
-    const response = await apiClient.post<Pastor>("/pastores", data)
-    return response.data
+    try {
+      console.log("[v0] Creating pastor with data:", data)
+      const response = await apiClient.post<Pastor>("/pastores", data)
+      console.log("[v0] Pastor created successfully:", response.data)
+      return response.data
+    } catch (error: any) {
+      console.error("[v0] Failed to create pastor:", error.response?.data || error.message)
+      throw error
+    }
   },
 
   update: async (id: string, data: Partial<Pastor>): Promise<Pastor> => {

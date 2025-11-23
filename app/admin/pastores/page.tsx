@@ -66,17 +66,27 @@ export default function PastoresPage() {
 
   const onSubmit = async (data: PastorFormData) => {
     try {
+      console.log("[v0] Submitting pastor form with data:", data)
       if (isEditingPastor && selectedPastor) {
         await updatePastorMutation.mutateAsync({ id: selectedPastor.id, data })
         setIsEditingPastor(false)
         setSelectedPastor(null)
       } else {
         await createPastorMutation.mutateAsync(data)
+        toast({
+          title: "Pastor creado",
+          description: "El pastor se ha agregado exitosamente.",
+        })
         setIsAddingPastor(false)
       }
       reset()
-    } catch (error) {
+    } catch (error: any) {
       console.error("[v0] Error submitting pastor:", error)
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "No se pudo guardar el pastor. Verifica que estés autenticado.",
+        variant: "destructive",
+      })
     }
   }
 
