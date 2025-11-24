@@ -73,8 +73,7 @@ export default function PastoresPage() {
         setSelectedPastor(null)
       } else {
         await createPastorMutation.mutateAsync(data)
-        toast({
-          title: "Pastor creado",
+        toast.success("Pastor creado", {
           description: "El pastor se ha agregado exitosamente.",
         })
         setIsAddingPastor(false)
@@ -82,10 +81,8 @@ export default function PastoresPage() {
       reset()
     } catch (error: any) {
       console.error("[v0] Error submitting pastor:", error)
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error.response?.data?.message || "No se pudo guardar el pastor. Verifica que estés autenticado.",
-        variant: "destructive",
       })
     }
   }

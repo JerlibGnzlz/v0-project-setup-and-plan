@@ -18,6 +18,13 @@ export class ConvencionesService {
     })
   }
 
+  async findActive() {
+    return this.prisma.convencion.findFirst({
+      where: { activa: true },
+      orderBy: { fechaInicio: "desc" },
+    })
+  }
+
   async create(dto: CreateConvencionDto) {
     return this.prisma.convencion.create({
       data: dto,

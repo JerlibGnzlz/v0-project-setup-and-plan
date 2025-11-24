@@ -13,7 +13,7 @@ export const apiClient = axios.create({
 
 // Add auth token to requests
 apiClient.interceptors.request.use((config: any) => {
-  const token = localStorage.getItem("auth_token")
+  const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token")
   console.log("[v0] Making request to:", config.url, "with token:", token ? "Present" : "Missing")
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -32,6 +32,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       console.log("[v0] Unauthorized - redirecting to login")
       localStorage.removeItem("auth_token")
+      sessionStorage.removeItem("auth_token")
       window.location.href = "/admin/login"
     }
     return Promise.reject(error)

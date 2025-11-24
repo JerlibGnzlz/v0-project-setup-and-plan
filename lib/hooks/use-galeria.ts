@@ -1,0 +1,68 @@
+"use client"
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { galeriaApi, type GaleriaImagen } from "@/lib/api/galeria"
+import { toast } from "sonner"
+
+export function useGaleria() {
+  return useQuery({
+    queryKey: ["galeria"],
+    queryFn: galeriaApi.getAll,
+  })
+}
+
+export function useGaleriaImagen(id: string) {
+  return useQuery({
+    queryKey: ["galeria", id],
+    queryFn: () => galeriaApi.getById(id),
+    enabled: !!id,
+  })
+}
+
+export function useCreateGaleriaImagen() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: galeriaApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["galeria"] })
+      toast.success("Imagen agregada exitosamente")
+    },
+    onError: () => {
+      toast.error("Error al agregar la imagen")
+    },
+  })
+}
+
+export function useUpdateGaleriaImagen() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<GaleriaImagen> }) => galeriaApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["galeria"] })
+      toast.success("Imagen actualizada exitosamente")
+    },
+    onError: () => {
+      toast.error("Error al actualizar la imagen")
+    },
+  })
+}
+
+export function useDeleteGaleriaImagen() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: galeriaApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["galeria"] })
+      toast.success("Imagen eliminada exitosamente")
+    },
+    onError: () => {
+      toast.error("Error al eliminar la imagen")
+    },
+  })
+}
+
+
+

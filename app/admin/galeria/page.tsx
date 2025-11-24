@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { useGaleria, useCreateGaleriaImagen, useUpdateGaleriaImagen, useDeleteGaleriaImagen } from '@/lib/hooks/use-galeria'
+import { useForm } from 'react-hook-form'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Tooltip,
   TooltipContent,
@@ -30,39 +33,62 @@ import {
   DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { Upload, Edit, Trash2, ImageIcon, Video, ChevronLeft } from 'lucide-react'
+import { Upload, Edit, Trash2, ImageIcon, ChevronLeft } from 'lucide-react'
 import { ScrollReveal } from '@/components/scroll-reveal'
 
 export default function GaleriaPage() {
   const [isUploadingGallery, setIsUploadingGallery] = useState(false)
+  const [tipoContenido, setTipoContenido] = useState<'imagen' | 'video'>('imagen')
+  const { data: imagenes = [], isLoading } = useGaleria()
+  const createMutation = useCreateGaleriaImagen()
+  const updateMutation = useUpdateGaleriaImagen()
+  const deleteMutation = useDeleteGaleriaImagen()
 
-  const handleUpload = (e: React.FormEvent) => {
+  const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 2000)),
-      {
-        loading: 'Subiendo contenido...',
-        success: () => {
-          setIsUploadingGallery(false)
-          return 'Contenido subido exitosamente'
-        },
-        error: 'Error al subir el contenido',
-      }
-    )
+    const formData = new FormData(e.currentTarget)
+    const imagenUrl = formData.get('imagenUrl') as string
+    const titulo = formData.get('titulo') as string
+    const descripcion = formData.get('descripcion') as string
+
+    if (!imagenUrl || !titulo) {
+      toast.error('Por favor completa todos los campos requeridos')
+      return
+    }
+
+    try {
+      await createMutation.mutateAsync({
+        titulo,
+        descripcion: descripcion || undefined,
+        imagenUrl,
+        activa: true,
+        orden: imagenes.length,
+      })
+      setIsUploadingGallery(false)
+      e.currentTarget.reset()
+    } catch (error) {
+      // Error manejado por el hook
+    }
   }
 
-  const handleDelete = (type: string, index: number) => {
-    if (confirm(`¿Está seguro de eliminar este ${type}?`)) {
-      toast.promise(
-        new Promise((resolve) => setTimeout(resolve, 1000)),
-        {
-          loading: 'Eliminando...',
-          success: `${type} eliminado correctamente`,
-          error: `Error al eliminar el ${type}`,
-        }
-      )
+  const handleDelete = async (id: string) => {
+    if (confirm('¿Está seguro de eliminar esta imagen?')) {
+      try {
+        await deleteMutation.mutateAsync(id)
+      } catch (error) {
+        // Error manejado por el hook
+      }
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    )
   }
 
   return (
@@ -98,33 +124,27 @@ export default function GaleriaPage() {
               </DialogHeader>
               <form className="space-y-4" onSubmit={handleUpload}>
                 <div className="space-y-2">
-                  <Label>Tipo de contenido</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="imagen">Imagen</SelectItem>
-                      <SelectItem value="video">Video (URL de YouTube)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="titulo">Título *</Label>
+                  <Input id="titulo" name="titulo" placeholder="Título de la imagen" required />
                 </div>
-                <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                  <Upload className="size-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    Arrastra archivos aquí o haz clic para seleccionar
+                <div className="space-y-2">
+                  <Label htmlFor="imagenUrl">URL de la Imagen *</Label>
+                  <Input id="imagenUrl" name="imagenUrl" type="url" placeholder="https://..." required />
+                  <p className="text-xs text-muted-foreground">
+                    Ingresa la URL de la imagen (puede ser una URL externa o una ruta relativa)
                   </p>
-                  <Input type="file" className="mt-4" accept="image/*" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="descripcion">Descripción</Label>
-                  <Textarea id="descripcion" placeholder="Descripción del contenido..." />
+                  <Textarea id="descripcion" name="descripcion" placeholder="Descripción del contenido..." />
                 </div>
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setIsUploadingGallery(false)}>
                     Cancelar
                   </Button>
-                  <Button type="submit">Subir</Button>
+                  <Button type="submit" disabled={createMutation.isPending}>
+                    {createMutation.isPending ? 'Subiendo...' : 'Subir'}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -136,7 +156,7 @@ export default function GaleriaPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="size-5" />
-                Imágenes (4 espacios)
+                Imágenes ({imagenes.length})
               </CardTitle>
               <CardDescription>
                 Gestiona las imágenes que aparecen en la galería de la landing page
@@ -144,114 +164,63 @@ export default function GaleriaPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="relative aspect-video rounded-lg border bg-muted/20 group overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <ImageIcon className="size-8 text-muted-foreground" />
-                    </div>
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="secondary"
-                            onClick={() => toast.info('Función de edición en desarrollo')}
-                          >
-                            <Edit className="size-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Editar imagen</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => handleDelete('imagen', i)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Eliminar imagen</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <p className="text-xs text-white bg-black/50 rounded px-2 py-1">
-                        Espacio {i}
-                      </p>
-                    </div>
+                {imagenes.length === 0 ? (
+                  <div className="col-span-full text-center py-8 text-muted-foreground">
+                    No hay imágenes en la galería. Agrega una imagen para comenzar.
                   </div>
-                ))}
+                ) : (
+                  imagenes.map((imagen) => (
+                    <div key={imagen.id} className="relative aspect-video rounded-lg border bg-muted/20 group overflow-hidden">
+                      <img
+                        src={imagen.imagenUrl || "/placeholder.svg"}
+                        alt={imagen.titulo}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="secondary"
+                              onClick={() => toast.info('Función de edición próximamente')}
+                            >
+                              <Edit className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Editar imagen</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => handleDelete(imagen.id)}
+                              disabled={deleteMutation.isPending}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Eliminar imagen</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <div className="absolute bottom-2 left-2 right-2">
+                        <p className="text-xs text-white bg-black/50 rounded px-2 py-1 truncate">
+                          {imagen.titulo}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
         </ScrollReveal>
 
-        <ScrollReveal delay={100}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Video className="size-5" />
-                Videos (2 espacios)
-              </CardTitle>
-              <CardDescription>
-                Gestiona los videos embebidos (YouTube) que aparecen en la galería
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1, 2].map((i) => (
-                  <div key={i} className="relative aspect-video rounded-lg border bg-muted/20 group overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Video className="size-8 text-muted-foreground" />
-                    </div>
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="secondary"
-                            onClick={() => toast.info('Función de edición en desarrollo')}
-                          >
-                            <Edit className="size-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Editar video</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => handleDelete('video', i)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Eliminar video</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <p className="text-xs text-white bg-black/50 rounded px-2 py-1">
-                        Video {i}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </ScrollReveal>
       </div>
     </TooltipProvider>
   )

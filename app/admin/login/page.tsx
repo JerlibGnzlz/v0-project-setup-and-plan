@@ -3,32 +3,56 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth'
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Chrome, Mail, Lock, AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useAuth } from '@/lib/hooks/use-auth'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function AdminLogin() {
+  const { login, isAuthenticated } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/admin')
+    }
+  }, [isAuthenticated, router])
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    watch,
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginSchema) as any,
+    defaultValues: {
+      rememberMe: false,
+    },
   })
 
+  const rememberMe = watch('rememberMe')
+
   const handleGoogleLogin = () => {
-    // TODO: Implement Google OAuth
-    window.location.href = '/admin'
+    toast.info('Login con Google próximamente disponible')
   }
 
   const onSubmit = async (data: LoginFormData) => {
-    // TODO: Implement email/password authentication
-    console.log('Login data:', data)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    window.location.href = '/admin'
+    try {
+      await login(data)
+      toast.success('Sesión iniciada correctamente')
+      router.push('/admin')
+    } catch (error: any) {
+      toast.error('Error al iniciar sesión', {
+        description: error.response?.data?.message || 'Credenciales inválidas'
+      })
+    }
   }
 
   return (
@@ -104,14 +128,34 @@ export default function AdminLogin() {
               )}
             </div>
 
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                {...register('rememberMe')}
+                className="rounded border-gray-300"
+              />
+              <Label htmlFor="rememberMe" className="text-sm font-normal cursor-pointer">
+                Recordar sesión
+              </Label>
+            </div>
+
             <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
               {isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </Button>
           </form>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Acceso restringido solo para administradores autorizados
-          </p>
+          <div className="text-center">
+            <Link
+              href="/admin/forgot-password"
+              className="text-xs text-primary hover:underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+            <p className="text-xs text-muted-foreground mt-2">
+              Acceso restringido solo para administradores autorizados
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

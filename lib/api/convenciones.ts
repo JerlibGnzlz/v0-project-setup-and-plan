@@ -2,12 +2,15 @@ import { apiClient } from "./client"
 
 export interface Convencion {
   id: string
-  nombre: string
-  fecha: string
+  titulo: string
+  descripcion?: string
+  fechaInicio: string
+  fechaFin: string
   ubicacion: string
-  descripcion: string
-  imagen?: string
-  activo: boolean
+  costo?: number
+  cupoMaximo?: number
+  imagenUrl?: string
+  activa: boolean
   createdAt: string
   updatedAt: string
 }
@@ -24,8 +27,15 @@ export const convencionesApi = {
   },
 
   getActive: async (): Promise<Convencion | null> => {
-    const response = await apiClient.get<Convencion>("/convenciones/active")
-    return response.data
+    try {
+      const response = await apiClient.get<Convencion>("/convenciones/active")
+      return response.data
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return null
+      }
+      throw error
+    }
   },
 
   create: async (data: Omit<Convencion, "id" | "createdAt" | "updatedAt">): Promise<Convencion> => {

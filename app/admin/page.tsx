@@ -22,29 +22,43 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { convencionSchema, type ConvencionFormData } from '@/lib/validations/convencion'
-
-const stats = {
-  totalInscritos: 5,
-  pagosConfirmados: 1,
-  pagosParciales: 2,
-  pagosPendientes: 2,
-  totalRecaudado: 35000,
-  registrosManual: 2,
-  registrosMobile: 3,
-}
+import { useConvencionActiva, useUpdateConvencion } from '@/lib/hooks/use-convencion'
+import { usePagos } from '@/lib/hooks/use-pagos'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function AdminDashboard() {
-  const [convencion, setConvencion] = useState({
-    nombre: 'Convención Nacional Argentina 2025',
-    fecha: '2025-03-15',
-    lugar: 'Buenos Aires, Argentina',
-    monto: 15000,
-    cuotas: 3,
-  })
+  const { data: convencionActiva, isLoading: loadingConvencion } = useConvencionActiva()
+  const { data: pagos = [], isLoading: loadingPagos } = usePagos()
+  const updateConvencionMutation = useUpdateConvencion()
   
-  const [convencionActiva, setConvencionActiva] = useState(true)
-  const [mostrarEnLanding, setMostrarEnLanding] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+
+  // Calcular estadísticas desde los datos reales
+  const stats = {
+    totalInscritos: pagos.length,
+    pagosConfirmados: pagos.filter((p: any) => p.estado === 'COMPLETADO').length,
+    pagosParciales: 0, // Se puede calcular basado en monto parcial
+    pagosPendientes: pagos.filter((p: any) => p.estado === 'PENDIENTE').length,
+    totalRecaudado: pagos
+      .filter((p: any) => p.estado === 'COMPLETADO')
+      .reduce((sum: number, p: any) => sum + (typeof p.monto === 'number' ? p.monto : parseFloat(p.monto || 0)), 0),
+    registrosManual: 0, // No disponible en el modelo actual
+    registrosMobile: 0, // No disponible en el modelo actual
+  }
+
+  const convencion = convencionActiva ? {
+    nombre: convencionActiva.titulo || '',
+    fecha: convencionActiva.fechaInicio ? convencionActiva.fechaInicio.split('T')[0] : '',
+    lugar: convencionActiva.ubicacion || '',
+    monto: convencionActiva.costo ? Number(convencionActiva.costo) : 0,
+    cuotas: 3, // Por defecto
+  } : {
+    nombre: '',
+    fecha: '',
+    lugar: '',
+    monto: 0,
+    cuotas: 3,
+  }
 
   const {
     register,
@@ -57,46 +71,85 @@ export default function AdminDashboard() {
   })
 
   const onSubmit = async (data: ConvencionFormData) => {
+    if (!convencionActiva) {
+      toast.error('No hay convención activa para actualizar')
+      return
+    }
+
     try {
-      // TODO: Aquí conectarás con el backend
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Convertir el formato del formulario al formato del backend
+      const fechaInicio = new Date(data.fecha)
+      const fechaFin = new Date(data.fecha)
+      fechaFin.setDate(fechaFin.getDate() + 2) // Asumir 3 días de duración
+
+      await updateConvencionMutation.mutateAsync({
+        id: convencionActiva.id,
+        data: {
+          titulo: data.nombre,
+          ubicacion: data.lugar,
+          costo: data.monto,
+          fechaInicio: fechaInicio.toISOString(),
+          fechaFin: fechaFin.toISOString(),
+        }
+      })
       
-      setConvencion(data)
-      toast.success('Convención actualizada', {
-        description: 'Los cambios se reflejarán en la landing page'
-      })
       setDialogOpen(false)
-    } catch (error) {
+    } catch (error: any) {
       toast.error('Error al actualizar', {
-        description: 'No se pudieron guardar los cambios'
+        description: error.response?.data?.message || 'No se pudieron guardar los cambios'
       })
     }
   }
 
-  const handleConvencionToggle = (checked: boolean) => {
-    setConvencionActiva(checked)
-    if (checked) {
-      toast.success('Convención activada', {
-        description: 'Las inscripciones están ahora abiertas'
+  const handleConvencionToggle = async (checked: boolean) => {
+    if (!convencionActiva) {
+      toast.error('No hay convención para activar/desactivar')
+      return
+    }
+
+    try {
+      await updateConvencionMutation.mutateAsync({
+        id: convencionActiva.id,
+        data: { activa: checked }
       })
-    } else {
-      toast.warning('Convención desactivada', {
-        description: 'Las inscripciones están cerradas'
+    } catch (error: any) {
+      toast.error('Error al actualizar el estado', {
+        description: error.response?.data?.message || 'No se pudo cambiar el estado'
       })
     }
   }
 
-  const handleVisibilidadToggle = (checked: boolean) => {
-    setMostrarEnLanding(checked)
-    if (checked) {
-      toast.success('Convención visible', {
-        description: 'La convención y cuenta regresiva se mostrarán en la landing'
-      })
-    } else {
-      toast.info('Convención oculta', {
-        description: 'La convención no se mostrará en la landing'
-      })
+  const handleVisibilidadToggle = async (checked: boolean) => {
+    if (!convencionActiva) {
+      toast.error('No hay convención para mostrar/ocultar')
+      return
     }
+
+    // Por ahora, activa/desactiva es lo mismo que mostrar/ocultar
+    await handleConvencionToggle(checked)
+  }
+
+  if (loadingConvencion || loadingPagos) {
+    return (
+      <div className="space-y-8">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    )
+  }
+
+  if (!convencionActiva) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Panel Administrativo</h1>
+          <p className="text-muted-foreground mt-2">
+            No hay convención activa. Crea una convención para comenzar.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -104,10 +157,10 @@ export default function AdminDashboard() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Panel Administrativo</h1>
         <p className="text-muted-foreground mt-2">
-          {convencion.nombre}
+          {convencionActiva?.titulo || 'Sin convención activa'}
         </p>
         <p className="text-sm text-muted-foreground">
-          {convencion.lugar} • {new Date(convencion.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+          {convencionActiva?.ubicacion || ''} • {convencionActiva?.fechaInicio ? new Date(convencionActiva.fechaInicio).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
         </p>
       </div>
 
@@ -228,26 +281,26 @@ export default function AdminDashboard() {
             <div className="p-4 bg-muted/30 rounded-lg space-y-2 border">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Nombre:</span>
-                <span className="text-sm text-muted-foreground">{convencion.nombre}</span>
+                <span className="text-sm text-muted-foreground">{convencionActiva?.titulo || '-'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Fecha:</span>
                 <span className="text-sm text-muted-foreground">
-                  {new Date(convencion.fecha).toLocaleDateString('es-ES', { 
+                  {convencionActiva?.fechaInicio ? new Date(convencionActiva.fechaInicio).toLocaleDateString('es-ES', { 
                     day: 'numeric', 
                     month: 'long', 
                     year: 'numeric' 
-                  })}
+                  }) : '-'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Lugar:</span>
-                <span className="text-sm text-muted-foreground">{convencion.lugar}</span>
+                <span className="text-sm text-muted-foreground">{convencionActiva?.ubicacion || '-'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Monto:</span>
                 <span className="text-sm text-muted-foreground">
-                  ${convencion.monto.toLocaleString('es-AR')} en {convencion.cuotas} cuota{convencion.cuotas > 1 ? 's' : ''}
+                  ${convencionActiva?.costo ? Number(convencionActiva.costo).toLocaleString('es-AR') : '0'} en {convencion.cuotas} cuota{convencion.cuotas > 1 ? 's' : ''}
                 </span>
               </div>
             </div>
@@ -258,13 +311,14 @@ export default function AdminDashboard() {
                   Estado de Inscripciones
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {convencionActiva ? 'Las inscripciones están abiertas' : 'Las inscripciones están cerradas'}
+                  {convencionActiva?.activa ? 'Las inscripciones están abiertas' : 'Las inscripciones están cerradas'}
                 </p>
               </div>
               <Switch
                 id="convencion-activa"
-                checked={convencionActiva}
+                checked={convencionActiva?.activa || false}
                 onCheckedChange={handleConvencionToggle}
+                disabled={updateConvencionMutation.isPending}
               />
             </div>
 
@@ -274,13 +328,14 @@ export default function AdminDashboard() {
                   Visibilidad en Landing
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {mostrarEnLanding ? 'La convención y cuenta regresiva son visibles' : 'La convención está oculta del público'}
+                  {convencionActiva?.activa ? 'La convención y cuenta regresiva son visibles' : 'La convención está oculta del público'}
                 </p>
               </div>
               <Switch
                 id="mostrar-landing"
-                checked={mostrarEnLanding}
+                checked={convencionActiva?.activa || false}
                 onCheckedChange={handleVisibilidadToggle}
+                disabled={updateConvencionMutation.isPending}
               />
             </div>
 
@@ -290,11 +345,11 @@ export default function AdminDashboard() {
                 <p className="font-semibold text-sm mb-1">Cuenta Regresiva Activa</p>
                 <p className="text-sm text-muted-foreground">
                   La cuenta regresiva se mostrará automáticamente cuando la convención esté visible en la landing page.
-                  Fecha objetivo: {new Date(convencion.fecha).toLocaleDateString('es-ES', { 
+                  Fecha objetivo: {convencionActiva?.fechaInicio ? new Date(convencionActiva.fechaInicio).toLocaleDateString('es-ES', { 
                     day: 'numeric', 
                     month: 'long', 
                     year: 'numeric' 
-                  })}
+                  }) : '-'}
                 </p>
               </div>
             </div>

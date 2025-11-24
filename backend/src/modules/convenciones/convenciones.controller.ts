@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Delete, UseGuards } from "@nestjs/common"
+import { Controller, Get, Post, Body, Patch, Delete, UseGuards, Param } from "@nestjs/common"
 import { ConvencionesService } from "./convenciones.service"
 import { CreateConvencionDto, UpdateConvencionDto } from "./dto/convencion.dto"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
@@ -12,8 +12,13 @@ export class ConvencionesController {
     return this.convencionesService.findAll()
   }
 
+  @Get("active")
+  findActive() {
+    return this.convencionesService.findActive()
+  }
+
   @Get(":id")
-  findOne(id: string) {
+  findOne(@Param("id") id: string) {
     return this.convencionesService.findOne(id)
   }
 

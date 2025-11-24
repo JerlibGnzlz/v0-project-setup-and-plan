@@ -1,8 +1,10 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common"
+import { Injectable, UnauthorizedException, BadRequestException, NotFoundException } from "@nestjs/common"
 import { JwtService } from "@nestjs/jwt"
 import { PrismaService } from "../../prisma/prisma.service"
 import * as bcrypt from "bcrypt"
+import { randomBytes } from "crypto"
 import { LoginDto, RegisterDto } from "./dto/auth.dto"
+import { RequestPasswordResetDto, ResetPasswordDto } from "./dto/password-reset.dto"
 
 @Injectable()
 export class AuthService {
@@ -26,41 +28,51 @@ export class AuthService {
     const token = this.generateToken(user.id, user.email, user.rol)
 
     return {
+      access_token: token,
       user: {
         id: user.id,
         email: user.email,
-        name: user.nombre,
-        role: user.rol,
+        nombre: user.nombre,
+        rol: user.rol,
       },
-      token,
     }
   }
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    })
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      })
 
-    if (!user) {
-      throw new UnauthorizedException("Credenciales inválidas")
-    }
+      if (!user) {
+        throw new UnauthorizedException("Credenciales inválidas")
+      }
 
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password)
+      const isPasswordValid = await bcrypt.compare(dto.password, user.password)
 
-    if (!isPasswordValid) {
-      throw new UnauthorizedException("Credenciales inválidas")
-    }
+      if (!isPasswordValid) {
+        throw new UnauthorizedException("Credenciales inválidas")
+      }
 
-    const token = this.generateToken(user.id, user.email, user.rol)
+      const token = this.generateToken(user.id, user.email, user.rol)
 
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.nombre,
-        role: user.rol,
-      },
-      token,
+      return {
+        access_token: token,
+        user: {
+          id: user.id,
+          email: user.email,
+          nombre: user.nombre,
+          rol: user.rol,
+        },
+      }
+    } catch (error) {
+      // Si ya es una excepción de NestJS, la relanzamos
+      if (error instanceof UnauthorizedException) {
+        throw error
+      }
+      // Para otros errores, los logueamos y lanzamos una excepción genérica
+      console.error("Error en login:", error)
+      throw new UnauthorizedException("Error al procesar el login")
     }
   }
 
@@ -74,5 +86,129 @@ export class AuthService {
       where: { id: userId },
       select: { id: true, email: true, nombre: true, rol: true },
     })
+  }
+
+  async requestPasswordReset(dto: RequestPasswordResetDto) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      })
+
+      // Por seguridad, no revelamos si el email existe o no
+      if (!user) {
+        // Simulamos el mismo tiempo de respuesta
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        return {
+          message: "Si el email existe, se enviará un enlace de recuperación",
+        }
+      }
+
+      // Generar token único
+      const token = randomBytes(32).toString("hex")
+      const expiresAt = new Date()
+      expiresAt.setHours(expiresAt.getHours() + 1) // Expira en 1 hora
+
+      // Eliminar tokens anteriores no usados
+      await (this.prisma as any).passwordResetToken.deleteMany({
+        where: {
+          userId: user.id,
+          used: false,
+        },
+      })
+
+      // Crear nuevo token
+      await (this.prisma as any).passwordResetToken.create({
+        data: {
+          userId: user.id,
+          token,
+          expiresAt,
+        },
+      })
+
+      // En producción, aquí enviarías un email
+      // Por ahora, logueamos el token para desarrollo
+      const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/admin/reset-password?token=${token}`
+      console.log(`🔐 Password Reset Link for ${user.email}: ${resetUrl}`)
+
+      // TODO: Implementar envío de email real
+      // await this.emailService.sendPasswordResetEmail(user.email, resetUrl)
+
+      return {
+        message: "Si el email existe, se enviará un enlace de recuperación",
+        // En desarrollo, retornamos el token (eliminar en producción)
+        ...(process.env.NODE_ENV === "development" && { token, resetUrl }),
+      }
+    } catch (error) {
+      console.error("Error en requestPasswordReset:", error)
+      // Por seguridad, no revelamos el error específico
+      return {
+        message: "Si el email existe, se enviará un enlace de recuperación",
+      }
+    }
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const resetToken = await (this.prisma as any).passwordResetToken.findUnique({
+      where: { token: dto.token },
+      include: { user: true },
+    })
+
+    if (!resetToken) {
+      throw new BadRequestException("Token inválido o expirado")
+    }
+
+    if (resetToken.used) {
+      throw new BadRequestException("Este token ya fue utilizado")
+    }
+
+    if (new Date() > resetToken.expiresAt) {
+      throw new BadRequestException("Token expirado")
+    }
+
+    // Hashear nueva contraseña
+    const hashedPassword = await bcrypt.hash(dto.password, 10)
+
+    // Actualizar contraseña y marcar token como usado
+    await this.prisma.$transaction([
+      (this.prisma as any).user.update({
+        where: { id: resetToken.userId },
+        data: { password: hashedPassword },
+      }),
+      (this.prisma as any).passwordResetToken.update({
+        where: { id: resetToken.id },
+        data: { used: true },
+      }),
+    ])
+
+    return {
+      message: "Contraseña actualizada exitosamente",
+    }
+  }
+
+  async changePassword(userId: string, oldPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    })
+
+    if (!user) {
+      throw new NotFoundException("Usuario no encontrado")
+    }
+
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.password)
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException("Contraseña actual incorrecta")
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+    await (this.prisma as any).user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    })
+
+    return {
+      message: "Contraseña actualizada exitosamente",
+    }
   }
 }
