@@ -3,27 +3,27 @@
 ## Pasos para verificar que funciona:
 
 ### 1. Verificar que el backend esté corriendo
-```bash
+\`\`\`bash
 cd backend
 npm run start:dev
-```
+\`\`\`
 
 El backend debe estar en `http://localhost:4000/api`
 
 ### 2. Verificar que la tabla existe
-```bash
+\`\`\`bash
 cd backend
 npx prisma studio
-```
+\`\`\`
 
 Abre Prisma Studio y verifica que existe la tabla `password_reset_tokens`
 
 ### 3. Probar el endpoint manualmente
-```bash
+\`\`\`bash
 curl -X POST http://localhost:4000/api/auth/forgot-password \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@ministerio-amva.org"}'
-```
+\`\`\`
 
 ### 4. Verificar en el frontend
 1. Ve a `http://localhost:3000/admin/forgot-password`
@@ -48,6 +48,3 @@ curl -X POST http://localhost:4000/api/auth/forgot-password \
 - **Backend console**: Deberías ver `🔐 Password Reset Link for...`
 - **Frontend console**: Deberías ver el `resetUrl` en el toast
 - **Network tab**: Verifica que la petición a `/auth/forgot-password` sea exitosa (200)
-
-
-

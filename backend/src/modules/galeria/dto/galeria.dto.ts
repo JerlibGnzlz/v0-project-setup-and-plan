@@ -57,6 +57,3 @@ export class UpdateGaleriaDto {
     @IsBoolean()
     activa?: boolean;
 }
-
-
-

@@ -10,6 +10,3 @@ import { PrismaModule } from "../../prisma/prisma.module"
   exports: [InscripcionesService],
 })
 export class InscripcionesModule {}
-
-
-

@@ -35,6 +35,3 @@ export class GaleriaController {
         return this.galeriaService.remove(id)
     }
 }
-
-
-
