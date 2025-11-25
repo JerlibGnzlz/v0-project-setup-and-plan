@@ -7,12 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Lock, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react'
+import { Lock, ArrowLeft, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import Link from 'next/link'
 import { authApi } from '@/lib/api/auth'
 import { toast } from 'sonner'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 const resetPasswordSchema = z.object({
@@ -25,7 +25,21 @@ const resetPasswordSchema = z.object({
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
 
-export default function ResetPasswordPage() {
+// Loading fallback component
+function ResetPasswordLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-accent/10 to-secondary/10 p-4">
+      <Card className="w-full max-w-md">
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Main content component that uses useSearchParams
+function ResetPasswordContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
@@ -63,7 +77,7 @@ export default function ResetPasswordPage() {
       toast.success('Contraseña restablecida', {
         description: 'Tu contraseña ha sido actualizada exitosamente',
       })
-      
+
       // Redirigir al login después de 2 segundos
       setTimeout(() => {
         router.push('/admin/login')
@@ -200,7 +214,11 @@ export default function ResetPasswordPage() {
   )
 }
 
-
-
-
-
+// Page component with Suspense boundary
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<ResetPasswordLoading />}>
+      <ResetPasswordContent />
+    </Suspense>
+  )
+}
