@@ -3,6 +3,7 @@
 import { NestFactory } from "@nestjs/core"
 import { ValidationPipe } from "@nestjs/common"
 import { AppModule } from "./app.module"
+import { configureCloudinary } from "./modules/upload/cloudinary.config"
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
@@ -16,6 +17,8 @@ async function bootstrap() {
       transform: true,
     }),
   )
+
+  configureCloudinary()
 
   app.enableCors({
     origin: ["http://localhost:3000", "https://v0-ministerio-amva.vercel.app", process.env.FRONTEND_URL].filter(

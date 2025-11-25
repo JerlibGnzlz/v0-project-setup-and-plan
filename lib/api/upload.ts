@@ -1,0 +1,35 @@
+import apiClient from "./client"
+
+export interface UploadResponse {
+  success: boolean
+  url: string
+  publicId: string
+}
+
+export const uploadApi = {
+  // Upload image for pastor profile
+  uploadPastorImage: async (file: File): Promise<UploadResponse> => {
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const response = await apiClient.post<UploadResponse>("/upload/image", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+    return response.data
+  },
+
+  // Upload image for gallery
+  uploadGaleriaImage: async (file: File): Promise<UploadResponse> => {
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const response = await apiClient.post<UploadResponse>("/upload/galeria", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+    return response.data
+  },
+}
