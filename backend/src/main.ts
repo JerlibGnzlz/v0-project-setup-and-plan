@@ -27,11 +27,31 @@ async function bootstrap() {
 
   configureCloudinary()
 
+  // CORS configuration for production
+  const allowedOrigins = [
+    "http://localhost:3000",
+    process.env.FRONTEND_URL,
+  ].filter(Boolean) as string[]
+
   app.enableCors({
-    origin: ["http://localhost:3000", "https://v0-ministerio-amva.vercel.app", process.env.FRONTEND_URL].filter(
-      Boolean,
-    ),
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true)
+
+      if (allowedOrigins.some(allowed => origin.startsWith(allowed) || allowed.includes(origin))) {
+        return callback(null, true)
+      }
+
+      // In development, allow all origins
+      if (process.env.NODE_ENV !== 'production') {
+        return callback(null, true)
+      }
+
+      callback(new Error('Not allowed by CORS'))
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 
   const port = process.env.PORT || 4000

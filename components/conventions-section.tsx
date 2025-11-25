@@ -106,7 +106,7 @@ export function ConventionsSection() {
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
             Próxima{' '}
-            <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
               Convención
             </span>
           </h2>

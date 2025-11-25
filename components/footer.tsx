@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Facebook, Instagram, Mail, Phone, MapPin, Heart, ArrowUp } from 'lucide-react'
+import { Facebook, Instagram, Mail, Phone, MapPin, Heart } from 'lucide-react'
 
 const quickLinks = [
   { href: '#inicio', label: 'Inicio' },
@@ -14,22 +14,18 @@ const quickLinks = [
 ]
 
 const socialLinks = [
-  { icon: Facebook, href: '#', label: 'Facebook', color: 'hover:bg-blue-500' },
-  { icon: Instagram, href: '#', label: 'Instagram', color: 'hover:bg-pink-500' },
+  { icon: Facebook, href: '#', label: 'Facebook', color: 'hover:bg-sky-500' },
+  { icon: Instagram, href: '#', label: 'Instagram', color: 'hover:bg-amber-500' },
 ]
 
 export function Footer() {
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
   return (
     <footer className="relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-[#060d17]">
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute bottom-0 left-1/4 w-[400px] h-[200px] bg-blue-500/20 rounded-full blur-[100px]" />
-          <div className="absolute bottom-0 right-1/4 w-[400px] h-[200px] bg-purple-500/20 rounded-full blur-[100px]" />
+          <div className="absolute bottom-0 left-1/4 w-[400px] h-[200px] bg-sky-500/20 rounded-full blur-[100px]" />
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[200px] bg-emerald-500/20 rounded-full blur-[100px]" />
         </div>
       </div>
 
@@ -77,7 +73,7 @@ export function Footer() {
             {/* Quick Links */}
             <div>
               <h3 className="text-white font-semibold text-lg mb-6 flex items-center gap-2">
-                <div className="w-1 h-6 bg-gradient-to-b from-blue-500 to-cyan-500 rounded-full" />
+                <div className="w-1 h-6 bg-gradient-to-b from-sky-500 to-blue-500 rounded-full" />
                 Enlaces Rápidos
               </h3>
               <ul className="space-y-3">
@@ -87,7 +83,7 @@ export function Footer() {
                       href={link.href}
                       className="text-white/60 hover:text-white transition-colors duration-300 text-sm flex items-center gap-2 group"
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-white/30 group-hover:bg-blue-400 transition-colors duration-300" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-white/30 group-hover:bg-sky-400 transition-colors duration-300" />
                       {link.label}
                     </Link>
                   </li>
@@ -108,7 +104,7 @@ export function Footer() {
                     className="flex items-center gap-3 text-white/60 hover:text-white transition-colors duration-300 text-sm"
                   >
                     <div className="p-2 rounded-lg bg-white/5">
-                      <Mail className="w-4 h-4 text-blue-400" />
+                      <Mail className="w-4 h-4 text-sky-400" />
                     </div>
                     info@vidaabundante.org
                   </a>
@@ -136,7 +132,7 @@ export function Footer() {
             {/* Newsletter / CTA */}
             <div>
               <h3 className="text-white font-semibold text-lg mb-6 flex items-center gap-2">
-                <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full" />
+                <div className="w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-500 rounded-full" />
                 Mantente Conectado
               </h3>
               <p className="text-white/60 text-sm mb-4 leading-relaxed">
@@ -144,7 +140,7 @@ export function Footer() {
               </p>
               <Link
                 href="#inscripcion"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300 hover:scale-105"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium hover:shadow-lg hover:shadow-amber-500/25 transition-all duration-300 hover:scale-105"
               >
                 Inscríbete
               </Link>
@@ -155,20 +151,11 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-white/10">
           <div className="container mx-auto px-4 py-6">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex justify-center items-center">
               <p className="text-white/50 text-sm flex items-center gap-1">
                 &copy; {new Date().getFullYear()} Asociación Misionera Vida Abundante. Hecho con{' '}
                 <Heart className="w-4 h-4 text-red-500 fill-red-500" /> para el Reino.
               </p>
-              <button
-                onClick={scrollToTop}
-                className="flex items-center gap-2 text-white/50 hover:text-white text-sm transition-colors duration-300 group"
-              >
-                Volver arriba
-                <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors duration-300">
-                  <ArrowUp className="w-4 h-4" />
-                </div>
-              </button>
             </div>
           </div>
         </div>

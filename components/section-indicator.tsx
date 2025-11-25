@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 const sections = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'sedes', label: 'Sedes' },
-  { id: 'mision', label: 'Misión' },
+  { id: 'nosotros', label: 'Nosotros' },
   { id: 'directiva', label: 'Directiva' },
   { id: 'pastores', label: 'Pastores' },
   { id: 'galeria', label: 'Galería' },
@@ -51,7 +51,7 @@ export function SectionIndicator() {
             aria-label={`Go to ${section.label}`}
           >
             <span
-              className={`text-xs font-medium transition-all duration-300 ${
+              className={`text-xs font-medium text-white transition-all duration-300 ${
                 activeSection === section.id
                   ? 'opacity-100 translate-x-0'
                   : 'opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
@@ -62,8 +62,8 @@ export function SectionIndicator() {
             <div
               className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${
                 activeSection === section.id
-                  ? 'bg-primary border-primary scale-125'
-                  : 'bg-transparent border-muted-foreground/30 hover:border-primary hover:scale-110'
+                  ? 'bg-emerald-500 border-emerald-500 scale-125 shadow-lg shadow-emerald-500/50'
+                  : 'bg-transparent border-white/30 hover:border-emerald-400 hover:scale-110'
               }`}
             />
           </button>

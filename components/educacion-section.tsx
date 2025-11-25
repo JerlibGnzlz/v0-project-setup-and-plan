@@ -8,7 +8,8 @@ const programs = [
     title: 'Instituto Bíblico AMVA',
     subtitle: 'Formación teológica integral para el ministerio',
     icon: GraduationCap,
-    gradient: 'from-blue-500 to-cyan-500',
+    gradient: 'from-sky-400 to-blue-500',
+    image: '/biblico.png',
     description: 'El Instituto Bíblico AMVA ofrece una formación teológica sólida y práctica, diseñada para equipar a pastores, líderes y obreros cristianos con las herramientas necesarias para un ministerio efectivo y transformador.',
     areas: [
       'Teología Sistemática y Bíblica',
@@ -28,6 +29,7 @@ const programs = [
     subtitle: 'Formación especializada en cuidado pastoral y capellanía',
     icon: Users,
     gradient: 'from-emerald-500 to-teal-500',
+    image: '/capellania.png',
     description: 'La Escuela de Capellanía prepara a líderes cristianos para ejercer el ministerio de capellanía en diversos contextos: hospitales, cárceles, fuerzas armadas, empresas, instituciones educativas y comunidades en situación de crisis.',
     areas: [
       'Capellanía Hospitalaria y de Salud',
@@ -75,7 +77,7 @@ export function EducacionSection() {
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
             Educación{' '}
-            <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
               Ministerial
             </span>
           </h2>
@@ -94,19 +96,25 @@ export function EducacionSection() {
                 <div className={`absolute -inset-1 bg-gradient-to-r ${program.gradient} rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500`} />
                 
                 <div className="relative h-full rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300">
-                  {/* Header gradient */}
-                  <div className={`h-1 bg-gradient-to-r ${program.gradient}`} />
+                  {/* Program Image */}
+                  <div className="relative h-48 sm:h-56 overflow-hidden bg-white/5 flex items-center justify-center p-4">
+                    <img
+                      src={program.image}
+                      alt={program.title}
+                      className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className={`absolute inset-0 bg-gradient-to-t from-[#0d1f35] via-transparent to-transparent opacity-70`} />
+                    {/* Icon badge */}
+                    <div className={`absolute bottom-4 left-6 p-3 rounded-xl bg-gradient-to-r ${program.gradient} shadow-lg`}>
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
                   
                   <div className="p-6 sm:p-8">
                     {/* Title */}
-                    <div className="flex items-start gap-4 mb-6">
-                      <div className={`p-3 rounded-xl bg-gradient-to-r ${program.gradient} flex-shrink-0`}>
-                        <Icon className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl sm:text-2xl font-bold text-white">{program.title}</h3>
-                        <p className="text-white/60 text-sm mt-1">{program.subtitle}</p>
-                      </div>
+                    <div className="mb-6">
+                      <h3 className="text-xl sm:text-2xl font-bold text-white">{program.title}</h3>
+                      <p className="text-white/60 text-sm mt-1">{program.subtitle}</p>
                     </div>
 
                     {/* Description */}
@@ -149,7 +157,7 @@ export function EducacionSection() {
         {/* Contact Card */}
         <div className="max-w-3xl mx-auto">
           <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
             <div className="relative rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6 sm:p-8 text-center">
               <h3 className="text-xl sm:text-2xl font-bold text-white mb-4">
                 Información e Inscripciones
@@ -162,7 +170,7 @@ export function EducacionSection() {
                   href="mailto:educacion@vidaabundante.org"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all duration-300"
                 >
-                  <Mail className="w-4 h-4 text-blue-400" />
+                  <Mail className="w-4 h-4 text-sky-400" />
                   educacion@vidaabundante.org
                 </a>
                 <a
@@ -180,7 +188,7 @@ export function EducacionSection() {
 
       {/* Decorative */}
       <div className="absolute top-20 left-8 w-32 h-px bg-gradient-to-r from-emerald-500/50 to-transparent" />
-      <div className="absolute bottom-20 right-8 w-32 h-px bg-gradient-to-l from-blue-500/50 to-transparent" />
+      <div className="absolute bottom-20 right-8 w-32 h-px bg-gradient-to-l from-amber-500/50 to-transparent" />
     </section>
   )
 }

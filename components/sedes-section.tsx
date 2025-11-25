@@ -105,7 +105,7 @@ export function SedesSection() {
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
             Nuestras{' '}
-            <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
               Sedes
             </span>
           </h2>
@@ -189,7 +189,7 @@ export function SedesSection() {
                 onClick={() => goToSlide(index)}
                 className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
                   index === currentIndex
-                    ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg shadow-emerald-500/25'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
                     : 'bg-white/5 text-white/70 hover:bg-white/10 border border-white/10'
                 }`}
               >
@@ -203,7 +203,7 @@ export function SedesSection() {
 
       {/* Decorative elements */}
       <div className="absolute top-20 left-8 w-32 h-px bg-gradient-to-r from-emerald-500/50 to-transparent" />
-      <div className="absolute bottom-20 right-8 w-32 h-px bg-gradient-to-l from-cyan-500/50 to-transparent" />
+      <div className="absolute bottom-20 right-8 w-32 h-px bg-gradient-to-l from-amber-500/50 to-transparent" />
     </section>
   )
 }

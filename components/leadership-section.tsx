@@ -20,7 +20,7 @@ const leaders = [
     image: '/hispanic-pastor-portrait-professional.jpg',
     email: 'juan.rodriguez@vidaabundante.org',
     country: 'Colombia',
-    gradient: 'from-blue-500 to-cyan-500',
+    gradient: 'from-sky-400 to-blue-500',
     journey: [
       { year: '2005', milestone: 'Ordenación como pastor en Bogotá' },
       { year: '2010', milestone: 'Director de Misiones Regionales' },
@@ -35,7 +35,7 @@ const leaders = [
     image: '/hispanic-female-pastor-portrait-professional.jpg',
     email: 'maria.gonzalez@vidaabundante.org',
     country: 'España',
-    gradient: 'from-purple-500 to-pink-500',
+    gradient: 'from-emerald-400 to-teal-500',
     journey: [
       { year: '2008', milestone: 'Licenciada en Teología, Madrid' },
       { year: '2012', milestone: 'Pastora principal en Valencia' },
@@ -50,7 +50,7 @@ const leaders = [
     image: '/hispanic-male-pastor-portrait-professional.jpg',
     email: 'carlos.mendoza@vidaabundante.org',
     country: 'Argentina',
-    gradient: 'from-emerald-500 to-teal-500',
+    gradient: 'from-amber-400 to-orange-500',
     journey: [
       { year: '2006', milestone: 'Misionero en zonas rurales de Argentina' },
       { year: '2011', milestone: 'Plantación de 20 iglesias en provincias argentinas' },
@@ -65,7 +65,7 @@ const leaders = [
     image: '/hispanic-female-pastor-portrait-professional.jpg',
     email: 'ana.silva@vidaabundante.org',
     country: 'Chile',
-    gradient: 'from-amber-500 to-orange-500',
+    gradient: 'from-sky-400 to-emerald-500',
     journey: [
       { year: '2009', milestone: 'Líder de alabanza en Santiago' },
       { year: '2013', milestone: 'Organización de primera convención nacional' },
@@ -84,8 +84,8 @@ export function LeadershipSection() {
       {/* Background */}
       <div className="absolute inset-0 bg-[#0d1f35]">
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px]" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-[120px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-sky-500/20 rounded-full blur-[120px]" />
         </div>
         {/* Grid */}
         <div 
@@ -104,12 +104,12 @@ export function LeadershipSection() {
         {/* Header */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
-            <Users className="w-4 h-4 text-purple-400" />
+            <Users className="w-4 h-4 text-amber-400" />
             <span className="text-sm text-white/80 font-medium">Nuestro Equipo</span>
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
             Directiva{' '}
-            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
               Pastoral
             </span>
           </h2>
@@ -206,8 +206,8 @@ export function LeadershipSection() {
       </div>
 
       {/* Decorative lines */}
-      <div className="absolute top-20 right-8 w-32 h-px bg-gradient-to-l from-purple-500/50 to-transparent" />
-      <div className="absolute bottom-20 left-8 w-32 h-px bg-gradient-to-r from-pink-500/50 to-transparent" />
+      <div className="absolute top-20 right-8 w-32 h-px bg-gradient-to-l from-sky-500/50 to-transparent" />
+      <div className="absolute bottom-20 left-8 w-32 h-px bg-gradient-to-r from-amber-500/50 to-transparent" />
     </section>
   )
 }

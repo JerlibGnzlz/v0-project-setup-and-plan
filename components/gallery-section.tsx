@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ImageWithSkeleton } from './image-with-skeleton'
 import {
   Dialog,
@@ -8,12 +8,97 @@ import {
   DialogTrigger,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { ZoomIn, Loader2, ImageIcon, Video, Camera } from 'lucide-react'
+import { ZoomIn, Loader2, ImageIcon, Video, Camera, VideoOff, ChevronLeft, ChevronRight, Play, X } from 'lucide-react'
 import { useGaleria } from '@/lib/hooks/use-galeria'
 import type { GaleriaImagen } from '@/lib/api/galeria'
+import { Button } from './ui/button'
+
+// Helper to check if URL is local (won't work in production)
+function isLocalUrl(url: string): boolean {
+  return url?.includes('localhost:') || url?.includes('127.0.0.1')
+}
+
+// 3D Tilt Card Component
+function TiltCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [transform, setTransform] = useState('')
+  const [glare, setGlare] = useState({ x: 50, y: 50, opacity: 0 })
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return
+    const rect = cardRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const centerX = rect.width / 2
+    const centerY = rect.height / 2
+    const rotateX = (y - centerY) / 20
+    const rotateY = (centerX - x) / 20
+
+    setTransform(`perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`)
+    setGlare({ x: (x / rect.width) * 100, y: (y / rect.height) * 100, opacity: 0.15 })
+  }
+
+  const handleMouseLeave = () => {
+    setTransform('')
+    setGlare({ x: 50, y: 50, opacity: 0 })
+  }
+
+  return (
+    <div
+      ref={cardRef}
+      className={`transition-transform duration-200 ease-out ${className}`}
+      style={{ transform }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {children}
+      {/* Glare effect */}
+      <div
+        className="absolute inset-0 pointer-events-none rounded-xl transition-opacity duration-200"
+        style={{
+          background: `radial-gradient(circle at ${glare.x}% ${glare.y}%, rgba(255,255,255,${glare.opacity}), transparent 50%)`,
+        }}
+      />
+    </div>
+  )
+}
+
+// Animated section that fades in on scroll
+function AnimateOnScroll({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => setIsVisible(true), delay)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [delay])
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-700 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
+    >
+      {children}
+    </div>
+  )
+}
 
 export function GallerySection() {
-  const [selectedImage, setSelectedImage] = useState<number | null>(null)
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null)
   const { data: galeria = [], isLoading } = useGaleria()
 
   const imagenes = galeria.filter((item: GaleriaImagen) =>
@@ -23,8 +108,54 @@ export function GallerySection() {
     item.tipo === 'VIDEO' && item.activa
   )
 
+  const openLightbox = (index: number) => {
+    setSelectedImageIndex(index)
+    setLightboxOpen(true)
+  }
+
+  const closeLightbox = () => {
+    setLightboxOpen(false)
+    setSelectedImageIndex(null)
+  }
+
+  const nextImage = () => {
+    if (selectedImageIndex !== null && imagenes.length > 0) {
+      setSelectedImageIndex((selectedImageIndex + 1) % imagenes.length)
+    }
+  }
+
+  const prevImage = () => {
+    if (selectedImageIndex !== null && imagenes.length > 0) {
+      setSelectedImageIndex((selectedImageIndex - 1 + imagenes.length) % imagenes.length)
+    }
+  }
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!lightboxOpen) return
+      if (e.key === 'ArrowRight') nextImage()
+      if (e.key === 'ArrowLeft') prevImage()
+      if (e.key === 'Escape') closeLightbox()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [lightboxOpen, selectedImageIndex])
+
   if (!isLoading && imagenes.length === 0 && videos.length === 0) {
     return null
+  }
+
+  // Bento grid classes - create visual variety
+  const getBentoClass = (index: number) => {
+    const patterns = [
+      'col-span-1 row-span-1',
+      'col-span-1 row-span-1',
+      'col-span-1 row-span-2 md:col-span-1',
+      'col-span-1 row-span-1',
+    ]
+    return patterns[index % patterns.length]
   }
 
   return (
@@ -32,8 +163,9 @@ export function GallerySection() {
       {/* Background */}
       <div className="absolute inset-0 bg-[#0a1628]">
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-1/3 right-0 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[120px]" />
+          <div className="absolute top-1/3 right-0 w-[500px] h-[500px] bg-emerald-500/20 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-sky-500/20 rounded-full blur-[120px]" />
+          <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-amber-500/10 rounded-full blur-[100px] animate-blob" />
         </div>
         {/* Grid */}
         <div
@@ -50,159 +182,323 @@ export function GallerySection() {
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
-            <Camera className="w-4 h-4 text-purple-400" />
-            <span className="text-sm text-white/80 font-medium">Momentos Capturados</span>
+        <AnimateOnScroll>
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+              <Camera className="w-4 h-4 text-amber-400" />
+              <span className="text-sm text-white/80 font-medium">Momentos Capturados</span>
+            </div>
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
+              Nuestra{' '}
+              <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
+                Galería
+              </span>
+            </h2>
+            <p className="text-lg text-white/60 max-w-2xl mx-auto">
+              Momentos que capturan el impacto de nuestro trabajo misionero
+            </p>
           </div>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
-            Nuestra{' '}
-            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Galería
-            </span>
-          </h2>
-          <p className="text-lg text-white/60 max-w-2xl mx-auto">
-            Momentos que capturan el impacto de nuestro trabajo misionero
-          </p>
-        </div>
+        </AnimateOnScroll>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="size-8 animate-spin text-purple-400" />
+            <Loader2 className="size-8 animate-spin text-emerald-400" />
           </div>
         ) : (
           <>
-            {/* Images Section */}
+            {/* Images Section - Bento Grid */}
             {imagenes.length > 0 && (
-              <div className="mb-16">
-                <div className="flex items-center gap-3 mb-8">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500">
-                    <ImageIcon className="size-5 text-white" />
+              <AnimateOnScroll delay={100}>
+                <div className="mb-20">
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/25">
+                      <ImageIcon className="size-5 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">Fotografías</h3>
+                    <div className="flex-1 h-px bg-gradient-to-r from-emerald-500/50 to-transparent ml-4" />
+                    <span className="text-white/40 text-sm">{imagenes.length} imágenes</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-white">Fotografías</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-purple-500/50 to-transparent ml-4" />
-                </div>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {imagenes.map((image: GaleriaImagen, index: number) => (
-                    <Dialog key={image.id}>
-                      <DialogTrigger asChild>
-                        <div
-                          className="relative aspect-[4/3] overflow-hidden rounded-xl group cursor-pointer"
-                          onClick={() => setSelectedImage(index)}
+
+                  {/* Bento Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[200px] md:auto-rows-[220px]">
+                    {imagenes.map((image: GaleriaImagen, index: number) => (
+                      <AnimateOnScroll key={image.id} delay={index * 100}>
+                        <TiltCard
+                          className={`relative cursor-pointer ${getBentoClass(index)} h-full`}
                         >
-                          {/* Glow on hover */}
-                          <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-0 group-hover:opacity-40 transition-opacity duration-500" />
-                          <div className="relative h-full rounded-xl overflow-hidden border border-white/10 group-hover:border-white/20 transition-all duration-300">
-                            <ImageWithSkeleton
-                              src={image.imagenUrl || "/placeholder.svg"}
-                              alt={image.titulo}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-transparent to-transparent opacity-60" />
-                            <div className="absolute inset-0 bg-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                              <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm">
-                                <ZoomIn className="w-6 h-6 text-white" />
+                          <div
+                            className="relative h-full overflow-hidden rounded-xl group"
+                            onClick={() => openLightbox(index)}
+                          >
+                            {/* Glow on hover */}
+                            <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 rounded-xl blur opacity-0 group-hover:opacity-50 transition-all duration-500" />
+                            
+                            <div className="relative h-full rounded-xl overflow-hidden border border-white/10 group-hover:border-emerald-500/50 transition-all duration-500">
+                              <ImageWithSkeleton
+                                src={image.imagenUrl || "/placeholder.svg"}
+                                alt={image.titulo}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                              />
+                              
+                              {/* Gradient overlay */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-transparent to-transparent opacity-70 group-hover:opacity-40 transition-opacity duration-300" />
+                              
+                              {/* Hover overlay */}
+                              <div className="absolute inset-0 bg-emerald-500/0 group-hover:bg-emerald-500/20 transition-all duration-300 flex items-center justify-center">
+                                <div className="p-4 rounded-full bg-white/10 backdrop-blur-md opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100 transition-all duration-300">
+                                  <ZoomIn className="w-6 h-6 text-white" />
+                                </div>
                               </div>
+                              
+                              {/* Title */}
+                              {image.titulo && (
+                                <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                                  <p className="text-white text-sm font-medium truncate">
+                                    {image.titulo}
+                                  </p>
+                                  {image.descripcion && (
+                                    <p className="text-white/60 text-xs truncate mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                      {image.descripcion}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
                             </div>
-                            {image.titulo && (
-                              <div className="absolute bottom-0 left-0 right-0 p-3">
-                                <p className="text-white text-sm font-medium truncate">
-                                  {image.titulo}
-                                </p>
-                              </div>
-                            )}
                           </div>
-                        </div>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-4xl bg-[#0a1628]/95 backdrop-blur-xl border-white/10">
-                        <DialogTitle className="sr-only">{image.titulo}</DialogTitle>
-                        <img
-                          src={image.imagenUrl || "/placeholder.svg"}
-                          alt={image.titulo}
-                          className="w-full h-auto rounded-xl"
-                        />
-                        {image.descripcion && (
-                          <p className="text-center text-white/60 mt-4">
-                            {image.descripcion}
-                          </p>
-                        )}
-                      </DialogContent>
-                    </Dialog>
-                  ))}
+                        </TiltCard>
+                      </AnimateOnScroll>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </AnimateOnScroll>
             )}
 
             {/* Videos Section */}
             {videos.length > 0 && (
-              <div>
-                <div className="flex items-center gap-3 mb-8">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500">
-                    <Video className="size-5 text-white" />
+              <AnimateOnScroll delay={200}>
+                <div>
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 shadow-lg shadow-sky-500/25">
+                      <Video className="size-5 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">Videos</h3>
+                    <div className="flex-1 h-px bg-gradient-to-r from-sky-500/50 to-transparent ml-4" />
+                    <span className="text-white/40 text-sm">{videos.length} videos</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-white">Videos</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-blue-500/50 to-transparent ml-4" />
-                </div>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {videos.map((video: GaleriaImagen) => {
-                    const isCloudinary = video.imagenUrl.includes('cloudinary.com')
-                    const urlParts = isCloudinary
-                      ? video.imagenUrl.match(/cloudinary\.com\/([^/]+)\/video\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/)
-                      : null
-                    
-                    // Only use Cloudinary player if URL matched the expected pattern
-                    const canUseCloudinaryPlayer = urlParts && urlParts[1] && urlParts[2]
 
-                    if (canUseCloudinaryPlayer) {
-                      const cloudName = urlParts[1]
-                      const publicId = urlParts[2]
-                      const playerUrl = `https://player.cloudinary.com/embed/?cloud_name=${cloudName}&public_id=${publicId}&controls=true&source_types%5B0%5D=mp4`
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {videos.map((video: GaleriaImagen, index: number) => {
+                      // Check if video URL is local (won't work in production)
+                      if (isLocalUrl(video.imagenUrl)) {
+                        return (
+                          <AnimateOnScroll key={video.id} delay={index * 150}>
+                            <TiltCard className="relative">
+                              <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 to-blue-500 rounded-2xl blur opacity-20" />
+                              <div className="relative aspect-video overflow-hidden rounded-2xl bg-[#0d1f35] border border-white/10 flex items-center justify-center">
+                                <div className="text-center text-white/60 p-4">
+                                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                                    <VideoOff className="size-8 opacity-50" />
+                                  </div>
+                                  <p className="text-sm font-medium text-white">{video.titulo}</p>
+                                  <p className="text-xs mt-1">Video no disponible en producción</p>
+                                </div>
+                              </div>
+                            </TiltCard>
+                          </AnimateOnScroll>
+                        )
+                      }
 
+                      const isCloudinary = video.imagenUrl.includes('cloudinary.com')
+                      const urlParts = isCloudinary
+                        ? video.imagenUrl.match(/cloudinary\.com\/([^/]+)\/video\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/)
+                        : null
+                      
+                      const canUseCloudinaryPlayer = urlParts && urlParts[1] && urlParts[2]
+                      const isPlaying = playingVideo === video.id
+
+                      if (canUseCloudinaryPlayer) {
+                        const cloudName = urlParts[1]
+                        const publicId = urlParts[2]
+                        const playerUrl = `https://player.cloudinary.com/embed/?cloud_name=${cloudName}&public_id=${publicId}&controls=true&source_types%5B0%5D=mp4`
+                        const thumbnailUrl = `https://res.cloudinary.com/${cloudName}/video/upload/so_0/${publicId}.jpg`
+
+                        return (
+                          <AnimateOnScroll key={video.id} delay={index * 150}>
+                            <TiltCard className="relative">
+                              <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 via-blue-500 to-emerald-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
+                              <div className="relative aspect-video overflow-hidden rounded-2xl bg-[#0d1f35] border border-white/10 hover:border-sky-500/50 transition-all duration-300 group">
+                                {isPlaying ? (
+                                  <>
+                                    <iframe
+                                      src={`${playerUrl}&autoplay=true`}
+                                      className="w-full h-full"
+                                      allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                                      allowFullScreen
+                                      frameBorder="0"
+                                      title={video.titulo}
+                                    />
+                                    <button
+                                      onClick={() => setPlayingVideo(null)}
+                                      className="absolute top-3 right-3 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </>
+                                ) : (
+                                  <div
+                                    className="relative w-full h-full cursor-pointer"
+                                    onClick={() => setPlayingVideo(video.id)}
+                                  >
+                                    {/* Thumbnail */}
+                                    <img
+                                      src={thumbnailUrl}
+                                      alt={video.titulo}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = '/placeholder.svg'
+                                      }}
+                                    />
+                                    
+                                    {/* Overlay */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-transparent to-transparent opacity-60" />
+                                    
+                                    {/* Play Button */}
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <div className="relative">
+                                        {/* Animated rings */}
+                                        <div className="absolute inset-0 w-20 h-20 rounded-full bg-sky-500/20 animate-ping" />
+                                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-r from-sky-500 to-blue-500 flex items-center justify-center shadow-2xl shadow-sky-500/50 group-hover:scale-110 transition-transform duration-300">
+                                          <Play className="w-8 h-8 text-white ml-1" fill="white" />
+                                        </div>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Title */}
+                                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                                      <p className="text-white font-medium">{video.titulo}</p>
+                                      {video.descripcion && (
+                                        <p className="text-white/60 text-sm mt-1 line-clamp-2">{video.descripcion}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </TiltCard>
+                          </AnimateOnScroll>
+                        )
+                      }
+
+                      // Fallback to native video player
                       return (
-                        <div key={video.id} className="relative group">
-                          <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
-                          <div className="relative aspect-video overflow-hidden rounded-xl bg-[#0a1628] border border-white/10 group-hover:border-white/20 transition-all duration-300">
-                            <iframe
-                              src={playerUrl}
-                              className="w-full h-full"
-                              allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                              allowFullScreen
-                              frameBorder="0"
-                              title={video.titulo}
-                            />
-                          </div>
-                        </div>
+                        <AnimateOnScroll key={video.id} delay={index * 150}>
+                          <TiltCard className="relative">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 to-blue-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
+                            <div className="relative aspect-video overflow-hidden rounded-2xl bg-[#0d1f35] border border-white/10">
+                              <video
+                                src={video.imagenUrl}
+                                className="w-full h-full object-cover"
+                                controls
+                                playsInline
+                                preload="metadata"
+                                poster="/placeholder.svg"
+                              >
+                                Tu navegador no soporta videos HTML5
+                              </video>
+                            </div>
+                          </TiltCard>
+                        </AnimateOnScroll>
                       )
-                    }
-
-                    // Fallback to native video player for non-Cloudinary URLs or invalid Cloudinary URLs
-                    return (
-                      <div key={video.id} className="relative group">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
-                        <div className="relative aspect-video overflow-hidden rounded-xl bg-[#0a1628] border border-white/10">
-                          <video
-                            src={video.imagenUrl}
-                            className="w-full h-full object-contain"
-                            controls
-                            playsInline
-                            preload="auto"
-                          >
-                            Tu navegador no soporta videos HTML5
-                          </video>
-                        </div>
-                      </div>
-                    )
-                  })}
+                    })}
+                  </div>
                 </div>
-              </div>
+              </AnimateOnScroll>
             )}
           </>
         )}
       </div>
 
+      {/* Lightbox Modal */}
+      {lightboxOpen && selectedImageIndex !== null && imagenes[selectedImageIndex] && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center"
+          onClick={closeLightbox}
+        >
+          {/* Close button */}
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-50"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Navigation */}
+          {imagenes.length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                className="absolute left-4 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-50"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                className="absolute right-4 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-50"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </>
+          )}
+
+          {/* Image */}
+          <div
+            className="max-w-5xl max-h-[85vh] px-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={imagenes[selectedImageIndex].imagenUrl || "/placeholder.svg"}
+              alt={imagenes[selectedImageIndex].titulo}
+              className="w-full h-full object-contain rounded-xl"
+            />
+            {/* Caption */}
+            <div className="text-center mt-4">
+              <p className="text-white font-medium text-lg">{imagenes[selectedImageIndex].titulo}</p>
+              {imagenes[selectedImageIndex].descripcion && (
+                <p className="text-white/60 mt-2">{imagenes[selectedImageIndex].descripcion}</p>
+              )}
+              <p className="text-white/40 text-sm mt-2">
+                {selectedImageIndex + 1} / {imagenes.length}
+              </p>
+            </div>
+          </div>
+
+          {/* Thumbnail strip */}
+          {imagenes.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 max-w-[90vw] overflow-x-auto px-4 py-2 rounded-full bg-white/5 backdrop-blur-md">
+              {imagenes.map((img: GaleriaImagen, idx: number) => (
+                <button
+                  key={img.id}
+                  onClick={(e) => { e.stopPropagation(); setSelectedImageIndex(idx); }}
+                  className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                    idx === selectedImageIndex
+                      ? 'border-emerald-500 scale-110'
+                      : 'border-transparent opacity-50 hover:opacity-100'
+                  }`}
+                >
+                  <img
+                    src={img.imagenUrl || "/placeholder.svg"}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Decorative */}
-      <div className="absolute top-20 right-8 w-32 h-px bg-gradient-to-l from-purple-500/50 to-transparent" />
-      <div className="absolute bottom-20 left-8 w-32 h-px bg-gradient-to-r from-pink-500/50 to-transparent" />
+      <div className="absolute top-20 right-8 w-32 h-px bg-gradient-to-l from-emerald-500/50 to-transparent" />
+      <div className="absolute bottom-20 left-8 w-32 h-px bg-gradient-to-r from-amber-500/50 to-transparent" />
     </section>
   )
 }

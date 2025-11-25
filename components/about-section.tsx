@@ -5,10 +5,10 @@ import { Target, Eye, Sparkles } from 'lucide-react'
 import { AnimatedCounter } from './animated-counter'
 
 const stats = [
-  { end: 500, suffix: '+', label: 'Pastores Formados', color: 'from-blue-500 to-cyan-500' },
-  { end: 5, suffix: '', label: 'Países', color: 'from-emerald-500 to-teal-500' },
-  { end: 15, suffix: '+', label: 'Años de Ministerio', color: 'from-amber-500 to-orange-500' },
-  { end: 50, suffix: '+', label: 'Convenciones', color: 'from-purple-500 to-pink-500' },
+  { end: 500, suffix: '+', label: 'Pastores Formados', color: 'from-sky-400 to-blue-500' },
+  { end: 5, suffix: '', label: 'Países', color: 'from-emerald-400 to-teal-500' },
+  { end: 15, suffix: '+', label: 'Años de Ministerio', color: 'from-amber-400 to-orange-500' },
+  { end: 50, suffix: '+', label: 'Convenciones', color: 'from-sky-400 to-emerald-500' },
 ]
 
 export function AboutSection() {
@@ -61,7 +61,7 @@ export function AboutSection() {
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
             Quiénes{' '}
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
               Somos
             </span>
           </h2>
@@ -109,10 +109,10 @@ export function AboutSection() {
 
           {/* Visión */}
           <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
             <div className="relative p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 h-full">
               <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500">
+                <div className="p-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500">
                   <Eye className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white">Nuestra Visión</h3>
@@ -126,8 +126,8 @@ export function AboutSection() {
       </div>
 
       {/* Decorative blobs */}
-      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] animate-blob" />
-      <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] animate-blob animation-delay-2000" />
+      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-sky-500/10 rounded-full blur-[100px] animate-blob" />
+      <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] animate-blob animation-delay-2000" />
     </section>
   )
 }

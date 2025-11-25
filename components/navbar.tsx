@@ -28,7 +28,7 @@ export function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20)
 
-      const sections = ['inicio', 'sedes', 'mision', 'directiva', 'pastores', 'galeria', 'educacion']
+      const sections = ['inicio', 'sedes', 'nosotros', 'directiva', 'pastores', 'galeria', 'educacion']
       const scrollPosition = window.scrollY + 100
 
       for (const section of sections) {
@@ -88,7 +88,7 @@ export function Navbar() {
   const navLinks = [
     { href: '#inicio', label: 'Inicio' },
     { href: '#sedes', label: 'Sedes' },
-    { href: '#mision', label: 'Misión' },
+    { href: '#nosotros', label: 'Nosotros' },
     { href: '#directiva', label: 'Directiva' },
     { href: '#pastores', label: 'Pastores' },
     { href: '#galeria', label: 'Galería' },
@@ -128,7 +128,7 @@ export function Navbar() {
                   }`}
                 />
                 {/* Glow effect on hover */}
-                <div className="absolute inset-0 bg-blue-500/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-emerald-500/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
               <div className="flex flex-col">
                 <span className={`font-bold text-white leading-tight transition-all duration-700 ease-out ${
@@ -137,7 +137,7 @@ export function Navbar() {
                   <span className="hidden sm:inline">Asociación Misionera</span>
                   <span className="sm:hidden">A.M.V.A</span>
                 </span>
-                <span className={`hidden sm:block font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent leading-tight transition-all duration-700 ease-out ${
+                <span className={`hidden sm:block font-bold bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent leading-tight transition-all duration-700 ease-out ${
                   scrolled ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
                 }`}>
                   Vida Abundante
@@ -166,7 +166,7 @@ export function Navbar() {
                     {link.label}
                     {/* Active indicator dot */}
                     {isActive && (
-                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full shadow-lg shadow-blue-400/50" />
+                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full shadow-lg shadow-emerald-400/50" />
                     )}
                   </Link>
                 )
@@ -175,7 +175,7 @@ export function Navbar() {
               {/* CTA Button with gradient */}
               <Button
                 asChild
-                className="ml-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105 border-0"
+                className="ml-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 hover:scale-105 border-0"
               >
                 <Link href="#inscripcion" onClick={(e) => handleNavClick(e, '#inscripcion')} className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
@@ -243,7 +243,7 @@ export function Navbar() {
                 onClick={(e) => handleNavClick(e, link.href)}
                 className={`group flex items-center justify-between py-3 px-4 text-lg font-medium rounded-xl transition-all duration-200 ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
                     : 'hover:bg-white/5 text-white/70'
                 } ${isOpen ? 'animate-in slide-in-from-right-4 fade-in' : ''}`}
                 style={{
@@ -261,7 +261,7 @@ export function Navbar() {
           <Button
             asChild
             size="lg"
-            className={`mt-6 w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white shadow-lg border-0 ${
+            className={`mt-6 w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-lg border-0 ${
               isOpen ? 'animate-in slide-in-from-right-4 fade-in' : ''
             }`}
             style={{

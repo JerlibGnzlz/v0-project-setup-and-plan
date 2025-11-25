@@ -21,7 +21,7 @@ import { Eye, MapPin, Mail, Church, ChevronRight } from 'lucide-react'
 const regionalPastors = [
   {
     region: 'Argentina - Provincia de Buenos Aires',
-    gradient: 'from-blue-500 to-cyan-500',
+    gradient: 'from-sky-400 to-blue-500',
     pastors: [
       {
         name: 'Pastor Roberto Fernández',
@@ -78,7 +78,7 @@ const regionalPastors = [
   },
   {
     region: 'Argentina - Provincia de Mendoza',
-    gradient: 'from-purple-500 to-pink-500',
+    gradient: 'from-amber-400 to-orange-500',
     pastors: [
       {
         name: 'Pastor Daniel Gutiérrez',
@@ -120,7 +120,7 @@ const regionalPastors = [
   },
   {
     region: 'España - Comunidad de Madrid',
-    gradient: 'from-rose-500 to-red-500',
+    gradient: 'from-sky-400 to-emerald-500',
     pastors: [
       {
         name: 'Pastor Javier Moreno',
@@ -147,7 +147,7 @@ export function PastoresSection() {
       {/* Background */}
       <div className="absolute inset-0 bg-[#0a1628]">
         <div className="absolute inset-0 opacity-40">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-blue-500/20 to-transparent rounded-full blur-[100px]" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-emerald-500/20 to-transparent rounded-full blur-[100px]" />
         </div>
         {/* Grid */}
         <div 
@@ -166,12 +166,12 @@ export function PastoresSection() {
         {/* Header */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
-            <Church className="w-4 h-4 text-blue-400" />
+            <Church className="w-4 h-4 text-emerald-400" />
             <span className="text-sm text-white/80 font-medium">Líderes Regionales</span>
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
             Pastores{' '}
-            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
               Supervisores
             </span>
           </h2>

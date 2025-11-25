@@ -2,6 +2,7 @@
 
 import { Navbar } from '@/components/navbar'
 import { HeroSection } from '@/components/hero-section'
+import { MarqueeTicker } from '@/components/marquee-ticker'
 import { SedesSection } from '@/components/sedes-section'
 import { AboutSection } from '@/components/about-section'
 import { LeadershipSection } from '@/components/leadership-section'
@@ -31,6 +32,7 @@ export default function HomePage() {
           <div id="inicio">
             <HeroSection />
           </div>
+          <MarqueeTicker />
           <div id="sedes">
             <ScrollReveal>
               <SedesSection />

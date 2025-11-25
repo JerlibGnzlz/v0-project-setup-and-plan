@@ -122,15 +122,15 @@ export function CountdownTimer({ targetDate, title = 'Próximo Evento' }: Countd
   if (!mounted) {
     return (
       <div className="text-center">
-        <h3 className="text-2xl font-bold mb-6">{title}</h3>
+        <h3 className="text-2xl font-bold mb-6 text-white">{title}</h3>
         <div className="grid grid-cols-4 gap-3 md:gap-4">
           {timeUnits.map(({ key, label }) => (
-            <Card key={key} className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/20">
+            <Card key={key} className="bg-white/5 backdrop-blur-sm border border-white/10">
               <CardContent className="p-3 md:p-4">
-                <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-2 tabular-nums">
+                <div className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent mb-2 tabular-nums">
                   00
                 </div>
-                <div className="text-xs md:text-sm text-muted-foreground font-medium">
+                <div className="text-xs md:text-sm text-white/60 font-medium">
                   {label}
                 </div>
               </CardContent>
@@ -143,18 +143,18 @@ export function CountdownTimer({ targetDate, title = 'Próximo Evento' }: Countd
 
   return (
     <div className="text-center">
-      <h3 className="text-2xl font-bold mb-6">{title}</h3>
+      <h3 className="text-2xl font-bold mb-6 text-white">{title}</h3>
       <div className="grid grid-cols-4 gap-3 md:gap-4">
         {timeUnits.map(({ key, value, label }) => (
           <Card
             key={key}
-            className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/20 overflow-hidden"
+            className="bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300"
           >
             <CardContent className="p-3 md:p-4">
-              <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-2 tabular-nums tracking-tight">
+              <div className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent mb-2 tabular-nums tracking-tight">
                 <AnimatedNumber value={value} />
               </div>
-              <div className="text-xs md:text-sm text-muted-foreground font-medium">
+              <div className="text-xs md:text-sm text-white/60 font-medium">
                 {label}
               </div>
             </CardContent>

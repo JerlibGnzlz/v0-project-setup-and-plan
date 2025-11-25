@@ -88,13 +88,13 @@ export function RegistrationSection() {
           style={{
             background: `
               radial-gradient(ellipse 60% 40% at ${mousePosition.x}% ${mousePosition.y}%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
-              radial-gradient(ellipse 50% 50% at 80% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%)
+              radial-gradient(ellipse 50% 50% at 80% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%)
             `,
           }}
         />
         {/* Animated blob */}
-        <div className="absolute top-1/3 -left-32 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px] animate-blob" />
-        <div className="absolute bottom-1/3 -right-32 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-blob animation-delay-2000" />
+        <div className="absolute top-1/3 -left-32 w-96 h-96 bg-sky-500/20 rounded-full blur-[120px] animate-blob" />
+        <div className="absolute bottom-1/3 -right-32 w-96 h-96 bg-emerald-500/20 rounded-full blur-[120px] animate-blob animation-delay-2000" />
         {/* Grid */}
         <div
           className="absolute inset-0 opacity-[0.02]"
@@ -113,13 +113,13 @@ export function RegistrationSection() {
           {/* Header */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm relative overflow-hidden">
-              <UserPlus className="w-4 h-4 text-blue-400" />
+              <UserPlus className="w-4 h-4 text-emerald-400" />
               <span className="text-sm text-white/80 font-medium">Forma Parte</span>
               <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent" />
             </div>
             <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
               Únete a{' '}
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
                 Nosotros
               </span>
             </h2>
@@ -131,11 +131,11 @@ export function RegistrationSection() {
           {/* Form Card */}
           <div className="relative group">
             {/* Glow */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
 
             <div className="relative rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 overflow-hidden">
               {/* Header gradient */}
-              <div className="h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
+              <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />
 
               <div className="p-6 sm:p-8">
                 <form className="space-y-6">
@@ -327,7 +327,7 @@ export function RegistrationSection() {
 
                   <Button
                     type="submit"
-                    className="w-full h-14 text-lg bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white border-0 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 hover:scale-[1.02]"
+                    className="w-full h-14 text-lg bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white border-0 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 hover:scale-[1.02]"
                     disabled
                   >
                     <Sparkles className="w-5 h-5 mr-2" />
@@ -344,8 +344,8 @@ export function RegistrationSection() {
       </div>
 
       {/* Decorative */}
-      <div className="absolute top-20 right-8 w-32 h-px bg-gradient-to-l from-blue-500/50 to-transparent" />
-      <div className="absolute bottom-20 left-8 w-32 h-px bg-gradient-to-r from-purple-500/50 to-transparent" />
+      <div className="absolute top-20 right-8 w-32 h-px bg-gradient-to-l from-sky-500/50 to-transparent" />
+      <div className="absolute bottom-20 left-8 w-32 h-px bg-gradient-to-r from-emerald-500/50 to-transparent" />
     </section>
   )
 }
