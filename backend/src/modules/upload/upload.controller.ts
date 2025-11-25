@@ -1,7 +1,7 @@
 import { Controller, Post, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from "@nestjs/common"
 import { FileInterceptor } from "@nestjs/platform-express"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
-import type { UploadService } from "./upload.service"
+import { UploadService } from "./upload.service"
 import { memoryStorage } from "multer"
 import type { Express } from "express"
 

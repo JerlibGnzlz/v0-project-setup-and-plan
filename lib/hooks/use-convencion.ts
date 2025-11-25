@@ -47,8 +47,9 @@ export function useUpdateConvencion() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Convencion> }) => convencionesApi.update(id, data),
     onSuccess: () => {
+      // Invalidar todas las queries relacionadas con convenciones
       queryClient.invalidateQueries({ queryKey: ["convenciones"] })
-      toast.success("Convención actualizada exitosamente")
+      queryClient.invalidateQueries({ queryKey: ["convencion"] })
     },
     onError: () => {
       toast.error("Error al actualizar la convención")

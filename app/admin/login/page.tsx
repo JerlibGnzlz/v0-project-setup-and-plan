@@ -1,45 +1,47 @@
-"use client"
+'use client'
 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { loginSchema, type LoginFormData } from "@/lib/validations/auth"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Mail, Lock, AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useAuth } from "@/lib/hooks/use-auth"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { loginSchema, type LoginFormData } from '@/lib/validations/auth'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Mail, Lock, AlertCircle } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useAuth } from '@/lib/hooks/use-auth'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export default function AdminLogin() {
-  const { login, isAuthenticated } = useAuth()
   const router = useRouter()
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/admin")
-    }
-  }, [isAuthenticated, router])
+  const { login } = useAuth()
+  const [rememberMe, setRememberMe] = useState(false)
+  const [loginError, setLoginError] = useState<string | null>(null)
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema) as any,
+    resolver: zodResolver(loginSchema),
   })
 
   const onSubmit = async (data: LoginFormData) => {
+    setLoginError(null)
     try {
-      await login(data)
-      toast.success("Sesión iniciada correctamente")
-      router.push("/admin")
+      await login({ ...data, rememberMe })
+      toast.success('Bienvenido', {
+        description: 'Has iniciado sesión correctamente',
+      })
+      router.push('/admin')
     } catch (error: any) {
-      toast.error("Error al iniciar sesión", {
-        description: error.response?.data?.message || "Credenciales inválidas",
+      const errorMessage = error.response?.data?.message || 'Credenciales inválidas'
+      setLoginError(errorMessage)
+      toast.error('Error de autenticación', {
+        description: errorMessage,
       })
     }
   }
@@ -50,9 +52,18 @@ export default function AdminLogin() {
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto size-16 rounded-lg bg-gradient-to-br from-primary via-accent to-secondary mb-4" />
           <CardTitle className="text-2xl font-bold">Panel Administrativo</CardTitle>
-          <CardDescription>Convención Nacional Argentina 2025</CardDescription>
+          <CardDescription>
+            Convención Nacional Argentina 2025
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {loginError && (
+            <Alert variant="destructive">
+              <AlertCircle className="size-4" />
+              <AlertDescription>{loginError}</AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Correo electrónico</Label>
@@ -61,9 +72,9 @@ export default function AdminLogin() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@ministerio-amva.org"
+                  placeholder="admin@vidaabundante.org"
                   className="pl-9"
-                  {...register("email")}
+                  {...register('email')}
                 />
               </div>
               {errors.email && (
@@ -83,7 +94,7 @@ export default function AdminLogin() {
                   type="password"
                   placeholder="••••••••"
                   className="pl-9"
-                  {...register("password")}
+                  {...register('password')}
                 />
               </div>
               {errors.password && (
@@ -94,14 +105,27 @@ export default function AdminLogin() {
               )}
             </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-              {isSubmitting ? "Iniciando sesión..." : "Iniciar Sesión"}
-            </Button>
+            <div className="flex items-center">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="remember" 
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked === true)}
+                />
+                <Label htmlFor="remember" className="text-sm cursor-pointer">
+                  Recordarme
+                </Label>
+              </div>
+            </div>
 
-            <p className="text-xs text-muted-foreground text-center mt-4">
-              Acceso restringido solo para administradores autorizados
-            </p>
+            <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+              {isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            </Button>
           </form>
+
+          <p className="text-center text-xs text-muted-foreground">
+            Acceso restringido solo para administradores autorizados
+          </p>
         </CardContent>
       </Card>
     </div>

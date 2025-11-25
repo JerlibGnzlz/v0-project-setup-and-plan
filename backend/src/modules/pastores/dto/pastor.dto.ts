@@ -17,7 +17,7 @@ export class CreatePastorDto {
 
   @IsOptional()
   @IsString()
-  iglesia?: string
+  sede?: string
 
   @IsOptional()
   @IsString()
@@ -25,7 +25,11 @@ export class CreatePastorDto {
 
   @IsOptional()
   @IsString()
-  foto?: string
+  fotoUrl?: string
+
+  @IsOptional()
+  @IsString()
+  biografia?: string
 
   @IsOptional()
   @IsBoolean()
@@ -51,7 +55,7 @@ export class UpdatePastorDto {
 
   @IsOptional()
   @IsString()
-  iglesia?: string
+  sede?: string
 
   @IsOptional()
   @IsString()
@@ -59,7 +63,11 @@ export class UpdatePastorDto {
 
   @IsOptional()
   @IsString()
-  foto?: string
+  fotoUrl?: string
+
+  @IsOptional()
+  @IsString()
+  biografia?: string
 
   @IsOptional()
   @IsBoolean()

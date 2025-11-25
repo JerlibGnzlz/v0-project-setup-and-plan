@@ -32,10 +32,23 @@ export class ConvencionesService {
   }
 
   async update(id: string, dto: UpdateConvencionDto) {
-    return this.prisma.convencion.update({
-      where: { id },
-      data: dto,
-    })
+    // Convertir costo a Decimal si viene como number
+    const data: any = { ...dto }
+    if (data.costo !== undefined) {
+      data.costo = Number(data.costo)
+    }
+
+    console.log('Updating convencion:', id, data)
+
+    try {
+      return await this.prisma.convencion.update({
+        where: { id },
+        data,
+      })
+    } catch (error) {
+      console.error('Error updating convencion:', error)
+      throw error
+    }
   }
 
   async remove(id: string) {

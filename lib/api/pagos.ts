@@ -53,3 +53,4 @@ export const pagosApi = {
     await apiClient.delete(`/pagos/${id}`)
   },
 }
+

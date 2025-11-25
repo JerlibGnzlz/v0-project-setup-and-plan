@@ -30,13 +30,13 @@ export class ConvencionesController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(":id")
-  update(id: string, @Body() dto: UpdateConvencionDto) {
+  update(@Param("id") id: string, @Body() dto: UpdateConvencionDto) {
     return this.convencionesService.update(id, dto)
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(":id")
-  remove(id: string) {
+  remove(@Param("id") id: string) {
     return this.convencionesService.remove(id)
   }
 }

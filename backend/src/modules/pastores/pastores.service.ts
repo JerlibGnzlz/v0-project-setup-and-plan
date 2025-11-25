@@ -8,6 +8,12 @@ export class PastoresService {
 
   async findAll() {
     return this.prisma.pastor.findMany({
+      orderBy: { nombre: "asc" },
+    })
+  }
+
+  async findActive() {
+    return this.prisma.pastor.findMany({
       where: { activo: true },
       orderBy: { nombre: "asc" },
     })

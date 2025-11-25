@@ -12,6 +12,11 @@ export class PastoresController {
     return this.pastoresService.findAll()
   }
 
+  @Get('active')
+  findActive() {
+    return this.pastoresService.findActive()
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.pastoresService.findOne(id);

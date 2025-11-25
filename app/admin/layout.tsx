@@ -17,25 +17,46 @@ function AdminLayoutContent({
 }: {
   children: React.ReactNode
 }) {
-  const { user, logout, isAuthenticated } = useAuth()
+  const { user, logout, isAuthenticated, isHydrated, checkAuth } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
 
+  // Páginas públicas que no requieren autenticación
+  const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password']
+  const isPublicPath = publicPaths.some(path => pathname?.startsWith(path))
+
+  // Verificar autenticación al montar
   useEffect(() => {
-    if (!isAuthenticated && pathname !== '/admin/login') {
+    checkAuth()
+  }, [checkAuth])
+
+  useEffect(() => {
+    // Solo redirigir después de que se haya verificado la autenticación
+    if (isHydrated && !isAuthenticated && !isPublicPath) {
       router.push('/admin/login')
     }
-  }, [isAuthenticated, pathname, router])
+  }, [isAuthenticated, isHydrated, isPublicPath, router])
 
   const handleLogout = () => {
     logout()
     router.push('/admin/login')
   }
 
-  if (pathname === '/admin/login') {
+  // Páginas públicas: renderizar sin verificar autenticación
+  if (isPublicPath) {
     return <>{children}</>
   }
 
+  // Mostrar loading mientras Zustand hidrata el estado
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  // Si no está autenticado después de hidratar, no mostrar nada (se redirigirá)
   if (!isAuthenticated) {
     return null
   }

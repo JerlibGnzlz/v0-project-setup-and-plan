@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Users, CreditCard, ImageIcon, ArrowRight, User, Smartphone, Calendar, Clock, Edit } from 'lucide-react'
 import { ScrollReveal } from '@/components/scroll-reveal'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -22,19 +22,27 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { convencionSchema, type ConvencionFormData } from '@/lib/validations/convencion'
-import { useConvencionActiva, useUpdateConvencion } from '@/lib/hooks/use-convencion'
+import { useConvenciones, useUpdateConvencion, useCreateConvencion } from '@/lib/hooks/use-convencion'
 import { usePagos } from '@/lib/hooks/use-pagos'
+import { usePastores } from '@/lib/hooks/use-pastores'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function AdminDashboard() {
-  const { data: convencionActiva, isLoading: loadingConvencion } = useConvencionActiva()
+  const { data: convenciones = [], isLoading: loadingConvencion } = useConvenciones()
+  // Tomar la primera convención (la más reciente) - siempre visible en admin sin importar si está activa
+  const convencionActiva = convenciones[0] || null
   const { data: pagos = [], isLoading: loadingPagos } = usePagos()
+  const { data: pastores = [], isLoading: loadingPastores } = usePastores()
   const updateConvencionMutation = useUpdateConvencion()
-  
+  const createConvencionMutation = useCreateConvencion()
+
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
 
   // Calcular estadísticas desde los datos reales
   const stats = {
+    totalPastores: pastores.length,
+    pastoresActivos: pastores.filter((p: any) => p.activo).length,
     totalInscritos: pagos.length,
     pagosConfirmados: pagos.filter((p: any) => p.estado === 'COMPLETADO').length,
     pagosParciales: 0, // Se puede calcular basado en monto parcial
@@ -70,6 +78,19 @@ export default function AdminDashboard() {
     defaultValues: convencion,
   })
 
+  // Resetear formulario cuando cambia la convención
+  useEffect(() => {
+    if (convencionActiva) {
+      reset({
+        nombre: convencionActiva.titulo || '',
+        fecha: convencionActiva.fechaInicio ? convencionActiva.fechaInicio.split('T')[0] : '',
+        lugar: convencionActiva.ubicacion || '',
+        monto: convencionActiva.costo ? Number(convencionActiva.costo) : 0,
+        cuotas: 3,
+      })
+    }
+  }, [convencionActiva, reset])
+
   const onSubmit = async (data: ConvencionFormData) => {
     if (!convencionActiva) {
       toast.error('No hay convención activa para actualizar')
@@ -92,29 +113,14 @@ export default function AdminDashboard() {
           fechaFin: fechaFin.toISOString(),
         }
       })
-      
+
+      toast.success('Convención actualizada', {
+        description: 'Los cambios se han guardado correctamente'
+      })
       setDialogOpen(false)
     } catch (error: any) {
       toast.error('Error al actualizar', {
         description: error.response?.data?.message || 'No se pudieron guardar los cambios'
-      })
-    }
-  }
-
-  const handleConvencionToggle = async (checked: boolean) => {
-    if (!convencionActiva) {
-      toast.error('No hay convención para activar/desactivar')
-      return
-    }
-
-    try {
-      await updateConvencionMutation.mutateAsync({
-        id: convencionActiva.id,
-        data: { activa: checked }
-      })
-    } catch (error: any) {
-      toast.error('Error al actualizar el estado', {
-        description: error.response?.data?.message || 'No se pudo cambiar el estado'
       })
     }
   }
@@ -125,8 +131,21 @@ export default function AdminDashboard() {
       return
     }
 
-    // Por ahora, activa/desactiva es lo mismo que mostrar/ocultar
-    await handleConvencionToggle(checked)
+    try {
+      await updateConvencionMutation.mutateAsync({
+        id: convencionActiva.id,
+        data: { activa: checked }
+      })
+      toast.success(checked ? 'Convención activada' : 'Convención desactivada', {
+        description: checked
+          ? 'La convención, cuenta regresiva e inscripciones son visibles en la landing'
+          : 'La convención está oculta de la landing page'
+      })
+    } catch (error: any) {
+      toast.error('Error al cambiar visibilidad', {
+        description: error.response?.data?.message || 'No se pudo cambiar la visibilidad'
+      })
+    }
   }
 
   if (loadingConvencion || loadingPagos) {
@@ -139,14 +158,194 @@ export default function AdminDashboard() {
     )
   }
 
+  const onCreateSubmit = async (data: ConvencionFormData) => {
+    try {
+      const fechaInicio = new Date(data.fecha)
+      const fechaFin = new Date(data.fecha)
+      fechaFin.setDate(fechaFin.getDate() + 2)
+
+      await createConvencionMutation.mutateAsync({
+        titulo: data.nombre,
+        ubicacion: data.lugar,
+        costo: data.monto,
+        cupoMaximo: data.cuotas * 100,
+        fechaInicio: fechaInicio.toISOString(),
+        fechaFin: fechaFin.toISOString(),
+        activa: true,
+      } as any)
+
+      toast.success('Convención creada', {
+        description: 'La convención ha sido creada exitosamente'
+      })
+      setCreateDialogOpen(false)
+      reset()
+    } catch (error: any) {
+      toast.error('Error al crear', {
+        description: error.response?.data?.message || 'No se pudo crear la convención'
+      })
+    }
+  }
+
   if (!convencionActiva) {
     return (
       <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Panel Administrativo</h1>
           <p className="text-muted-foreground mt-2">
-            No hay convención activa. Crea una convención para comenzar.
+            Bienvenido al panel de administración
           </p>
+        </div>
+
+        <Card className="border-2 border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No hay convención activa</h3>
+            <p className="text-muted-foreground text-center mb-6 max-w-md">
+              Crea una nueva convención para comenzar a gestionar inscripciones, pastores y pagos.
+            </p>
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Crear Nueva Convención
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Crear Nueva Convención</DialogTitle>
+                  <DialogDescription>
+                    Completa los datos para crear una nueva convención
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit(onCreateSubmit)} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="create-nombre">Nombre de la Convención</Label>
+                    <Input
+                      id="create-nombre"
+                      {...register('nombre')}
+                      placeholder="Ej: Convención Nacional 2025"
+                    />
+                    {errors.nombre && (
+                      <p className="text-sm text-red-500">{errors.nombre.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="create-fecha">Fecha de Inicio</Label>
+                    <Input
+                      id="create-fecha"
+                      type="date"
+                      {...register('fecha')}
+                    />
+                    {errors.fecha && (
+                      <p className="text-sm text-red-500">{errors.fecha.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="create-lugar">Ubicación</Label>
+                    <Input
+                      id="create-lugar"
+                      {...register('lugar')}
+                      placeholder="Ej: Centro de Convenciones"
+                    />
+                    {errors.lugar && (
+                      <p className="text-sm text-red-500">{errors.lugar.message}</p>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="create-monto">Costo de Inscripción</Label>
+                      <Input
+                        id="create-monto"
+                        type="number"
+                        {...register('monto', { valueAsNumber: true })}
+                        placeholder="0"
+                      />
+                      {errors.monto && (
+                        <p className="text-sm text-red-500">{errors.monto.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="create-cuotas">Número de Cuotas</Label>
+                      <Input
+                        id="create-cuotas"
+                        type="number"
+                        {...register('cuotas', { valueAsNumber: true })}
+                        placeholder="1"
+                      />
+                      {errors.cuotas && (
+                        <p className="text-sm text-red-500">{errors.cuotas.message}</p>
+                      )}
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={createConvencionMutation.isPending}>
+                      {createConvencionMutation.isPending ? 'Creando...' : 'Crear Convención'}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Mostrar cards de gestión aunque no haya convención */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Gestión de Pastores</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{pastores.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {pastores.filter((p: any) => p.activo).length} activos
+              </p>
+              <Link href="/admin/pastores">
+                <Button variant="ghost" className="mt-4 w-full">
+                  Ver Pastores <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Galería</CardTitle>
+              <ImageIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">-</div>
+              <p className="text-xs text-muted-foreground">
+                Gestiona fotos y videos
+              </p>
+              <Link href="/admin/galeria">
+                <Button variant="ghost" className="mt-4 w-full">
+                  Ver Galería <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pagos</CardTitle>
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{pagos.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Gestiona inscripciones y pagos
+              </p>
+              <Link href="/admin/pagos">
+                <Button variant="ghost" className="mt-4 w-full">
+                  Ver Pagos <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -286,10 +485,10 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Fecha:</span>
                 <span className="text-sm text-muted-foreground">
-                  {convencionActiva?.fechaInicio ? new Date(convencionActiva.fechaInicio).toLocaleDateString('es-ES', { 
-                    day: 'numeric', 
-                    month: 'long', 
-                    year: 'numeric' 
+                  {convencionActiva?.fechaInicio ? new Date(convencionActiva.fechaInicio).toLocaleDateString('es-ES', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
                   }) : '-'}
                 </span>
               </div>
@@ -305,30 +504,15 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-              <div className="space-y-1">
-                <Label htmlFor="convencion-activa" className="text-base font-semibold">
-                  Estado de Inscripciones
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  {convencionActiva?.activa ? 'Las inscripciones están abiertas' : 'Las inscripciones están cerradas'}
-                </p>
-              </div>
-              <Switch
-                id="convencion-activa"
-                checked={convencionActiva?.activa || false}
-                onCheckedChange={handleConvencionToggle}
-                disabled={updateConvencionMutation.isPending}
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
               <div className="space-y-1">
                 <Label htmlFor="mostrar-landing" className="text-base font-semibold">
-                  Visibilidad en Landing
+                  Mostrar en Landing Page
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {convencionActiva?.activa ? 'La convención y cuenta regresiva son visibles' : 'La convención está oculta del público'}
+                  {convencionActiva?.activa
+                    ? '✓ La convención, cuenta regresiva e inscripciones son visibles en la página principal'
+                    : '✗ La convención está oculta del público'}
                 </p>
               </div>
               <Switch
@@ -345,10 +529,10 @@ export default function AdminDashboard() {
                 <p className="font-semibold text-sm mb-1">Cuenta Regresiva Activa</p>
                 <p className="text-sm text-muted-foreground">
                   La cuenta regresiva se mostrará automáticamente cuando la convención esté visible en la landing page.
-                  Fecha objetivo: {convencionActiva?.fechaInicio ? new Date(convencionActiva.fechaInicio).toLocaleDateString('es-ES', { 
-                    day: 'numeric', 
-                    month: 'long', 
-                    year: 'numeric' 
+                  Fecha objetivo: {convencionActiva?.fechaInicio ? new Date(convencionActiva.fechaInicio).toLocaleDateString('es-ES', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
                   }) : '-'}
                 </p>
               </div>
@@ -370,7 +554,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </ScrollReveal>
-        
+
         <ScrollReveal delay={50}>
           <Card>
             <CardHeader className="pb-2">
@@ -383,7 +567,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </ScrollReveal>
-        
+
         <ScrollReveal delay={100}>
           <Card>
             <CardHeader className="pb-2">
@@ -396,7 +580,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </ScrollReveal>
-        
+
         <ScrollReveal delay={150}>
           <Card>
             <CardHeader className="pb-2">
@@ -468,7 +652,10 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  {stats.totalInscritos} pastores registrados
+                  {loadingPastores ? '...' : stats.totalPastores} pastores registrados
+                  {stats.pastoresActivos > 0 && stats.pastoresActivos !== stats.totalPastores && (
+                    <span className="text-xs ml-1">({stats.pastoresActivos} activos)</span>
+                  )}
                 </p>
               </CardContent>
             </Card>

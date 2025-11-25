@@ -23,9 +23,21 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { Search, Eye, Plus, Edit, Trash2, AlertCircle } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+// AlertDialog se usa para el botón de desactivar
+import { Search, Eye, Plus, Edit, AlertCircle, UserX, UserCheck } from "lucide-react"
 import { ScrollReveal } from "@/components/scroll-reveal"
-import { usePastores, useCreatePastor, useUpdatePastor, useDeletePastor } from "@/lib/hooks/use-pastores"
+import { usePastores, useCreatePastor, useUpdatePastor } from "@/lib/hooks/use-pastores"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { uploadApi } from "@/lib/api/upload"
@@ -33,6 +45,7 @@ import type { Pastor } from "@/lib/api/pastores"
 
 export default function PastoresPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState<"todos" | "activos" | "inactivos">("todos")
   const [selectedPastor, setSelectedPastor] = useState<Pastor | null>(null)
   const [isAddingPastor, setIsAddingPastor] = useState(false)
   const [isEditingPastor, setIsEditingPastor] = useState(false)
@@ -40,7 +53,6 @@ export default function PastoresPage() {
   const { data: pastores = [], isLoading } = usePastores()
   const createPastorMutation = useCreatePastor()
   const updatePastorMutation = useUpdatePastor()
-  const deletePastorMutation = useDeletePastor()
 
   const {
     register,
@@ -69,8 +81,24 @@ export default function PastoresPage() {
       pastor.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pastor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pastor.sede?.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchSearch
+    
+    // Normalizar el valor de activo (puede venir como boolean, string, o undefined)
+    const isActivo = pastor.activo === true || pastor.activo === "true"
+    
+    const matchStatus = 
+      statusFilter === "todos" ||
+      (statusFilter === "activos" && isActivo) ||
+      (statusFilter === "inactivos" && !isActivo)
+    
+    return matchSearch && matchStatus
   })
+
+  // Contadores para los badges del filtro
+  const counts = {
+    todos: pastores.length,
+    activos: pastores.filter((p: any) => p.activo === true || p.activo === "true").length,
+    inactivos: pastores.filter((p: any) => p.activo === false || p.activo === "false" || p.activo === undefined).length,
+  }
 
   const onSubmit = async (data: PastorFormData) => {
     try {
@@ -112,21 +140,6 @@ export default function PastoresPage() {
     setValue("fotoUrl", pastor.fotoUrl || "")
     setValue("biografia", pastor.biografia || "")
     setValue("activo", pastor.activo)
-  }
-
-  const handleDelete = async (pastor: Pastor) => {
-    if (confirm(`¿Está seguro de eliminar a ${pastor.nombre} ${pastor.apellido}?`)) {
-      try {
-        await deletePastorMutation.mutateAsync(pastor.id)
-        toast.success("Pastor eliminado", {
-          description: "El pastor ha sido eliminado correctamente.",
-        })
-      } catch (error: any) {
-        toast.error("Error al eliminar", {
-          description: error.response?.data?.message || "No se pudo eliminar el pastor.",
-        })
-      }
-    }
   }
 
   if (isLoading) {
@@ -305,8 +318,8 @@ export default function PastoresPage() {
               </Dialog>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="relative flex-1">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+                <div className="relative flex-1 w-full">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
                     placeholder="Buscar pastores..."
@@ -314,6 +327,32 @@ export default function PastoresPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
                   />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={statusFilter === "todos" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setStatusFilter("todos")}
+                  >
+                    Todos
+                    <Badge variant="secondary" className="ml-2">{counts.todos}</Badge>
+                  </Button>
+                  <Button
+                    variant={statusFilter === "activos" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setStatusFilter("activos")}
+                  >
+                    Activos
+                    <Badge variant="secondary" className="ml-2">{counts.activos}</Badge>
+                  </Button>
+                  <Button
+                    variant={statusFilter === "inactivos" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setStatusFilter("inactivos")}
+                  >
+                    Inactivos
+                    <Badge variant="secondary" className="ml-2">{counts.inactivos}</Badge>
+                  </Button>
                 </div>
               </div>
 
@@ -365,81 +404,142 @@ export default function PastoresPage() {
                           <td className="p-3 text-sm">{pastor.cargo || "-"}</td>
                           <td className="p-3 text-sm">{pastor.telefono || "-"}</td>
                           <td className="p-3">
-                            <Badge variant={pastor.activo ? "default" : "secondary"}>
-                              {pastor.activo ? "Activo" : "Inactivo"}
-                            </Badge>
+                            {pastor.activo ? (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="outline" size="sm" className="gap-2">
+                                    <Badge variant="default" className="gap-1">
+                                      <UserCheck className="size-3" />
+                                      Activo
+                                    </Badge>
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Desactivar pastor?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Estás a punto de desactivar a <strong>{pastor.nombre} {pastor.apellido}</strong>.
+                                      <br /><br />
+                                      El pastor no será eliminado, solo quedará inactivo y podrás reactivarlo en cualquier momento desde la pestaña "Inactivos".
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      onClick={async () => {
+                                        try {
+                                          await updatePastorMutation.mutateAsync({
+                                            id: pastor.id,
+                                            data: { activo: false },
+                                          })
+                                          toast.success('Pastor desactivado', {
+                                            description: `${pastor.nombre} ${pastor.apellido} ha sido desactivado`,
+                                          })
+                                        } catch (error: any) {
+                                          toast.error('Error', {
+                                            description: error.response?.data?.message || 'No se pudo desactivar el pastor',
+                                          })
+                                        }
+                                      }}
+                                    >
+                                      Sí, desactivar
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                                onClick={async () => {
+                                  try {
+                                    await updatePastorMutation.mutateAsync({
+                                      id: pastor.id,
+                                      data: { activo: true },
+                                    })
+                                    toast.success('Pastor activado', {
+                                      description: `${pastor.nombre} ${pastor.apellido} ha sido reactivado`,
+                                    })
+                                  } catch (error: any) {
+                                    toast.error('Error', {
+                                      description: error.response?.data?.message || 'No se pudo activar el pastor',
+                                    })
+                                  }
+                                }}
+                              >
+                                <Badge variant="secondary" className="gap-1">
+                                  <UserX className="size-3" />
+                                  Inactivo
+                                </Badge>
+                                <span className="text-xs text-primary">Reactivar</span>
+                              </Button>
+                            )}
                           </td>
                           <td className="p-3">
                             <div className="flex items-center gap-2">
                               <Dialog>
-                                <DialogTrigger asChild>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button variant="ghost" size="sm" onClick={() => setSelectedPastor(pastor)}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <DialogTrigger asChild>
+                                      <Button variant="ghost" size="sm">
                                         <Eye className="size-4" />
                                       </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Ver detalles</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </DialogTrigger>
+                                    </DialogTrigger>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Ver detalles</p>
+                                  </TooltipContent>
+                                </Tooltip>
                                 <DialogContent className="max-w-2xl">
                                   <DialogHeader>
                                     <DialogTitle>Detalles del Pastor</DialogTitle>
                                   </DialogHeader>
-                                  {selectedPastor && (
-                                    <div className="space-y-4">
-                                      {selectedPastor.fotoUrl ? (
-                                        <img
-                                          src={selectedPastor.fotoUrl || "/placeholder.svg"}
-                                          alt={`${selectedPastor.nombre} ${selectedPastor.apellido}`}
-                                          className="size-32 rounded-full object-cover mx-auto"
-                                        />
-                                      ) : (
-                                        <div className="size-32 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-2xl font-medium mx-auto">
-                                          {selectedPastor.nombre?.[0]}
-                                          {selectedPastor.apellido?.[0]}
-                                        </div>
-                                      )}
-                                      <div className="grid gap-4 md:grid-cols-2">
-                                        <div>
-                                          <p className="text-sm text-muted-foreground">Nombre completo</p>
-                                          <p className="font-medium">
-                                            {selectedPastor.nombre} {selectedPastor.apellido}
-                                          </p>
-                                        </div>
-                                        <div>
-                                          <p className="text-sm text-muted-foreground">Email</p>
-                                          <p className="font-medium">{selectedPastor.email || "-"}</p>
-                                        </div>
-                                        <div>
-                                          <p className="text-sm text-muted-foreground">Teléfono</p>
-                                          <p className="font-medium">{selectedPastor.telefono || "-"}</p>
-                                        </div>
-                                        <div>
-                                          <p className="text-sm text-muted-foreground">Sede</p>
-                                          <p className="font-medium">{selectedPastor.sede || "-"}</p>
-                                        </div>
-                                        <div>
-                                          <p className="text-sm text-muted-foreground">Cargo</p>
-                                          <p className="font-medium">{selectedPastor.cargo || "-"}</p>
-                                        </div>
-                                        <div>
-                                          <p className="text-sm text-muted-foreground">Estado</p>
-                                          <Badge variant={selectedPastor.activo ? "default" : "secondary"}>
-                                            {selectedPastor.activo ? "Activo" : "Inactivo"}
-                                          </Badge>
-                                        </div>
+                                  <div className="space-y-4">
+                                    {pastor.fotoUrl ? (
+                                      <img
+                                        src={pastor.fotoUrl}
+                                        alt={`${pastor.nombre} ${pastor.apellido}`}
+                                        className="size-32 rounded-full object-cover mx-auto"
+                                      />
+                                    ) : (
+                                      <div className="size-32 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-2xl font-medium mx-auto">
+                                        {pastor.nombre?.[0]}
+                                        {pastor.apellido?.[0]}
                                       </div>
-                                      {selectedPastor.biografia && (
-                                        <div>
-                                          <p className="text-sm text-muted-foreground">Biografía</p>
-                                          <p className="text-sm">{selectedPastor.biografia}</p>
-                                        </div>
-                                      )}
+                                    )}
+                                    <div className="text-center">
+                                      <h3 className="text-xl font-semibold">{pastor.nombre} {pastor.apellido}</h3>
+                                      {pastor.cargo && <p className="text-muted-foreground">{pastor.cargo}</p>}
                                     </div>
-                                  )}
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                      <div className="p-3 rounded-lg bg-muted/50">
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Email</p>
+                                        <p className="font-medium">{pastor.email || "-"}</p>
+                                      </div>
+                                      <div className="p-3 rounded-lg bg-muted/50">
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Teléfono</p>
+                                        <p className="font-medium">{pastor.telefono || "-"}</p>
+                                      </div>
+                                      <div className="p-3 rounded-lg bg-muted/50">
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Sede</p>
+                                        <p className="font-medium">{pastor.sede || "-"}</p>
+                                      </div>
+                                      <div className="p-3 rounded-lg bg-muted/50">
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Estado</p>
+                                        <Badge variant={pastor.activo ? "default" : "secondary"}>
+                                          {pastor.activo ? "Activo" : "Inactivo"}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                    {pastor.biografia && (
+                                      <div className="p-3 rounded-lg bg-muted/50">
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Biografía</p>
+                                        <p className="text-sm">{pastor.biografia}</p>
+                                      </div>
+                                    )}
+                                  </div>
                                 </DialogContent>
                               </Dialog>
                               <Tooltip>
@@ -450,16 +550,6 @@ export default function PastoresPage() {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p>Editar</p>
-                                </TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="sm" onClick={() => handleDelete(pastor)}>
-                                    <Trash2 className="size-4 text-destructive" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Eliminar</p>
                                 </TooltipContent>
                               </Tooltip>
                             </div>

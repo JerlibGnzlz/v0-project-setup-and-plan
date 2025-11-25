@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { ScrollProgress } from '@/components/scroll-progress'
 import { BackToTop } from '@/components/back-to-top'
+import { ThemeProvider } from '@/components/theme-provider'
 
 const _inter = Inter({ subsets: ["latin"] });
 const _montserrat = Montserrat({ subsets: ["latin"] });
@@ -20,11 +21,18 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className="scroll-smooth light">
+    <html lang="es" className="scroll-smooth" suppressHydrationWarning>
       <body className={`font-sans antialiased bg-background text-foreground`}>
-        <ScrollProgress />
-        {children}
-        <BackToTop />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ScrollProgress />
+          {children}
+          <BackToTop />
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>
