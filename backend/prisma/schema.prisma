@@ -113,21 +113,28 @@ model Inscripcion {
 
 // Modelo de Imagen de Galería
 model GaleriaImagen {
-  id           String   @id @default(uuid())
+  id           String       @id @default(uuid())
   titulo       String
   descripcion  String?
-  imagenUrl    String   @map("imagen_url")
+  imagenUrl    String       @map("imagen_url")
+  tipo         TipoGaleria  @default(IMAGEN)
   categoria    String?
-  convencionId String?  @map("convencion_id")
-  orden        Int      @default(0)
-  activa       Boolean  @default(true)
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  convencionId String?      @map("convencion_id")
+  orden        Int          @default(0)
+  activa       Boolean      @default(true)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
 
   convencion Convencion? @relation(fields: [convencionId], references: [id], onDelete: SetNull)
 
   @@index([categoria])
+  @@index([tipo])
   @@map("galeria")
+}
+
+enum TipoGaleria {
+  IMAGEN
+  VIDEO
 }
 
 // Modelo de Pago

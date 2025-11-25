@@ -3,6 +3,7 @@
 import type React from "react"
 import { LogOut } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -66,10 +67,16 @@ function AdminLayoutContent({
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="flex h-16 items-center justify-between px-6">
           {/* Logo */}
-          <Link href="/admin" className="flex items-center gap-2">
-            <div className="size-8 rounded-lg bg-gradient-to-br from-primary via-accent to-secondary" />
+          <Link href="/admin" className="flex items-center gap-3">
+            <Image
+              src="/mundo.png"
+              alt="Logo AMVA"
+              width={70}
+              height={70}
+              className="w-16 h-16 object-contain"
+            />
             <div>
-              <h2 className="font-semibold text-foreground">Vida Abundante</h2>
+              <h2 className="font-semibold text-foreground">Asociación Misionera Vida Abundante</h2>
               <p className="text-xs text-muted-foreground">Panel Administrativo</p>
             </div>
           </Link>
@@ -100,19 +107,31 @@ function AdminLayoutContent({
           <SheetContent side="left" className="w-64 p-0">
             <div className="flex h-full flex-col">
               {/* Logo */}
-              <div className="flex h-16 items-center gap-2 border-b px-6">
-                <div className="size-8 rounded-lg bg-gradient-to-br from-primary via-accent to-secondary" />
+              <div className="flex h-16 items-center gap-3 border-b px-6">
+                <Image
+                  src="/mundo.png"
+                  alt="Logo AMVA"
+                  width={56}
+                  height={56}
+                  className="w-14 h-14 object-contain"
+                />
                 <div>
-                  <h2 className="font-semibold">Vida Abundante</h2>
+                  <h2 className="font-semibold">A.M.V.A</h2>
                   <p className="text-xs text-muted-foreground">Panel Administrativo</p>
                 </div>
               </div>
             </div>
           </SheetContent>
         </Sheet>
-        <div className="flex items-center gap-2">
-          <div className="size-8 rounded-lg bg-gradient-to-br from-primary via-accent to-secondary" />
-          <h2 className="font-semibold">Vida Abundante</h2>
+        <div className="flex items-center gap-3">
+          <Image
+            src="/mundo.png"
+            alt="Logo AMVA"
+            width={56}
+            height={56}
+            className="w-14 h-14 object-contain"
+          />
+          <h2 className="font-semibold">A.M.V.A</h2>
         </div>
       </header>
 

@@ -1,66 +1,176 @@
+'use client'
+
 import Link from 'next/link'
-import { Facebook, Instagram, Mail, Phone, MapPin } from 'lucide-react'
+import Image from 'next/image'
+import { Facebook, Instagram, Mail, Phone, MapPin, Heart, ArrowUp } from 'lucide-react'
+
+const quickLinks = [
+  { href: '#inicio', label: 'Inicio' },
+  { href: '#nosotros', label: 'Nosotros' },
+  { href: '#directiva', label: 'Directiva' },
+  { href: '#convenciones', label: 'Convenciones' },
+  { href: '#galeria', label: 'Galería' },
+  { href: '#educacion', label: 'Educación' },
+]
+
+const socialLinks = [
+  { icon: Facebook, href: '#', label: 'Facebook', color: 'hover:bg-blue-500' },
+  { icon: Instagram, href: '#', label: 'Instagram', color: 'hover:bg-pink-500' },
+]
 
 export function Footer() {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   return (
-    <footer className="bg-foreground text-background py-12">
-      <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">VA</span>
+    <footer className="relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-[#060d17]">
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute bottom-0 left-1/4 w-[400px] h-[200px] bg-blue-500/20 rounded-full blur-[100px]" />
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[200px] bg-purple-500/20 rounded-full blur-[100px]" />
+        </div>
+      </div>
+
+      <div className="relative z-10">
+        {/* Main Footer */}
+        <div className="container mx-auto px-4 py-16">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
+            {/* Brand */}
+            <div className="lg:col-span-1">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="relative w-12 h-12">
+                  <Image
+                    src="/mundo.png"
+                    alt="AMVA Logo"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <div>
+                  <span className="font-bold text-white text-lg block">A.M.V.A</span>
+                  <span className="text-xs text-white/50">Vida Abundante</span>
+                </div>
               </div>
-              <span className="font-bold text-xl">Vida Abundante</span>
+              <p className="text-white/60 text-sm leading-relaxed mb-6">
+                Llevando formación pastoral y vida abundante a las naciones a través de convenciones, seminarios y recursos de formación continua.
+              </p>
+              {/* Social Links */}
+              <div className="flex gap-3">
+                {socialLinks.map((social) => {
+                  const Icon = social.icon
+                  return (
+                    <a
+                      key={social.label}
+                      href={social.href}
+                      aria-label={social.label}
+                      className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 transition-all duration-300 ${social.color} hover:border-transparent hover:text-white`}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </a>
+                  )
+                })}
+              </div>
             </div>
-            <p className="text-sm opacity-80 leading-relaxed">
-              Llevando formación pastoral y vida abundante a las naciones
-            </p>
-          </div>
-          
-          <div>
-            <h3 className="font-bold text-lg mb-4">Enlaces Rápidos</h3>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="#inicio" className="opacity-80 hover:opacity-100 transition-opacity">Inicio</Link></li>
-              <li><Link href="#nosotros" className="opacity-80 hover:opacity-100 transition-opacity">Nosotros</Link></li>
-              <li><Link href="#directiva" className="opacity-80 hover:opacity-100 transition-opacity">Directiva</Link></li>
-              <li><Link href="#convenciones" className="opacity-80 hover:opacity-100 transition-opacity">Convenciones</Link></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="font-bold text-lg mb-4">Contacto</h3>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                <span className="opacity-80">info@vidaabundante.org</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                <span className="opacity-80">+52 123 456 7890</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <span className="opacity-80">Ciudad de México</span>
-              </li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="font-bold text-lg mb-4">Síguenos</h3>
-            <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 bg-background/10 hover:bg-primary rounded-full flex items-center justify-center transition-colors">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-background/10 hover:bg-primary rounded-full flex items-center justify-center transition-colors">
-                <Instagram className="h-5 w-5" />
-              </a>
+
+            {/* Quick Links */}
+            <div>
+              <h3 className="text-white font-semibold text-lg mb-6 flex items-center gap-2">
+                <div className="w-1 h-6 bg-gradient-to-b from-blue-500 to-cyan-500 rounded-full" />
+                Enlaces Rápidos
+              </h3>
+              <ul className="space-y-3">
+                {quickLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-white/60 hover:text-white transition-colors duration-300 text-sm flex items-center gap-2 group"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-white/30 group-hover:bg-blue-400 transition-colors duration-300" />
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <h3 className="text-white font-semibold text-lg mb-6 flex items-center gap-2">
+                <div className="w-1 h-6 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full" />
+                Contacto
+              </h3>
+              <ul className="space-y-4">
+                <li>
+                  <a
+                    href="mailto:info@vidaabundante.org"
+                    className="flex items-center gap-3 text-white/60 hover:text-white transition-colors duration-300 text-sm"
+                  >
+                    <div className="p-2 rounded-lg bg-white/5">
+                      <Mail className="w-4 h-4 text-blue-400" />
+                    </div>
+                    info@vidaabundante.org
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="tel:+5411xxxxxxxx"
+                    className="flex items-center gap-3 text-white/60 hover:text-white transition-colors duration-300 text-sm"
+                  >
+                    <div className="p-2 rounded-lg bg-white/5">
+                      <Phone className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    +54 11 xxxx-xxxx
+                  </a>
+                </li>
+                <li className="flex items-center gap-3 text-white/60 text-sm">
+                  <div className="p-2 rounded-lg bg-white/5">
+                    <MapPin className="w-4 h-4 text-amber-400" />
+                  </div>
+                  Buenos Aires, Argentina
+                </li>
+              </ul>
+            </div>
+
+            {/* Newsletter / CTA */}
+            <div>
+              <h3 className="text-white font-semibold text-lg mb-6 flex items-center gap-2">
+                <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full" />
+                Mantente Conectado
+              </h3>
+              <p className="text-white/60 text-sm mb-4 leading-relaxed">
+                Únete a nuestra comunidad y recibe actualizaciones sobre eventos y convenciones.
+              </p>
+              <Link
+                href="#inscripcion"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300 hover:scale-105"
+              >
+                Inscríbete
+              </Link>
             </div>
           </div>
         </div>
-        
-        <div className="border-t border-background/20 pt-8 text-center text-sm opacity-80">
-          <p>&copy; {new Date().getFullYear()} Vida Abundante. Todos los derechos reservados.</p>
+
+        {/* Bottom Bar */}
+        <div className="border-t border-white/10">
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <p className="text-white/50 text-sm flex items-center gap-1">
+                &copy; {new Date().getFullYear()} Asociación Misionera Vida Abundante. Hecho con{' '}
+                <Heart className="w-4 h-4 text-red-500 fill-red-500" /> para el Reino.
+              </p>
+              <button
+                onClick={scrollToTop}
+                className="flex items-center gap-2 text-white/50 hover:text-white text-sm transition-colors duration-300 group"
+              >
+                Volver arriba
+                <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors duration-300">
+                  <ArrowUp className="w-4 h-4" />
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

@@ -1,10 +1,13 @@
 import { apiClient } from "./client"
 
+export type TipoGaleria = 'IMAGEN' | 'VIDEO'
+
 export interface GaleriaImagen {
   id: string
   titulo: string
   descripcion?: string
   imagenUrl: string
+  tipo: TipoGaleria
   categoria?: string
   convencionId?: string
   orden: number
@@ -38,4 +41,5 @@ export const galeriaApi = {
     await apiClient.delete(`/galeria/${id}`)
   },
 }
+
 

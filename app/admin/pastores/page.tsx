@@ -35,7 +35,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 // AlertDialog se usa para el botón de desactivar
-import { Search, Eye, Plus, Edit, AlertCircle, UserX, UserCheck } from "lucide-react"
+import { Search, Eye, Plus, Edit, AlertCircle, UserX, UserCheck, ChevronLeft } from "lucide-react"
+import Link from "next/link"
 import { ScrollReveal } from "@/components/scroll-reveal"
 import { usePastores, useCreatePastor, useUpdatePastor } from "@/lib/hooks/use-pastores"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -81,15 +82,15 @@ export default function PastoresPage() {
       pastor.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pastor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pastor.sede?.toLowerCase().includes(searchTerm.toLowerCase())
-    
+
     // Normalizar el valor de activo (puede venir como boolean, string, o undefined)
     const isActivo = pastor.activo === true || pastor.activo === "true"
-    
-    const matchStatus = 
+
+    const matchStatus =
       statusFilter === "todos" ||
       (statusFilter === "activos" && isActivo) ||
       (statusFilter === "inactivos" && !isActivo)
-    
+
     return matchSearch && matchStatus
   })
 
@@ -166,11 +167,26 @@ export default function PastoresPage() {
     <TooltipProvider>
       <ScrollReveal>
         <div className="space-y-6">
+          {/* Header con botón de volver */}
+          <div className="flex items-center gap-4">
+            <Link href="/admin">
+              <Button variant="ghost" size="icon">
+                <ChevronLeft className="size-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Gestión de Pastores</h1>
+              <p className="text-muted-foreground mt-1">
+                Registro y administración de pastores del ministerio
+              </p>
+            </div>
+          </div>
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Gestión de Pastores</CardTitle>
-                <CardDescription>Registro y administración de pastores</CardDescription>
+                <CardTitle>Lista de Pastores</CardTitle>
+                <CardDescription>Pastores registrados en el sistema</CardDescription>
               </div>
               <Dialog
                 open={isAddingPastor || isEditingPastor}

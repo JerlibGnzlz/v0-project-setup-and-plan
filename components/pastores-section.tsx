@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent } from '@/components/ui/card'
+import { useState } from 'react'
 import {
   Accordion,
   AccordionContent,
@@ -16,11 +16,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Eye, MapPin } from 'lucide-react'
+import { Eye, MapPin, Mail, Church, ChevronRight } from 'lucide-react'
 
 const regionalPastors = [
   {
     region: 'Argentina - Provincia de Buenos Aires',
+    gradient: 'from-blue-500 to-cyan-500',
     pastors: [
       {
         name: 'Pastor Roberto Fernández',
@@ -56,6 +57,7 @@ const regionalPastors = [
   },
   {
     region: 'Argentina - Provincia de Córdoba',
+    gradient: 'from-emerald-500 to-teal-500',
     pastors: [
       {
         name: 'Pastor Miguel Ángel Sosa',
@@ -76,6 +78,7 @@ const regionalPastors = [
   },
   {
     region: 'Argentina - Provincia de Mendoza',
+    gradient: 'from-purple-500 to-pink-500',
     pastors: [
       {
         name: 'Pastor Daniel Gutiérrez',
@@ -96,6 +99,7 @@ const regionalPastors = [
   },
   {
     region: 'Colombia - Región Central',
+    gradient: 'from-amber-500 to-orange-500',
     pastors: [
       {
         name: 'Pastor Andrés Vargas',
@@ -116,6 +120,7 @@ const regionalPastors = [
   },
   {
     region: 'España - Comunidad de Madrid',
+    gradient: 'from-rose-500 to-red-500',
     pastors: [
       {
         name: 'Pastor Javier Moreno',
@@ -138,105 +143,152 @@ const regionalPastors = [
 
 export function PastoresSection() {
   return (
-    <section id="pastores" className="py-24">
-      <div className="container mx-auto px-4">
+    <section id="pastores" className="relative py-24 overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-[#0a1628]">
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-blue-500/20 to-transparent rounded-full blur-[100px]" />
+        </div>
+        {/* Grid */}
+        <div 
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+          }}
+        />
+      </div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-balance">
-            Pastores Supervisores
+          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+            <Church className="w-4 h-4 text-blue-400" />
+            <span className="text-sm text-white/80 font-medium">Líderes Regionales</span>
+          </div>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
+            Pastores{' '}
+            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              Supervisores
+            </span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
+          <p className="text-lg text-white/60 max-w-3xl mx-auto">
             Líderes regionales comprometidos con el crecimiento y desarrollo de las iglesias locales
           </p>
         </div>
-        
-        <Accordion type="single" collapsible className="max-w-6xl mx-auto space-y-4">
+
+        {/* Accordion */}
+        <Accordion type="single" collapsible className="max-w-4xl mx-auto space-y-4">
           {regionalPastors.map((region, regionIndex) => (
-            <AccordionItem 
-              key={region.region} 
+            <AccordionItem
+              key={region.region}
               value={`region-${regionIndex}`}
-              className="border rounded-lg px-4 bg-card"
+              className="border-0"
             >
-              <AccordionTrigger className="text-lg font-semibold hover:no-underline py-6">
-                <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  <span>{region.region}</span>
-                  <span className="text-sm text-muted-foreground font-normal ml-2">
-                    ({region.pastors.length} {region.pastors.length === 1 ? 'pastor' : 'pastores'})
-                  </span>
+              <AccordionTrigger className="group px-6 py-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:no-underline transition-all duration-300 data-[state=open]:rounded-b-none data-[state=open]:border-b-0">
+                <div className="flex items-center gap-4">
+                  <div className={`w-2 h-8 rounded-full bg-gradient-to-b ${region.gradient}`} />
+                  <div className="text-left">
+                    <span className="text-white font-semibold text-lg">{region.region}</span>
+                    <span className="block text-sm text-white/50 mt-1">
+                      {region.pastors.length} {region.pastors.length === 1 ? 'pastor' : 'pastores'}
+                    </span>
+                  </div>
                 </div>
               </AccordionTrigger>
-              <AccordionContent>
-                <div className="grid md:grid-cols-2 gap-6 pb-6">
+              <AccordionContent className="px-6 pb-6 pt-0 rounded-b-xl bg-white/5 backdrop-blur-sm border border-t-0 border-white/10">
+                <div className="grid gap-4 pt-6">
                   {region.pastors.map((pastor) => (
-                    <Card key={pastor.name} className="overflow-hidden hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex gap-4 mb-4">
-                          <div className="flex-shrink-0">
-                            <img
-                              src={pastor.image || "/placeholder.svg"}
-                              alt={pastor.name}
-                              className="w-20 h-20 rounded-full object-cover"
-                            />
+                    <div
+                      key={pastor.name}
+                      className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-300"
+                    >
+                      {/* Avatar */}
+                      <div className="flex-shrink-0">
+                        <img
+                          src={pastor.image || "/placeholder.svg"}
+                          alt={pastor.name}
+                          className="w-20 h-20 rounded-xl object-cover"
+                        />
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-bold text-white">{pastor.name}</h3>
+                        <p className={`text-sm font-medium bg-gradient-to-r ${region.gradient} bg-clip-text text-transparent`}>
+                          {pastor.role}
+                        </p>
+                        <div className="flex flex-wrap gap-4 mt-2 text-sm text-white/50">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {pastor.city}
                           </div>
-                          <div className="flex-1">
-                            <h3 className="text-xl font-bold mb-1">{pastor.name}</h3>
-                            <p className="text-primary font-semibold text-sm mb-1">{pastor.role}</p>
-                            <p className="text-sm text-muted-foreground">{pastor.city}</p>
-                            <p className="text-xs text-muted-foreground mt-1">{pastor.email}</p>
+                          <div className="flex items-center gap-1">
+                            <Church className="w-3 h-3" />
+                            {pastor.churches} iglesias
                           </div>
                         </div>
-                        
-                        <div className="flex items-center gap-4 mb-4 text-sm">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-primary"></div>
-                            <span className="text-muted-foreground">
-                              {pastor.churches} iglesias bajo supervisión
-                            </span>
-                          </div>
-                        </div>
-                        
+                      </div>
+
+                      {/* Action */}
+                      <div className="flex-shrink-0 sm:self-center">
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button variant="default" className="w-full gap-2">
+                            <Button
+                              variant="ghost"
+                              className="w-full sm:w-auto bg-white/5 hover:bg-white/10 text-white border border-white/10 gap-2"
+                            >
                               <Eye className="h-4 w-4" />
-                              Ver Recorrido Ministerial
+                              Ver Más
+                              <ChevronRight className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                          <DialogContent className="max-w-2xl bg-[#0d1f35] border-white/10 text-white">
                             <DialogHeader>
-                              <DialogTitle className="text-2xl">{pastor.name}</DialogTitle>
-                              <DialogDescription className="text-base">
+                              <DialogTitle className="text-2xl text-white">{pastor.name}</DialogTitle>
+                              <DialogDescription className={`text-base bg-gradient-to-r ${region.gradient} bg-clip-text text-transparent font-medium`}>
                                 {pastor.role} - {pastor.city}
                               </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-6 pt-4">
-                              <div className="bg-muted/50 p-4 rounded-lg">
-                                <p className="text-sm text-muted-foreground mb-1">Región</p>
-                                <p className="font-semibold">{region.region}</p>
-                                <p className="text-sm text-muted-foreground mt-2 mb-1">Iglesias supervisadas</p>
-                                <p className="font-semibold">{pastor.churches} congregaciones</p>
+                              <div className="flex flex-wrap gap-4 text-white/60 text-sm">
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5">
+                                  <MapPin className="w-4 h-4" />
+                                  {region.region}
+                                </div>
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5">
+                                  <Church className="w-4 h-4" />
+                                  {pastor.churches} iglesias
+                                </div>
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5">
+                                  <Mail className="w-4 h-4" />
+                                  {pastor.email}
+                                </div>
                               </div>
-                              
+
                               <div>
-                                <h4 className="font-bold text-lg mb-4">Recorrido Ministerial</h4>
-                                {pastor.journey.map((item, idx) => (
-                                  <div key={idx} className="flex gap-4 mb-6 last:mb-0">
-                                    <div className="flex-shrink-0">
-                                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <span className="text-sm font-bold text-primary">{item.year}</span>
+                                <h4 className="font-bold text-lg mb-4 text-white">Recorrido Ministerial</h4>
+                                <div className="space-y-4">
+                                  {pastor.journey.map((item, idx) => (
+                                    <div key={idx} className="flex gap-4 items-start">
+                                      <div className={`flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-r ${region.gradient} flex items-center justify-center shadow-lg`}>
+                                        <span className="text-sm font-bold text-white">{item.year}</span>
+                                      </div>
+                                      <div className="flex-1 pt-3">
+                                        <p className="text-white/80 leading-relaxed">{item.milestone}</p>
                                       </div>
                                     </div>
-                                    <div className="flex-1 pt-2">
-                                      <p className="text-base leading-relaxed">{item.milestone}</p>
-                                    </div>
-                                  </div>
-                                ))}
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           </DialogContent>
                         </Dialog>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </AccordionContent>

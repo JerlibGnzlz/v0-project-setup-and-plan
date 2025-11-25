@@ -1,69 +1,133 @@
 'use client'
 
-import { Card, CardContent } from '@/components/ui/card'
-import { Globe, Heart, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Target, Eye, Sparkles } from 'lucide-react'
 import { AnimatedCounter } from './animated-counter'
 
+const stats = [
+  { end: 500, suffix: '+', label: 'Pastores Formados', color: 'from-blue-500 to-cyan-500' },
+  { end: 5, suffix: '', label: 'Países', color: 'from-emerald-500 to-teal-500' },
+  { end: 15, suffix: '+', label: 'Años de Ministerio', color: 'from-amber-500 to-orange-500' },
+  { end: 50, suffix: '+', label: 'Convenciones', color: 'from-purple-500 to-pink-500' },
+]
+
 export function AboutSection() {
+  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({
+        x: (e.clientX / window.innerWidth) * 100,
+        y: (e.clientY / window.innerHeight) * 100,
+      })
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
+
   return (
-    <section id="nosotros" className="py-24 bg-muted/30">
-      <div className="container mx-auto px-4">
+    <section id="nosotros" className="relative py-24 overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-[#0a1628]">
+        <div 
+          className="absolute inset-0 opacity-50"
+          style={{
+            background: `
+              radial-gradient(ellipse 50% 50% at ${mousePosition.x}% ${mousePosition.y}%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+              radial-gradient(ellipse 40% 40% at 20% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+              radial-gradient(ellipse 40% 40% at 80% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%)
+            `,
+          }}
+        />
+        {/* Grid */}
+        <div 
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+          }}
+        />
+      </div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-balance">
-            Quiénes Somos
+          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span className="text-sm text-white/80 font-medium">Nuestra Identidad</span>
+          </div>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
+            Quiénes{' '}
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Somos
+            </span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
+          <p className="text-lg text-white/60 max-w-3xl mx-auto leading-relaxed">
             Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino
           </p>
         </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16 max-w-4xl mx-auto">
-          <div className="text-center">
-            <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-              <AnimatedCounter end={500} suffix="+" />
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-20 max-w-5xl mx-auto">
+          {stats.map((stat, index) => (
+            <div
+              key={index}
+              className="relative group"
+            >
+              {/* Glow effect - applies gradient colors from stat.color */}
+              <div className={`absolute -inset-1 bg-gradient-to-r ${stat.color} rounded-2xl blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500`} />
+              <div className="relative p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 text-center hover:border-white/20 transition-all duration-300 hover:transform hover:scale-105">
+                <div className={`text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+                  <AnimatedCounter end={stat.end} suffix={stat.suffix} />
+                </div>
+                <div className="text-white/60 text-sm">{stat.label}</div>
+              </div>
             </div>
-            <div className="text-muted-foreground">Pastores Formados</div>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl md:text-5xl font-bold text-accent mb-2">
-              <AnimatedCounter end={5} />
-            </div>
-            <div className="text-muted-foreground">Países</div>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl md:text-5xl font-bold text-secondary mb-2">
-              <AnimatedCounter end={15} suffix="+" />
-            </div>
-            <div className="text-muted-foreground">Años de Ministerio</div>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-              <AnimatedCounter end={50} suffix="+" />
-            </div>
-            <div className="text-muted-foreground">Convenciones</div>
-          </div>
+          ))}
         </div>
-        
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <h3 className="text-3xl font-bold mb-6">Nuestra Misión</h3>
-            <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-              Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.
-            </p>
-            <h3 className="text-3xl font-bold mb-6">Nuestra Visión</h3>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.
-            </p>
+
+        {/* Mission & Vision */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          {/* Misión */}
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
+            <div className="relative p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 h-full">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500">
+                  <Target className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white">Nuestra Misión</h3>
+              </div>
+              <p className="text-white/70 leading-relaxed">
+                Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.
+              </p>
+            </div>
           </div>
-          <div className="relative h-96 rounded-lg overflow-hidden">
-            <img
-              src="/pastors-training-conference-worship.jpg"
-              alt="Pastoral training"
-              className="w-full h-full object-cover"
-            />
+
+          {/* Visión */}
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
+            <div className="relative p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 h-full">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500">
+                  <Eye className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white">Nuestra Visión</h3>
+              </div>
+              <p className="text-white/70 leading-relaxed">
+                Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.
+              </p>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Decorative blobs */}
+      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] animate-blob" />
+      <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] animate-blob animation-delay-2000" />
     </section>
   )
 }

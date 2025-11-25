@@ -8,7 +8,7 @@ import type { Express } from "express"
 @Controller("upload")
 @UseGuards(JwtAuthGuard)
 export class UploadController {
-  constructor(private readonly uploadService: UploadService) {}
+  constructor(private readonly uploadService: UploadService) { }
 
   @Post('image')
   @UseInterceptors(
@@ -23,7 +23,7 @@ export class UploadController {
     }
 
     const result = await this.uploadService.uploadImage(file, 'ministerio-amva/pastores');
-    
+
     return {
       success: true,
       url: result.url,
@@ -44,7 +44,28 @@ export class UploadController {
     }
 
     const result = await this.uploadService.uploadImage(file, 'ministerio-amva/galeria');
-    
+
+    return {
+      success: true,
+      url: result.url,
+      publicId: result.publicId,
+    };
+  }
+
+  @Post('video')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: 50 * 1024 * 1024 }, // 50MB para videos
+    }),
+  )
+  async uploadVideo(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No se proporcionó ningún archivo');
+    }
+
+    const result = await this.uploadService.uploadVideo(file, 'ministerio-amva/videos');
+
     return {
       success: true,
       url: result.url,

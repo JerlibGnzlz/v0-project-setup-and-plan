@@ -1,4 +1,9 @@
-import { IsString, IsOptional, IsInt, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsBoolean, IsEnum } from 'class-validator';
+
+export enum TipoGaleria {
+    IMAGEN = 'IMAGEN',
+    VIDEO = 'VIDEO',
+}
 
 export class CreateGaleriaDto {
     @IsString()
@@ -10,6 +15,10 @@ export class CreateGaleriaDto {
 
     @IsString()
     imagenUrl: string;
+
+    @IsOptional()
+    @IsEnum(TipoGaleria)
+    tipo?: TipoGaleria;
 
     @IsOptional()
     @IsString()
@@ -42,6 +51,10 @@ export class UpdateGaleriaDto {
     imagenUrl?: string;
 
     @IsOptional()
+    @IsEnum(TipoGaleria)
+    tipo?: TipoGaleria;
+
+    @IsOptional()
     @IsString()
     categoria?: string;
 
@@ -57,4 +70,5 @@ export class UpdateGaleriaDto {
     @IsBoolean()
     activa?: boolean;
 }
+
 

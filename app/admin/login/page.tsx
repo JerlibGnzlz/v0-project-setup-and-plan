@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import Image from 'next/image'
 
 export default function AdminLogin() {
   const router = useRouter()
@@ -50,10 +51,16 @@ export default function AdminLogin() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-accent/10 to-secondary/10 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto size-16 rounded-lg bg-gradient-to-br from-primary via-accent to-secondary mb-4" />
-          <CardTitle className="text-2xl font-bold">Panel Administrativo</CardTitle>
+          <Image
+            src="/mundo.png"
+            alt="Logo AMVA"
+            width={160}
+            height={160}
+            className="mx-auto w-36 h-36 sm:w-40 sm:h-40 object-contain mb-4"
+          />
+          <CardTitle className="text-xl font-bold">Asociación Misionera Vida Abundante</CardTitle>
           <CardDescription>
-            Convención Nacional Argentina 2025
+            Panel Administrativo
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -107,8 +114,8 @@ export default function AdminLogin() {
 
             <div className="flex items-center">
               <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="remember" 
+                <Checkbox
+                  id="remember"
                   checked={rememberMe}
                   onCheckedChange={(checked) => setRememberMe(checked === true)}
                 />

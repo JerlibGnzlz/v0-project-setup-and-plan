@@ -18,52 +18,60 @@ import { QueryProvider } from '@/lib/providers/query-provider'
 export default function HomePage() {
   return (
     <QueryProvider>
-      <main>
-        <Navbar />
-        <SectionIndicator />
-        <div id="inicio">
-          <HeroSection />
-        </div>
-        <div id="sedes">
-          <ScrollReveal>
-            <SedesSection />
-          </ScrollReveal>
-        </div>
-        <div id="mision">
+      {/* Tema oscuro moderno para toda la landing */}
+      <div
+        className="min-h-screen bg-[#0a1628] text-white"
+        style={{
+          colorScheme: 'dark',
+        }}
+      >
+        <main>
+          <Navbar />
+          <SectionIndicator />
+          <div id="inicio">
+            <HeroSection />
+          </div>
+          <div id="sedes">
+            <ScrollReveal>
+              <SedesSection />
+            </ScrollReveal>
+          </div>
+          <div id="mision">
+            <ScrollReveal delay={100}>
+              <AboutSection />
+            </ScrollReveal>
+          </div>
+          <div id="directiva">
+            <ScrollReveal delay={100}>
+              <LeadershipSection />
+            </ScrollReveal>
+          </div>
+          <div id="pastores">
+            <ScrollReveal delay={100}>
+              <PastoresSection />
+            </ScrollReveal>
+          </div>
           <ScrollReveal delay={100}>
-            <AboutSection />
+            <ConventionsSection />
           </ScrollReveal>
-        </div>
-        <div id="directiva">
-          <ScrollReveal delay={100}>
-            <LeadershipSection />
-          </ScrollReveal>
-        </div>
-        <div id="pastores">
-          <ScrollReveal delay={100}>
-            <PastoresSection />
-          </ScrollReveal>
-        </div>
-        <ScrollReveal delay={100}>
-          <ConventionsSection />
-        </ScrollReveal>
-        <div id="galeria">
-          <ScrollReveal delay={100}>
-            <GallerySection />
-          </ScrollReveal>
-        </div>
-        <div id="educacion">
-          <ScrollReveal delay={100}>
-            <EducacionSection />
-          </ScrollReveal>
-        </div>
-        <div id="inscripcion">
-          <ScrollReveal delay={100}>
-            <RegistrationSection />
-          </ScrollReveal>
-        </div>
-        <Footer />
-      </main>
+          <div id="galeria">
+            <ScrollReveal delay={100}>
+              <GallerySection />
+            </ScrollReveal>
+          </div>
+          <div id="educacion">
+            <ScrollReveal delay={100}>
+              <EducacionSection />
+            </ScrollReveal>
+          </div>
+          <div id="inscripcion">
+            <ScrollReveal delay={100}>
+              <RegistrationSection />
+            </ScrollReveal>
+          </div>
+          <Footer />
+        </main>
+      </div>
     </QueryProvider>
   )
 }

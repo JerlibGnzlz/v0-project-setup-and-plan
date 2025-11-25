@@ -13,7 +13,7 @@ export const loginSchema = z.object({
     .min(1, 'El correo electrónico es requerido')
     .email('Correo electrónico inválido'),
   password: z.string().min(1, 'La contraseña es requerida'),
-  rememberMe: z.boolean().default(false),
+  rememberMe: z.boolean().optional(),
 })
 
 // Schema para registro (contraseña más robusta)
