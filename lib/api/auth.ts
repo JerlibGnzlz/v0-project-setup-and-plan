@@ -12,6 +12,7 @@ export interface LoginResponse {
     email: string
     nombre: string
     rol: string
+    avatar?: string | null
   }
 }
 
@@ -32,21 +33,6 @@ export const authApi = {
 
   getProfile: async () => {
     const response = await apiClient.get("/auth/me")
-    return response.data
-  },
-
-  requestPasswordReset: async (email: string) => {
-    const response = await apiClient.post("/auth/forgot-password", { email })
-    return response.data
-  },
-
-  resetPassword: async (token: string, password: string) => {
-    const response = await apiClient.post("/auth/reset-password", { token, password })
-    return response.data
-  },
-
-  changePassword: async (oldPassword: string, newPassword: string) => {
-    const response = await apiClient.patch("/auth/change-password", { oldPassword, newPassword })
     return response.data
   },
 }

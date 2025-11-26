@@ -29,11 +29,18 @@ export const convencionesApi = {
   getActive: async (): Promise<Convencion | null> => {
     try {
       const response = await apiClient.get<Convencion>("/convenciones/active")
-      return response.data
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+      // Verificar que realmente tenemos datos válidos
+      if (!response.data || !response.data.id) {
         return null
       }
+      return response.data
+    } catch (error: any) {
+      // 404 significa que no hay convención activa
+      if (error.response?.status === 404) {
+        console.log('📭 No hay convención activa')
+        return null
+      }
+      console.error('❌ Error obteniendo convención activa:', error)
       throw error
     }
   },

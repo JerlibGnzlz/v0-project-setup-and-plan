@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { convencionesApi, type Convencion } from "@/lib/api/convenciones"
 import { toast } from "sonner"
-import { useEffect } from "react"
+import { useSmartSync, useSmartPolling } from "./use-smart-sync"
 
 export function useConvenciones() {
   return useQuery({
@@ -13,26 +13,20 @@ export function useConvenciones() {
 }
 
 export function useConvencionActiva() {
-  const queryClient = useQueryClient()
+  // Usar sincronización inteligente
+  useSmartSync()
   
-  // Escuchar cambios de otras pestañas
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'convencion-updated') {
-        // Refetch cuando otra pestaña actualiza la convención
-        queryClient.invalidateQueries({ queryKey: ["convencion", "active"] })
-      }
-    }
-    
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
-  }, [queryClient])
+  // Polling inteligente que se pausa cuando la pestaña no está visible
+  const pollingInterval = useSmartPolling(["convencion", "active"], 30000)
   
   return useQuery({
     queryKey: ["convencion", "active"],
     queryFn: convencionesApi.getActive,
-    refetchOnWindowFocus: true, // Actualizar cuando la ventana obtiene foco
-    staleTime: 0, // Siempre considerar datos como obsoletos
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    refetchInterval: pollingInterval, // Se pausa automáticamente cuando la pestaña no está visible
+    // Mantener los datos anteriores mientras se refetch para evitar parpadeos
+    placeholderData: (previousData) => previousData,
   })
 }
 
@@ -46,11 +40,14 @@ export function useConvencion(id: string) {
 
 export function useCreateConvencion() {
   const queryClient = useQueryClient()
+  const { notifyChange } = useSmartSync()
 
   return useMutation({
     mutationFn: convencionesApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["convenciones"] })
+      queryClient.invalidateQueries({ queryKey: ["convencion"] })
+      notifyChange("convencion")
       toast.success("Convención creada exitosamente")
     },
     onError: () => {
@@ -61,16 +58,22 @@ export function useCreateConvencion() {
 
 export function useUpdateConvencion() {
   const queryClient = useQueryClient()
+  const { notifyChange } = useSmartSync()
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Convencion> }) => convencionesApi.update(id, data),
-    onSuccess: () => {
-      // Invalidar todas las queries relacionadas con convenciones
-      queryClient.invalidateQueries({ queryKey: ["convenciones"] })
-      queryClient.invalidateQueries({ queryKey: ["convencion"] })
+    onSuccess: async () => {
+      // Invalidar y refetch todas las queries relacionadas con convenciones
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["convenciones"] }),
+        queryClient.invalidateQueries({ queryKey: ["convencion"] }),
+      ])
       
-      // Notificar a otras pestañas que la convención fue actualizada
-      localStorage.setItem('convencion-updated', Date.now().toString())
+      // Forzar refetch de la convención activa
+      await queryClient.refetchQueries({ queryKey: ["convencion", "active"] })
+      
+      // Notificar a otras pestañas via BroadcastChannel + localStorage
+      notifyChange("convencion")
     },
     onError: () => {
       toast.error("Error al actualizar la convención")
@@ -80,11 +83,14 @@ export function useUpdateConvencion() {
 
 export function useDeleteConvencion() {
   const queryClient = useQueryClient()
+  const { notifyChange } = useSmartSync()
 
   return useMutation({
     mutationFn: convencionesApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["convenciones"] })
+      queryClient.invalidateQueries({ queryKey: ["convencion"] })
+      notifyChange("convencion")
       toast.success("Convención eliminada exitosamente")
     },
     onError: () => {

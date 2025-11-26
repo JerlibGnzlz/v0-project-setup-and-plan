@@ -18,4 +18,4 @@ import { UploadModule } from "./modules/upload/upload.module"
     UploadModule, // Added upload module
   ],
 })
-export class AppModule {}
+export class AppModule { }

@@ -8,7 +8,8 @@ import {
   DialogTrigger,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { ZoomIn, Loader2, ImageIcon, Video, Camera, VideoOff, ChevronLeft, ChevronRight, Play, X } from 'lucide-react'
+import { ZoomIn, Loader2, ImageIcon, Video, Camera, VideoOff, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { VideoCardModern } from './video-card-modern'
 import { useGaleria } from '@/lib/hooks/use-galeria'
 import type { GaleriaImagen } from '@/lib/api/galeria'
 import { Button } from './ui/button'
@@ -286,7 +287,7 @@ export function GallerySection() {
                     <span className="text-white/40 text-sm">{videos.length} videos</span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {videos.map((video: GaleriaImagen, index: number) => {
                       // Check if video URL is local (won't work in production)
                       if (isLocalUrl(video.imagenUrl)) {
@@ -309,103 +310,69 @@ export function GallerySection() {
                       }
 
                       const isCloudinary = video.imagenUrl.includes('cloudinary.com')
-                      const urlParts = isCloudinary
-                        ? video.imagenUrl.match(/cloudinary\.com\/([^/]+)\/video\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/)
-                        : null
-                      
-                      const canUseCloudinaryPlayer = urlParts && urlParts[1] && urlParts[2]
                       const isPlaying = playingVideo === video.id
+                      
+                      // Generar thumbnail para videos de Cloudinary
+                      let thumbnailUrl = '/placeholder.svg'
+                      if (isCloudinary) {
+                        const cloudMatch = video.imagenUrl.match(/cloudinary\.com\/([^/]+)\/video\/upload\//)
+                        if (cloudMatch) {
+                          const cloudName = cloudMatch[1]
+                          const afterUpload = video.imagenUrl.split('/video/upload/')[1]
+                          if (afterUpload) {
+                            const parts = afterUpload.split('/')
+                            const filteredParts = parts.filter(part => {
+                              if (part.includes('_') && (part.includes(',') || part.match(/^[a-z]+_[\d.]+$/))) return false
+                              if (part.match(/^v\d+$/)) return false
+                              return true
+                            })
+                            const publicId = filteredParts.join('/').replace(/\.[^.]+$/, '')
+                            
+                            const thumbnailOffset = video.thumbnailTime !== undefined && video.thumbnailTime !== null
+                              ? video.thumbnailTime.toFixed(1)
+                              : video.videoStartTime !== undefined && video.videoStartTime !== null
+                                ? video.videoStartTime.toFixed(1)
+                                : '0'
+                            
+                            thumbnailUrl = `https://res.cloudinary.com/${cloudName}/video/upload/so_${thumbnailOffset},w_640,h_360,c_fill,f_jpg/${publicId}.jpg`
+                          }
+                        }
+                      }
 
-                      if (canUseCloudinaryPlayer) {
-                        const cloudName = urlParts[1]
-                        const publicId = urlParts[2]
-                        const playerUrl = `https://player.cloudinary.com/embed/?cloud_name=${cloudName}&public_id=${publicId}&controls=true&source_types%5B0%5D=mp4`
-                        const thumbnailUrl = `https://res.cloudinary.com/${cloudName}/video/upload/so_0/${publicId}.jpg`
-
+                      // Si está reproduciendo en pantalla completa, mostrar el modal
+                      if (isPlaying) {
                         return (
                           <AnimateOnScroll key={video.id} delay={index * 150}>
-                            <TiltCard className="relative">
-                              <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 via-blue-500 to-emerald-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
-                              <div className="relative aspect-video overflow-hidden rounded-2xl bg-[#0d1f35] border border-white/10 hover:border-sky-500/50 transition-all duration-300 group">
-                                {isPlaying ? (
-                                  <>
-                                    <iframe
-                                      src={`${playerUrl}&autoplay=true`}
-                                      className="w-full h-full"
-                                      allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                                      allowFullScreen
-                                      frameBorder="0"
-                                      title={video.titulo}
-                                    />
-                                    <button
-                                      onClick={() => setPlayingVideo(null)}
-                                      className="absolute top-3 right-3 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
-                                    >
-                                      <X className="w-4 h-4" />
-                                    </button>
-                                  </>
-                                ) : (
-                                  <div
-                                    className="relative w-full h-full cursor-pointer"
-                                    onClick={() => setPlayingVideo(video.id)}
-                                  >
-                                    {/* Thumbnail */}
-                                    <img
-                                      src={thumbnailUrl}
-                                      alt={video.titulo}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).src = '/placeholder.svg'
-                                      }}
-                                    />
-                                    
-                                    {/* Overlay */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-transparent to-transparent opacity-60" />
-                                    
-                                    {/* Play Button */}
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                      <div className="relative">
-                                        {/* Animated rings */}
-                                        <div className="absolute inset-0 w-20 h-20 rounded-full bg-sky-500/20 animate-ping" />
-                                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-r from-sky-500 to-blue-500 flex items-center justify-center shadow-2xl shadow-sky-500/50 group-hover:scale-110 transition-transform duration-300">
-                                          <Play className="w-8 h-8 text-white ml-1" fill="white" />
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Title */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                                      <p className="text-white font-medium">{video.titulo}</p>
-                                      {video.descripcion && (
-                                        <p className="text-white/60 text-sm mt-1 line-clamp-2">{video.descripcion}</p>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </TiltCard>
+                            <div className="relative aspect-video overflow-hidden rounded-2xl bg-black border border-sky-500/50 shadow-2xl shadow-sky-500/20">
+                              <video
+                                src={video.imagenUrl}
+                                className="w-full h-full object-contain"
+                                controls
+                                autoPlay
+                                playsInline
+                              >
+                                Tu navegador no soporta videos HTML5
+                              </video>
+                              <button
+                                onClick={() => setPlayingVideo(null)}
+                                className="absolute top-3 right-3 p-2 rounded-full bg-black/70 hover:bg-black/90 text-white transition-colors z-10 backdrop-blur-sm"
+                              >
+                                <X className="w-5 h-5" />
+                              </button>
+                            </div>
                           </AnimateOnScroll>
                         )
                       }
 
-                      // Fallback to native video player
+                      // Modern video card with hover preview
                       return (
                         <AnimateOnScroll key={video.id} delay={index * 150}>
-                          <TiltCard className="relative">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 to-blue-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
-                            <div className="relative aspect-video overflow-hidden rounded-2xl bg-[#0d1f35] border border-white/10">
-                              <video
-                                src={video.imagenUrl}
-                                className="w-full h-full object-cover"
-                                controls
-                                playsInline
-                                preload="metadata"
-                                poster="/placeholder.svg"
-                              >
-                                Tu navegador no soporta videos HTML5
-                              </video>
-                            </div>
-                          </TiltCard>
+                          <VideoCardModern
+                            video={video}
+                            thumbnailUrl={thumbnailUrl}
+                            onPlay={() => setPlayingVideo(video.id)}
+                            isFullPlaying={isPlaying}
+                          />
                         </AnimateOnScroll>
                       )
                     })}

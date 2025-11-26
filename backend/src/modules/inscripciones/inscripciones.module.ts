@@ -9,6 +9,6 @@ import { PrismaModule } from "../../prisma/prisma.module"
   providers: [InscripcionesService],
   exports: [InscripcionesService],
 })
-export class InscripcionesModule {}
+export class InscripcionesModule { }
 
 

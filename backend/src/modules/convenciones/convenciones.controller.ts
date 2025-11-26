@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Delete, UseGuards, Param } from "@nestjs/common"
+import { Controller, Get, Post, Body, Patch, Delete, UseGuards, Param, NotFoundException } from "@nestjs/common"
 import { ConvencionesService } from "./convenciones.service"
 import { CreateConvencionDto, UpdateConvencionDto } from "./dto/convencion.dto"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
@@ -13,8 +13,12 @@ export class ConvencionesController {
   }
 
   @Get("active")
-  findActive() {
-    return this.convencionesService.findActive()
+  async findActive() {
+    const convencion = await this.convencionesService.findActive()
+    if (!convencion) {
+      throw new NotFoundException('No hay convención activa')
+    }
+    return convencion
   }
 
   @Get(":id")

@@ -14,6 +14,11 @@ export interface GaleriaImagen {
   activa: boolean
   createdAt: string
   updatedAt: string
+  // Campos para videos
+  videoOriginalUrl?: string  // URL sin transformaciones de Cloudinary
+  videoStartTime?: number    // Segundo de inicio del recorte
+  videoEndTime?: number      // Segundo de fin del recorte
+  thumbnailTime?: number     // Segundo para el thumbnail personalizado
 }
 
 export const galeriaApi = {

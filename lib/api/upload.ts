@@ -33,10 +33,19 @@ export const uploadApi = {
     return response.data
   },
 
-  // Upload video
-  uploadVideo: async (file: File): Promise<UploadResponse> => {
+  // Upload video with optional trimming
+  uploadVideo: async (
+    file: File,
+    trimOptions?: { startTime: number; endTime: number }
+  ): Promise<UploadResponse> => {
     const formData = new FormData()
     formData.append("file", file)
+
+    // Add trim parameters if provided
+    if (trimOptions) {
+      formData.append("startTime", trimOptions.startTime.toString())
+      formData.append("endTime", trimOptions.endTime.toString())
+    }
 
     const response = await apiClient.post<UploadResponse>("/upload/video", formData, {
       headers: {

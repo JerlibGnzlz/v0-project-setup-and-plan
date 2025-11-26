@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+import { useEffect, useState, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 
 interface CountdownTimerProps {
@@ -16,65 +15,163 @@ interface TimeLeft {
   seconds: number
 }
 
-// Componente para animar cada dígito individual
-function AnimatedDigit({ value, prevValue }: { value: string; prevValue: string }) {
-  const [isAnimating, setIsAnimating] = useState(false)
-  const [displayValue, setDisplayValue] = useState(value)
-
-  useEffect(() => {
-    if (value !== prevValue) {
-      setIsAnimating(true)
-      const timer = setTimeout(() => {
-        setDisplayValue(value)
-        setIsAnimating(false)
-      }, 150)
-      return () => clearTimeout(timer)
-    }
-  }, [value, prevValue])
+// Progress ring for seconds
+function ProgressRing({ progress, size = 100, strokeWidth = 3 }: {
+  progress: number
+  size?: number
+  strokeWidth?: number
+}) {
+  const radius = (size - strokeWidth) / 2
+  const circumference = radius * 2 * Math.PI
+  const offset = circumference - (progress / 100) * circumference
 
   return (
-    <span className="relative inline-block overflow-hidden h-[1.2em]">
-      <span
-        className={cn(
-          "inline-block transition-all duration-300 ease-out",
-          isAnimating && "opacity-0 -translate-y-full"
-        )}
-      >
-        {displayValue}
-      </span>
-      {isAnimating && (
-        <span
-          className="absolute inset-0 inline-block animate-slide-in"
-        >
-          {value}
-        </span>
-      )}
+    <svg
+      width={size}
+      height={size}
+      className="absolute inset-0 m-auto -rotate-90 transform"
+    >
+      {/* Background ring */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="rgba(255,255,255,0.1)"
+        strokeWidth={strokeWidth}
+      />
+      {/* Progress ring */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="url(#countdown-gradient)"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        className="transition-all duration-1000 ease-linear"
+      />
+      {/* Gradient definition */}
+      <defs>
+        <linearGradient id="countdown-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#38bdf8" />
+          <stop offset="50%" stopColor="#34d399" />
+          <stop offset="100%" stopColor="#fbbf24" />
+        </linearGradient>
+      </defs>
+    </svg>
+  )
+}
+
+// Animated digit with flip effect
+function AnimatedDigit({ digit, prevDigit }: { digit: string; prevDigit: string }) {
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [currentDigit, setCurrentDigit] = useState(digit)
+
+  useEffect(() => {
+    if (digit !== prevDigit) {
+      setIsAnimating(true)
+      const timer = setTimeout(() => {
+        setCurrentDigit(digit)
+        setIsAnimating(false)
+      }, 200)
+      return () => clearTimeout(timer)
+    } else {
+      setCurrentDigit(digit)
+    }
+  }, [digit, prevDigit])
+
+  return (
+    <span className={cn(
+      "inline-block transition-all duration-200",
+      isAnimating && "scale-110 opacity-70"
+    )}>
+      {currentDigit}
     </span>
   )
 }
 
-// Componente para mostrar un número con animación de dígitos
-function AnimatedNumber({ value }: { value: number }) {
+// Time unit card component
+function TimeCard({
+  value,
+  label,
+  showRing = false,
+  ringProgress = 0,
+  glowColor,
+  textColor,
+}: {
+  value: number
+  label: string
+  showRing?: boolean
+  ringProgress?: number
+  glowColor: string
+  textColor: string
+}) {
   const [prevValue, setPrevValue] = useState(value)
   const valueStr = value.toString().padStart(2, '0')
   const prevValueStr = prevValue.toString().padStart(2, '0')
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setPrevValue(value)
-    }, 300)
+    const timer = setTimeout(() => setPrevValue(value), 300)
     return () => clearTimeout(timer)
   }, [value])
 
   return (
-    <div className="flex justify-center font-mono">
-      {valueStr.split('').map((digit, index) => (
-        <AnimatedDigit
-          key={index}
-          value={digit}
-          prevValue={prevValueStr[index]}
-        />
-      ))}
+    <div className="relative group">
+      {/* Glow effect on hover */}
+      <div
+        className="absolute -inset-2 rounded-2xl blur-xl transition-all duration-500 opacity-0 group-hover:opacity-60"
+        style={{ backgroundColor: glowColor }}
+      />
+
+      {/* Card */}
+      <div className={cn(
+        "relative flex flex-col items-center justify-center",
+        "w-[72px] h-[88px] sm:w-[88px] sm:h-[104px] md:w-[100px] md:h-[120px]",
+        "rounded-xl overflow-hidden",
+        "bg-white/[0.05] backdrop-blur-md",
+        "border border-white/10 hover:border-white/25",
+        "transition-all duration-300",
+        "group-hover:scale-105 group-hover:bg-white/[0.08]"
+      )}>
+        {/* Progress ring for seconds */}
+        {showRing && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <ProgressRing progress={ringProgress} size={80} strokeWidth={2} />
+          </div>
+        )}
+
+        {/* Shine effect */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-50 pointer-events-none" />
+
+        {/* Number */}
+        <div
+          className="relative z-10 font-bold tabular-nums leading-none text-3xl sm:text-4xl md:text-5xl"
+          style={{ color: textColor }}
+        >
+          <span className="inline-flex">
+            <AnimatedDigit digit={valueStr[0]} prevDigit={prevValueStr[0]} />
+            <AnimatedDigit digit={valueStr[1]} prevDigit={prevValueStr[1]} />
+          </span>
+        </div>
+
+        {/* Label */}
+        <div className="relative z-10 mt-2 text-[9px] sm:text-[10px] md:text-xs text-white/50 font-medium uppercase tracking-wider">
+          {label}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Colon separator
+function ColonSeparator() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1.5 mx-1 sm:mx-2">
+      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/30 animate-pulse" />
+      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/30 animate-pulse" style={{ animationDelay: '500ms' }} />
     </div>
   )
 }
@@ -112,29 +209,27 @@ export function CountdownTimer({ targetDate, title = 'Próximo Evento' }: Countd
     return () => clearInterval(timer)
   }, [targetDate])
 
-  const timeUnits = [
-    { key: 'days', value: timeLeft.days, label: 'Días' },
-    { key: 'hours', value: timeLeft.hours, label: 'Horas' },
-    { key: 'minutes', value: timeLeft.minutes, label: 'Minutos' },
-    { key: 'seconds', value: timeLeft.seconds, label: 'Segundos' },
-  ]
+  const timeUnits = useMemo(() => [
+    { key: 'days', value: timeLeft.days, label: 'Días', glowColor: 'rgba(56, 189, 248, 0.4)', textColor: '#38bdf8' },
+    { key: 'hours', value: timeLeft.hours, label: 'Horas', glowColor: 'rgba(59, 130, 246, 0.4)', textColor: '#60a5fa' },
+    { key: 'minutes', value: timeLeft.minutes, label: 'Min', glowColor: 'rgba(52, 211, 153, 0.4)', textColor: '#34d399' },
+    { key: 'seconds', value: timeLeft.seconds, label: 'Seg', glowColor: 'rgba(251, 191, 36, 0.4)', textColor: '#fbbf24', showRing: true },
+  ], [timeLeft])
 
+  // Calculate ring progress
+  const secondsProgress = ((60 - timeLeft.seconds) / 60) * 100
+
+  // Loading state
   if (!mounted) {
     return (
       <div className="text-center">
-        <h3 className="text-2xl font-bold mb-6 text-white">{title}</h3>
-        <div className="grid grid-cols-4 gap-3 md:gap-4">
-          {timeUnits.map(({ key, label }) => (
-            <Card key={key} className="bg-white/5 backdrop-blur-sm border border-white/10">
-              <CardContent className="p-3 md:p-4">
-                <div className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent mb-2 tabular-nums">
-                  00
-                </div>
-                <div className="text-xs md:text-sm text-white/60 font-medium">
-                  {label}
-                </div>
-              </CardContent>
-            </Card>
+        <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-6 text-white/90">{title}</h3>
+        <div className="flex items-center justify-center">
+          {timeUnits.map(({ key, label, glowColor, textColor }, index) => (
+            <div key={key} className="flex items-center">
+              <TimeCard value={0} label={label} glowColor={glowColor} textColor={textColor} />
+              {index < timeUnits.length - 1 && <ColonSeparator />}
+            </div>
           ))}
         </div>
       </div>
@@ -143,42 +238,35 @@ export function CountdownTimer({ targetDate, title = 'Próximo Evento' }: Countd
 
   return (
     <div className="text-center">
-      <h3 className="text-2xl font-bold mb-6 text-white">{title}</h3>
-      <div className="grid grid-cols-4 gap-3 md:gap-4">
-        {timeUnits.map(({ key, value, label }) => (
-          <Card
-            key={key}
-            className="bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300"
-          >
-            <CardContent className="p-3 md:p-4">
-              <div className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent mb-2 tabular-nums tracking-tight">
-                <AnimatedNumber value={value} />
-              </div>
-              <div className="text-xs md:text-sm text-white/60 font-medium">
-                {label}
-              </div>
-            </CardContent>
-          </Card>
+      {/* Title */}
+      <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-6 text-white/90">
+        {title}
+      </h3>
+
+      {/* Countdown cards */}
+      <div className="flex items-center justify-center">
+        {timeUnits.map(({ key, value, label, glowColor, textColor, showRing }, index) => (
+          <div key={key} className="flex items-center">
+            <TimeCard
+              value={value}
+              label={label}
+              glowColor={glowColor}
+              textColor={textColor}
+              showRing={showRing}
+              ringProgress={showRing ? secondsProgress : 0}
+            />
+            {index < timeUnits.length - 1 && <ColonSeparator />}
+          </div>
         ))}
       </div>
 
-      {/* Estilos para la animación */}
+      {/* Message */}
+      <p className="mt-6 text-xs sm:text-sm text-white/40">
+        ¡No te lo pierdas!
+      </p>
+
+      {/* Styles for tabular numbers */}
       <style jsx global>{`
-        @keyframes slide-in {
-          0% {
-            opacity: 0;
-            transform: translateY(100%);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out forwards;
-        }
-        
         .tabular-nums {
           font-variant-numeric: tabular-nums;
         }

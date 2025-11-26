@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsBoolean, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsBoolean, IsEnum, IsNumber } from 'class-validator';
 
 export enum TipoGaleria {
     IMAGEN = 'IMAGEN',
@@ -35,6 +35,23 @@ export class CreateGaleriaDto {
     @IsOptional()
     @IsBoolean()
     activa?: boolean;
+
+    // Video metadata fields
+    @IsOptional()
+    @IsString()
+    videoOriginalUrl?: string;
+
+    @IsOptional()
+    @IsNumber()
+    videoStartTime?: number;
+
+    @IsOptional()
+    @IsNumber()
+    videoEndTime?: number;
+
+    @IsOptional()
+    @IsNumber()
+    thumbnailTime?: number;
 }
 
 export class UpdateGaleriaDto {
@@ -69,6 +86,23 @@ export class UpdateGaleriaDto {
     @IsOptional()
     @IsBoolean()
     activa?: boolean;
+
+    // Video metadata fields
+    @IsOptional()
+    @IsString()
+    videoOriginalUrl?: string;
+
+    @IsOptional()
+    @IsNumber()
+    videoStartTime?: number;
+
+    @IsOptional()
+    @IsNumber()
+    videoEndTime?: number;
+
+    @IsOptional()
+    @IsNumber()
+    thumbnailTime?: number;
 }
 
 

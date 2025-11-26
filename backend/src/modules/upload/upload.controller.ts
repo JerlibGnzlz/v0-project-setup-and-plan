@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from "@nestjs/common"
+import { Controller, Post, UseGuards, UseInterceptors, UploadedFile, BadRequestException, Body } from "@nestjs/common"
 import { FileInterceptor } from "@nestjs/platform-express"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
 import { UploadService } from "./upload.service"
@@ -56,20 +56,38 @@ export class UploadController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
-      limits: { fileSize: 50 * 1024 * 1024 }, // 50MB para videos
+      limits: { fileSize: 100 * 1024 * 1024 }, // 100MB para videos (aumentado para permitir recortes)
     }),
   )
-  async uploadVideo(@UploadedFile() file: Express.Multer.File) {
+  async uploadVideo(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('startTime') startTime?: string,
+    @Body('endTime') endTime?: string,
+  ) {
     if (!file) {
       throw new BadRequestException('No se proporcionó ningún archivo');
     }
 
-    const result = await this.uploadService.uploadVideo(file, 'ministerio-amva/videos');
+    // Parsear opciones de recorte si se proporcionaron
+    let trimOptions: { startTime: number; endTime: number } | undefined;
+
+    if (startTime !== undefined && endTime !== undefined) {
+      const start = parseFloat(startTime);
+      const end = parseFloat(endTime);
+
+      if (!isNaN(start) && !isNaN(end) && end > start) {
+        trimOptions = { startTime: start, endTime: end };
+        console.log(`✂️ Opciones de recorte recibidas: ${start}s - ${end}s (duración: ${(end - start).toFixed(1)}s)`);
+      }
+    }
+
+    const result = await this.uploadService.uploadVideo(file, 'ministerio-amva/videos', trimOptions);
 
     return {
       success: true,
       url: result.url,
       publicId: result.publicId,
+      trimmed: !!trimOptions,
     };
   }
 }

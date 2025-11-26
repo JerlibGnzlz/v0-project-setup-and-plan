@@ -95,22 +95,55 @@ export function HeroSection() {
         }}
       />
 
-      {/* Imagen del mundo con parallax */}
+      {/* Imagen del mundo con parallax y seguimiento del cursor */}
       <div
-        className="absolute inset-0 z-[3] flex items-center justify-center transition-all duration-700 ease-out"
+        className="absolute inset-0 z-[3] flex items-center justify-center"
         style={{
-          transform: `translateY(${parallaxY}px) scale(${1 + scrollY * 0.0002})`,
+          transform: `translateY(${parallaxY}px)`,
           opacity: opacity,
         }}
       >
-        <div className="relative w-[600px] h-[600px] md:w-[800px] md:h-[800px]">
+        <div
+          className="relative w-[600px] h-[600px] md:w-[800px] md:h-[800px] transition-transform duration-300 ease-out"
+          style={{
+            transform: isClient
+              ? `
+                  perspective(1000px)
+                  rotateY(${(mousePosition.x - 50) * 0.15}deg)
+                  rotateX(${(50 - mousePosition.y) * 0.15}deg)
+                  translateX(${(mousePosition.x - 50) * 0.3}px)
+                  translateY(${(mousePosition.y - 50) * 0.3}px)
+                  scale(${1 + scrollY * 0.0002})
+                `
+              : 'none',
+          }}
+        >
+          {/* Imagen principal con efecto de flotación */}
           <img
             src="/mundo.png"
             alt="Asociación Misionera Vida Abundante"
-            className="w-full h-full object-contain drop-shadow-[0_0_80px_rgba(59,130,246,0.3)]"
+            className="w-full h-full object-contain drop-shadow-[0_0_80px_rgba(59,130,246,0.3)] animate-float"
+            style={{
+              filter: `
+                drop-shadow(0 0 60px rgba(59, 130, 246, 0.3))
+                drop-shadow(0 0 120px rgba(16, 185, 129, 0.2))
+              `,
+            }}
           />
-          {/* Glow ring around image */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/10 via-transparent to-emerald-500/10 blur-3xl animate-spin-slow" />
+
+          {/* Glow ring that follows mouse */}
+          <div
+            className="absolute inset-0 rounded-full blur-3xl animate-spin-slow pointer-events-none"
+            style={{
+              background: isClient
+                ? `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
+                   radial-gradient(circle at ${100 - mousePosition.x}% ${100 - mousePosition.y}%, rgba(16, 185, 129, 0.15) 0%, transparent 50%)`
+                : 'radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 50%)',
+            }}
+          />
+
+          {/* Secondary glow layer */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/10 via-transparent to-emerald-500/10 blur-3xl opacity-50" />
         </div>
       </div>
 

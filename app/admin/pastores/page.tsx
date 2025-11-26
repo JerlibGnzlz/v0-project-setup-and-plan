@@ -167,25 +167,36 @@ export default function PastoresPage() {
     <TooltipProvider>
       <ScrollReveal>
         <div className="space-y-6">
-          {/* Header con botón de volver */}
+          {/* Header con botón de volver y gradiente */}
           <div className="flex items-center gap-4">
             <Link href="/admin">
-              <Button variant="ghost" size="icon">
-                <ChevronLeft className="size-5" />
+              <Button variant="ghost" size="icon" className="hover:bg-sky-50 dark:hover:bg-sky-500/10">
+                <ChevronLeft className="size-5 text-sky-600 dark:text-sky-400" />
               </Button>
             </Link>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Gestión de Pastores</h1>
-              <p className="text-muted-foreground mt-1">
-                Registro y administración de pastores del ministerio
-              </p>
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-r from-sky-500/10 via-emerald-500/10 to-amber-500/10 rounded-xl blur-xl dark:from-sky-500/5 dark:via-emerald-500/5 dark:to-amber-500/5" />
+              <div className="relative">
+                <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-sky-600 via-emerald-600 to-amber-600 dark:from-sky-400 dark:via-emerald-400 dark:to-amber-400 bg-clip-text text-transparent">
+                  Gestión de Pastores
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Registro y administración de pastores del ministerio
+                </p>
+              </div>
             </div>
           </div>
 
-          <Card>
+          <Card className="border-sky-200/50 dark:border-sky-500/20 bg-gradient-to-br from-white to-sky-50/30 dark:from-background dark:to-sky-950/20 overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Lista de Pastores</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-sky-500/10 to-blue-500/10 dark:from-sky-500/20 dark:to-blue-500/20">
+                    <Search className="size-4 text-sky-600 dark:text-sky-400" />
+                  </div>
+                  <span className="bg-gradient-to-r from-sky-600 to-blue-600 dark:from-sky-400 dark:to-blue-400 bg-clip-text text-transparent">Lista de Pastores</span>
+                </CardTitle>
                 <CardDescription>Pastores registrados en el sistema</CardDescription>
               </div>
               <Dialog
@@ -200,7 +211,10 @@ export default function PastoresPage() {
                 }}
               >
                 <DialogTrigger asChild>
-                  <Button onClick={() => setIsAddingPastor(true)}>
+                  <Button
+                    onClick={() => setIsAddingPastor(true)}
+                    className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all"
+                  >
                     <Plus className="size-4 mr-2" />
                     Nuevo Pastor
                   </Button>

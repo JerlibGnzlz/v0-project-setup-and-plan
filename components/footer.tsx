@@ -151,10 +151,20 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-white/10">
           <div className="container mx-auto px-4 py-6">
-            <div className="flex justify-center items-center">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4">
+              {/* Copyright */}
               <p className="text-white/50 text-sm flex items-center gap-1">
                 &copy; {new Date().getFullYear()} Asociación Misionera Vida Abundante. Hecho con{' '}
-                <Heart className="w-4 h-4 text-red-500 fill-red-500" /> para el Reino.
+                <Heart className="w-4 h-4 text-red-500 fill-red-500 animate-pulse" /> para el Reino.
+              </p>
+              
+              {/* Separator - hidden on mobile */}
+              <span className="hidden sm:inline text-white/20">|</span>
+              
+              {/* Developer Credit */}
+              <p className="text-white/40 text-xs sm:text-sm">
+                Diseñado y desarrollado por{' '}
+                <span className="text-emerald-400 font-medium">Jerlib Gonzalez</span>
               </p>
             </div>
           </div>

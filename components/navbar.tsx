@@ -26,7 +26,8 @@ export function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
+      // Aumentar el umbral para que no cambie tan rápido
+      setScrolled(window.scrollY > 50)
 
       const sections = ['inicio', 'sedes', 'nosotros', 'directiva', 'pastores', 'galeria', 'educacion']
       const scrollPosition = window.scrollY + 100
@@ -99,22 +100,33 @@ export function Navbar() {
     <>
       {/* Floating Navbar */}
       <nav
-        className={`fixed z-50 transition-all duration-700 ease-out ${
+        className={`fixed z-50 ${
           scrolled
             ? 'top-4 left-4 right-4 mx-auto max-w-7xl'
             : 'top-0 left-0 right-0'
         }`}
+        style={{
+          transition: 'all 1s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
       >
         <div
-          className={`transition-all duration-700 ease-out ${
+          className={`${
             scrolled
               ? 'bg-[#0a1628]/80 backdrop-blur-2xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-white/10'
               : 'bg-[#0a1628]/60 backdrop-blur-xl border-b border-white/5'
           }`}
+          style={{
+            transition: 'all 1s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
         >
-          <div className={`container mx-auto px-4 sm:px-6 flex items-center justify-between transition-all duration-700 ease-out ${
-            scrolled ? 'h-16' : 'h-[72px]'
-          }`}>
+          <div 
+            className={`container mx-auto px-4 sm:px-6 flex items-center justify-between ${
+              scrolled ? 'h-16' : 'h-[72px]'
+            }`}
+            style={{
+              transition: 'height 1s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          >
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative">
@@ -123,23 +135,36 @@ export function Navbar() {
                   alt="Logo AMVA"
                   width={64}
                   height={64}
-                  className={`object-contain transition-all duration-700 ease-out group-hover:scale-105 ${
+                  className={`object-contain group-hover:scale-105 ${
                     scrolled ? 'w-12 h-12' : 'w-14 h-14 sm:w-16 sm:h-16'
                   }`}
+                  style={{
+                    transition: 'all 1s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
                 />
                 {/* Glow effect on hover */}
                 <div className="absolute inset-0 bg-emerald-500/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
               <div className="flex flex-col">
-                <span className={`font-bold text-white leading-tight transition-all duration-700 ease-out ${
-                  scrolled ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
-                }`}>
+                <span 
+                  className={`font-bold text-white leading-tight ${
+                    scrolled ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
+                  }`}
+                  style={{
+                    transition: 'font-size 1s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                >
                   <span className="hidden sm:inline">Asociación Misionera</span>
                   <span className="sm:hidden">A.M.V.A</span>
                 </span>
-                <span className={`hidden sm:block font-bold bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent leading-tight transition-all duration-700 ease-out ${
-                  scrolled ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
-                }`}>
+                <span 
+                  className={`hidden sm:block font-bold bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent leading-tight ${
+                    scrolled ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
+                  }`}
+                  style={{
+                    transition: 'font-size 1s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                >
                   Vida Abundante
                 </span>
               </div>

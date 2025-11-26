@@ -106,7 +106,11 @@ export class UploadService {
     return { url, publicId }
   }
 
-  async uploadVideo(file: Express.Multer.File, folder = "ministerio-amva/videos"): Promise<UploadResult> {
+  async uploadVideo(
+    file: Express.Multer.File,
+    folder = "ministerio-amva/videos",
+    trimOptions?: { startTime: number; endTime: number }
+  ): Promise<UploadResult> {
     if (!file) {
       throw new BadRequestException("No se proporcionó ningún archivo")
     }
@@ -117,16 +121,16 @@ export class UploadService {
       throw new BadRequestException("Tipo de archivo no permitido. Solo se aceptan videos MP4, WebM, MOV o AVI")
     }
 
-    // Validar tamaño (max 50MB para videos)
-    const maxSize = 50 * 1024 * 1024
+    // Validar tamaño (max 100MB para videos - aumentado para permitir recortes)
+    const maxSize = 100 * 1024 * 1024
     if (file.size > maxSize) {
-      throw new BadRequestException("El archivo excede el tamaño máximo de 50MB")
+      throw new BadRequestException("El archivo excede el tamaño máximo de 100MB")
     }
 
     // Si Cloudinary está configurado, intentar usarlo
     if (this.isCloudinaryConfigured()) {
       try {
-        return await this.uploadVideoToCloudinary(file, folder)
+        return await this.uploadVideoToCloudinary(file, folder, trimOptions)
       } catch (error) {
         console.log("⚠️ Cloudinary falló, usando guardado local como fallback")
         return this.uploadVideoLocally(file, folder)
@@ -137,27 +141,75 @@ export class UploadService {
     return this.uploadVideoLocally(file, folder)
   }
 
-  private async uploadVideoToCloudinary(file: Express.Multer.File, folder: string): Promise<UploadResult> {
+  private async uploadVideoToCloudinary(
+    file: Express.Multer.File,
+    folder: string,
+    trimOptions?: { startTime: number; endTime: number }
+  ): Promise<UploadResult> {
+    const hasTrim = trimOptions && trimOptions.startTime !== undefined && trimOptions.endTime !== undefined
+
+    if (hasTrim) {
+      console.log(`✂️ Recortando video: ${trimOptions.startTime}s - ${trimOptions.endTime}s`)
+    }
     console.log(`☁️ Subiendo video a Cloudinary: ${file.originalname} (${file.size} bytes) -> ${folder}`)
 
     return new Promise((resolve, reject) => {
+      // Construir transformaciones
+      const transformations: any[] = []
+
+      // Agregar recorte si se especificó
+      if (hasTrim) {
+        transformations.push({
+          start_offset: trimOptions.startTime.toFixed(1),
+          end_offset: trimOptions.endTime.toFixed(1),
+        })
+      }
+
+      // Agregar optimizaciones
+      transformations.push(
+        { quality: "auto" },
+        { format: "mp4" }
+      )
+
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder,
           resource_type: "video",
-          transformation: [
-            { quality: "auto" },
-            { format: "mp4" }
-          ],
+          eager: hasTrim ? [
+            {
+              start_offset: trimOptions.startTime.toFixed(1),
+              end_offset: trimOptions.endTime.toFixed(1),
+              quality: "auto",
+              format: "mp4"
+            }
+          ] : undefined,
+          eager_async: false, // Esperar a que se procese el recorte
         },
         (error, result) => {
           if (error) {
             console.error("❌ Error de Cloudinary:", error)
             reject(new BadRequestException("Error al subir video a Cloudinary: " + error.message))
           } else if (result) {
-            console.log(`✅ Video subido a Cloudinary: ${result.secure_url}`)
+            // Si hay recorte, usar la URL del video procesado (eager)
+            let finalUrl = result.secure_url
+
+            if (hasTrim && result.eager && result.eager.length > 0) {
+              finalUrl = result.eager[0].secure_url
+              console.log(`✅ Video recortado y subido: ${finalUrl}`)
+            } else if (hasTrim) {
+              // Construir URL con transformaciones manualmente si eager no funcionó
+              const baseUrl = result.secure_url
+              const parts = baseUrl.split('/upload/')
+              if (parts.length === 2) {
+                finalUrl = `${parts[0]}/upload/so_${trimOptions.startTime.toFixed(1)},eo_${trimOptions.endTime.toFixed(1)},q_auto,f_mp4/${parts[1]}`
+              }
+              console.log(`✅ Video subido con URL de recorte: ${finalUrl}`)
+            } else {
+              console.log(`✅ Video subido a Cloudinary: ${finalUrl}`)
+            }
+
             resolve({
-              url: result.secure_url,
+              url: finalUrl,
               publicId: result.public_id,
             })
           } else {

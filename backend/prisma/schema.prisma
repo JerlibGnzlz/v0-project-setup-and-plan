@@ -13,6 +13,7 @@ model User {
   email     String   @unique
   password  String
   nombre    String
+  avatar    String?  // URL del avatar del usuario
   rol       UserRole @default(ADMIN)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -124,6 +125,12 @@ model GaleriaImagen {
   activa       Boolean      @default(true)
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
+  
+  // Campos para videos - almacenar URL original y parámetros de recorte
+  videoOriginalUrl String?  @map("video_original_url")  // URL sin transformaciones
+  videoStartTime   Float?   @map("video_start_time")    // Segundo de inicio del recorte
+  videoEndTime     Float?   @map("video_end_time")      // Segundo de fin del recorte
+  thumbnailTime    Float?   @map("thumbnail_time")      // Segundo para el thumbnail
 
   convencion Convencion? @relation(fields: [convencionId], references: [id], onDelete: SetNull)
 

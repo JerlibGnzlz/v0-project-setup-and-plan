@@ -1,13 +1,15 @@
 /* eslint-disable */
 // @ts-nocheck
 import { NestFactory } from "@nestjs/core"
-import { ValidationPipe } from "@nestjs/common"
+import { ValidationPipe, Logger } from "@nestjs/common"
 import { AppModule } from "./app.module"
 import { configureCloudinary } from "./modules/upload/cloudinary.config"
 import { NestExpressApplication } from "@nestjs/platform-express"
 import { join } from "path"
+import { GlobalExceptionFilter } from "./common/filters/http-exception.filter"
 
 async function bootstrap() {
+  const logger = new Logger('Bootstrap')
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
   app.setGlobalPrefix("api")
@@ -17,11 +19,18 @@ async function bootstrap() {
     prefix: "/uploads/",
   })
 
-  // Enable validation globally
+  // Global Exception Filter - Manejo consistente de errores
+  app.useGlobalFilters(new GlobalExceptionFilter())
+
+  // Enable validation globally with detailed error messages
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       transform: true,
+      forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   )
 
@@ -56,7 +65,10 @@ async function bootstrap() {
 
   const port = process.env.PORT || 4000
   await app.listen(port)
-  console.log(`🚀 Backend API running on http://localhost:${port}/api`)
+
+  logger.log(`🚀 Backend API running on http://localhost:${port}/api`)
+  logger.log(`📦 Environment: ${process.env.NODE_ENV || 'development'}`)
+  logger.log(`✨ Clean Architecture: BaseService, Repository Pattern, Global Filters enabled`)
 }
 
 bootstrap()
