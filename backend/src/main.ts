@@ -7,10 +7,28 @@ import { configureCloudinary } from "./modules/upload/cloudinary.config"
 import { NestExpressApplication } from "@nestjs/platform-express"
 import { join } from "path"
 import { GlobalExceptionFilter } from "./common/filters/http-exception.filter"
+import helmet from "helmet"
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap')
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
+
+  // ============================================
+  // 🛡️ SEGURIDAD
+  // ============================================
+
+  // Helmet - Headers de seguridad (XSS, clickjacking, etc.)
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false,
+  }))
+
+  // Validar JWT Secret en producción
+  const jwtSecret = process.env.JWT_SECRET
+  if (process.env.NODE_ENV === 'production' && (!jwtSecret || jwtSecret === 'your-secret-key')) {
+    logger.error('⛔ JWT_SECRET no está configurado correctamente para producción!')
+    process.exit(1)
+  }
 
   app.setGlobalPrefix("api")
 
@@ -19,10 +37,10 @@ async function bootstrap() {
     prefix: "/uploads/",
   })
 
-  // Global Exception Filter - Manejo consistente de errores
+  // Global Exception Filter
   app.useGlobalFilters(new GlobalExceptionFilter())
 
-  // Enable validation globally with detailed error messages
+  // Validation
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -36,7 +54,7 @@ async function bootstrap() {
 
   configureCloudinary()
 
-  // CORS configuration for production
+  // CORS
   const allowedOrigins = [
     "http://localhost:3000",
     process.env.FRONTEND_URL,
@@ -44,18 +62,13 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, Postman, etc.)
       if (!origin) return callback(null, true)
-
       if (allowedOrigins.some(allowed => origin.startsWith(allowed) || allowed.includes(origin))) {
         return callback(null, true)
       }
-
-      // In development, allow all origins
       if (process.env.NODE_ENV !== 'production') {
         return callback(null, true)
       }
-
       callback(new Error('Not allowed by CORS'))
     },
     credentials: true,
@@ -66,9 +79,8 @@ async function bootstrap() {
   const port = process.env.PORT || 4000
   await app.listen(port)
 
-  logger.log(`🚀 Backend API running on http://localhost:${port}/api`)
-  logger.log(`📦 Environment: ${process.env.NODE_ENV || 'development'}`)
-  logger.log(`✨ Clean Architecture: BaseService, Repository Pattern, Global Filters enabled`)
+  logger.log(`🚀 Backend running on http://localhost:${port}/api`)
+  logger.log(`🛡️ Security: Helmet enabled, JWT auth active`)
 }
 
 bootstrap()

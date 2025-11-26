@@ -4,6 +4,7 @@ import { ConvencionesModule } from "./modules/convenciones/convenciones.module"
 import { PastoresModule } from "./modules/pastores/pastores.module"
 import { GaleriaModule } from "./modules/galeria/galeria.module"
 import { InscripcionesModule } from "./modules/inscripciones/inscripciones.module"
+import { NoticiasModule } from "./modules/noticias/noticias.module"
 import { PrismaModule } from "./prisma/prisma.module"
 import { UploadModule } from "./modules/upload/upload.module"
 
@@ -15,7 +16,8 @@ import { UploadModule } from "./modules/upload/upload.module"
     PastoresModule,
     GaleriaModule,
     InscripcionesModule,
-    UploadModule, // Added upload module
+    NoticiasModule,
+    UploadModule,
   ],
 })
 export class AppModule { }

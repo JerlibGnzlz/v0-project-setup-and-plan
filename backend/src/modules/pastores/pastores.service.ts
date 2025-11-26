@@ -130,4 +130,74 @@ export class PastoresService extends BaseService<
       inactivos: total - activos,
     }
   }
+
+  /**
+   * Obtiene los pastores para mostrar en la landing page
+   * Solo devuelve los que tienen mostrarEnLanding = true
+   * Ordenados por 'orden' y luego por nombre
+   */
+  async findForLanding(): Promise<Pastor[]> {
+    this.logger.log('📋 Obteniendo pastores para landing page')
+    
+    return this.model.findMany({
+      where: {
+        activo: true,
+        mostrarEnLanding: true,
+      },
+      orderBy: [
+        { orden: 'asc' },
+        { nombre: 'asc' },
+      ],
+    })
+  }
+
+  /**
+   * Obtiene pastores por tipo
+   */
+  async findByTipo(tipo: string): Promise<Pastor[]> {
+    return this.model.findMany({
+      where: {
+        tipo: tipo as any,
+        activo: true,
+      },
+      orderBy: [
+        { orden: 'asc' },
+        { nombre: 'asc' },
+      ],
+    })
+  }
+
+  /**
+   * Obtiene la directiva pastoral
+   */
+  async findDirectiva(): Promise<Pastor[]> {
+    return this.model.findMany({
+      where: {
+        tipo: 'DIRECTIVA',
+        activo: true,
+      },
+      orderBy: [
+        { orden: 'asc' },
+        { nombre: 'asc' },
+      ],
+    })
+  }
+
+  /**
+   * Obtiene supervisores por región
+   */
+  async findSupervisores(region?: string): Promise<Pastor[]> {
+    return this.model.findMany({
+      where: {
+        tipo: 'SUPERVISOR',
+        activo: true,
+        ...(region && { region }),
+      },
+      orderBy: [
+        { region: 'asc' },
+        { orden: 'asc' },
+        { nombre: 'asc' },
+      ],
+    })
+  }
 }

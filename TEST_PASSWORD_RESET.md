@@ -50,3 +50,4 @@ curl -X POST http://localhost:4000/api/auth/forgot-password \
 - **Network tab**: Verifica que la petición a `/auth/forgot-password` sea exitosa (200)
 
 
+

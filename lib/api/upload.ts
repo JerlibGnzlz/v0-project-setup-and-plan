@@ -33,6 +33,19 @@ export const uploadApi = {
     return response.data
   },
 
+  // Upload image for noticias
+  uploadNoticiaImage: async (file: File): Promise<UploadResponse> => {
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const response = await apiClient.post<UploadResponse>("/upload/galeria", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+    return response.data
+  },
+
   // Upload video with optional trimming
   uploadVideo: async (
     file: File,

@@ -29,7 +29,7 @@ export function Navbar() {
       // Aumentar el umbral para que no cambie tan rápido
       setScrolled(window.scrollY > 50)
 
-      const sections = ['inicio', 'sedes', 'nosotros', 'directiva', 'pastores', 'galeria', 'educacion']
+      const sections = ['inicio', 'sedes', 'nosotros', 'directiva', 'galeria', 'educacion']
       const scrollPosition = window.scrollY + 100
 
       for (const section of sections) {
@@ -91,7 +91,7 @@ export function Navbar() {
     { href: '#sedes', label: 'Sedes' },
     { href: '#nosotros', label: 'Nosotros' },
     { href: '#directiva', label: 'Directiva' },
-    { href: '#pastores', label: 'Pastores' },
+    { href: '/equipo', label: 'Equipo', isPage: true },
     { href: '#galeria', label: 'Galería' },
     { href: '#educacion', label: 'Educación' },
   ]
@@ -172,9 +172,22 @@ export function Navbar() {
 
             {/* Desktop Navigation */}
             <div ref={navContainerRef} className="hidden lg:flex items-center gap-1 relative">
-              {navLinks.map((link) => {
-                const sectionId = link.href.replace('#', '')
-                const isActive = activeSection === sectionId
+              {navLinks.map((link: any) => {
+                const sectionId = link.href.replace('#', '').replace('/', '')
+                const isActive = !link.isPage && activeSection === sectionId
+
+                // Si es una página, usar navegación normal
+                if (link.isPage) {
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 text-white/60 hover:text-white hover:bg-white/5"
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                }
 
                 return (
                   <Link
@@ -257,9 +270,27 @@ export function Navbar() {
         }}
       >
         <nav className="flex flex-col p-6 gap-2 overflow-y-auto h-full">
-          {navLinks.map((link, index) => {
-            const sectionId = link.href.replace('#', '')
-            const isActive = activeSection === sectionId
+          {navLinks.map((link: any, index: number) => {
+            const sectionId = link.href.replace('#', '').replace('/', '')
+            const isActive = !link.isPage && activeSection === sectionId
+
+            // Si es una página, usar navegación normal y cerrar menú
+            if (link.isPage) {
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`group flex items-center justify-between py-3 px-4 text-lg font-medium rounded-xl transition-all duration-200 hover:bg-white/5 text-white/70 ${isOpen ? 'animate-in slide-in-from-right-4 fade-in' : ''}`}
+                  style={{
+                    animationDelay: isOpen ? `${index * 50}ms` : '0ms',
+                  }}
+                >
+                  <span>{link.label}</span>
+                  <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200" />
+                </Link>
+              )
+            }
 
             return (
               <Link

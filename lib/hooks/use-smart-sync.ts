@@ -175,3 +175,4 @@ export function useSmartPolling(
   return shouldPoll ? intervalMs : false
 }
 
+

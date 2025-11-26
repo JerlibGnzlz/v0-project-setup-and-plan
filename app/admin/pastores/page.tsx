@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { pastorSchema, type PastorFormData } from "@/lib/validations/pastor"
+import { pastorSchema, type PastorFormData, tipoPastorLabels, type TipoPastor } from "@/lib/validations/pastor"
 import { toast } from "sonner"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +14,13 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Switch } from "@/components/ui/switch"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -34,8 +41,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-// AlertDialog se usa para el botón de desactivar
-import { Search, Eye, Plus, Edit, AlertCircle, UserX, UserCheck, ChevronLeft } from "lucide-react"
+import { Search, Eye, Plus, Edit, AlertCircle, UserX, UserCheck, ChevronLeft, Globe, Users, Crown, Star } from "lucide-react"
 import Link from "next/link"
 import { ScrollReveal } from "@/components/scroll-reveal"
 import { usePastores, useCreatePastor, useUpdatePastor } from "@/lib/hooks/use-pastores"
@@ -44,9 +50,18 @@ import { ImageUpload } from "@/components/ui/image-upload"
 import { uploadApi } from "@/lib/api/upload"
 import type { Pastor } from "@/lib/api/pastores"
 
+// Iconos y colores para cada tipo de pastor
+const tipoConfig: Record<TipoPastor, { icon: any; color: string; bgColor: string }> = {
+  DIRECTIVA: { icon: Crown, color: "text-amber-600", bgColor: "bg-amber-100 dark:bg-amber-900/30" },
+  SUPERVISOR: { icon: Users, color: "text-blue-600", bgColor: "bg-blue-100 dark:bg-blue-900/30" },
+  PRESIDENTE: { icon: Globe, color: "text-purple-600", bgColor: "bg-purple-100 dark:bg-purple-900/30" },
+  PASTOR: { icon: Star, color: "text-emerald-600", bgColor: "bg-emerald-100 dark:bg-emerald-900/30" },
+}
+
 export default function PastoresPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<"todos" | "activos" | "inactivos">("todos")
+  const [tipoFilter, setTipoFilter] = useState<TipoPastor | "todos">("todos")
   const [selectedPastor, setSelectedPastor] = useState<Pastor | null>(null)
   const [isAddingPastor, setIsAddingPastor] = useState(false)
   const [isEditingPastor, setIsEditingPastor] = useState(false)
@@ -62,70 +77,103 @@ export default function PastoresPage() {
     reset,
     setValue,
     watch,
-  } = useForm({
+  } = useForm<PastorFormData>({
     resolver: zodResolver(pastorSchema),
     defaultValues: {
       activo: true,
+      mostrarEnLanding: false,
+      tipo: "PASTOR",
+      orden: 0,
     },
   })
 
   const fotoUrl = watch("fotoUrl")
+  const tipoValue = watch("tipo")
+
+  // Auto-activar "Mostrar en Landing" cuando el tipo es DIRECTIVA
+  const handleTipoChange = (value: TipoPastor) => {
+    setValue("tipo", value)
+    // Si es directiva, activar automáticamente mostrarEnLanding
+    if (value === "DIRECTIVA") {
+      setValue("mostrarEnLanding", true)
+    }
+  }
 
   const handleImageUpload = async (file: File): Promise<string> => {
     const result = await uploadApi.uploadPastorImage(file)
     return result.url
   }
 
-  const filteredPastores = pastores.filter((pastor: any) => {
+  const filteredPastores = pastores.filter((pastor: Pastor) => {
     const matchSearch =
       pastor.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pastor.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pastor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pastor.sede?.toLowerCase().includes(searchTerm.toLowerCase())
+      pastor.sede?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pastor.region?.toLowerCase().includes(searchTerm.toLowerCase())
 
-    // Normalizar el valor de activo (puede venir como boolean, string, o undefined)
-    const isActivo = pastor.activo === true || pastor.activo === "true"
-
+    const isActivo = pastor.activo === true
     const matchStatus =
       statusFilter === "todos" ||
       (statusFilter === "activos" && isActivo) ||
       (statusFilter === "inactivos" && !isActivo)
 
-    return matchSearch && matchStatus
+    const matchTipo = tipoFilter === "todos" || pastor.tipo === tipoFilter
+
+    return matchSearch && matchStatus && matchTipo
   })
 
-  // Contadores para los badges del filtro
   const counts = {
     todos: pastores.length,
-    activos: pastores.filter((p: any) => p.activo === true || p.activo === "true").length,
-    inactivos: pastores.filter((p: any) => p.activo === false || p.activo === "false" || p.activo === undefined).length,
+    activos: pastores.filter((p: Pastor) => p.activo).length,
+    inactivos: pastores.filter((p: Pastor) => !p.activo).length,
   }
 
   const onSubmit = async (data: PastorFormData) => {
     try {
+      // Limpiar campos vacíos y asegurar tipos correctos
+      const cleanData = {
+        nombre: data.nombre,
+        apellido: data.apellido,
+        email: data.email || undefined,
+        telefono: data.telefono || undefined,
+        tipo: data.tipo || "PASTOR",
+        cargo: data.cargo || undefined,
+        ministerio: data.ministerio || undefined,
+        sede: data.sede || undefined,
+        region: data.region || undefined,
+        pais: data.pais || undefined,
+        fotoUrl: data.fotoUrl || undefined,
+        biografia: data.biografia || undefined,
+        trayectoria: data.trayectoria || undefined,
+        orden: Number(data.orden) || 0,
+        activo: data.activo ?? true,
+        mostrarEnLanding: data.mostrarEnLanding ?? false,
+      }
+
+      console.log("Enviando datos:", cleanData)
+
       if (isEditingPastor && selectedPastor) {
         await updatePastorMutation.mutateAsync({
           id: selectedPastor.id,
-          data,
+          data: cleanData,
         })
-        toast.success("Pastor actualizado", {
-          description: "El pastor ha sido actualizado correctamente.",
-        })
+        toast.success("Pastor actualizado")
       } else {
-        await createPastorMutation.mutateAsync(data)
-        toast.success("Pastor creado", {
-          description: "El pastor ha sido creado correctamente.",
-        })
+        await createPastorMutation.mutateAsync(cleanData as any)
+        toast.success("Pastor creado")
       }
       setIsAddingPastor(false)
       setIsEditingPastor(false)
       reset()
       setSelectedPastor(null)
     } catch (error: any) {
-      console.error("[v0] Error saving pastor:", error)
-      toast.error("Error al guardar", {
-        description: error.response?.data?.message || "No se pudo guardar el pastor. Verifica que estés autenticado.",
-      })
+      console.error("Error al guardar pastor:", error)
+      const message = error.response?.data?.message || 
+                      error.response?.data?.error?.message ||
+                      JSON.stringify(error.response?.data) ||
+                      "No se pudo guardar el pastor."
+      toast.error("Error al guardar", { description: message })
     }
   }
 
@@ -136,11 +184,25 @@ export default function PastoresPage() {
     setValue("apellido", pastor.apellido)
     setValue("email", pastor.email || "")
     setValue("telefono", pastor.telefono || "")
-    setValue("sede", pastor.sede || "")
+    setValue("tipo", pastor.tipo || "PASTOR")
     setValue("cargo", pastor.cargo || "")
+    setValue("ministerio", pastor.ministerio || "")
+    setValue("sede", pastor.sede || "")
+    setValue("region", pastor.region || "")
+    setValue("pais", pastor.pais || "")
     setValue("fotoUrl", pastor.fotoUrl || "")
     setValue("biografia", pastor.biografia || "")
+    setValue("trayectoria", pastor.trayectoria || "")
+    setValue("orden", pastor.orden || 0)
     setValue("activo", pastor.activo)
+    setValue("mostrarEnLanding", pastor.mostrarEnLanding)
+  }
+
+  const handleCloseDialog = () => {
+    setIsAddingPastor(false)
+    setIsEditingPastor(false)
+    reset()
+    setSelectedPastor(null)
   }
 
   if (isLoading) {
@@ -167,7 +229,7 @@ export default function PastoresPage() {
     <TooltipProvider>
       <ScrollReveal>
         <div className="space-y-6">
-          {/* Header con botón de volver y gradiente */}
+          {/* Header */}
           <div className="flex items-center gap-4">
             <Link href="/admin">
               <Button variant="ghost" size="icon" className="hover:bg-sky-50 dark:hover:bg-sky-500/10">
@@ -175,60 +237,49 @@ export default function PastoresPage() {
               </Button>
             </Link>
             <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-sky-500/10 via-emerald-500/10 to-amber-500/10 rounded-xl blur-xl dark:from-sky-500/5 dark:via-emerald-500/5 dark:to-amber-500/5" />
+              <div className="absolute -inset-4 bg-gradient-to-r from-sky-500/10 via-emerald-500/10 to-amber-500/10 rounded-xl blur-xl" />
               <div className="relative">
                 <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-sky-600 via-emerald-600 to-amber-600 dark:from-sky-400 dark:via-emerald-400 dark:to-amber-400 bg-clip-text text-transparent">
                   Gestión de Pastores
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                  Registro y administración de pastores del ministerio
+                  Administra la directiva, supervisores y pastores
                 </p>
               </div>
             </div>
           </div>
 
-          <Card className="border-sky-200/50 dark:border-sky-500/20 bg-gradient-to-br from-white to-sky-50/30 dark:from-background dark:to-sky-950/20 overflow-hidden">
+          <Card className="border-sky-200/50 dark:border-sky-500/20 overflow-hidden">
             <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-sky-500/10 to-blue-500/10 dark:from-sky-500/20 dark:to-blue-500/20">
-                    <Search className="size-4 text-sky-600 dark:text-sky-400" />
-                  </div>
-                  <span className="bg-gradient-to-r from-sky-600 to-blue-600 dark:from-sky-400 dark:to-blue-400 bg-clip-text text-transparent">Lista de Pastores</span>
+                  <Users className="size-5 text-sky-600" />
+                  Lista de Pastores
                 </CardTitle>
-                <CardDescription>Pastores registrados en el sistema</CardDescription>
+                <CardDescription>
+                  {counts.activos} activos de {counts.todos} registrados
+                </CardDescription>
               </div>
-              <Dialog
-                open={isAddingPastor || isEditingPastor}
-                onOpenChange={(open) => {
-                  if (!open) {
-                    setIsAddingPastor(false)
-                    setIsEditingPastor(false)
-                    reset()
-                    setSelectedPastor(null)
-                  }
-                }}
-              >
+              <Dialog open={isAddingPastor || isEditingPastor} onOpenChange={(open) => !open && handleCloseDialog()}>
                 <DialogTrigger asChild>
                   <Button
                     onClick={() => setIsAddingPastor(true)}
-                    className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all"
+                    className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
                   >
                     <Plus className="size-4 mr-2" />
                     Nuevo Pastor
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>{isEditingPastor ? "Editar Pastor" : "Nuevo Pastor"}</DialogTitle>
                     <DialogDescription>
-                      {isEditingPastor
-                        ? "Modifica los datos del pastor"
-                        : "Completa los datos para registrar un nuevo pastor"}
+                      {isEditingPastor ? "Modifica los datos del pastor" : "Completa los datos para registrar un nuevo pastor"}
                     </DialogDescription>
                   </DialogHeader>
-                  <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+                  <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+                    {/* Foto */}
                     <div className="flex justify-center">
                       <div className="space-y-2">
                         <Label>Foto del Pastor</Label>
@@ -241,102 +292,159 @@ export default function PastoresPage() {
                       </div>
                     </div>
 
+                    {/* Datos básicos */}
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="nombre">Nombre *</Label>
                         <Input id="nombre" placeholder="Juan" {...register("nombre")} />
                         {errors.nombre && (
-                          <Alert variant="destructive" className="py-2">
-                            <AlertCircle className="size-3" />
-                            <AlertDescription className="text-xs">{errors.nombre.message}</AlertDescription>
-                          </Alert>
+                          <p className="text-xs text-destructive">{errors.nombre.message}</p>
                         )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="apellido">Apellido *</Label>
                         <Input id="apellido" placeholder="Pérez" {...register("apellido")} />
                         {errors.apellido && (
-                          <Alert variant="destructive" className="py-2">
-                            <AlertCircle className="size-3" />
-                            <AlertDescription className="text-xs">{errors.apellido.message}</AlertDescription>
-                          </Alert>
+                          <p className="text-xs text-destructive">{errors.apellido.message}</p>
                         )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
                         <Input id="email" type="email" placeholder="pastor@iglesia.com" {...register("email")} />
-                        {errors.email && (
-                          <Alert variant="destructive" className="py-2">
-                            <AlertCircle className="size-3" />
-                            <AlertDescription className="text-xs">{errors.email.message}</AlertDescription>
-                          </Alert>
-                        )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="telefono">Teléfono</Label>
-                        <Input id="telefono" placeholder="+54 11 1234-5678" {...register("telefono")} />
-                        {errors.telefono && (
-                          <Alert variant="destructive" className="py-2">
-                            <AlertCircle className="size-3" />
-                            <AlertDescription className="text-xs">{errors.telefono.message}</AlertDescription>
-                          </Alert>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="sede">Sede</Label>
-                        <Input id="sede" placeholder="Buenos Aires" {...register("sede")} />
-                        {errors.sede && (
-                          <Alert variant="destructive" className="py-2">
-                            <AlertCircle className="size-3" />
-                            <AlertDescription className="text-xs">{errors.sede.message}</AlertDescription>
-                          </Alert>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cargo">Cargo</Label>
-                        <Input id="cargo" placeholder="Pastor Principal" {...register("cargo")} />
-                        {errors.cargo && (
-                          <Alert variant="destructive" className="py-2">
-                            <AlertCircle className="size-3" />
-                            <AlertDescription className="text-xs">{errors.cargo.message}</AlertDescription>
-                          </Alert>
-                        )}
-                      </div>
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="biografia">Biografía</Label>
-                        <Textarea
-                          id="biografia"
-                          placeholder="Breve biografía del pastor..."
-                          rows={3}
-                          {...register("biografia")}
-                        />
-                        {errors.biografia && (
-                          <Alert variant="destructive" className="py-2">
-                            <AlertCircle className="size-3" />
-                            <AlertDescription className="text-xs">{errors.biografia.message}</AlertDescription>
-                          </Alert>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-2 md:col-span-2">
-                        <Switch
-                          id="activo"
-                          checked={watch("activo")}
-                          onCheckedChange={(checked) => setValue("activo", checked)}
-                        />
-                        <Label htmlFor="activo">Pastor activo</Label>
+                        <Input id="telefono" placeholder="+504 9999-9999" {...register("telefono")} />
                       </div>
                     </div>
+
+                    {/* Clasificación */}
+                    <div className="p-4 rounded-lg bg-muted/50 space-y-4">
+                      <h4 className="font-medium text-sm flex items-center gap-2">
+                        <Crown className="size-4 text-amber-500" />
+                        Clasificación
+                      </h4>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label>Tipo de Pastor *</Label>
+                          <Select
+                            value={tipoValue}
+                            onValueChange={(value) => handleTipoChange(value as TipoPastor)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona un tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(Object.keys(tipoPastorLabels) as TipoPastor[]).map((tipo) => {
+                                const config = tipoConfig[tipo]
+                                const Icon = config.icon
+                                return (
+                                  <SelectItem key={tipo} value={tipo}>
+                                    <span className="flex items-center gap-2">
+                                      <Icon className={`size-4 ${config.color}`} />
+                                      {tipoPastorLabels[tipo]}
+                                    </span>
+                                  </SelectItem>
+                                )
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cargo">Cargo</Label>
+                          <Input id="cargo" placeholder="Pastor Principal, Secretario..." {...register("cargo")} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="ministerio">Ministerio</Label>
+                          <Input id="ministerio" placeholder="Evangelismo, Educación..." {...register("ministerio")} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="orden">Orden de aparición</Label>
+                          <Input
+                            id="orden"
+                            type="number"
+                            min={0}
+                            defaultValue={0}
+                            {...register("orden")}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Ubicación */}
+                    <div className="p-4 rounded-lg bg-muted/50 space-y-4">
+                      <h4 className="font-medium text-sm flex items-center gap-2">
+                        <Globe className="size-4 text-blue-500" />
+                        Ubicación
+                      </h4>
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="sede">Sede/Iglesia</Label>
+                          <Input id="sede" placeholder="Iglesia Central" {...register("sede")} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="region">Región/Provincia</Label>
+                          <Input id="region" placeholder="Zona Norte, Cortés..." {...register("region")} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="pais">País</Label>
+                          <Input id="pais" placeholder="Honduras" {...register("pais")} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contenido */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="biografia">Biografía corta</Label>
+                        <Textarea
+                          id="biografia"
+                          placeholder="Breve descripción del pastor (máx. 500 caracteres)..."
+                          rows={2}
+                          {...register("biografia")}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="trayectoria">Trayectoria ministerial</Label>
+                        <Textarea
+                          id="trayectoria"
+                          placeholder="Historia y trayectoria en el ministerio..."
+                          rows={4}
+                          {...register("trayectoria")}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Control */}
+                    <div className="p-4 rounded-lg bg-muted/50 space-y-4">
+                      <h4 className="font-medium text-sm">Control de visualización</h4>
+                      <div className="flex flex-col sm:flex-row gap-6">
+                        <div className="flex items-center space-x-3">
+                          <Switch
+                            id="activo"
+                            checked={watch("activo")}
+                            onCheckedChange={(checked) => setValue("activo", checked)}
+                          />
+                          <Label htmlFor="activo">Pastor activo</Label>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <Switch
+                            id="mostrarEnLanding"
+                            checked={watch("mostrarEnLanding")}
+                            onCheckedChange={(checked) => setValue("mostrarEnLanding", checked)}
+                          />
+                          <Label htmlFor="mostrarEnLanding" className="flex items-center gap-2">
+                            Mostrar en Landing Page
+                            <Badge variant="outline" className="text-xs">
+                              {watch("mostrarEnLanding") ? "Visible" : "Oculto"}
+                            </Badge>
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+
                     <DialogFooter>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setIsAddingPastor(false)
-                          setIsEditingPastor(false)
-                          reset()
-                          setSelectedPastor(null)
-                        }}
-                      >
+                      <Button type="button" variant="outline" onClick={handleCloseDialog}>
                         Cancelar
                       </Button>
                       <Button type="submit" disabled={isSubmitting}>
@@ -348,52 +456,65 @@ export default function PastoresPage() {
               </Dialog>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+              {/* Filtros */}
+              <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 mb-6">
                 <div className="relative flex-1 w-full">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar pastores..."
+                    placeholder="Buscar por nombre, email, sede..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
                   />
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Filtro por tipo */}
+                  <Select value={tipoFilter} onValueChange={(v) => setTipoFilter(v as TipoPastor | "todos")}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos los tipos</SelectItem>
+                      {(Object.keys(tipoPastorLabels) as TipoPastor[]).map((tipo) => (
+                        <SelectItem key={tipo} value={tipo}>{tipoPastorLabels[tipo]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {/* Filtro por estado */}
                   <Button
                     variant={statusFilter === "todos" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setStatusFilter("todos")}
                   >
-                    Todos
-                    <Badge variant="secondary" className="ml-2">{counts.todos}</Badge>
+                    Todos <Badge variant="secondary" className="ml-1">{counts.todos}</Badge>
                   </Button>
                   <Button
                     variant={statusFilter === "activos" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setStatusFilter("activos")}
                   >
-                    Activos
-                    <Badge variant="secondary" className="ml-2">{counts.activos}</Badge>
+                    Activos <Badge variant="secondary" className="ml-1">{counts.activos}</Badge>
                   </Button>
                   <Button
                     variant={statusFilter === "inactivos" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setStatusFilter("inactivos")}
                   >
-                    Inactivos
-                    <Badge variant="secondary" className="ml-2">{counts.inactivos}</Badge>
+                    Inactivos <Badge variant="secondary" className="ml-1">{counts.inactivos}</Badge>
                   </Button>
                 </div>
               </div>
 
+              {/* Tabla */}
               <div className="rounded-md border overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="p-3 text-left text-sm font-medium">Pastor</th>
-                      <th className="p-3 text-left text-sm font-medium">Sede</th>
+                      <th className="p-3 text-left text-sm font-medium">Tipo</th>
                       <th className="p-3 text-left text-sm font-medium">Cargo</th>
-                      <th className="p-3 text-left text-sm font-medium">Teléfono</th>
+                      <th className="p-3 text-left text-sm font-medium">Ubicación</th>
+                      <th className="p-3 text-left text-sm font-medium">Landing</th>
                       <th className="p-3 text-left text-sm font-medium">Estado</th>
                       <th className="p-3 text-left text-sm font-medium">Acciones</th>
                     </tr>
@@ -401,191 +522,111 @@ export default function PastoresPage() {
                   <tbody>
                     {filteredPastores.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                        <td colSpan={7} className="p-8 text-center text-muted-foreground">
                           No se encontraron pastores
                         </td>
                       </tr>
                     ) : (
-                      filteredPastores.map((pastor: Pastor) => (
-                        <tr key={pastor.id} className="border-t hover:bg-muted/50">
-                          <td className="p-3">
-                            <div className="flex items-center gap-3">
-                              {pastor.fotoUrl ? (
-                                <img
-                                  src={pastor.fotoUrl || "/placeholder.svg"}
-                                  alt={`${pastor.nombre} ${pastor.apellido}`}
-                                  className="size-10 rounded-full object-cover"
-                                />
-                              ) : (
-                                <div className="size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-sm font-medium">
-                                  {pastor.nombre?.[0]}
-                                  {pastor.apellido?.[0]}
+                      filteredPastores.map((pastor: Pastor) => {
+                        const config = tipoConfig[pastor.tipo] || tipoConfig.PASTOR
+                        const Icon = config.icon
+                        return (
+                          <tr key={pastor.id} className="border-t hover:bg-muted/50">
+                            <td className="p-3">
+                              <div className="flex items-center gap-3">
+                                {pastor.fotoUrl ? (
+                                  <img
+                                    src={pastor.fotoUrl}
+                                    alt={`${pastor.nombre} ${pastor.apellido}`}
+                                    className="size-10 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-sm font-medium">
+                                    {pastor.nombre?.[0]}{pastor.apellido?.[0]}
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="font-medium text-sm">{pastor.nombre} {pastor.apellido}</p>
+                                  {pastor.email && <p className="text-xs text-muted-foreground">{pastor.email}</p>}
                                 </div>
-                              )}
-                              <div>
-                                <p className="font-medium text-sm">
-                                  {pastor.nombre} {pastor.apellido}
-                                </p>
-                                {pastor.email && <p className="text-xs text-muted-foreground">{pastor.email}</p>}
                               </div>
-                            </div>
-                          </td>
-                          <td className="p-3 text-sm">{pastor.sede || "-"}</td>
-                          <td className="p-3 text-sm">{pastor.cargo || "-"}</td>
-                          <td className="p-3 text-sm">{pastor.telefono || "-"}</td>
-                          <td className="p-3">
-                            {pastor.activo ? (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="outline" size="sm" className="gap-2">
-                                    <Badge variant="default" className="gap-1">
-                                      <UserCheck className="size-3" />
-                                      Activo
-                                    </Badge>
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>¿Desactivar pastor?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Estás a punto de desactivar a <strong>{pastor.nombre} {pastor.apellido}</strong>.
-                                      <br /><br />
-                                      El pastor no será eliminado, solo quedará inactivo y podrás reactivarlo en cualquier momento desde la pestaña "Inactivos".
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                      onClick={async () => {
-                                        try {
-                                          await updatePastorMutation.mutateAsync({
-                                            id: pastor.id,
-                                            data: { activo: false },
-                                          })
-                                          toast.success('Pastor desactivado', {
-                                            description: `${pastor.nombre} ${pastor.apellido} ha sido desactivado`,
-                                          })
-                                        } catch (error: any) {
-                                          toast.error('Error', {
-                                            description: error.response?.data?.message || 'No se pudo desactivar el pastor',
-                                          })
-                                        }
-                                      }}
-                                    >
-                                      Sí, desactivar
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="gap-2"
-                                onClick={async () => {
-                                  try {
-                                    await updatePastorMutation.mutateAsync({
-                                      id: pastor.id,
-                                      data: { activo: true },
-                                    })
-                                    toast.success('Pastor activado', {
-                                      description: `${pastor.nombre} ${pastor.apellido} ha sido reactivado`,
-                                    })
-                                  } catch (error: any) {
-                                    toast.error('Error', {
-                                      description: error.response?.data?.message || 'No se pudo activar el pastor',
-                                    })
-                                  }
-                                }}
-                              >
-                                <Badge variant="secondary" className="gap-1">
-                                  <UserX className="size-3" />
-                                  Inactivo
+                            </td>
+                            <td className="p-3">
+                              <Badge variant="outline" className={`${config.bgColor} border-0`}>
+                                <Icon className={`size-3 mr-1 ${config.color}`} />
+                                <span className={config.color}>{tipoPastorLabels[pastor.tipo] || "Pastor"}</span>
+                              </Badge>
+                            </td>
+                            <td className="p-3 text-sm">{pastor.cargo || "-"}</td>
+                            <td className="p-3 text-sm">
+                              {pastor.sede || pastor.region || pastor.pais || "-"}
+                            </td>
+                            <td className="p-3">
+                              {pastor.mostrarEnLanding ? (
+                                <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                  Visible
                                 </Badge>
-                                <span className="text-xs text-primary">Reactivar</span>
-                              </Button>
-                            )}
-                          </td>
-                          <td className="p-3">
-                            <div className="flex items-center gap-2">
-                              <Dialog>
+                              ) : (
+                                <Badge variant="secondary">Oculto</Badge>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              <Badge variant={pastor.activo ? "default" : "secondary"}>
+                                {pastor.activo ? "Activo" : "Inactivo"}
+                              </Badge>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center gap-1">
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <DialogTrigger asChild>
-                                      <Button variant="ghost" size="sm">
-                                        <Eye className="size-4" />
-                                      </Button>
-                                    </DialogTrigger>
+                                    <Button variant="ghost" size="sm" onClick={() => handleEdit(pastor)}>
+                                      <Edit className="size-4" />
+                                    </Button>
                                   </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Ver detalles</p>
-                                  </TooltipContent>
+                                  <TooltipContent>Editar</TooltipContent>
                                 </Tooltip>
-                                <DialogContent className="max-w-2xl">
-                                  <DialogHeader>
-                                    <DialogTitle>Detalles del Pastor</DialogTitle>
-                                  </DialogHeader>
-                                  <div className="space-y-4">
-                                    {pastor.fotoUrl ? (
-                                      <img
-                                        src={pastor.fotoUrl}
-                                        alt={`${pastor.nombre} ${pastor.apellido}`}
-                                        className="size-32 rounded-full object-cover mx-auto"
-                                      />
-                                    ) : (
-                                      <div className="size-32 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-2xl font-medium mx-auto">
-                                        {pastor.nombre?.[0]}
-                                        {pastor.apellido?.[0]}
-                                      </div>
-                                    )}
-                                    <div className="text-center">
-                                      <h3 className="text-xl font-semibold">{pastor.nombre} {pastor.apellido}</h3>
-                                      {pastor.cargo && <p className="text-muted-foreground">{pastor.cargo}</p>}
-                                    </div>
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                      <div className="p-3 rounded-lg bg-muted/50">
-                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Email</p>
-                                        <p className="font-medium">{pastor.email || "-"}</p>
-                                      </div>
-                                      <div className="p-3 rounded-lg bg-muted/50">
-                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Teléfono</p>
-                                        <p className="font-medium">{pastor.telefono || "-"}</p>
-                                      </div>
-                                      <div className="p-3 rounded-lg bg-muted/50">
-                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Sede</p>
-                                        <p className="font-medium">{pastor.sede || "-"}</p>
-                                      </div>
-                                      <div className="p-3 rounded-lg bg-muted/50">
-                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Estado</p>
-                                        <Badge variant={pastor.activo ? "default" : "secondary"}>
-                                          {pastor.activo ? "Activo" : "Inactivo"}
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                    {pastor.biografia && (
-                                      <div className="p-3 rounded-lg bg-muted/50">
-                                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Biografía</p>
-                                        <p className="text-sm">{pastor.biografia}</p>
-                                      </div>
-                                    )}
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="sm" onClick={() => handleEdit(pastor)}>
-                                    <Edit className="size-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Editar</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="sm">
+                                      {pastor.activo ? <UserX className="size-4" /> : <UserCheck className="size-4" />}
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>
+                                        {pastor.activo ? "¿Desactivar pastor?" : "¿Activar pastor?"}
+                                      </AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        {pastor.activo
+                                          ? `${pastor.nombre} ${pastor.apellido} quedará inactivo.`
+                                          : `${pastor.nombre} ${pastor.apellido} será reactivado.`}
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={async () => {
+                                          try {
+                                            await updatePastorMutation.mutateAsync({
+                                              id: pastor.id,
+                                              data: { activo: !pastor.activo },
+                                            })
+                                            toast.success(pastor.activo ? "Pastor desactivado" : "Pastor activado")
+                                          } catch (error: any) {
+                                            toast.error("Error", { description: "No se pudo actualizar el pastor" })
+                                          }
+                                        }}
+                                      >
+                                        Confirmar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })
                     )}
                   </tbody>
                 </table>

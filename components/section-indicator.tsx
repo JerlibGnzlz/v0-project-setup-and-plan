@@ -7,7 +7,6 @@ const sections = [
   { id: 'sedes', label: 'Sedes' },
   { id: 'nosotros', label: 'Nosotros' },
   { id: 'directiva', label: 'Directiva' },
-  { id: 'pastores', label: 'Pastores' },
   { id: 'galeria', label: 'Galería' },
   { id: 'educacion', label: 'Educación' },
 ]

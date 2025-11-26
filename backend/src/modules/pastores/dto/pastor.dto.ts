@@ -1,4 +1,12 @@
-import { IsString, IsEmail, IsBoolean, IsOptional } from "class-validator"
+import { IsString, IsEmail, IsBoolean, IsOptional, IsEnum, IsInt, Min } from "class-validator"
+
+// Enum que coincide con Prisma
+export enum TipoPastor {
+  DIRECTIVA = "DIRECTIVA",
+  SUPERVISOR = "SUPERVISOR",
+  PRESIDENTE = "PRESIDENTE",
+  PASTOR = "PASTOR",
+}
 
 export class CreatePastorDto {
   @IsString()
@@ -15,14 +23,33 @@ export class CreatePastorDto {
   @IsString()
   telefono?: string
 
+  // Clasificación
+  @IsOptional()
+  @IsEnum(TipoPastor)
+  tipo?: TipoPastor
+
+  @IsOptional()
+  @IsString()
+  cargo?: string
+
+  @IsOptional()
+  @IsString()
+  ministerio?: string
+
+  // Ubicación
   @IsOptional()
   @IsString()
   sede?: string
 
   @IsOptional()
   @IsString()
-  cargo?: string
+  region?: string
 
+  @IsOptional()
+  @IsString()
+  pais?: string
+
+  // Contenido
   @IsOptional()
   @IsString()
   fotoUrl?: string
@@ -32,8 +59,22 @@ export class CreatePastorDto {
   biografia?: string
 
   @IsOptional()
+  @IsString()
+  trayectoria?: string
+
+  // Control
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  orden?: number
+
+  @IsOptional()
   @IsBoolean()
   activo?: boolean
+
+  @IsOptional()
+  @IsBoolean()
+  mostrarEnLanding?: boolean
 }
 
 export class UpdatePastorDto {
@@ -53,14 +94,33 @@ export class UpdatePastorDto {
   @IsString()
   telefono?: string
 
+  // Clasificación
+  @IsOptional()
+  @IsEnum(TipoPastor)
+  tipo?: TipoPastor
+
+  @IsOptional()
+  @IsString()
+  cargo?: string
+
+  @IsOptional()
+  @IsString()
+  ministerio?: string
+
+  // Ubicación
   @IsOptional()
   @IsString()
   sede?: string
 
   @IsOptional()
   @IsString()
-  cargo?: string
+  region?: string
 
+  @IsOptional()
+  @IsString()
+  pais?: string
+
+  // Contenido
   @IsOptional()
   @IsString()
   fotoUrl?: string
@@ -70,6 +130,20 @@ export class UpdatePastorDto {
   biografia?: string
 
   @IsOptional()
+  @IsString()
+  trayectoria?: string
+
+  // Control
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  orden?: number
+
+  @IsOptional()
   @IsBoolean()
   activo?: boolean
+
+  @IsOptional()
+  @IsBoolean()
+  mostrarEnLanding?: boolean
 }

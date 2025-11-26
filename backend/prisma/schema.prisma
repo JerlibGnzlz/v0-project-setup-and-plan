@@ -68,22 +68,48 @@ model Convencion {
   @@map("convenciones")
 }
 
+// Tipos de Pastor
+enum TipoPastor {
+  DIRECTIVA        // Directiva Pastoral (se muestra en landing)
+  SUPERVISOR       // Supervisor Provincial/Regional
+  PRESIDENTE       // Presidente de país
+  PASTOR           // Pastor regular
+}
+
 // Modelo de Pastor
 model Pastor {
-  id        String   @id @default(uuid())
-  nombre    String
-  apellido  String
-  email     String?  @unique
-  telefono  String?
-  sede      String?
-  cargo     String?
-  fotoUrl   String?  @map("foto_url")
-  biografia String?
-  activo    Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id              String      @id @default(uuid())
+  nombre          String
+  apellido        String
+  email           String?     @unique
+  telefono        String?
+  
+  // Clasificación
+  tipo            TipoPastor  @default(PASTOR)
+  cargo           String?                        // "Pastor Principal", "Secretario", etc.
+  ministerio      String?                        // Área de ministerio
+  
+  // Ubicación
+  sede            String?                        // Sede/Iglesia
+  region          String?                        // Región o Provincia (para supervisores)
+  pais            String?                        // País (para presidentes)
+  
+  // Contenido
+  fotoUrl         String?     @map("foto_url")
+  biografia       String?                        // Descripción corta
+  trayectoria     String?     @db.Text           // Historia/trayectoria (texto largo)
+  
+  // Control de visualización
+  orden           Int         @default(0)        // Orden de aparición
+  activo          Boolean     @default(true)     // Si está activo en el sistema
+  mostrarEnLanding Boolean    @default(false) @map("mostrar_en_landing") // Si aparece en landing
+  
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
 
   @@index([activo])
+  @@index([tipo])
+  @@index([mostrarEnLanding])
   @@index([sede])
   @@map("pastores")
 }
@@ -169,4 +195,45 @@ enum EstadoPago {
   COMPLETADO
   CANCELADO
   REEMBOLSADO
+}
+
+// Categorías de Noticias
+enum CategoriaNoticia {
+  ANUNCIO          // Anuncios importantes
+  EVENTO           // Eventos y convenciones
+  DEVOCIONAL       // Contenido espiritual
+  CAPACITACION     // Cursos y talleres
+  TESTIMONIO       // Testimonios
+  COMUNICADO       // Comunicados oficiales
+}
+
+// Modelo de Noticia/Blog
+model Noticia {
+  id          String            @id @default(uuid())
+  titulo      String
+  slug        String            @unique          // URL amigable
+  extracto    String?                            // Resumen corto
+  contenido   String            @db.Text         // Contenido completo (puede ser HTML/Markdown)
+  imagenUrl   String?           @map("imagen_url")
+  categoria   CategoriaNoticia  @default(ANUNCIO)
+  autor       String?                            // Nombre del autor
+  
+  // Control de publicación
+  publicado   Boolean           @default(false)  // Si está publicado
+  destacado   Boolean           @default(false)  // Si aparece destacado
+  fechaPublicacion DateTime?    @map("fecha_publicacion")
+  
+  // SEO
+  metaTitle       String?       @map("meta_title")
+  metaDescription String?       @map("meta_description")
+  
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  @@index([publicado])
+  @@index([destacado])
+  @@index([categoria])
+  @@index([fechaPublicacion])
+  @@index([slug])
+  @@map("noticias")
 }

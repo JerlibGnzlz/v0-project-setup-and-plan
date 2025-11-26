@@ -6,7 +6,7 @@ import { MarqueeTicker } from '@/components/marquee-ticker'
 import { SedesSection } from '@/components/sedes-section'
 import { AboutSection } from '@/components/about-section'
 import { LeadershipSection } from '@/components/leadership-section'
-import { PastoresSection } from '@/components/pastores-section'
+import { NewsSection } from '@/components/news-section'
 import { ConventionsSection } from '@/components/conventions-section'
 import { GallerySection } from '@/components/gallery-section'
 import { EducacionSection } from '@/components/educacion-section'
@@ -48,9 +48,9 @@ export default function HomePage() {
               <LeadershipSection />
             </ScrollReveal>
           </div>
-          <div id="pastores">
+          <div id="noticias">
             <ScrollReveal delay={100}>
-              <PastoresSection />
+              <NewsSection />
             </ScrollReveal>
           </div>
           <ScrollReveal delay={100}>

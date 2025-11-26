@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Users, CreditCard, ImageIcon, ArrowRight, User, Smartphone, Calendar, Clock, Edit, Trash2 } from 'lucide-react'
+import { Users, CreditCard, ImageIcon, ArrowRight, User, Smartphone, Calendar, Clock, Edit, Trash2, Newspaper } from 'lucide-react'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
@@ -350,6 +350,24 @@ export default function AdminDashboard() {
               <Link href="/admin/galeria">
                 <Button variant="ghost" className="mt-4 w-full text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-500/10">
                   Ver Galería <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-xl hover:shadow-cyan-500/10 transition-all duration-300 border-cyan-200/50 dark:border-cyan-500/20 bg-gradient-to-br from-white to-cyan-50/30 dark:from-background dark:to-cyan-950/20 group">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-cyan-700 dark:text-cyan-300">Noticias</CardTitle>
+              <Newspaper className="h-4 w-4 text-cyan-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-sky-600 dark:from-cyan-400 dark:to-sky-400 bg-clip-text text-transparent">-</div>
+              <p className="text-xs text-muted-foreground">
+                Blog y comunicados
+              </p>
+              <Link href="/admin/noticias">
+                <Button variant="ghost" className="mt-4 w-full text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50 dark:text-cyan-400 dark:hover:bg-cyan-500/10">
+                  Ver Noticias <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </CardContent>
@@ -788,6 +806,31 @@ export default function AdminDashboard() {
               <CardContent>
                 <p className="text-sm text-amber-600/70 dark:text-amber-400/70">
                   4 imágenes, 2 videos disponibles
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+        </ScrollReveal>
+
+        <ScrollReveal delay={500}>
+          <Link href="/admin/noticias">
+            <Card className="hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 cursor-pointer group border-sky-200/50 dark:border-sky-500/20 bg-gradient-to-br from-white to-sky-50/30 dark:from-background dark:to-sky-950/20 overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-sky-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-sky-500/10 to-cyan-500/10 dark:from-sky-500/20 dark:to-cyan-500/20 group-hover:from-sky-500/20 group-hover:to-cyan-500/20 transition-colors">
+                    <Newspaper className="size-6 text-sky-600 dark:text-sky-400" />
+                  </div>
+                  <ArrowRight className="size-5 text-sky-500/50 group-hover:text-sky-500 group-hover:translate-x-1 transition-all" />
+                </div>
+                <CardTitle className="mt-4 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">Gestión de Noticias</CardTitle>
+                <CardDescription>
+                  Crear y administrar noticias, anuncios y comunicados
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-sky-600/70 dark:text-sky-400/70">
+                  Blog y comunicación oficial
                 </p>
               </CardContent>
             </Card>
