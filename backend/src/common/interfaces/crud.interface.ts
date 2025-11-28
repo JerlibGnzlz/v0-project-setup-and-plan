@@ -104,5 +104,3 @@ export interface IEntity {
  * Entidad completa con timestamps
  */
 export interface IBaseEntity extends IEntity, ITimestamped {}
-
-

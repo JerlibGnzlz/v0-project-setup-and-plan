@@ -46,5 +46,3 @@ export const galeriaApi = {
     await apiClient.delete(`/galeria/${id}`)
   },
 }
-
-

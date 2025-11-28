@@ -102,4 +102,3 @@ export class NoticiasController {
     return this.noticiasService.toggleDestacado(id);
   }
 }
-

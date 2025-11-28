@@ -125,5 +125,3 @@ export class ConvencionRepository
     return this.exists({ activa: true });
   }
 }
-
-

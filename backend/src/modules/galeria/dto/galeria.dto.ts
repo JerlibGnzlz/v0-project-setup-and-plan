@@ -104,5 +104,3 @@ export class UpdateGaleriaDto {
     @IsNumber()
     thumbnailTime?: number;
 }
-
-

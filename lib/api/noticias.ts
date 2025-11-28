@@ -122,4 +122,3 @@ export const noticiasApi = {
     return response.data
   },
 }
-

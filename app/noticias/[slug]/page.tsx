@@ -314,4 +314,3 @@ export default function NoticiaPage({ params }: { params: Promise<{ slug: string
     </QueryProvider>
   )
 }
-

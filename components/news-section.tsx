@@ -342,4 +342,3 @@ export function NewsSection() {
     </section>
   )
 }
-

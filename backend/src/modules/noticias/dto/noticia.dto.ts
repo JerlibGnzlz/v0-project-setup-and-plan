@@ -114,4 +114,3 @@ export class UpdateNoticiaDto {
   @IsString()
   metaDescription?: string;
 }
-

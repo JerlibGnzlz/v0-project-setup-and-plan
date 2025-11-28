@@ -373,5 +373,3 @@ export function VideoCardModern({
     </div>
   )
 }
-
-

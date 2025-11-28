@@ -69,6 +69,3 @@ export class PagosController {
     return this.inscripcionesService.removePago(id)
   }
 }
-
-
-

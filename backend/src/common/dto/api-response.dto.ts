@@ -179,5 +179,3 @@ export const ApiResponses = {
   paginated: <T>(data: T[], total: number, page: number, limit: number) =>
     new PaginatedResponse(data, new PaginationMeta(total, page, limit)),
 };
-
-
