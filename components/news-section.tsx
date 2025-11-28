@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { 
@@ -12,7 +12,11 @@ import {
   ChevronLeft, 
   ChevronRight,
   Loader2,
-  User
+  User,
+  TrendingUp,
+  Radio,
+  Zap,
+  Eye
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useNoticiasPublicadas } from '@/lib/hooks/use-noticias'
@@ -31,6 +35,16 @@ function formatDate(dateString: string | null): string {
   }
 }
 
+// Formatear fecha corta
+function formatShortDate(dateString: string | null): string {
+  if (!dateString) return ''
+  try {
+    return format(new Date(dateString), "d MMM", { locale: es })
+  } catch {
+    return ''
+  }
+}
+
 // Tiempo de lectura estimado
 function getReadingTime(content: string): number {
   const wordsPerMinute = 200
@@ -38,165 +52,286 @@ function getReadingTime(content: string): number {
   return Math.ceil(words / wordsPerMinute)
 }
 
-// Card de noticia destacada
-function FeaturedNewsCard({ noticia }: { noticia: Noticia }) {
+// Breaking News Ticker
+function NewsTicker({ noticias }: { noticias: Noticia[] }) {
+  const tickerRef = useRef<HTMLDivElement>(null)
+
+  return (
+    <div className="relative overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-red-600 py-2.5">
+      {/* Live indicator */}
+      <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center px-4 bg-gradient-to-r from-red-700 to-red-600">
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Radio className="w-4 h-4 text-white" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-white rounded-full animate-ping" />
+          </div>
+          <span className="text-white font-bold text-sm tracking-wider uppercase">En Vivo</span>
+        </div>
+      </div>
+
+      {/* Ticker content */}
+      <div className="flex animate-ticker pl-32">
+        {[...noticias, ...noticias].map((noticia, i) => (
+          <div key={`${noticia.id}-${i}`} className="flex items-center whitespace-nowrap">
+            <span className="text-white/90 text-sm font-medium px-4">
+              {noticia.titulo}
+            </span>
+            <span className="text-white/50 text-lg">•</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Right fade */}
+      <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-red-600 to-transparent pointer-events-none" />
+    </div>
+  )
+}
+
+// Noticia Principal Hero
+function MainNewsHero({ noticia }: { noticia: Noticia }) {
   return (
     <Link 
       href={`/noticias/${noticia.slug}`}
-      className="group relative block overflow-hidden rounded-2xl"
+      className="group relative block overflow-hidden rounded-2xl bg-slate-900"
     >
-      {/* Background image */}
-      <div className="relative aspect-[16/10] md:aspect-[21/9]">
+      {/* Image container */}
+      <div className="relative aspect-[16/9] lg:aspect-[21/10]">
         {noticia.imagenUrl ? (
           <Image
             src={noticia.imagenUrl}
             alt={noticia.titulo}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-105"
+            priority
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-sky-600 to-emerald-600" />
+          <div className="w-full h-full bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600" />
         )}
         
-        {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+        {/* Multiple overlay gradients for depth */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-90" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent" />
         
-        {/* Destacado badge */}
-        {noticia.destacado && (
-          <div className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/90 text-black text-xs font-bold">
-            <Star className="w-3 h-3 fill-current" />
-            Destacado
+        {/* Top bar */}
+        <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between">
+          {/* Breaking badge */}
+          <div className="flex items-center gap-2">
+            {noticia.destacado && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-red-600 text-white text-xs font-bold uppercase tracking-wider animate-pulse">
+                <Zap className="w-3 h-3" />
+                Breaking
+              </div>
+            )}
+            <div className={cn(
+              "px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider",
+              "bg-emerald-500/90 text-white"
+            )}>
+              {categoriaLabels[noticia.categoria]}
+            </div>
           </div>
-        )}
-        
-        {/* Category badge */}
-        <div className={cn(
-          "absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-medium border",
-          categoriaColors[noticia.categoria]
-        )}>
-          {categoriaLabels[noticia.categoria]}
+
+          {/* Reading time */}
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded bg-black/50 backdrop-blur-sm text-white/80 text-xs">
+            <Eye className="w-3 h-3" />
+            {getReadingTime(noticia.contenido)} min lectura
+          </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-        <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 group-hover:text-emerald-400 transition-colors line-clamp-2">
+      {/* Content overlay */}
+      <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10">
+        {/* Date and author */}
+        <div className="flex items-center gap-4 text-white/60 text-sm mb-4">
+          <span className="flex items-center gap-1.5">
+            <Calendar className="w-4 h-4" />
+            {formatDate(noticia.fechaPublicacion)}
+          </span>
+          {noticia.autor && (
+            <>
+              <span className="text-white/30">|</span>
+              <span className="flex items-center gap-1.5">
+                <User className="w-4 h-4" />
+                Por {noticia.autor}
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Title */}
+        <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 group-hover:text-emerald-400 transition-colors leading-tight">
           {noticia.titulo}
         </h3>
         
+        {/* Excerpt */}
         {noticia.extracto && (
-          <p className="text-white/70 text-sm md:text-base mb-4 line-clamp-2 max-w-3xl">
+          <p className="text-white/70 text-base md:text-lg mb-6 line-clamp-2 max-w-4xl">
             {noticia.extracto}
           </p>
         )}
 
-        <div className="flex flex-wrap items-center gap-4 text-white/60 text-sm">
-          {noticia.fechaPublicacion && (
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4" />
-              {formatDate(noticia.fechaPublicacion)}
-            </span>
-          )}
-          <span className="flex items-center gap-1.5">
-            <Clock className="w-4 h-4" />
-            {getReadingTime(noticia.contenido)} min de lectura
-          </span>
-          {noticia.autor && (
-            <span className="flex items-center gap-1.5">
-              <User className="w-4 h-4" />
-              {noticia.autor}
-            </span>
-          )}
+        {/* Read more */}
+        <div className="inline-flex items-center gap-2 text-emerald-400 font-semibold group-hover:gap-3 transition-all">
+          Leer artículo completo
+          <ArrowRight className="w-5 h-5" />
         </div>
+      </div>
+
+      {/* Corner accent */}
+      <div className="absolute top-0 right-0 w-32 h-32">
+        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-emerald-500/20 to-transparent" />
       </div>
     </Link>
   )
 }
 
-// Card de noticia normal
-function NewsCard({ noticia, index }: { noticia: Noticia; index: number }) {
+// Noticia secundaria en grid
+function SecondaryNewsCard({ noticia, size = 'normal' }: { noticia: Noticia; size?: 'normal' | 'small' }) {
+  const isSmall = size === 'small'
+  
   return (
     <Link 
       href={`/noticias/${noticia.slug}`}
-      className="group block"
-      style={{ animationDelay: `${index * 100}ms` }}
+      className="group block h-full"
     >
-      <div className="relative bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300">
+      <div className={cn(
+        "relative h-full overflow-hidden rounded-xl transition-all duration-300",
+        "bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm",
+        "border border-white/10 hover:border-emerald-500/50",
+        "hover:shadow-2xl hover:shadow-emerald-500/10",
+        "hover:-translate-y-1"
+      )}>
         {/* Image */}
-        <div className="relative aspect-[16/9] overflow-hidden">
+        <div className={cn(
+          "relative overflow-hidden",
+          isSmall ? "aspect-[16/10]" : "aspect-[16/9]"
+        )}>
           {noticia.imagenUrl ? (
             <Image
               src={noticia.imagenUrl}
               alt={noticia.titulo}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
-              <Newspaper className="w-12 h-12 text-white/20" />
+              <Newspaper className="w-12 h-12 text-white/10" />
             </div>
           )}
           
-          {/* Category badge */}
-          <div className={cn(
-            "absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-medium border",
-            categoriaColors[noticia.categoria]
-          )}>
-            {categoriaLabels[noticia.categoria]}
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent opacity-60" />
+          
+          {/* Category */}
+          <div className="absolute top-3 left-3">
+            <span className={cn(
+              "px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider",
+              "bg-emerald-500/90 text-white"
+            )}>
+              {categoriaLabels[noticia.categoria]}
+            </span>
+          </div>
+
+          {/* Date badge */}
+          <div className="absolute top-3 right-3 flex flex-col items-center px-2.5 py-1.5 rounded bg-white/10 backdrop-blur-sm">
+            <span className="text-white text-xs font-bold leading-none">
+              {formatShortDate(noticia.fechaPublicacion)?.split(' ')[0]}
+            </span>
+            <span className="text-white/60 text-[10px] uppercase">
+              {formatShortDate(noticia.fechaPublicacion)?.split(' ')[1]}
+            </span>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-5">
-          <h3 className="text-lg font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors line-clamp-2">
+        <div className="p-4 sm:p-5">
+          <h3 className={cn(
+            "font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors line-clamp-2",
+            isSmall ? "text-sm" : "text-base sm:text-lg"
+          )}>
             {noticia.titulo}
           </h3>
           
-          {noticia.extracto && (
-            <p className="text-white/60 text-sm mb-4 line-clamp-2">
+          {!isSmall && noticia.extracto && (
+            <p className="text-white/50 text-sm mb-4 line-clamp-2">
               {noticia.extracto}
             </p>
           )}
 
-          <div className="flex items-center justify-between text-white/50 text-xs">
-            <div className="flex items-center gap-3">
-              {noticia.fechaPublicacion && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {formatDate(noticia.fechaPublicacion)}
-                </span>
-              )}
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-3 border-t border-white/5">
+            <div className="flex items-center gap-2 text-white/40 text-xs">
+              <Clock className="w-3 h-3" />
+              {getReadingTime(noticia.contenido)} min
             </div>
-            <span className="flex items-center gap-1 text-emerald-400 group-hover:translate-x-1 transition-transform">
-              Leer más
-              <ArrowRight className="w-3.5 h-3.5" />
+            <span className="flex items-center gap-1 text-emerald-400 text-xs font-medium group-hover:gap-2 transition-all">
+              Leer
+              <ArrowRight className="w-3 h-3" />
             </span>
           </div>
         </div>
+
+        {/* Hover line effect */}
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
       </div>
     </Link>
   )
 }
 
+// Lista de noticias lateral
+function SideNewsList({ noticias }: { noticias: Noticia[] }) {
+  return (
+    <div className="space-y-1">
+      {noticias.map((noticia, index) => (
+        <Link 
+          key={noticia.id}
+          href={`/noticias/${noticia.slug}`}
+          className="group flex gap-4 p-3 rounded-lg hover:bg-white/5 transition-colors"
+        >
+          {/* Number */}
+          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center">
+            <span className="text-emerald-400 font-bold text-sm">{index + 1}</span>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <span className={cn(
+              "text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
+              "bg-emerald-500/20 text-emerald-400"
+            )}>
+              {categoriaLabels[noticia.categoria]}
+            </span>
+            <h4 className="text-white text-sm font-medium mt-1.5 group-hover:text-emerald-400 transition-colors line-clamp-2">
+              {noticia.titulo}
+            </h4>
+            <p className="text-white/40 text-xs mt-1 flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              {formatDate(noticia.fechaPublicacion)}
+            </p>
+          </div>
+        </Link>
+      ))}
+    </div>
+  )
+}
+
 export function NewsSection() {
-  const { data: noticias = [], isLoading } = useNoticiasPublicadas(7)
-  const [currentPage, setCurrentPage] = useState(0)
+  const { data: noticias = [], isLoading } = useNoticiasPublicadas(10)
+  const [currentSlide, setCurrentSlide] = useState(0)
 
-  // Separar destacada del resto
+  // Separar noticias
   const destacada = noticias.find(n => n.destacado) || noticias[0]
-  const resto = noticias.filter(n => n.id !== destacada?.id).slice(0, 6)
-
-  // Paginación para móvil
-  const itemsPerPage = 3
-  const totalPages = Math.ceil(resto.length / itemsPerPage)
-  const currentItems = resto.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+  const secundarias = noticias.filter(n => n.id !== destacada?.id).slice(0, 3)
+  const laterales = noticias.filter(n => n.id !== destacada?.id && !secundarias.find(s => s.id === n.id)).slice(0, 5)
 
   if (isLoading) {
     return (
-      <section className="relative py-24 overflow-hidden">
+      <section className="relative py-24 overflow-hidden bg-[#0a1628]">
         <div className="container mx-auto px-4">
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="w-8 h-8 text-white/50 animate-spin" />
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="w-10 h-10 text-emerald-400 animate-spin" />
+              <p className="text-white/40 text-sm">Cargando noticias...</p>
+            </div>
           </div>
         </div>
       </section>
@@ -204,141 +339,149 @@ export function NewsSection() {
   }
 
   if (noticias.length === 0) {
-    return null // No mostrar si no hay noticias
+    return null
   }
 
   return (
-    <section className="relative py-24 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628] via-[#0d1f35] to-[#0a1628]">
-        {/* Gradient orbs */}
-        <div className="absolute top-1/4 -right-32 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 -left-32 w-[400px] h-[400px] bg-sky-500/10 rounded-full blur-[150px]" />
-        
-        {/* Subtle pattern */}
-        <div 
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
-            `,
-            backgroundSize: '50px 50px',
-          }}
-        />
-      </div>
-
-      <div className="container mx-auto px-4 relative z-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
-          <div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
-              <Newspaper className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm text-white/80 font-medium">Noticias y Anuncios</span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
-              Últimas{' '}
-              <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
-                Noticias
-              </span>
-            </h2>
-            <p className="text-lg text-white/60 max-w-2xl">
-              Mantente informado sobre los últimos acontecimientos, eventos y anuncios de nuestra comunidad
-            </p>
-          </div>
-
-          <Link href="/noticias">
-            <Button 
-              variant="ghost" 
-              className="group text-white/70 hover:text-white hover:bg-white/10 border border-white/10 hover:border-white/20"
-            >
-              Ver todas las noticias
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
+    <section id="noticias" className="relative overflow-hidden bg-[#0a1628]">
+      {/* Breaking News Ticker */}
+      {noticias.length > 0 && <NewsTicker noticias={noticias.slice(0, 5)} />}
+      
+      {/* Main content */}
+      <div className="py-16 sm:py-20 lg:py-24">
+        {/* Background effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[150px]" />
+          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[150px]" />
+          
+          {/* Newspaper pattern */}
+          <div 
+            className="absolute inset-0 opacity-[0.02]"
+            style={{
+              backgroundImage: `
+                repeating-linear-gradient(
+                  0deg,
+                  transparent,
+                  transparent 50px,
+                  rgba(255,255,255,0.03) 50px,
+                  rgba(255,255,255,0.03) 51px
+                )
+              `,
+            }}
+          />
         </div>
 
-        {/* Featured news */}
-        {destacada && (
-          <div className="mb-8">
-            <FeaturedNewsCard noticia={destacada} />
-          </div>
-        )}
-
-        {/* News grid - Desktop */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {resto.map((noticia, index) => (
-            <NewsCard key={noticia.id} noticia={noticia} index={index} />
-          ))}
-        </div>
-
-        {/* News list - Mobile with pagination */}
-        <div className="md:hidden">
-          <div className="grid gap-4">
-            {currentItems.map((noticia, index) => (
-              <NewsCard key={noticia.id} noticia={noticia} index={index} />
-            ))}
-          </div>
-
-          {/* Mobile pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 mt-8">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                disabled={currentPage === 0}
-                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white disabled:opacity-30"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </Button>
-
-              <div className="flex items-center gap-2">
-                {[...Array(totalPages)].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(i)}
-                    className={cn(
-                      "w-2 h-2 rounded-full transition-all",
-                      i === currentPage
-                        ? "w-6 bg-gradient-to-r from-sky-400 to-emerald-400"
-                        : "bg-white/20 hover:bg-white/40"
-                    )}
-                  />
-                ))}
+        <div className="container mx-auto px-4 relative z-10">
+          {/* Header */}
+          <div className="mb-10 sm:mb-12">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+              <div>
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm text-emerald-400 font-medium">Lo Último</span>
+                </div>
+                
+                {/* Title */}
+                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3">
+                  Noticias y{' '}
+                  <span className="relative inline-block">
+                    <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                      Actualidad
+                    </span>
+                    <svg className="absolute -bottom-2 left-0 w-full h-3 text-emerald-500/30" viewBox="0 0 100 12" preserveAspectRatio="none">
+                      <path d="M0 6 Q 25 0 50 6 T 100 6" stroke="currentColor" strokeWidth="2" fill="none" />
+                    </svg>
+                  </span>
+                </h2>
+                
+                <p className="text-white/50 text-base sm:text-lg max-w-xl">
+                  Mantente al día con los últimos acontecimientos y anuncios de nuestra comunidad
+                </p>
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={currentPage === totalPages - 1}
-                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white disabled:opacity-30"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </Button>
+              <Link href="/noticias">
+                <Button 
+                  className="group bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-300"
+                >
+                  <Newspaper className="w-4 h-4 mr-2" />
+                  Ver archivo completo
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* CTA Button */}
-        <div className="text-center mt-12">
-          <Link href="/noticias">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300"
-            >
-              <Newspaper className="w-5 h-5 mr-2" />
-              Explorar Todas las Noticias
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
+          {/* News Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+            {/* Main column */}
+            <div className="lg:col-span-8 space-y-6">
+              {/* Featured article */}
+              {destacada && <MainNewsHero noticia={destacada} />}
+              
+              {/* Secondary grid */}
+              {secundarias.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {secundarias.map((noticia) => (
+                    <SecondaryNewsCard key={noticia.id} noticia={noticia} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <div className="lg:col-span-4">
+              <div className="sticky top-24">
+                {/* Sidebar header */}
+                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/10">
+                  <div className="w-1 h-6 bg-gradient-to-b from-emerald-400 to-teal-500 rounded-full" />
+                  <h3 className="text-white font-bold">Más Noticias</h3>
+                </div>
+
+                {/* Side news list */}
+                {laterales.length > 0 && (
+                  <SideNewsList noticias={laterales} />
+                )}
+
+                {/* CTA Card */}
+                <div className="mt-6 p-5 rounded-xl bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border border-emerald-500/20">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+                    <span className="text-white font-semibold">¿Te interesa más?</span>
+                  </div>
+                  <p className="text-white/60 text-sm mb-4">
+                    Explora todas nuestras noticias, devocionales y anuncios.
+                  </p>
+                  <Link href="/noticias" className="block">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white"
+                    >
+                      Ver todas las noticias
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Decorative lines */}
-      <div className="absolute top-20 left-8 w-32 h-px bg-gradient-to-r from-emerald-500/50 to-transparent" />
-      <div className="absolute bottom-20 right-8 w-32 h-px bg-gradient-to-l from-sky-500/50 to-transparent" />
+      {/* Bottom decorative line */}
+      <div className="h-1 bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+
+      {/* Ticker animation styles */}
+      <style jsx global>{`
+        @keyframes ticker {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-ticker {
+          animation: ticker 30s linear infinite;
+        }
+        .animate-ticker:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
     </section>
   )
 }

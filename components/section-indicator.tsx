@@ -5,8 +5,10 @@ import { useEffect, useState } from 'react'
 const sections = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'sedes', label: 'Sedes' },
-  { id: 'nosotros', label: 'Nosotros' },
+  { id: 'mision', label: 'Misión' },
   { id: 'directiva', label: 'Directiva' },
+  { id: 'noticias', label: 'Noticias' },
+  { id: 'convenciones', label: 'Convención' },
   { id: 'galeria', label: 'Galería' },
   { id: 'educacion', label: 'Educación' },
 ]

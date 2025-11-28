@@ -18,8 +18,10 @@ import {
   Filter,
   X,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  ChevronLeft
 } from 'lucide-react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -211,18 +213,24 @@ export default function NoticiasPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Newspaper className="w-7 h-7 text-emerald-600" />
-            Gestión de Noticias
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Administra las noticias y anuncios de la organización
-          </p>
-        </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <div className="flex items-center gap-4">
+        <Link href="/admin">
+          <Button variant="ghost" size="icon" className="hover:bg-emerald-50 dark:hover:bg-emerald-500/10">
+            <ChevronLeft className="size-5 text-emerald-600 dark:text-emerald-400" />
+          </Button>
+        </Link>
+        <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Newspaper className="w-7 h-7 text-emerald-600" />
+              Gestión de Noticias
+            </h1>
+            <p className="text-gray-500 mt-1">
+              Administra las noticias y anuncios de la organización
+            </p>
+          </div>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateDialog} className="bg-emerald-600 hover:bg-emerald-700">
               <Plus className="w-4 h-4 mr-2" />
@@ -358,6 +366,7 @@ export default function NoticiasPage() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Filters */}

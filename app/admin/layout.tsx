@@ -1,7 +1,7 @@
 'use client'
 
 import type React from "react"
-import { LogOut } from "lucide-react"
+import { LogOut, Menu } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -67,7 +67,7 @@ function AdminLayoutContent({
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-sky-50/30 dark:to-sky-950/10">
       {/* Desktop Header */}
-      <header className="sticky top-0 z-40 border-b border-sky-200/50 dark:border-sky-500/20 bg-white/80 dark:bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-background/60">
+      <header className="hidden lg:block sticky top-0 z-40 border-b border-sky-200/50 dark:border-sky-500/20 bg-white/80 dark:bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-background/60">
         <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />
         <div className="flex h-16 items-center justify-between px-6">
           {/* Logo */}
@@ -126,8 +126,9 @@ function AdminLayoutContent({
         <div className="h-0.5 absolute top-0 left-0 right-0 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              {/* Menu icon will remain as it is part of the mobile layout */}
+            <Button variant="ghost" size="icon" className="lg:hidden">
+              <Menu className="size-5" />
+              <span className="sr-only">Abrir menú</span>
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0 border-r-sky-200/50 dark:border-r-sky-500/20">
@@ -149,7 +150,9 @@ function AdminLayoutContent({
             </div>
           </SheetContent>
         </Sheet>
-        <div className="flex items-center gap-3">
+        
+        {/* Logo visible en el header móvil */}
+        <Link href="/admin" className="flex items-center gap-3">
           <Image
             src="/mundo.png"
             alt="Logo AMVA"
@@ -158,6 +161,31 @@ function AdminLayoutContent({
             className="w-14 h-14 object-contain"
           />
           <h2 className="font-semibold bg-gradient-to-r from-sky-600 to-emerald-600 dark:from-sky-400 dark:to-emerald-400 bg-clip-text text-transparent">A.M.V.A</h2>
+        </Link>
+        
+        {/* User info and actions */}
+        <div className="ml-auto flex items-center gap-2">
+          {/* Avatar */}
+          {user?.avatar ? (
+            <img
+              src={user.avatar}
+              alt={user.nombre || 'Admin'}
+              className="size-9 rounded-full object-cover ring-2 ring-emerald-500/30"
+            />
+          ) : (
+            <div className="size-9 rounded-full bg-gradient-to-br from-sky-500 via-emerald-500 to-amber-500 flex items-center justify-center text-white font-bold text-xs">
+              {(user?.nombre || 'A').charAt(0).toUpperCase()}
+            </div>
+          )}
+          <ThemeToggle />
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleLogout}
+            className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+          >
+            <LogOut className="size-4" />
+          </Button>
         </div>
       </header>
 

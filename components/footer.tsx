@@ -6,9 +6,11 @@ import { Facebook, Instagram, Mail, Phone, MapPin, Heart } from 'lucide-react'
 
 const quickLinks = [
   { href: '#inicio', label: 'Inicio' },
-  { href: '#nosotros', label: 'Nosotros' },
+  { href: '#sedes', label: 'Sedes' },
+  { href: '#mision', label: 'Misión' },
   { href: '#directiva', label: 'Directiva' },
-  { href: '#convenciones', label: 'Convenciones' },
+  { href: '#noticias', label: 'Noticias' },
+  { href: '#convenciones', label: 'Convención' },
   { href: '#galeria', label: 'Galería' },
   { href: '#educacion', label: 'Educación' },
 ]

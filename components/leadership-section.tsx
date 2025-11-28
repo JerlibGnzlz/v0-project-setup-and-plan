@@ -11,25 +11,23 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Eye, Mail, MapPin, Users, ChevronRight, Phone, Briefcase, Loader2, Globe } from 'lucide-react'
+import { Eye, Mail, MapPin, Users, ChevronRight, Phone, Briefcase, Loader2, Quote, Sparkles } from 'lucide-react'
 import { usePastoresLanding } from '@/lib/hooks/use-pastores'
 import type { Pastor } from '@/lib/api/pastores'
 
-// Colores para las tarjetas (se rotan)
-const gradients = [
-  'from-sky-400 to-blue-500',
-  'from-emerald-400 to-teal-500',
-  'from-amber-400 to-orange-500',
-  'from-purple-400 to-pink-500',
-  'from-sky-400 to-emerald-500',
-  'from-rose-400 to-red-500',
+// Colores para los acentos (se rotan)
+const accentColors = [
+  { gradient: 'from-sky-400 to-blue-500', ring: 'ring-sky-400/50', glow: 'bg-sky-500/20', text: 'text-sky-400' },
+  { gradient: 'from-emerald-400 to-teal-500', ring: 'ring-emerald-400/50', glow: 'bg-emerald-500/20', text: 'text-emerald-400' },
+  { gradient: 'from-amber-400 to-orange-500', ring: 'ring-amber-400/50', glow: 'bg-amber-500/20', text: 'text-amber-400' },
+  { gradient: 'from-purple-400 to-pink-500', ring: 'ring-purple-400/50', glow: 'bg-purple-500/20', text: 'text-purple-400' },
+  { gradient: 'from-rose-400 to-red-500', ring: 'ring-rose-400/50', glow: 'bg-rose-500/20', text: 'text-rose-400' },
+  { gradient: 'from-cyan-400 to-blue-500', ring: 'ring-cyan-400/50', glow: 'bg-cyan-500/20', text: 'text-cyan-400' },
 ]
 
 export function LeadershipSection() {
-  // Fetch pastores para landing con sincronización automática
   const { data: pastores = [], isLoading } = usePastoresLanding()
 
-  // Si no hay pastores para mostrar, no renderizar la sección
   if (!isLoading && pastores.length === 0) {
     return null
   }
@@ -37,20 +35,17 @@ export function LeadershipSection() {
   return (
     <section id="directiva" className="relative py-24 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-[#0d1f35]">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-[120px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-sky-500/20 rounded-full blur-[120px]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628] via-[#0d1f35] to-[#0a1628]">
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[150px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-sky-500/10 rounded-full blur-[120px]" />
         </div>
-        {/* Grid */}
+        {/* Subtle pattern */}
         <div 
-          className="absolute inset-0 opacity-[0.02]"
+          className="absolute inset-0 opacity-[0.015]"
           style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: '60px 60px',
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)`,
+            backgroundSize: '40px 40px',
           }}
         />
       </div>
@@ -80,29 +75,30 @@ export function LeadershipSection() {
           </div>
         ) : (
           <>
-            {/* Leaders Grid */}
-            <div className={`grid gap-6 max-w-6xl mx-auto ${
-              pastores.length === 1 ? 'grid-cols-1 max-w-sm' :
+            {/* Leaders Grid - Modern Cards */}
+            <div className={`grid gap-5 max-w-5xl mx-auto ${
+              pastores.length === 1 ? 'grid-cols-1 max-w-md' :
               pastores.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl' :
-              pastores.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl' :
-              'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+              pastores.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+              pastores.length === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' :
+              'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
             }`}>
               {pastores.map((pastor: Pastor, index: number) => {
-                const gradient = gradients[index % gradients.length]
+                const accent = accentColors[index % accentColors.length]
                 return (
-                  <PastorCard key={pastor.id} pastor={pastor} gradient={gradient} />
+                  <ModernPastorCard key={pastor.id} pastor={pastor} accent={accent} index={index} />
                 )
               })}
             </div>
 
             {/* Ver todo el equipo button */}
-            <div className="text-center mt-12">
+            <div className="text-center mt-14">
               <a
                 href="/equipo"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 hover:border-white/20 transition-all duration-300 group"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 text-white font-medium hover:from-white/10 hover:to-white/15 hover:border-white/20 transition-all duration-300 group backdrop-blur-sm"
               >
                 <Users className="w-5 h-5 text-emerald-400" />
-                Ver Todo el Equipo
+                Ver Todo el Equipo Pastoral
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </a>
             </div>
@@ -110,128 +106,192 @@ export function LeadershipSection() {
         )}
       </div>
 
-      {/* Decorative lines */}
+      {/* Decorative elements */}
       <div className="absolute top-20 right-8 w-32 h-px bg-gradient-to-l from-sky-500/50 to-transparent" />
       <div className="absolute bottom-20 left-8 w-32 h-px bg-gradient-to-r from-amber-500/50 to-transparent" />
     </section>
   )
 }
 
-// Componente separado para la tarjeta del pastor (mejor rendimiento)
-function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) {
+// Modern Pastor Card Component
+function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: typeof accentColors[0]; index: number }) {
   const fullName = `${pastor.nombre} ${pastor.apellido}`
   const location = pastor.sede || pastor.region || pastor.pais || ''
+  const initials = `${pastor.nombre?.[0] || ''}${pastor.apellido?.[0] || ''}`
 
   return (
-    <div className="group">
-      <div className="relative">
-        {/* Glow effect */}
-        <div className={`absolute -inset-1 bg-gradient-to-r ${gradient} rounded-2xl blur opacity-0 group-hover:opacity-40 transition-opacity duration-500`} />
+    <div 
+      className="group relative"
+      style={{ animationDelay: `${index * 100}ms` }}
+    >
+      {/* Animated border gradient */}
+      <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-[0.5px]" />
+      
+      {/* Glow effect on hover */}
+      <div className={`absolute -inset-3 ${accent.glow} rounded-3xl blur-2xl opacity-0 group-hover:opacity-60 transition-all duration-500`} />
+      
+      {/* Card */}
+      <div className="relative rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] overflow-hidden hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-500">
+        {/* Top accent line */}
+        <div className={`h-[2px] bg-gradient-to-r ${accent.gradient} opacity-60 group-hover:opacity-100 transition-opacity`} />
         
-        {/* Card */}
-        <div className="relative rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300">
-          {/* Image with lazy loading */}
-          <div className="relative aspect-square overflow-hidden bg-white/5">
-            {pastor.fotoUrl ? (
-              <Image
-                src={pastor.fotoUrl}
-                alt={fullName}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                loading="lazy"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/10 to-white/5">
-                <span className="text-4xl font-bold text-white/30">
-                  {pastor.nombre?.[0]}{pastor.apellido?.[0]}
-                </span>
+        {/* Content */}
+        <div className="p-5">
+          {/* Header with avatar */}
+          <div className="flex items-start gap-4 mb-4">
+            {/* Avatar */}
+            <div className="relative flex-shrink-0">
+              {/* Avatar glow */}
+              <div className={`absolute -inset-1 bg-gradient-to-br ${accent.gradient} rounded-full blur-md opacity-40 group-hover:opacity-70 transition-opacity`} />
+              
+              <div className={`relative w-16 h-16 rounded-full overflow-hidden ring-2 ${accent.ring} ring-offset-2 ring-offset-[#0d1f35]`}>
+                {pastor.fotoUrl ? (
+                  <Image
+                    src={pastor.fotoUrl}
+                    alt={fullName}
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className={`w-full h-full bg-gradient-to-br ${accent.gradient} flex items-center justify-center`}>
+                    <span className="text-lg font-bold text-white">{initials}</span>
+                  </div>
+                )}
               </div>
-            )}
-            <div className={`absolute inset-0 bg-gradient-to-t ${gradient} opacity-0 group-hover:opacity-30 transition-opacity duration-500`} />
+              
+              {/* Status indicator */}
+              <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-gradient-to-br ${accent.gradient} border-2 border-[#0d1f35] flex items-center justify-center`}>
+                <Sparkles className="w-2 h-2 text-white" />
+              </div>
+            </div>
+            
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-bold text-white mb-0.5 truncate group-hover:text-white/90">
+                {fullName}
+              </h3>
+              <p className={`text-sm font-medium bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent`}>
+                {pastor.cargo || pastor.ministerio || 'Pastor'}
+              </p>
+              {location && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-white/40 text-xs">
+                  <MapPin className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{location}</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Content */}
-          <div className="p-5">
-            <h3 className="text-lg font-bold text-white mb-1">{fullName}</h3>
-            <p className={`text-sm font-medium bg-gradient-to-r ${gradient} bg-clip-text text-transparent mb-2`}>
-              {pastor.cargo || pastor.ministerio || 'Pastor'}
-            </p>
-            {location && (
-              <div className="flex items-center gap-2 text-white/50 text-xs mb-4">
-                <MapPin className="w-3 h-3" />
-                <span>{location}</span>
-              </div>
-            )}
+          {/* Bio preview if exists */}
+          {pastor.biografia && (
+            <div className="relative mb-4">
+              <div className={`absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b ${accent.gradient} rounded-full opacity-40`} />
+              <p className="text-white/50 text-xs leading-relaxed pl-3 line-clamp-2 italic">
+                "{pastor.biografia}"
+              </p>
+            </div>
+          )}
 
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  className="w-full bg-white/5 hover:bg-white/10 text-white border border-white/10 gap-2 group/btn"
-                >
-                  <Eye className="h-4 w-4" />
-                  Ver Más
-                  <ChevronRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl bg-[#0d1f35] border-white/10 text-white">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl text-white">{fullName}</DialogTitle>
-                  <DialogDescription className={`text-base bg-gradient-to-r ${gradient} bg-clip-text text-transparent font-medium`}>
-                    {pastor.cargo || pastor.ministerio || 'Pastor'}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-6 pt-4">
-                  {/* Contacto */}
-                  <div className="flex flex-wrap items-center gap-4 text-white/60 text-sm">
-                    {location && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        {location}
-                      </div>
-                    )}
-                    {pastor.email && (
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        {pastor.email}
-                      </div>
-                    )}
-                    {pastor.telefono && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4" />
-                        {pastor.telefono}
-                      </div>
-                    )}
-                    {pastor.ministerio && (
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="w-4 h-4" />
-                        {pastor.ministerio}
+          {/* Action Button */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className={`w-full bg-gradient-to-r from-white/[0.03] to-white/[0.06] hover:from-white/[0.08] hover:to-white/[0.12] text-white/80 hover:text-white border border-white/[0.08] hover:border-white/[0.15] gap-2 group/btn transition-all duration-300 rounded-xl h-9`}
+              >
+                <Eye className="h-3.5 w-3.5" />
+                <span className="text-xs font-medium">Ver Perfil</span>
+                <ChevronRight className="h-3.5 w-3.5 opacity-0 -ml-2 group-hover/btn:opacity-100 group-hover/btn:ml-0 transition-all duration-300" />
+              </Button>
+            </DialogTrigger>
+            
+            {/* Modal Content */}
+            <DialogContent className="max-w-lg bg-[#0d1f35]/95 backdrop-blur-2xl border-white/10 text-white">
+              <DialogHeader className="pb-4">
+                <div className="flex items-center gap-4">
+                  {/* Avatar in modal */}
+                  <div className={`relative w-20 h-20 rounded-2xl overflow-hidden ring-2 ${accent.ring}`}>
+                    {pastor.fotoUrl ? (
+                      <Image
+                        src={pastor.fotoUrl}
+                        alt={fullName}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className={`w-full h-full bg-gradient-to-br ${accent.gradient} flex items-center justify-center`}>
+                        <span className="text-2xl font-bold text-white">{initials}</span>
                       </div>
                     )}
                   </div>
-                  
-                  {/* Biografía */}
-                  {pastor.biografia && (
-                    <div>
-                      <h4 className="font-bold text-lg mb-3 text-white">Acerca de</h4>
-                      <p className="text-white/70 leading-relaxed">{pastor.biografia}</p>
+                  <div>
+                    <DialogTitle className="text-xl text-white">{fullName}</DialogTitle>
+                    <DialogDescription className={`text-sm bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent font-medium`}>
+                      {pastor.cargo || pastor.ministerio || 'Pastor'}
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+              
+              <div className="space-y-5">
+                {/* Contact info */}
+                <div className="flex flex-wrap gap-3">
+                  {location && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-sm">
+                      <MapPin className="w-3.5 h-3.5" />
+                      {location}
                     </div>
                   )}
-
-                  {/* Trayectoria */}
-                  {pastor.trayectoria && (
-                    <div>
-                      <h4 className="font-bold text-lg mb-3 text-white">Trayectoria Ministerial</h4>
-                      <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                        <p className="text-white/70 leading-relaxed whitespace-pre-line">{pastor.trayectoria}</p>
-                      </div>
+                  {pastor.email && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-sm">
+                      <Mail className="w-3.5 h-3.5" />
+                      {pastor.email}
+                    </div>
+                  )}
+                  {pastor.telefono && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-sm">
+                      <Phone className="w-3.5 h-3.5" />
+                      {pastor.telefono}
+                    </div>
+                  )}
+                  {pastor.ministerio && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-sm">
+                      <Briefcase className="w-3.5 h-3.5" />
+                      {pastor.ministerio}
                     </div>
                   )}
                 </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+                
+                {/* Biography */}
+                {pastor.biografia && (
+                  <div className="relative">
+                    <Quote className={`absolute -top-1 -left-1 w-6 h-6 ${accent.text} opacity-30`} />
+                    <p className="text-white/70 text-sm leading-relaxed pl-5 italic">
+                      {pastor.biografia}
+                    </p>
+                  </div>
+                )}
+
+                {/* Trayectoria */}
+                {pastor.trayectoria && (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm text-white flex items-center gap-2">
+                      <div className={`w-1 h-4 rounded-full bg-gradient-to-b ${accent.gradient}`} />
+                      Trayectoria Ministerial
+                    </h4>
+                    <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+                      <p className="text-white/60 text-sm leading-relaxed whitespace-pre-line">
+                        {pastor.trayectoria}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

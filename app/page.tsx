@@ -53,9 +53,11 @@ export default function HomePage() {
               <NewsSection />
             </ScrollReveal>
           </div>
-          <ScrollReveal delay={100}>
-            <ConventionsSection />
-          </ScrollReveal>
+          <div id="convenciones">
+            <ScrollReveal delay={100}>
+              <ConventionsSection />
+            </ScrollReveal>
+          </div>
           <div id="galeria">
             <ScrollReveal delay={100}>
               <GallerySection />

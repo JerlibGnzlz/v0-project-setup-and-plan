@@ -29,7 +29,7 @@ export function Navbar() {
       // Aumentar el umbral para que no cambie tan rápido
       setScrolled(window.scrollY > 50)
 
-      const sections = ['inicio', 'sedes', 'nosotros', 'directiva', 'galeria', 'educacion']
+      const sections = ['inicio', 'sedes', 'mision', 'directiva', 'noticias', 'convenciones', 'galeria', 'educacion', 'inscripcion']
       const scrollPosition = window.scrollY + 100
 
       for (const section of sections) {
@@ -89,9 +89,10 @@ export function Navbar() {
   const navLinks = [
     { href: '#inicio', label: 'Inicio' },
     { href: '#sedes', label: 'Sedes' },
-    { href: '#nosotros', label: 'Nosotros' },
+    { href: '#mision', label: 'Misión' },
     { href: '#directiva', label: 'Directiva' },
-    { href: '/equipo', label: 'Equipo', isPage: true },
+    { href: '#noticias', label: 'Noticias' },
+    { href: '#convenciones', label: 'Convención' },
     { href: '#galeria', label: 'Galería' },
     { href: '#educacion', label: 'Educación' },
   ]
