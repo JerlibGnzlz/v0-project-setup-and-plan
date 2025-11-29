@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth'
@@ -15,11 +15,20 @@ import { cn } from '@/lib/utils'
 
 export default function AdminLogin() {
   const router = useRouter()
-  const { login } = useAuth()
+  const { login, isAuthenticated, isHydrated } = useAuth()
   const [rememberMe, setRememberMe] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
+
+  // Si ya está autenticado, redirigir al dashboard
+  useEffect(() => {
+    console.log('[Login Page] Estado de autenticación:', { isHydrated, isAuthenticated })
+    if (isHydrated && isAuthenticated) {
+      console.log('[Login Page] Ya autenticado, redirigiendo a /admin')
+      window.location.href = '/admin'
+    }
+  }, [isAuthenticated, isHydrated])
 
   const {
     register,
@@ -35,15 +44,46 @@ export default function AdminLogin() {
   const passwordValue = watch('password')
 
   const onSubmit = async (data: LoginFormData) => {
+    console.log('[Login Page] onSubmit llamado con:', { email: data.email, hasPassword: !!data.password })
     setLoginError(null)
     try {
+      console.log('[Login Page] Iniciando login...')
       await login({ ...data, rememberMe })
+      console.log('[Login Page] Login exitoso, redirigiendo...')
+      
       toast.success('Bienvenido', {
         description: 'Has iniciado sesión correctamente',
       })
-      router.push('/admin')
+      
+      // Esperar a que el estado se actualice y luego redirigir
+      // Verificar el estado antes de redirigir
+      setTimeout(() => {
+        const authState = useAuth.getState()
+        console.log('[Login Page] Estado antes de redirigir:', {
+          isAuthenticated: authState.isAuthenticated,
+          hasToken: !!authState.token,
+          hasUser: !!authState.user
+        })
+        
+        // Verificar también en localStorage/sessionStorage
+        const storedToken = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token")
+        const storedUser = localStorage.getItem("auth_user") || sessionStorage.getItem("auth_user")
+        console.log('[Login Page] Storage verificado:', {
+          hasStoredToken: !!storedToken,
+          hasStoredUser: !!storedUser
+        })
+        
+        if (authState.isAuthenticated || storedToken) {
+          console.log('[Login Page] Redirigiendo a /admin')
+          window.location.href = '/admin'
+        } else {
+          console.error('[Login Page] ERROR: Estado no autenticado después del login')
+          setLoginError('Error al actualizar el estado de autenticación. Por favor, intenta nuevamente.')
+        }
+      }, 300)
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Credenciales inválidas'
+      console.error('[Login Page] Error en login admin:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Credenciales inválidas'
       setLoginError(errorMessage)
       toast.error('Error de autenticación', {
         description: errorMessage,
@@ -98,18 +138,14 @@ export default function AdminLogin() {
               </div>
 
               {/* Title with gradient */}
-              <h1 className="mt-6 text-xl sm:text-2xl font-bold text-center bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
-                Asociación Misionera
+              <h1 className="mt-6 text-2xl sm:text-3xl font-bold text-center bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
+                Sede Digital AMVA
               </h1>
-              <h2 className="text-lg sm:text-xl font-semibold text-white/80">
-                Vida Abundante
-              </h2>
-
-              {/* Subtitle badge */}
-              <div className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span className="text-xs font-medium text-white/60">Panel Administrativo</span>
-              </div>
+              
+              {/* Subtitle */}
+              <p className="mt-2 text-sm text-white/60 text-center">
+                Asociación Misionera Vida Abundante
+              </p>
             </div>
 
             {/* Error Alert */}

@@ -201,4 +201,26 @@ export class NoticiasService {
       data: { destacado: !noticia.destacado },
     });
   }
+
+  // Incrementar vistas (optimizado - no bloquea, no espera respuesta)
+  async incrementarVista(slug: string): Promise<void> {
+    console.log(`📊 [Backend] incrementarVista llamado para slug: "${slug}"`);
+    
+    try {
+      // Usamos updateMany para evitar errores si la noticia no existe
+      const result = await this.prisma.noticia.updateMany({
+        where: { slug, publicado: true },
+        data: { vistas: { increment: 1 } },
+      });
+      
+      console.log(`✅ [Backend] Vista incrementada para "${slug}". Filas afectadas: ${result.count}`);
+      
+      if (result.count === 0) {
+        console.warn(`⚠️ [Backend] No se encontró noticia con slug "${slug}" o no está publicada`);
+      }
+    } catch (error) {
+      console.error(`❌ [Backend] Error al incrementar vista para "${slug}":`, error);
+      throw error; // Re-lanzar para que el controller pueda manejarlo
+    }
+  }
 }

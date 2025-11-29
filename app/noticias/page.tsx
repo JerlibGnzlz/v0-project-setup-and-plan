@@ -10,7 +10,7 @@ import {
   ArrowRight, 
   Search, 
   Filter,
-  Clock,
+  Eye,
   User,
   Star,
   Loader2,
@@ -24,23 +24,23 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { QueryProvider } from '@/lib/providers/query-provider'
+import { getReturnUrl } from '@/lib/utils/scroll-restore'
+import { formatViews } from '@/lib/utils/view-tracker'
 
 function formatDate(dateString: string | null): string {
   if (!dateString) return ''
   try {
-    return format(new Date(dateString), "d 'de' MMMM, yyyy", { locale: es })
+    const date = new Date(dateString)
+    // Asegurarse de que la fecha es válida
+    if (isNaN(date.getTime())) return ''
+    // Formato: "26 de noviembre, 2025 a las 14:30"
+    return format(date, "d 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })
   } catch {
     return ''
   }
 }
 
-function getReadingTime(content: string): number {
-  const wordsPerMinute = 200
-  const words = content.split(/\s+/).length
-  return Math.ceil(words / wordsPerMinute)
-}
-
-const categorias: CategoriaNoticia[] = ['ANUNCIO', 'EVENTO', 'DEVOCIONAL', 'CAPACITACION', 'TESTIMONIO', 'COMUNICADO']
+const categorias: CategoriaNoticia[] = ['ANUNCIO', 'EVENTO', 'ACTIVIDAD', 'OPORTUNIDADES', 'CAPACITACION', 'COMUNICADO']
 
 function NewsCard({ noticia }: { noticia: Noticia }) {
   return (
@@ -49,13 +49,13 @@ function NewsCard({ noticia }: { noticia: Noticia }) {
       className="group block bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300"
     >
       {/* Image */}
-      <div className="relative aspect-[16/9] overflow-hidden">
+      <div className="relative aspect-[16/9] overflow-hidden bg-white/5">
         {noticia.imagenUrl ? (
           <Image
             src={noticia.imagenUrl}
             alt={noticia.titulo}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-contain transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
@@ -98,8 +98,8 @@ function NewsCard({ noticia }: { noticia: Noticia }) {
             </span>
           )}
           <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
-            {getReadingTime(noticia.contenido)} min
+            <Eye className="w-3.5 h-3.5" />
+            {formatViews(noticia.vistas || 0)} vistas
           </span>
           {noticia.autor && (
             <span className="flex items-center gap-1">
@@ -137,7 +137,10 @@ function NoticiasContent() {
       <header className="sticky top-0 z-50 bg-[#0a1628]/80 backdrop-blur-xl border-b border-white/10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 text-white hover:text-emerald-400 transition-colors">
+            <Link 
+              href={typeof window !== 'undefined' ? getReturnUrl() : '/#noticias'} 
+              className="flex items-center gap-2 text-white hover:text-emerald-400 transition-colors"
+            >
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Volver</span>
             </Link>
@@ -278,7 +281,7 @@ function NoticiasContent() {
       <footer className="border-t border-white/10 py-8 mt-12">
         <div className="container mx-auto px-4 text-center">
           <Link 
-            href="/" 
+            href={typeof window !== 'undefined' ? getReturnUrl() : '/#noticias'} 
             className="text-white/60 hover:text-emerald-400 transition-colors inline-flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />

@@ -7,6 +7,7 @@ import { InscripcionesModule } from "./modules/inscripciones/inscripciones.modul
 import { NoticiasModule } from "./modules/noticias/noticias.module"
 import { PrismaModule } from "./prisma/prisma.module"
 import { UploadModule } from "./modules/upload/upload.module"
+import { NotificationsModule } from "./modules/notifications/notifications.module"
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UploadModule } from "./modules/upload/upload.module"
     InscripcionesModule,
     NoticiasModule,
     UploadModule,
+    NotificationsModule,
   ],
 })
 export class AppModule { }

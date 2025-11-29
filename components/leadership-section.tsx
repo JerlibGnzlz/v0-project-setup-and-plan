@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Eye, Mail, MapPin, Users, ChevronRight, Phone, Briefcase, Loader2, Quote, Sparkles } from 'lucide-react'
+import { Eye, MapPin, Users, ChevronRight, Briefcase, Loader2, Quote, Sparkles } from 'lucide-react'
 import { usePastoresLanding } from '@/lib/hooks/use-pastores'
 import type { Pastor } from '@/lib/api/pastores'
 
@@ -76,12 +77,12 @@ export function LeadershipSection() {
         ) : (
           <>
             {/* Leaders Grid - Modern Cards */}
-            <div className={`grid gap-5 max-w-5xl mx-auto ${
-              pastores.length === 1 ? 'grid-cols-1 max-w-md' :
+            <div className={`grid gap-4 max-w-6xl mx-auto ${
+              pastores.length === 1 ? 'grid-cols-1 max-w-sm' :
               pastores.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl' :
-              pastores.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+              pastores.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl' :
               pastores.length === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' :
-              'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+              'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
             }`}>
               {pastores.map((pastor: Pastor, index: number) => {
                 const accent = accentColors[index % accentColors.length]
@@ -93,14 +94,19 @@ export function LeadershipSection() {
 
             {/* Ver todo el equipo button */}
             <div className="text-center mt-14">
-              <a
+              <Link
                 href="/equipo"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    sessionStorage.setItem('amva_last_section', 'directiva')
+                  }
+                }}
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 text-white font-medium hover:from-white/10 hover:to-white/15 hover:border-white/20 transition-all duration-300 group backdrop-blur-sm"
               >
                 <Users className="w-5 h-5 text-emerald-400" />
                 Ver Todo el Equipo Pastoral
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </a>
+              </Link>
             </div>
           </>
         )}
@@ -121,7 +127,7 @@ function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: t
 
   return (
     <div 
-      className="group relative"
+      className="group relative h-full"
       style={{ animationDelay: `${index * 100}ms` }}
     >
       {/* Animated border gradient */}
@@ -130,65 +136,69 @@ function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: t
       {/* Glow effect on hover */}
       <div className={`absolute -inset-3 ${accent.glow} rounded-3xl blur-2xl opacity-0 group-hover:opacity-60 transition-all duration-500`} />
       
-      {/* Card */}
-      <div className="relative rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] overflow-hidden hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-500">
+      {/* Card - Tamaño fijo y compacto */}
+      <div className="relative rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] overflow-hidden hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-500 h-full flex flex-col">
         {/* Top accent line */}
         <div className={`h-[2px] bg-gradient-to-r ${accent.gradient} opacity-60 group-hover:opacity-100 transition-opacity`} />
         
-        {/* Content */}
-        <div className="p-5">
+        {/* Content - Altura fija */}
+        <div className="p-4 flex flex-col h-full">
           {/* Header with avatar */}
-          <div className="flex items-start gap-4 mb-4">
+          <div className="flex items-start gap-3 mb-3">
             {/* Avatar */}
             <div className="relative flex-shrink-0">
               {/* Avatar glow */}
               <div className={`absolute -inset-1 bg-gradient-to-br ${accent.gradient} rounded-full blur-md opacity-40 group-hover:opacity-70 transition-opacity`} />
               
-              <div className={`relative w-16 h-16 rounded-full overflow-hidden ring-2 ${accent.ring} ring-offset-2 ring-offset-[#0d1f35]`}>
+              <div className={`relative w-14 h-14 rounded-full overflow-hidden ring-2 ${accent.ring} ring-offset-2 ring-offset-[#0d1f35]`}>
                 {pastor.fotoUrl ? (
-                  <Image
-                    src={pastor.fotoUrl}
-                    alt={fullName}
-                    fill
-                    sizes="64px"
-                    className="object-cover"
-                    loading="lazy"
-                  />
+                  <>
+                    {/* Fondo según tipo */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${accent.gradient} opacity-30`} />
+                    <Image
+                      src={pastor.fotoUrl}
+                      alt={fullName}
+                      fill
+                      sizes="56px"
+                      className="object-cover relative z-10"
+                      loading="lazy"
+                    />
+                  </>
                 ) : (
                   <div className={`w-full h-full bg-gradient-to-br ${accent.gradient} flex items-center justify-center`}>
-                    <span className="text-lg font-bold text-white">{initials}</span>
+                    <span className="text-base font-bold text-white">{initials}</span>
                   </div>
                 )}
               </div>
               
               {/* Status indicator */}
-              <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-gradient-to-br ${accent.gradient} border-2 border-[#0d1f35] flex items-center justify-center`}>
-                <Sparkles className="w-2 h-2 text-white" />
+              <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-gradient-to-br ${accent.gradient} border-2 border-[#0d1f35] flex items-center justify-center`}>
+                <Sparkles className="w-1.5 h-1.5 text-white" />
               </div>
             </div>
             
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <h3 className="text-base font-bold text-white mb-0.5 truncate group-hover:text-white/90">
+              <h3 className="text-sm font-bold text-white mb-0.5 truncate group-hover:text-white/90">
                 {fullName}
               </h3>
-              <p className={`text-sm font-medium bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent`}>
+              <p className={`text-xs font-medium bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent truncate`}>
                 {pastor.cargo || pastor.ministerio || 'Pastor'}
               </p>
               {location && (
-                <div className="flex items-center gap-1.5 mt-1.5 text-white/40 text-xs">
-                  <MapPin className="w-3 h-3 flex-shrink-0" />
+                <div className="flex items-center gap-1 mt-1 text-white/40 text-[10px]">
+                  <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
                   <span className="truncate">{location}</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Bio preview if exists */}
+          {/* Bio preview if exists - Altura fija */}
           {pastor.biografia && (
-            <div className="relative mb-4">
+            <div className="relative mb-3 flex-1 min-h-[36px]">
               <div className={`absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b ${accent.gradient} rounded-full opacity-40`} />
-              <p className="text-white/50 text-xs leading-relaxed pl-3 line-clamp-2 italic">
+              <p className="text-white/50 text-[10px] leading-relaxed pl-2.5 line-clamp-2 italic">
                 "{pastor.biografia}"
               </p>
             </div>
@@ -200,11 +210,11 @@ function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: t
               <Button 
                 variant="ghost" 
                 size="sm"
-                className={`w-full bg-gradient-to-r from-white/[0.03] to-white/[0.06] hover:from-white/[0.08] hover:to-white/[0.12] text-white/80 hover:text-white border border-white/[0.08] hover:border-white/[0.15] gap-2 group/btn transition-all duration-300 rounded-xl h-9`}
+                className={`w-full bg-gradient-to-r from-white/[0.03] to-white/[0.06] hover:from-white/[0.08] hover:to-white/[0.12] text-white/80 hover:text-white border border-white/[0.08] hover:border-white/[0.15] gap-1.5 group/btn transition-all duration-300 rounded-xl h-8 mt-auto`}
               >
-                <Eye className="h-3.5 w-3.5" />
-                <span className="text-xs font-medium">Ver Perfil</span>
-                <ChevronRight className="h-3.5 w-3.5 opacity-0 -ml-2 group-hover/btn:opacity-100 group-hover/btn:ml-0 transition-all duration-300" />
+                <Eye className="h-3 w-3" />
+                <span className="text-[10px] font-medium">Ver Perfil</span>
+                <ChevronRight className="h-3 w-3 opacity-0 -ml-2 group-hover/btn:opacity-100 group-hover/btn:ml-0 transition-all duration-300" />
               </Button>
             </DialogTrigger>
             
@@ -212,15 +222,19 @@ function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: t
             <DialogContent className="max-w-lg bg-[#0d1f35]/95 backdrop-blur-2xl border-white/10 text-white">
               <DialogHeader className="pb-4">
                 <div className="flex items-center gap-4">
-                  {/* Avatar in modal */}
+                  {/* Avatar in modal con fondo según tipo */}
                   <div className={`relative w-20 h-20 rounded-2xl overflow-hidden ring-2 ${accent.ring}`}>
                     {pastor.fotoUrl ? (
-                      <Image
-                        src={pastor.fotoUrl}
-                        alt={fullName}
-                        fill
-                        className="object-cover"
-                      />
+                      <>
+                        {/* Fondo según tipo */}
+                        <div className={`absolute inset-0 bg-gradient-to-br ${accent.gradient} opacity-30`} />
+                        <Image
+                          src={pastor.fotoUrl}
+                          alt={fullName}
+                          fill
+                          className="object-cover relative z-10"
+                        />
+                      </>
                     ) : (
                       <div className={`w-full h-full bg-gradient-to-br ${accent.gradient} flex items-center justify-center`}>
                         <span className="text-2xl font-bold text-white">{initials}</span>
@@ -243,18 +257,6 @@ function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: t
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-sm">
                       <MapPin className="w-3.5 h-3.5" />
                       {location}
-                    </div>
-                  )}
-                  {pastor.email && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-sm">
-                      <Mail className="w-3.5 h-3.5" />
-                      {pastor.email}
-                    </div>
-                  )}
-                  {pastor.telefono && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-sm">
-                      <Phone className="w-3.5 h-3.5" />
-                      {pastor.telefono}
                     </div>
                   )}
                   {pastor.ministerio && (

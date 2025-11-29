@@ -6,7 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Users, CreditCard, ImageIcon, ArrowRight, User, Smartphone, Calendar, Clock, Edit, Trash2, Newspaper } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Users, CreditCard, ImageIcon, ArrowRight, User, Smartphone, Calendar, Clock, Edit, Trash2, Newspaper, UserCheck } from 'lucide-react'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
@@ -22,9 +29,10 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { convencionSchema, type ConvencionFormData } from '@/lib/validations/convencion'
-import { useConvenciones, useUpdateConvencion, useCreateConvencion, useDeleteConvencion } from '@/lib/hooks/use-convencion'
+import { useConvenciones, useUpdateConvencion, useCreateConvencion, useDeleteConvencion, useArchivarConvencion, useDesarchivarConvencion } from '@/lib/hooks/use-convencion'
 import { usePagos } from '@/lib/hooks/use-pagos'
 import { usePastores } from '@/lib/hooks/use-pastores'
+import { useInscripciones } from '@/lib/hooks/use-inscripciones'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function AdminDashboard() {
@@ -33,26 +41,33 @@ export default function AdminDashboard() {
   const convencionActiva = convenciones[0] || null
   const { data: pagos = [], isLoading: loadingPagos } = usePagos()
   const { data: pastores = [], isLoading: loadingPastores } = usePastores()
+  const { data: inscripciones = [], isLoading: loadingInscripciones } = useInscripciones()
   const updateConvencionMutation = useUpdateConvencion()
   const createConvencionMutation = useCreateConvencion()
   const deleteConvencionMutation = useDeleteConvencion()
+  const archivarConvencionMutation = useArchivarConvencion()
+  const desarchivarConvencionMutation = useDesarchivarConvencion()
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [mostrarArchivadas, setMostrarArchivadas] = useState(false)
+  const [filtroAno, setFiltroAno] = useState<string>('todos')
 
   // Calcular estadísticas desde los datos reales
   const stats = {
     totalPastores: pastores.length,
     pastoresActivos: pastores.filter((p: any) => p.activo).length,
-    totalInscritos: pagos.length,
+    totalInscritos: inscripciones.length,
+    inscripcionesConfirmadas: inscripciones.filter((i: any) => i.estado === 'confirmado').length,
+    inscripcionesPendientes: inscripciones.filter((i: any) => i.estado === 'pendiente').length,
     pagosConfirmados: pagos.filter((p: any) => p.estado === 'COMPLETADO').length,
     pagosParciales: 0, // Se puede calcular basado en monto parcial
     pagosPendientes: pagos.filter((p: any) => p.estado === 'PENDIENTE').length,
     totalRecaudado: pagos
       .filter((p: any) => p.estado === 'COMPLETADO')
       .reduce((sum: number, p: any) => sum + (typeof p.monto === 'number' ? p.monto : parseFloat(p.monto || 0)), 0),
-    registrosManual: 0, // No disponible en el modelo actual
-    registrosMobile: 0, // No disponible en el modelo actual
+    registrosManual: inscripciones.filter((i: any) => i.origenRegistro === 'dashboard' || i.origenRegistro === 'web').length,
+    registrosMobile: inscripciones.filter((i: any) => i.origenRegistro === 'mobile').length,
   }
 
   const convencion = convencionActiva ? {
@@ -279,16 +294,52 @@ export default function AdminDashboard() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="create-monto">Costo de Inscripción</Label>
-                      <Input
-                        id="create-monto"
-                        type="number"
-                        {...register('monto', { valueAsNumber: true })}
-                        placeholder="0"
-                      />
+                      <Label htmlFor="create-monto">Costo de Inscripción (ARS)</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                        <Input
+                          id="create-monto"
+                          type="text"
+                          {...register('monto', {
+                            setValueAs: (value) => {
+                              if (!value) return 0
+                              // Remover caracteres no numéricos excepto punto decimal
+                              const cleaned = value.toString().replace(/[^\d.]/g, '')
+                              // Permitir solo un punto decimal
+                              const parts = cleaned.split('.')
+                              const formatted = parts.length > 1 
+                                ? `${parts[0]}.${parts.slice(1).join('').slice(0, 2)}` 
+                                : parts[0]
+                              const numValue = parseFloat(formatted) || 0
+                              // Validar rango
+                              if (numValue < 0) return 0
+                              if (numValue > 999999.99) return 999999.99
+                              return numValue
+                            },
+                            validate: (value) => {
+                              if (value === undefined || value === null) return 'El monto es requerido'
+                              if (value <= 0) return 'El monto debe ser mayor a 0'
+                              if (value > 999999.99) return 'El monto no puede exceder $999,999.99'
+                              return true
+                            }
+                          })}
+                          placeholder="0.00"
+                          className="pl-7"
+                          onBlur={(e) => {
+                            const value = e.target.value
+                            if (value && !isNaN(parseFloat(value))) {
+                              const numValue = parseFloat(value)
+                              e.target.value = numValue.toFixed(2)
+                            }
+                          }}
+                        />
+                      </div>
                       {errors.monto && (
                         <p className="text-sm text-red-500">{errors.monto.message}</p>
                       )}
+                      <p className="text-xs text-muted-foreground">
+                        Ingresa el monto con hasta 2 decimales (ej: 15000.50)
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="create-cuotas">Número de Cuotas</Label>
@@ -321,7 +372,7 @@ export default function AdminDashboard() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card className="hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 border-sky-200/50 dark:border-sky-500/20 bg-gradient-to-br from-white to-sky-50/30 dark:from-background dark:to-sky-950/20 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-sky-700 dark:text-sky-300">Gestión de Pastores</CardTitle>
+              <CardTitle className="text-sm font-medium text-sky-700 dark:text-sky-300">Estructura Organizacional</CardTitle>
               <Users className="h-4 w-4 text-sky-500" />
             </CardHeader>
             <CardContent>
@@ -339,7 +390,7 @@ export default function AdminDashboard() {
 
           <Card className="hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 border-amber-200/50 dark:border-amber-500/20 bg-gradient-to-br from-white to-amber-50/30 dark:from-background dark:to-amber-950/20 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-300">Galería</CardTitle>
+              <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-300">Multimedia</CardTitle>
               <ImageIcon className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
@@ -349,7 +400,7 @@ export default function AdminDashboard() {
               </p>
               <Link href="/admin/galeria">
                 <Button variant="ghost" className="mt-4 w-full text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-500/10">
-                  Ver Galería <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  Ver Multimedia <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </CardContent>
@@ -396,21 +447,29 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header con gradiente */}
+    <div className="space-y-6">
+      {/* Header con gradiente mejorado */}
       <div className="relative">
         <div className="absolute -inset-4 bg-gradient-to-r from-sky-500/10 via-emerald-500/10 to-amber-500/10 rounded-xl blur-xl dark:from-sky-500/5 dark:via-emerald-500/5 dark:to-amber-500/5" />
-        <div className="relative">
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-sky-600 via-emerald-600 to-amber-600 dark:from-sky-400 dark:via-emerald-400 dark:to-amber-400 bg-clip-text text-transparent">
-            Panel Administrativo
-          </h1>
-          <p className="text-foreground/80 mt-2 font-medium">
-            {convencionActiva?.titulo || 'Sin convención activa'}
-          </p>
-          <p className="text-sm text-muted-foreground flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500" />
-            {convencionActiva?.ubicacion || ''} • {convencionActiva?.fechaInicio ? new Date(convencionActiva.fechaInicio).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
-          </p>
+        <div className="relative bg-white/50 dark:bg-background/50 backdrop-blur-sm rounded-xl p-6 border border-sky-200/50 dark:border-sky-500/20">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-sky-600 via-emerald-600 to-amber-600 dark:from-sky-400 dark:via-emerald-400 dark:to-amber-400 bg-clip-text text-transparent">
+                Dashboard
+              </h1>
+              <p className="text-foreground/80 mt-2 font-medium text-lg">
+                {convencionActiva?.titulo || 'Sin convención activa'}
+              </p>
+              <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 animate-pulse" />
+                {convencionActiva?.ubicacion || ''} • {convencionActiva?.fechaInicio ? new Date(convencionActiva.fechaInicio).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+              </p>
+            </div>
+            <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-sky-50 to-emerald-50 dark:from-sky-950/30 dark:to-emerald-950/30 border border-sky-200/50 dark:border-sky-500/20">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Sistema Activo</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -488,15 +547,51 @@ export default function AdminDashboard() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="monto">Monto Total (ARS)</Label>
-                        <Input
-                          id="monto"
-                          type="number"
-                          placeholder="15000"
-                          {...register('monto', { valueAsNumber: true })}
-                        />
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                          <Input
+                            id="monto"
+                            type="text"
+                            placeholder="15000.00"
+                            {...register('monto', {
+                              setValueAs: (value) => {
+                                if (!value) return 0
+                                // Remover caracteres no numéricos excepto punto decimal
+                                const cleaned = value.toString().replace(/[^\d.]/g, '')
+                                // Permitir solo un punto decimal
+                                const parts = cleaned.split('.')
+                                const formatted = parts.length > 1 
+                                  ? `${parts[0]}.${parts.slice(1).join('').slice(0, 2)}` 
+                                  : parts[0]
+                                const numValue = parseFloat(formatted) || 0
+                                // Validar rango
+                                if (numValue < 0) return 0
+                                if (numValue > 999999.99) return 999999.99
+                                return numValue
+                              },
+                              validate: (value) => {
+                                if (value === undefined || value === null) return 'El monto es requerido'
+                                if (value <= 0) return 'El monto debe ser mayor a 0'
+                                if (value > 999999.99) return 'El monto no puede exceder $999,999.99'
+                                return true
+                              }
+                            })}
+                            className="pl-7"
+                            onBlur={(e) => {
+                              const value = e.target.value
+                              if (value && !isNaN(parseFloat(value))) {
+                                const numValue = parseFloat(value)
+                                e.target.value = numValue.toFixed(2)
+                              }
+                            }}
+                          />
+                        </div>
                         {errors.monto && (
                           <p className="text-sm text-destructive">{errors.monto.message}</p>
                         )}
+                        <p className="text-xs text-muted-foreground">
+                          Ingresa el monto con hasta 2 decimales (ej: 15000.50)
+                        </p>
                       </div>
 
                       <div className="space-y-2">
@@ -604,37 +699,119 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Lista de todas las convenciones */}
-            {convenciones.length > 1 && (
-              <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-muted-foreground">Otras Convenciones ({convenciones.length - 1})</h4>
-                <div className="space-y-2">
-                  {convenciones.filter((c: any) => c.id !== convencionActiva?.id).map((conv: any) => (
-                    <div key={conv.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border text-sm">
-                      <div className="flex-1">
-                        <p className="font-medium">{conv.titulo}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {conv.fechaInicio ? new Date(conv.fechaInicio).toLocaleDateString('es-ES') : 'Sin fecha'} 
-                          {conv.activa && <span className="ml-2 text-green-600 dark:text-green-400">• Activa</span>}
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => handleDeleteConvencion(conv.id, conv.titulo)}
-                        disabled={deleteConvencionMutation.isPending}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  💡 Tip: Elimina las convenciones duplicadas o antiguas para mantener el orden.
-                </p>
+            {/* Filtros y lista de convenciones */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold text-sm">Todas las Convenciones</h4>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMostrarArchivadas(!mostrarArchivadas)}
+                  className="text-xs"
+                >
+                  {mostrarArchivadas ? 'Ocultar' : 'Mostrar'} Archivadas
+                </Button>
               </div>
-            )}
+
+              {/* Filtro por año */}
+              <div className="flex items-center gap-2">
+                <Label htmlFor="filtro-ano" className="text-xs text-muted-foreground">Filtrar por año:</Label>
+                <Select value={filtroAno} onValueChange={setFiltroAno}>
+                  <SelectTrigger className="h-8 text-xs w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    {Array.from(new Set(convenciones.map((c: any) => 
+                      c.fechaInicio ? new Date(c.fechaInicio).getFullYear() : null
+                    ).filter(Boolean))).sort((a: any, b: any) => b - a).map((ano: any) => (
+                      <SelectItem key={ano} value={ano.toString()}>{ano}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {convenciones
+                  .filter((c: any) => {
+                    if (c.id === convencionActiva?.id) return false
+                    if (!mostrarArchivadas && c.archivada) return false
+                    if (mostrarArchivadas && !c.archivada) return false
+                    if (filtroAno !== 'todos') {
+                      const ano = c.fechaInicio ? new Date(c.fechaInicio).getFullYear() : null
+                      return ano?.toString() === filtroAno
+                    }
+                    return true
+                  })
+                  .map((conv: any) => {
+                    const ano = conv.fechaInicio ? new Date(conv.fechaInicio).getFullYear() : null
+                    return (
+                      <div key={conv.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border text-sm">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{conv.titulo}</p>
+                            {conv.archivada && (
+                              <span className="px-2 py-0.5 text-xs rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                Archivada
+                              </span>
+                            )}
+                            {conv.activa && !conv.archivada && (
+                              <span className="px-2 py-0.5 text-xs rounded bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30">
+                                Activa
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {conv.fechaInicio ? new Date(conv.fechaInicio).toLocaleDateString('es-ES') : 'Sin fecha'}
+                            {ano && <span className="ml-2">• {ano}</span>}
+                            {conv.fechaArchivado && (
+                              <span className="ml-2 text-amber-600 dark:text-amber-400">
+                                • Archivada: {new Date(conv.fechaArchivado).toLocaleDateString('es-ES')}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {conv.archivada ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+                              onClick={() => desarchivarConvencionMutation.mutate(conv.id)}
+                              disabled={desarchivarConvencionMutation.isPending}
+                            >
+                              Desarchivar
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
+                              onClick={() => {
+                                if (confirm(`¿Archivar la convención "${conv.titulo}"? Se desactivará automáticamente.`)) {
+                                  archivarConvencionMutation.mutate(conv.id)
+                                }
+                              }}
+                              disabled={archivarConvencionMutation.isPending}
+                            >
+                              Archivar
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteConvencion(conv.id, conv.titulo)}
+                            disabled={deleteConvencionMutation.isPending}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </ScrollReveal>
@@ -716,15 +893,20 @@ export default function AdminDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-2 text-sm">
-                <div className="flex items-center gap-1">
-                  <User className="size-3 text-sky-500" />
-                  <span className="font-semibold">{stats.registrosManual}</span>
+              <div className="flex flex-col gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <User className="size-4 text-sky-500" />
+                    <span className="font-semibold text-lg">{stats.registrosManual}</span>
+                    <span className="text-xs text-muted-foreground ml-1">Web/Dashboard</span>
+                  </div>
                 </div>
-                <span className="text-muted-foreground">|</span>
-                <div className="flex items-center gap-1">
-                  <Smartphone className="size-3 text-emerald-500" />
-                  <span className="font-semibold">{stats.registrosMobile}</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <Smartphone className="size-4 text-emerald-500" />
+                    <span className="font-semibold text-lg">{stats.registrosMobile}</span>
+                    <span className="text-xs text-muted-foreground ml-1">App Móvil</span>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -745,7 +927,7 @@ export default function AdminDashboard() {
                   </div>
                   <ArrowRight className="size-5 text-sky-500/50 group-hover:text-sky-500 group-hover:translate-x-1 transition-all" />
                 </div>
-                <CardTitle className="mt-4 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">Gestión de Pastores</CardTitle>
+                <CardTitle className="mt-4 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">Estructura Organizacional</CardTitle>
                 <CardDescription>
                   Registrar, editar y ver listado completo de pastores inscritos
                 </CardDescription>
@@ -798,7 +980,7 @@ export default function AdminDashboard() {
                   </div>
                   <ArrowRight className="size-5 text-amber-500/50 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
                 </div>
-                <CardTitle className="mt-4 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Gestión de Galería</CardTitle>
+                <CardTitle className="mt-4 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Multimedia</CardTitle>
                 <CardDescription>
                   Subir y administrar imágenes y videos de la landing
                 </CardDescription>
@@ -831,6 +1013,34 @@ export default function AdminDashboard() {
               <CardContent>
                 <p className="text-sm text-sky-600/70 dark:text-sky-400/70">
                   Blog y comunicación oficial
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+        </ScrollReveal>
+
+        <ScrollReveal delay={550}>
+          <Link href="/admin/inscripciones">
+            <Card className="hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 cursor-pointer group border-amber-200/50 dark:border-amber-500/20 bg-gradient-to-br from-white to-amber-50/30 dark:from-background dark:to-amber-950/20 overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-amber-500 to-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/10 to-yellow-500/10 dark:from-amber-500/20 dark:to-yellow-500/20 group-hover:from-amber-500/20 group-hover:to-yellow-500/20 transition-colors">
+                    <UserCheck className="size-6 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <ArrowRight className="size-5 text-amber-500/50 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
+                </div>
+                <CardTitle className="mt-4 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Gestión de Inscripciones</CardTitle>
+                <CardDescription>
+                  Gestionar inscripciones, verificar pagos y cuotas de los participantes
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-amber-600/70 dark:text-amber-400/70">
+                  {loadingInscripciones ? '...' : stats.totalInscritos} inscripción(es) registrada(s)
+                  {stats.inscripcionesConfirmadas > 0 && (
+                    <span className="text-xs ml-1">({stats.inscripcionesConfirmadas} confirmadas)</span>
+                  )}
                 </p>
               </CardContent>
             </Card>

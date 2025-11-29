@@ -5,6 +5,7 @@ import { ValidationPipe, Logger } from "@nestjs/common"
 import { AppModule } from "./app.module"
 import { configureCloudinary } from "./modules/upload/cloudinary.config"
 import { NestExpressApplication } from "@nestjs/platform-express"
+import { IoAdapter } from "@nestjs/platform-socket.io"
 import { join } from "path"
 import { GlobalExceptionFilter } from "./common/filters/http-exception.filter"
 import helmet from "helmet"
@@ -54,30 +55,41 @@ async function bootstrap() {
 
   configureCloudinary()
 
-  // CORS
+  // WebSocket Adapter
+  app.useWebSocketAdapter(new IoAdapter(app))
+
+  // CORS - Configurado para web y mobile
   const allowedOrigins = [
     "http://localhost:3000",
     process.env.FRONTEND_URL,
+    // Mobile apps no tienen origin, se permite si no hay origin
   ].filter(Boolean) as string[]
 
   app.enableCors({
     origin: (origin, callback) => {
+      // Permitir requests sin origin (mobile apps, Postman, etc.)
       if (!origin) return callback(null, true)
+      
+      // Permitir origins configurados
       if (allowedOrigins.some(allowed => origin.startsWith(allowed) || allowed.includes(origin))) {
         return callback(null, true)
       }
+      
+      // En desarrollo, permitir todo
       if (process.env.NODE_ENV !== 'production') {
         return callback(null, true)
       }
+      
       callback(new Error('Not allowed by CORS'))
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Device-Token', 'X-Device-Type'],
   })
 
   const port = process.env.PORT || 4000
-  await app.listen(port)
+  // Escuchar en 0.0.0.0 para permitir conexiones desde dispositivos móviles en la misma red
+  await app.listen(port, '0.0.0.0')
 
   logger.log(`🚀 Backend running on http://localhost:${port}/api`)
   logger.log(`🛡️ Security: Helmet enabled, JWT auth active`)

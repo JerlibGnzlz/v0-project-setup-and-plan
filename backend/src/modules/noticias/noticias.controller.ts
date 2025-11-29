@@ -51,6 +51,23 @@ export class NoticiasController {
     return this.noticiasService.findBySlug(slug);
   }
 
+  // Incrementar vista (público, optimizado)
+  @Post('slug/:slug/vista')
+  async incrementarVista(@Param('slug') slug: string) {
+    console.log(`📥 [Controller] POST /noticias/slug/${slug}/vista recibido`);
+    
+    try {
+      // Ahora esperamos la respuesta para poder manejar errores
+      await this.noticiasService.incrementarVista(slug);
+      console.log(`✅ [Controller] Vista incrementada exitosamente para "${slug}"`);
+      return { success: true, message: 'Vista incrementada' };
+    } catch (error) {
+      console.error(`❌ [Controller] Error al incrementar vista para "${slug}":`, error);
+      // Retornar éxito de todas formas para no afectar UX, pero loguear el error
+      return { success: false, message: 'Error al incrementar vista' };
+    }
+  }
+
   // ========== RUTAS PROTEGIDAS (ADMIN) ==========
 
   // Obtener todas las noticias (admin)

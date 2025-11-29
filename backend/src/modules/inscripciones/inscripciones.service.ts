@@ -1,7 +1,8 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common"
+import { Injectable, Logger, NotFoundException, Inject, forwardRef } from "@nestjs/common"
 import { PrismaService } from "../../prisma/prisma.service"
 import { CreateInscripcionDto, UpdateInscripcionDto, CreatePagoDto, UpdatePagoDto } from "./dto/inscripcion.dto"
 import { Inscripcion, Pago, EstadoPago } from "@prisma/client"
+import { NotificationsService } from "../notifications/notifications.service"
 
 /**
  * Servicio para gestión de Inscripciones y Pagos
@@ -31,7 +32,11 @@ export class InscripcionesService {
         },
     }
 
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        @Inject(forwardRef(() => NotificationsService))
+        private notificationsService: NotificationsService,
+    ) { }
 
     // ==================== INSCRIPCIONES ====================
 
@@ -62,15 +67,89 @@ export class InscripcionesService {
     }
 
     /**
+     * Verifica si un email ya está inscrito en una convención
+     */
+    async checkInscripcionByEmail(email: string, convencionId: string): Promise<Inscripcion | null> {
+        const inscripcion = await this.prisma.inscripcion.findFirst({
+            where: {
+                email: email.toLowerCase(),
+                convencionId,
+            },
+            include: this.inscripcionIncludes,
+            orderBy: { fechaInscripcion: 'desc' },
+        })
+
+        return inscripcion
+    }
+
+    /**
      * Crea una nueva inscripción
+     * Si el origen es 'web' o 'mobile', crea automáticamente los pagos según numeroCuotas
      */
     async createInscripcion(dto: CreateInscripcionDto): Promise<Inscripcion> {
         this.logger.log(`📝 Creando inscripción para: ${dto.nombre}`)
 
-        return this.prisma.inscripcion.create({
-            data: dto,
+        const origenRegistro = dto.origenRegistro || 'web'
+        const numeroCuotas = dto.numeroCuotas || 3
+
+        // Obtener la convención para calcular el monto por cuota
+        const convencion = await this.prisma.convencion.findUnique({
+            where: { id: dto.convencionId },
+        })
+
+        if (!convencion) {
+            throw new NotFoundException(`Convención con ID "${dto.convencionId}" no encontrada`)
+        }
+
+        // Calcular el costo (puede venir como Decimal de Prisma)
+        const costoTotal = typeof convencion.costo === 'number' 
+            ? convencion.costo 
+            : parseFloat(String(convencion.costo || 0))
+        
+        const montoPorCuota = costoTotal / numeroCuotas
+
+        // Crear la inscripción
+        const inscripcion = await this.prisma.inscripcion.create({
+            data: {
+                ...dto,
+                origenRegistro,
+            },
             include: this.inscripcionIncludes,
         })
+
+        // Si el origen es 'web' o 'mobile', crear automáticamente los pagos
+        if (origenRegistro === 'web' || origenRegistro === 'mobile') {
+            this.logger.log(`💰 Creando ${numeroCuotas} pago(s) automático(s) para inscripción ${inscripcion.id}`)
+            
+            // Si hay un documentoUrl en la inscripción, asignarlo al primer pago como comprobanteUrl
+            const comprobanteUrl = dto.documentoUrl || null
+            
+            // Crear los pagos según el número de cuotas
+            const pagos = []
+            for (let i = 1; i <= numeroCuotas; i++) {
+                const pago = await this.prisma.pago.create({
+                    data: {
+                        inscripcionId: inscripcion.id,
+                        monto: montoPorCuota, // Prisma maneja la conversión a Decimal automáticamente
+                        metodoPago: 'pendiente', // Se actualizará cuando se registre el pago
+                        numeroCuota: i,
+                        estado: EstadoPago.PENDIENTE,
+                        // Asignar el comprobante solo al primer pago si existe
+                        comprobanteUrl: i === 1 && comprobanteUrl ? comprobanteUrl : null,
+                    },
+                })
+                pagos.push(pago)
+            }
+            
+            if (comprobanteUrl) {
+                this.logger.log(`📎 Comprobante asignado al primer pago: ${comprobanteUrl}`)
+            }
+            
+            this.logger.log(`✅ ${pagos.length} pago(s) creado(s) exitosamente`)
+        }
+
+        // Retornar la inscripción con los pagos incluidos
+        return this.findOneInscripcion(inscripcion.id)
     }
 
     /**
@@ -166,18 +245,163 @@ export class InscripcionesService {
      * Actualiza un pago
      */
     async updatePago(id: string, dto: UpdatePagoDto): Promise<Pago> {
-        await this.findOnePago(id) // Verifica existencia
+        const pago = await this.findOnePago(id) // Verifica existencia
 
         const data: any = { ...dto }
         if (dto.monto) {
             data.monto = parseFloat(dto.monto)
         }
 
-        return this.prisma.pago.update({
+        // Si se está marcando como COMPLETADO, actualizar fechaPago si no existe
+        if (dto.estado === EstadoPago.COMPLETADO && !pago.fechaPago) {
+            data.fechaPago = new Date()
+        }
+
+        const pagoActualizado = await this.prisma.pago.update({
             where: { id },
             data,
             include: this.pagoIncludes,
         })
+
+        // Si el pago se completó, enviar notificación y verificar si todas las cuotas están pagadas
+        if (dto.estado === EstadoPago.COMPLETADO && pagoActualizado.inscripcionId) {
+            // Enviar notificación de pago individual validado
+            await this.enviarNotificacionPagoValidado(pagoActualizado)
+            
+            // Verificar si todas las cuotas están pagadas
+            await this.verificarYActualizarEstadoInscripcion(pagoActualizado.inscripcionId)
+        }
+
+        return pagoActualizado
+    }
+
+    /**
+     * Envía notificación cuando se valida un pago individual (cuota)
+     */
+    private async enviarNotificacionPagoValidado(pago: Pago & { inscripcion: any }): Promise<void> {
+        try {
+            const inscripcion = pago.inscripcion
+            if (!inscripcion || !inscripcion.email) {
+                return
+            }
+
+            // Obtener información de la inscripción y pagos
+            const inscripcionCompleta = await this.prisma.inscripcion.findUnique({
+                where: { id: inscripcion.id },
+                include: { pagos: true, convencion: true },
+            })
+
+            if (!inscripcionCompleta) {
+                return
+            }
+
+            const numeroCuotas = inscripcionCompleta.numeroCuotas || 3
+            const cuotasPagadas = inscripcionCompleta.pagos.filter(
+                (p) => p.estado === EstadoPago.COMPLETADO
+            ).length
+            const cuotasPendientes = numeroCuotas - cuotasPagadas
+
+            // Formatear monto
+            const monto = typeof pago.monto === 'number' 
+                ? pago.monto 
+                : parseFloat(String(pago.monto || 0))
+            const montoFormateado = new Intl.NumberFormat('es-AR', {
+                style: 'currency',
+                currency: 'ARS',
+            }).format(monto)
+
+            // Determinar mensaje según el número de cuota
+            const numeroCuota = pago.numeroCuota || 1
+            let titulo = `✅ Pago de Cuota ${numeroCuota} Validado`
+            let mensaje = `Tu pago de ${montoFormateado} ha sido validado exitosamente.`
+
+            // Agregar información de progreso
+            if (cuotasPendientes > 0) {
+                mensaje += ` Has pagado ${cuotasPagadas} de ${numeroCuotas} cuotas. ${cuotasPendientes} cuota(s) pendiente(s).`
+            } else {
+                mensaje += ` ¡Has completado todos los pagos! Tu inscripción será confirmada.`
+            }
+
+            // Enviar notificación
+            await this.notificationsService.sendNotificationToUser(
+                inscripcion.email,
+                titulo,
+                mensaje,
+                {
+                    type: 'pago_validado',
+                    pagoId: pago.id,
+                    inscripcionId: inscripcion.id,
+                    convencionId: inscripcionCompleta.convencionId,
+                    numeroCuota: numeroCuota,
+                    cuotasPagadas: cuotasPagadas,
+                    cuotasTotales: numeroCuotas,
+                    monto: monto,
+                    metodoPago: pago.metodoPago,
+                }
+            )
+
+            this.logger.log(`📬 Notificación de pago validado enviada a ${inscripcion.email} (Cuota ${numeroCuota}/${numeroCuotas})`)
+        } catch (error) {
+            this.logger.error(`Error enviando notificación de pago validado:`, error)
+            // No fallar si la notificación falla
+        }
+    }
+
+    /**
+     * Verifica si todas las cuotas están pagadas y actualiza el estado de la inscripción
+     */
+    private async verificarYActualizarEstadoInscripcion(inscripcionId: string): Promise<void> {
+        const inscripcion = await this.prisma.inscripcion.findUnique({
+            where: { id: inscripcionId },
+            include: { pagos: true },
+        })
+
+        if (!inscripcion) return
+
+        // Obtener el número de cuotas configurado (por defecto 3)
+        const numeroCuotas = inscripcion.numeroCuotas || 3
+
+        // Contar cuotas completadas (pagos con numeroCuota y estado COMPLETADO)
+        const cuotasCompletadas = inscripcion.pagos.filter(
+            (p) => p.numeroCuota && p.estado === EstadoPago.COMPLETADO
+        ).length
+
+        // Si todas las cuotas están completadas, actualizar el estado de la inscripción a "confirmado"
+        if (cuotasCompletadas >= numeroCuotas) {
+            await this.prisma.inscripcion.update({
+                where: { id: inscripcionId },
+                data: { estado: 'confirmado' },
+            })
+            this.logger.log(`✅ Inscripción ${inscripcionId} marcada como confirmada (${cuotasCompletadas}/${numeroCuotas} cuotas pagadas)`)
+            
+            // Obtener información de la convención para el mensaje
+            const convencion = await this.prisma.convencion.findUnique({
+                where: { id: inscripcion.convencionId },
+            })
+
+            const tituloConvencion = convencion?.titulo || 'la convención'
+            
+            // Enviar notificación push al usuario con mensaje más detallado
+            try {
+                await this.notificationsService.sendNotificationToUser(
+                    inscripcion.email,
+                    '🎉 ¡Inscripción Confirmada!',
+                    `Tu inscripción a "${tituloConvencion}" ha sido confirmada. Todos los pagos han sido validados exitosamente. ¡Te esperamos!`,
+                    {
+                        type: 'inscripcion_confirmada',
+                        inscripcionId: inscripcion.id,
+                        convencionId: inscripcion.convencionId,
+                        convencionTitulo: tituloConvencion,
+                        cuotasPagadas: cuotasCompletadas,
+                        cuotasTotales: numeroCuotas,
+                    }
+                )
+                this.logger.log(`📬 Notificación de inscripción confirmada enviada a ${inscripcion.email}`)
+            } catch (error) {
+                this.logger.error(`Error enviando notificación a ${inscripcion.email}:`, error)
+                // No fallar si la notificación falla
+            }
+        }
     }
 
     /**

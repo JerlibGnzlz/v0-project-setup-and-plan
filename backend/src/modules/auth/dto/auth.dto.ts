@@ -1,27 +1,43 @@
-import { IsEmail, IsString, MinLength, IsOptional, IsBoolean } from "class-validator"
+import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator'
 
 export class LoginDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'El correo electrónico debe ser válido' })
   email: string
 
   @IsString()
-  @MinLength(6)
+  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
   password: string
-
-  @IsOptional()
-  @IsBoolean()
-  rememberMe?: boolean
 }
 
 export class RegisterDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'El correo electrónico debe ser válido' })
   email: string
 
   @IsString()
-  @MinLength(6)
+  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
   password: string
 
-  @IsOptional()
   @IsString()
-  name?: string
+  @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
+  name: string
+}
+
+// DTO para refresh token (compartido entre admin y mobile)
+export class RefreshTokenDto {
+  @IsString()
+  refreshToken: string
+}
+
+// DTO para registro de dispositivo (notificaciones push)
+export class RegisterDeviceDto {
+  @IsString()
+  deviceToken: string
+
+  @IsString()
+  @IsOptional()
+  deviceType?: 'ios' | 'android'
+
+  @IsString()
+  @IsOptional()
+  deviceId?: string
 }

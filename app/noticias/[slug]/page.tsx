@@ -6,12 +6,10 @@ import Link from 'next/link'
 import { 
   ArrowLeft, 
   Calendar, 
-  Clock, 
+  Eye,
   User, 
   Share2,
   Facebook,
-  Twitter,
-  Linkedin,
   Copy,
   Check,
   Loader2,
@@ -25,30 +23,112 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { QueryProvider } from '@/lib/providers/query-provider'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
+import { getReturnUrl } from '@/lib/utils/scroll-restore'
+import { trackView, formatViews, clearViewCache } from '@/lib/utils/view-tracker'
+import { noticiasApi } from '@/lib/api/noticias'
+import { useQueryClient } from '@tanstack/react-query'
 
 function formatDate(dateString: string | null): string {
   if (!dateString) return ''
   try {
-    return format(new Date(dateString), "d 'de' MMMM, yyyy", { locale: es })
+    const date = new Date(dateString)
+    // Asegurarse de que la fecha es válida
+    if (isNaN(date.getTime())) return ''
+    // Formato: "26 de noviembre, 2025 a las 14:30"
+    return format(date, "d 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })
   } catch {
     return ''
   }
 }
 
-function getReadingTime(content: string): number {
-  const wordsPerMinute = 200
-  const words = content.split(/\s+/).length
-  return Math.ceil(words / wordsPerMinute)
-}
-
 function NoticiaContent({ slug }: { slug: string }) {
+  const queryClient = useQueryClient()
   const { data: noticia, isLoading, error } = useNoticiaBySlug(slug)
   const { data: otrasNoticias = [] } = useNoticiasPublicadas(4)
   const [copied, setCopied] = useState(false)
 
   const relacionadas = otrasNoticias.filter(n => n.slug !== slug).slice(0, 3)
+
+  // Exponer función de limpieza en desarrollo (solo para debugging)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      // @ts-ignore - Solo para debugging
+      window.clearViewCache = clearViewCache
+      console.log('💡 Para limpiar el cache de vistas, ejecuta: window.clearViewCache()')
+    }
+  }, [])
+
+  // Tracking de vistas optimizado (no bloquea la carga)
+  // Se ejecuta cuando la noticia se carga completamente
+  useEffect(() => {
+    console.log(`📰 [NoticiaContent] useEffect ejecutado - noticia:`, noticia ? { slug: noticia.slug, titulo: noticia.titulo, vistas: noticia.vistas } : 'null', `isLoading: ${isLoading}`)
+    
+    if (noticia && noticia.slug && !isLoading) {
+      console.log(`✅ [NoticiaContent] Noticia cargada, slug: "${noticia.slug}", vistas actuales: ${noticia.vistas || 0}, iniciando tracking...`)
+      
+      // Si la noticia tiene 0 vistas o no tiene vistas, limpiar cualquier cache previo
+      // Esto asegura que las noticias nuevas siempre se trackeen
+      if ((noticia.vistas === 0 || noticia.vistas === undefined) && typeof window !== 'undefined') {
+        const cacheKey = `amva_viewed_${noticia.slug}`
+        if (localStorage.getItem(cacheKey)) {
+          console.log(`🧹 [NoticiaContent] Limpiando cache previo para noticia nueva: "${noticia.slug}"`)
+          localStorage.removeItem(cacheKey)
+        }
+      }
+      
+      // Función personalizada que incrementa la vista y actualiza la UI
+      const incrementarVistaConActualizacion = async (slug: string) => {
+        console.log(`📞 [incrementarVistaConActualizacion] Llamado para: "${slug}"`)
+        try {
+          console.log(`🌐 [incrementarVistaConActualizacion] Llamando a noticiasApi.incrementarVista("${slug}")...`)
+          await noticiasApi.incrementarVista(slug)
+          console.log(`✅ [incrementarVistaConActualizacion] API respondió exitosamente para "${slug}"`)
+          
+          // Invalidar queries para actualizar la UI con el nuevo contador
+          // La queryKey correcta es ['noticia', 'slug', slug] según useNoticiaBySlug
+          console.log(`🔄 [incrementarVistaConActualizacion] Invalidando queries para actualizar UI...`)
+          queryClient.invalidateQueries({ queryKey: ['noticia', 'slug', slug] })
+          queryClient.invalidateQueries({ queryKey: ['noticias', 'publicadas'] })
+          
+          // También actualizar el cache directamente para respuesta inmediata
+          queryClient.setQueryData(['noticia', 'slug', slug], (oldData: any) => {
+            if (oldData) {
+              const nuevasVistas = (oldData.vistas || 0) + 1
+              console.log(`📊 [incrementarVistaConActualizacion] Actualizando cache: ${oldData.vistas || 0} → ${nuevasVistas} vistas`)
+              return { ...oldData, vistas: nuevasVistas }
+            }
+            return oldData
+          })
+          console.log(`✅ [incrementarVistaConActualizacion] Vista incrementada y UI actualizada para: ${slug}`)
+        } catch (error) {
+          console.error(`❌ [incrementarVistaConActualizacion] Error al incrementar vista para ${slug}:`, error)
+        }
+      }
+      
+      // Pequeño delay para asegurar que la página se cargó completamente
+      const timer = setTimeout(() => {
+        console.log(`⏰ [NoticiaContent] Timer ejecutado para "${noticia.slug}"`)
+        
+        // Trackear vista de forma asíncrona y optimizada
+        // Cada noticia (slug) se cuenta de forma INDEPENDIENTE
+        console.log(`🎯 [NoticiaContent] Llamando trackView("${noticia.slug}", incrementarVistaConActualizacion)`)
+        trackView(noticia.slug, incrementarVistaConActualizacion, noticia.vistas === 0 || noticia.vistas === undefined)
+      }, 500) // 500ms después de que la noticia se carga
+
+      return () => {
+        console.log(`🧹 [NoticiaContent] Limpiando timer para "${noticia.slug}"`)
+        clearTimeout(timer)
+      }
+    } else {
+      console.log(`⏸️ [NoticiaContent] No se puede trackear vista:`, {
+        tieneNoticia: !!noticia,
+        tieneSlug: !!(noticia?.slug),
+        isLoading
+      })
+    }
+  }, [noticia, isLoading, queryClient])
 
   const handleCopyLink = async () => {
     try {
@@ -94,37 +174,36 @@ function NoticiaContent({ slug }: { slug: string }) {
       <header className="sticky top-0 z-50 bg-[#0a1628]/80 backdrop-blur-xl border-b border-white/10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/noticias" className="flex items-center gap-2 text-white hover:text-emerald-400 transition-colors">
+            <Link 
+              href={typeof window !== 'undefined' ? getReturnUrl() : '/#noticias'} 
+              className="flex items-center gap-2 text-white hover:text-emerald-400 transition-colors"
+            >
               <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Noticias</span>
+              <span className="font-medium">Volver</span>
             </Link>
             
             {/* Share buttons */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleCopyLink}
-                className="text-white/60 hover:text-white hover:bg-white/10"
-              >
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              </Button>
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <a
                 href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 text-white/60 hover:text-[#1877F2] hover:bg-white/10 rounded-lg transition-colors"
+                className="flex items-center justify-center p-2 text-white/70 hover:text-[#1877F2] hover:bg-white/10 rounded-lg transition-colors min-w-[40px]"
+                title="Compartir en Facebook"
+                aria-label="Compartir en Facebook"
               >
                 <Facebook className="w-4 h-4" />
               </a>
-              <a
-                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 text-white/60 hover:text-[#1DA1F2] hover:bg-white/10 rounded-lg transition-colors"
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleCopyLink}
+                className="text-white/70 hover:text-white hover:bg-white/10 min-w-[40px]"
+                title="Copiar enlace"
+                aria-label="Copiar enlace"
               >
-                <Twitter className="w-4 h-4" />
-              </a>
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              </Button>
             </div>
           </div>
         </div>
@@ -147,8 +226,8 @@ function NoticiaContent({ slug }: { slug: string }) {
               </span>
             )}
             <span className="flex items-center gap-1.5 text-white/50 text-sm">
-              <Clock className="w-4 h-4" />
-              {getReadingTime(noticia.contenido)} min de lectura
+              <Eye className="w-4 h-4" />
+              {formatViews(noticia.vistas || 0)} vistas
             </span>
           </div>
 
@@ -179,12 +258,12 @@ function NoticiaContent({ slug }: { slug: string }) {
 
           {/* Featured Image */}
           {noticia.imagenUrl && (
-            <div className="relative aspect-video mb-10 rounded-2xl overflow-hidden">
+            <div className="relative aspect-video mb-10 rounded-2xl overflow-hidden bg-white/5 flex items-center justify-center">
               <Image
                 src={noticia.imagenUrl}
                 alt={noticia.titulo}
                 fill
-                className="object-cover"
+                className="object-contain"
                 priority
               />
             </div>
@@ -217,24 +296,6 @@ function NoticiaContent({ slug }: { slug: string }) {
                 <Facebook className="w-4 h-4" />
                 Facebook
               </a>
-              <a
-                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#1DA1F2]/20 text-[#1DA1F2] hover:bg-[#1DA1F2]/30 transition-colors"
-              >
-                <Twitter className="w-4 h-4" />
-                Twitter
-              </a>
-              <a
-                href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(shareTitle)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0A66C2]/20 text-[#0A66C2] hover:bg-[#0A66C2]/30 transition-colors"
-              >
-                <Linkedin className="w-4 h-4" />
-                LinkedIn
-              </a>
               <button
                 onClick={handleCopyLink}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/80 hover:bg-white/20 transition-colors"
@@ -257,13 +318,13 @@ function NoticiaContent({ slug }: { slug: string }) {
                   href={`/noticias/${n.slug}`}
                   className="group block bg-white/[0.03] border border-white/10 rounded-xl overflow-hidden hover:bg-white/[0.06] hover:border-white/20 transition-all"
                 >
-                  <div className="relative aspect-video">
+                  <div className="relative aspect-video bg-white/5">
                     {n.imagenUrl ? (
                       <Image
                         src={n.imagenUrl}
                         alt={n.titulo}
                         fill
-                        className="object-cover"
+                        className="object-contain"
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
@@ -293,7 +354,7 @@ function NoticiaContent({ slug }: { slug: string }) {
       <footer className="border-t border-white/10 py-8 mt-12">
         <div className="container mx-auto px-4 text-center">
           <Link 
-            href="/" 
+            href={typeof window !== 'undefined' ? getReturnUrl() : '/#noticias'} 
             className="text-white/60 hover:text-emerald-400 transition-colors inline-flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />

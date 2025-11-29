@@ -7,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query"
 let broadcastChannel: BroadcastChannel | null = null
 
 // Tipos de datos que pueden actualizarse
-export type DataType = "convencion" | "galeria" | "pastores" | "pagos" | "all"
+export type DataType = "convencion" | "galeria" | "pastores" | "pagos" | "inscripciones" | "all"
 
 interface SyncMessage {
   type: DataType
@@ -113,6 +113,9 @@ export function useSmartSync() {
       case "pagos":
         queryClient.invalidateQueries({ queryKey: ["pagos"] })
         break
+      case "inscripciones":
+        queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+        break
       case "all":
         queryClient.invalidateQueries()
         break
@@ -174,3 +177,4 @@ export function useSmartPolling(
 
   return shouldPoll ? intervalMs : false
 }
+

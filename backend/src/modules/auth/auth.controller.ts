@@ -1,6 +1,6 @@
 import { Controller, Post, UseGuards, Get, Request, Body } from "@nestjs/common"
 import { AuthService } from "./auth.service"
-import { LoginDto, RegisterDto } from "./dto/auth.dto"
+import { LoginDto, RegisterDto, RefreshTokenDto, RegisterDeviceDto } from "./dto/auth.dto"
 import { JwtAuthGuard } from "./guards/jwt-auth.guard"
 
 @Controller("auth")
@@ -15,6 +15,25 @@ export class AuthController {
   @Post("login")
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto)
+  }
+
+  // Endpoint para mobile: login con refresh token
+  @Post("login/mobile")
+  async loginMobile(@Body() dto: LoginDto) {
+    return this.authService.loginMobile(dto)
+  }
+
+  // Endpoint para refresh token (mobile)
+  @Post("refresh")
+  async refreshToken(@Body() dto: RefreshTokenDto) {
+    return this.authService.refreshAccessToken(dto.refreshToken)
+  }
+
+  // Endpoint para registrar dispositivo (notificaciones push)
+  @UseGuards(JwtAuthGuard)
+  @Post("device/register")
+  async registerDevice(@Request() req, @Body() dto: RegisterDeviceDto) {
+    return this.authService.registerDevice(req.user.id, dto)
   }
 
   @UseGuards(JwtAuthGuard)

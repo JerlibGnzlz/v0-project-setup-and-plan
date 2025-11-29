@@ -72,7 +72,7 @@ const noticiaSchema = z.object({
   extracto: z.string().max(500).optional().or(z.literal('')),
   contenido: z.string().min(10, 'El contenido debe tener al menos 10 caracteres'),
   imagenUrl: z.string().optional().or(z.literal('')),
-  categoria: z.enum(['ANUNCIO', 'EVENTO', 'DEVOCIONAL', 'CAPACITACION', 'TESTIMONIO', 'COMUNICADO']),
+  categoria: z.enum(['ANUNCIO', 'EVENTO', 'ACTIVIDAD', 'OPORTUNIDADES', 'CAPACITACION', 'COMUNICADO']),
   autor: z.string().optional().or(z.literal('')),
   publicado: z.boolean().default(false),
   destacado: z.boolean().default(false),
@@ -82,7 +82,7 @@ const noticiaSchema = z.object({
 type NoticiaFormData = z.infer<typeof noticiaSchema>
 
 // Todas las categorías
-const categorias: CategoriaNoticia[] = ['ANUNCIO', 'EVENTO', 'DEVOCIONAL', 'CAPACITACION', 'TESTIMONIO', 'COMUNICADO']
+const categorias: CategoriaNoticia[] = ['ANUNCIO', 'EVENTO', 'ACTIVIDAD', 'OPORTUNIDADES', 'CAPACITACION', 'COMUNICADO']
 
 export default function NoticiasPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -204,9 +204,12 @@ export default function NoticiasPage() {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Sin fecha'
     try {
-      return format(new Date(dateString), "d MMM yyyy, HH:mm", { locale: es })
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return 'Sin fecha'
+      // Formato: "26 de noviembre, 2025 a las 14:30"
+      return format(date, "d 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })
     } catch {
-      return 'Fecha inválida'
+      return 'Sin fecha'
     }
   }
 
@@ -221,11 +224,11 @@ export default function NoticiasPage() {
         </Link>
         <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <Newspaper className="w-7 h-7 text-emerald-600" />
               Gestión de Noticias
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-muted-foreground mt-1">
               Administra las noticias y anuncios de la organización
             </p>
           </div>
@@ -410,24 +413,24 @@ export default function NoticiasPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg border p-4">
-          <p className="text-sm text-gray-500">Total</p>
-          <p className="text-2xl font-bold text-gray-900">{noticias.length}</p>
+        <div className="bg-card rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">Total</p>
+          <p className="text-2xl font-bold text-foreground">{noticias.length}</p>
         </div>
-        <div className="bg-white rounded-lg border p-4">
-          <p className="text-sm text-gray-500">Publicadas</p>
+        <div className="bg-card rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">Publicadas</p>
           <p className="text-2xl font-bold text-emerald-600">
             {noticias.filter(n => n.publicado).length}
           </p>
         </div>
-        <div className="bg-white rounded-lg border p-4">
-          <p className="text-sm text-gray-500">Borradores</p>
+        <div className="bg-card rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">Borradores</p>
           <p className="text-2xl font-bold text-amber-600">
             {noticias.filter(n => !n.publicado).length}
           </p>
         </div>
-        <div className="bg-white rounded-lg border p-4">
-          <p className="text-sm text-gray-500">Destacadas</p>
+        <div className="bg-card rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">Destacadas</p>
           <p className="text-2xl font-bold text-purple-600">
             {noticias.filter(n => n.destacado).length}
           </p>
@@ -440,9 +443,9 @@ export default function NoticiasPage() {
           <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
         </div>
       ) : filteredNoticias.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed">
-          <Newspaper className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">
+        <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed">
+          <Newspaper className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+          <p className="text-muted-foreground">
             {searchQuery || filterCategoria !== 'TODAS' || filterPublicado !== 'TODOS'
               ? 'No se encontraron noticias con los filtros aplicados'
               : 'No hay noticias todavía'}
@@ -459,16 +462,16 @@ export default function NoticiasPage() {
           {filteredNoticias.map((noticia) => (
             <div
               key={noticia.id}
-              className="bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow"
+              className="bg-card rounded-lg border shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex flex-col sm:flex-row">
                 {/* Image */}
                 {noticia.imagenUrl && (
-                  <div className="w-full sm:w-48 h-32 sm:h-auto flex-shrink-0">
+                  <div className="w-full sm:w-48 h-32 sm:h-auto flex-shrink-0 bg-muted/30 flex items-center justify-center">
                     <img
                       src={noticia.imagenUrl}
                       alt={noticia.titulo}
-                      className="w-full h-full object-cover rounded-t-lg sm:rounded-l-lg sm:rounded-t-none"
+                      className="w-full h-full object-contain rounded-t-lg sm:rounded-l-lg sm:rounded-t-none"
                     />
                   </div>
                 )}
@@ -502,23 +505,27 @@ export default function NoticiasPage() {
                     )}
                   </div>
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
+                  <h3 className="text-lg font-semibold text-foreground mb-1 line-clamp-1">
                     {noticia.titulo}
                   </h3>
 
                   {noticia.extracto && (
-                    <p className="text-sm text-gray-500 mb-2 line-clamp-2">
+                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                       {noticia.extracto}
                     </p>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-gray-400">
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                     {noticia.autor && (
                       <span>Por: {noticia.autor}</span>
                     )}
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5" />
                       {formatDate(noticia.fechaPublicacion || noticia.createdAt)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Eye className="w-3.5 h-3.5" />
+                      {noticia.vistas || 0} vistas
                     </span>
                   </div>
                 </div>

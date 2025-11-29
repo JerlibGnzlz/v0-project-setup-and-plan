@@ -207,7 +207,7 @@ function ComingSoonAnnouncement() {
   )
 }
 
-// Horizontal Invitation Card Component
+// Horizontal Invitation Card Component - Premium Design
 function HorizontalInvitationCard({ 
   convencion, 
   fechaFormateada 
@@ -217,141 +217,228 @@ function HorizontalInvitationCard({
 }) {
   return (
     <div className="relative group h-full">
-      {/* Outer glow */}
-      <div className="absolute -inset-2 bg-gradient-to-r from-amber-500/20 via-yellow-400/15 to-amber-500/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-70 transition-opacity duration-700" />
+      {/* Multi-layer glow effects */}
+      <div className="absolute -inset-3 bg-gradient-to-r from-amber-500/30 via-yellow-400/20 to-amber-500/30 rounded-3xl blur-2xl opacity-60 group-hover:opacity-90 transition-opacity duration-700 animate-pulse" />
+      <div className="absolute -inset-1 bg-gradient-to-br from-amber-400/20 via-orange-500/15 to-amber-400/20 rounded-2xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity duration-500" />
       
-      {/* Card shadow */}
-      <div className="absolute inset-0 translate-y-2 translate-x-1 bg-black/20 rounded-xl blur-lg" />
+      {/* Card shadow with depth */}
+      <div className="absolute inset-0 translate-y-3 translate-x-2 bg-gradient-to-br from-black/40 to-amber-900/20 rounded-2xl blur-xl" />
       
-      {/* Main invitation card */}
+      {/* Main invitation card - Premium design */}
       <div 
-        className="relative h-full rounded-xl overflow-hidden transform transition-all duration-500 group-hover:scale-[1.01]"
+        className="relative h-full rounded-2xl overflow-hidden transform transition-all duration-500 group-hover:scale-[1.02] group-hover:shadow-2xl group-hover:shadow-amber-500/30"
         style={{
-          background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%)',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(251,191,36,0.3)',
+          background: 'linear-gradient(165deg, #1e293b 0%, #0f172a 30%, #1e293b 70%, #0f172a 100%)',
+          boxShadow: `
+            inset 0 2px 4px rgba(255,255,255,0.05),
+            inset 0 -2px 4px rgba(0,0,0,0.3),
+            0 0 0 1px rgba(251,191,36,0.4),
+            0 8px 32px rgba(0,0,0,0.4)
+          `,
         }}
       >
-        {/* Texture overlay */}
+        {/* Animated gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-orange-500/10 opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
+        
+        {/* Texture overlay - premium paper effect */}
         <div 
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.04]"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grain' width='100' height='100' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='25' cy='25' r='1' fill='%23fff' opacity='0.3'/%3E%3Ccircle cx='75' cy='75' r='1' fill='%23fff' opacity='0.3'/%3E%3Ccircle cx='50' cy='10' r='0.5' fill='%23fff' opacity='0.2'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23grain)'/%3E%3C/svg%3E")`,
+            backgroundSize: '100px 100px',
           }}
         />
         
-        {/* Decorative corners */}
+        {/* Decorative corners - enhanced */}
         <DecorativeCorner position="top-left" />
         <DecorativeCorner position="top-right" />
         <DecorativeCorner position="bottom-left" />
         <DecorativeCorner position="bottom-right" />
         
-        {/* Golden border frame */}
-        <div className="absolute inset-2 border border-amber-500/25 rounded-lg pointer-events-none" />
+        {/* Premium border frame with gradient */}
+        <div className="absolute inset-2 rounded-xl pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 border-2 border-transparent bg-gradient-to-r from-amber-500/40 via-yellow-400/30 to-amber-500/40 rounded-xl" 
+            style={{
+              maskImage: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              maskComposite: 'exclude',
+              WebkitMaskComposite: 'xor',
+            }}
+          />
+        </div>
+        
+        {/* Ornamental top border */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
         
         {/* Content */}
-        <div className="relative p-5 sm:p-6 h-full flex flex-col">
-          {/* Header with logo - compact */}
-          <div className="text-center mb-3">
-            {/* Seal/Emblem */}
-            <div className="relative inline-block mb-2">
-              <div className="absolute -inset-2 bg-gradient-to-r from-amber-500/20 via-yellow-400/20 to-amber-500/20 rounded-full blur-lg animate-pulse" />
-              <div className="relative w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 border-2 border-amber-500/40 flex items-center justify-center">
+        <div className="relative p-6 sm:p-8 h-full flex flex-col">
+          {/* Header with logo - Premium */}
+          <div className="text-center mb-4">
+            {/* Premium Seal/Emblem */}
+            <div className="relative inline-block mb-3">
+              {/* Outer glow rings */}
+              <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/30 via-yellow-400/20 to-amber-500/30 rounded-full blur-xl animate-pulse" />
+              <div className="absolute -inset-2 bg-gradient-to-r from-amber-500/20 via-yellow-400/15 to-amber-500/20 rounded-full blur-md" />
+              
+              {/* Main seal */}
+              <div className="relative w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-amber-500/30 via-amber-600/20 to-amber-700/10 border-2 border-amber-500/50 flex items-center justify-center shadow-lg shadow-amber-500/20">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 to-transparent" />
                 <Image
                   src="/mundo.png"
                   alt="AMVA"
-                  width={36}
-                  height={36}
-                  className="object-contain"
+                  width={48}
+                  height={48}
+                  className="object-contain relative z-10 drop-shadow-lg"
                 />
               </div>
+              
+              {/* Decorative rings */}
+              <div className="absolute -inset-1 border border-amber-500/20 rounded-full" />
             </div>
             
-            {/* Organization name */}
-            <p className="text-amber-400/70 text-[10px] tracking-[0.2em] uppercase font-medium">
-              A.M.V.A
-            </p>
-            <p className="text-white/40 text-[9px] tracking-wider uppercase">
-              Le invita a
-            </p>
+            {/* Organization name - Premium typography */}
+            <div className="space-y-1">
+              <p className="text-amber-300/90 text-xs tracking-[0.3em] uppercase font-bold letter-spacing-wider">
+                A.M.V.A
+              </p>
+              <div className="flex items-center justify-center gap-2">
+                <div className="h-px w-8 bg-gradient-to-r from-transparent to-amber-500/40" />
+                <p className="text-white/50 text-[10px] tracking-[0.15em] uppercase font-medium">
+                  Le invita cordialmente
+                </p>
+                <div className="h-px w-8 bg-gradient-to-l from-transparent to-amber-500/40" />
+              </div>
+            </div>
           </div>
 
-          <ElegantDividerCompact />
+          {/* Elegant divider - Enhanced */}
+          <div className="flex items-center justify-center gap-3 my-4">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/50 to-amber-500/30" />
+            <div className="relative">
+              <Star className="w-3 h-3 text-amber-400/60 fill-amber-400/20" />
+              <div className="absolute inset-0 animate-ping">
+                <Star className="w-3 h-3 text-amber-400/30" />
+              </div>
+            </div>
+            <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-500/50 to-amber-500/30" />
+          </div>
 
-          {/* Event title */}
-          <div className="text-center mb-3 flex-shrink-0">
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-1" style={{ fontFamily: 'Georgia, serif' }}>
+          {/* Event title - Premium */}
+          <div className="text-center mb-4 flex-shrink-0">
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight" 
+              style={{ 
+                fontFamily: 'Georgia, serif',
+                textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              }}
+            >
               {convencion.titulo}
             </h3>
             
-            {/* Badge */}
-            <Badge className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 text-[10px]">
-              <Ticket className="w-2.5 h-2.5 mr-1" />
+            {/* Premium Badge */}
+            <Badge className="bg-gradient-to-r from-amber-500/30 via-yellow-500/25 to-orange-500/30 text-amber-200 border border-amber-400/40 px-3 py-1 text-xs font-semibold shadow-lg shadow-amber-500/20 backdrop-blur-sm">
+              <Ticket className="w-3 h-3 mr-1.5" />
               Inscripción Abierta
             </Badge>
           </div>
 
-          <ElegantDividerCompact />
+          {/* Elegant divider - Enhanced */}
+          <div className="flex items-center justify-center gap-3 my-4">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/50 to-amber-500/30" />
+            <div className="relative">
+              <Star className="w-3 h-3 text-amber-400/60 fill-amber-400/20" />
+            </div>
+            <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-500/50 to-amber-500/30" />
+          </div>
 
-          {/* Event details - Compact */}
-          <div className="space-y-2 mb-4 flex-grow">
-            {/* Date */}
-            <div className="flex items-center gap-2 justify-center">
-              <Calendar className="w-4 h-4 text-amber-400/70" />
-              <span className="text-sm text-white/80" style={{ fontFamily: 'Georgia, serif' }}>
+          {/* Event details - Premium layout */}
+          <div className="space-y-3 mb-6 flex-grow">
+            {/* Date - Enhanced */}
+            <div className="flex items-center gap-3 justify-center p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30">
+                <Calendar className="w-5 h-5 text-amber-300" />
+              </div>
+              <span className="text-sm text-white/90 font-medium flex-1" style={{ fontFamily: 'Georgia, serif' }}>
                 {fechaFormateada}
               </span>
             </div>
             
-            {/* Location */}
-            <div className="flex items-center gap-2 justify-center">
-              <MapPin className="w-4 h-4 text-amber-400/70" />
-              <span className="text-sm text-white/80" style={{ fontFamily: 'Georgia, serif' }}>
+            {/* Location - Enhanced */}
+            <div className="flex items-center gap-3 justify-center p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30">
+                <MapPin className="w-5 h-5 text-amber-300" />
+              </div>
+              <span className="text-sm text-white/90 font-medium flex-1" style={{ fontFamily: 'Georgia, serif' }}>
                 {convencion.ubicacion}
               </span>
             </div>
 
-            {/* Price - if exists */}
+            {/* Price - Premium display */}
             {convencion.costo && Number(convencion.costo) > 0 && (
-              <div className="text-center pt-2 mt-2 border-t border-amber-500/20">
-                <p className="text-amber-400/50 text-[9px] tracking-wider uppercase">Inversión</p>
-                <div className="text-xl font-bold bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 bg-clip-text text-transparent">
-                  ${Number(convencion.costo).toLocaleString('es-AR')}
-                  <span className="text-xs ml-0.5 text-amber-400/50">ARS</span>
+              <div className="text-center pt-3 mt-3 border-t border-amber-500/30">
+                <p className="text-amber-400/60 text-[10px] tracking-[0.2em] uppercase font-semibold mb-2">Inversión</p>
+                <div className="relative inline-block">
+                  <div className="absolute -inset-2 bg-gradient-to-r from-amber-500/20 via-yellow-400/15 to-amber-500/20 rounded-lg blur-md" />
+                  <div className="relative text-2xl font-bold bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 bg-clip-text text-transparent">
+                    ${Number(convencion.costo).toLocaleString('es-AR')}
+                    <span className="text-sm ml-1 text-amber-400/70 font-normal">ARS</span>
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* CTA Button */}
+          {/* Premium CTA Button */}
           <Button
-            className="w-full h-10 text-sm bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 text-slate-900 font-semibold border-0 shadow-md shadow-amber-500/25 hover:shadow-amber-500/40 transition-all duration-300 rounded-lg"
+            className="w-full h-12 text-base bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 text-slate-900 font-bold border-0 shadow-xl shadow-amber-500/30 hover:shadow-amber-500/50 transition-all duration-300 rounded-xl relative overflow-hidden group/btn"
             onClick={() => {
-              const inscripcionSection = document.getElementById('inscripcion')
-              if (inscripcionSection) {
-                inscripcionSection.scrollIntoView({ behavior: 'smooth' })
+              // Detectar si es dispositivo móvil para deep linking
+              const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+              
+              if (isMobile) {
+                // Intentar abrir la app móvil con deep link
+                const deepLink = `amva-app://convencion/${convencion.id}/inscripcion`
+                
+                // Intentar abrir la app
+                window.location.href = deepLink
+                
+                // Si después de 1 segundo no se abrió la app, redirigir a página de inscripción
+                setTimeout(() => {
+                  window.location.href = '/convencion/inscripcion'
+                }, 1000)
+              } else {
+                // Desktop: redirigir a página de inscripción
+                window.location.href = '/convencion/inscripcion'
               }
             }}
           >
-            <Sparkles className="w-4 h-4 mr-1.5" />
-            Confirmar Asistencia
+            {/* Button shine effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
+            <Sparkles className="w-5 h-5 mr-2 relative z-10" />
+            <span className="relative z-10">Confirmar Asistencia</span>
           </Button>
 
-          {/* Bottom seal */}
-          <div className="flex justify-center mt-3">
-            <div className="flex items-center gap-1.5 text-amber-500/30">
-              <Star className="w-2 h-2" />
-              <Star className="w-2.5 h-2.5" />
-              <Star className="w-2 h-2" />
+          {/* Premium bottom seal */}
+          <div className="flex justify-center items-center gap-2 mt-4">
+            <div className="h-px w-8 bg-gradient-to-r from-transparent to-amber-500/30" />
+            <div className="flex items-center gap-1.5 text-amber-500/40">
+              <Star className="w-2.5 h-2.5 fill-amber-500/20" />
+              <Star className="w-3 h-3 fill-amber-500/30" />
+              <Star className="w-2.5 h-2.5 fill-amber-500/20" />
             </div>
+            <div className="h-px w-8 bg-gradient-to-l from-transparent to-amber-500/30" />
           </div>
         </div>
 
-        {/* Shine effect on hover */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+        {/* Premium shine effect on hover */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none overflow-hidden rounded-2xl">
           <div 
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
-            style={{ transform: 'skewX(-20deg)' }}
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+            style={{ transform: 'skewX(-25deg)' }}
           />
+        </div>
+        
+        {/* Animated border glow */}
+        <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+          <div className="absolute inset-0 rounded-2xl border-2 border-amber-400/30 animate-pulse" />
         </div>
       </div>
     </div>

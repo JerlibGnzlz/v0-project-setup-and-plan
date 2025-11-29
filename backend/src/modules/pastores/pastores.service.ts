@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common"
+import { Injectable, Logger, NotFoundException } from "@nestjs/common"
 import { PrismaService } from "../../prisma/prisma.service"
 import { CreatePastorDto, UpdatePastorDto } from "./dto/pastor.dto"
 import { BaseService } from "../../common/base.service"
@@ -39,6 +39,42 @@ export class PastoresService extends BaseService<
       where: { activo: true },
       orderBy: { nombre: "asc" },
     })
+  }
+
+  /**
+   * Sobrescribe update para asegurar que solo DIRECTIVA puede tener mostrarEnLanding = true
+   */
+  override async update(id: string, data: UpdatePastorDto): Promise<Pastor> {
+    // Si se está actualizando el tipo o mostrarEnLanding, validar la lógica
+    const currentPastor = await this.findOneOrNull(id)
+    
+    if (!currentPastor) {
+      throw new NotFoundException('Pastor no encontrado')
+    }
+
+    // Determinar el tipo final (el que viene en data o el actual)
+    const finalTipo = data.tipo || currentPastor.tipo
+
+    // Si el tipo no es DIRECTIVA, forzar mostrarEnLanding = false
+    if (finalTipo !== 'DIRECTIVA') {
+      data.mostrarEnLanding = false
+      this.logger.log(`⚠️ Pastor ${id} no es DIRECTIVA, desactivando mostrarEnLanding`)
+    }
+
+    return super.update(id, data)
+  }
+
+  /**
+   * Sobrescribe create para asegurar que solo DIRECTIVA puede tener mostrarEnLanding = true
+   */
+  override async create(data: CreatePastorDto): Promise<Pastor> {
+    // Si el tipo no es DIRECTIVA, forzar mostrarEnLanding = false
+    if (data.tipo && data.tipo !== 'DIRECTIVA') {
+      data.mostrarEnLanding = false
+      this.logger.log(`⚠️ Pastor nuevo no es DIRECTIVA, desactivando mostrarEnLanding`)
+    }
+
+    return super.create(data)
   }
 
   /**

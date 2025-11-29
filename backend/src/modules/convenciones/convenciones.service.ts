@@ -89,6 +89,31 @@ export class ConvencionesService {
   }
 
   /**
+   * Archiva una convención
+   */
+  async archivar(id: string): Promise<Convencion> {
+    this.logger.log(`📦 Archiving convención: ${id}`)
+    const convencion = await this.repository.findByIdOrFail(id)
+    
+    return this.repository.update(id, {
+      archivada: true,
+      fechaArchivado: new Date(),
+      activa: false, // Desactivar automáticamente al archivar
+    })
+  }
+
+  /**
+   * Desarchiva una convención
+   */
+  async desarchivar(id: string): Promise<Convencion> {
+    this.logger.log(`📦 Unarchiving convención: ${id}`)
+    return this.repository.update(id, {
+      archivada: false,
+      fechaArchivado: null,
+    })
+  }
+
+  /**
    * Elimina una convención
    */
   async remove(id: string): Promise<Convencion> {

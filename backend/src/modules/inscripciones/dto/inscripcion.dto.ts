@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEmail, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsEmail, IsEnum, IsNumber, Min, Max, Length, Matches } from 'class-validator';
 
 export enum EstadoPago {
     PENDIENTE = 'PENDIENTE',
@@ -12,54 +12,88 @@ export class CreateInscripcionDto {
     convencionId: string;
 
     @IsString()
+    @Length(2, 50, { message: 'El nombre debe tener entre 2 y 50 caracteres' })
+    @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/, { message: 'El nombre solo puede contener letras, espacios, guiones y apóstrofes' })
     nombre: string;
 
     @IsString()
+    @Length(2, 50, { message: 'El apellido debe tener entre 2 y 50 caracteres' })
+    @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/, { message: 'El apellido solo puede contener letras, espacios, guiones y apóstrofes' })
     apellido: string;
 
-    @IsEmail()
+    @IsEmail({}, { message: 'Correo electrónico inválido' })
+    @Length(5, 254, { message: 'El correo electrónico debe tener entre 5 y 254 caracteres' })
     email: string;
 
     @IsOptional()
     @IsString()
+    @Length(8, 20, { message: 'El teléfono debe tener entre 8 y 20 caracteres' })
+    @Matches(/^\+?[\d\s\-()]+$/, { message: 'El teléfono solo puede contener números, espacios, guiones, paréntesis y el símbolo +' })
     telefono?: string;
 
     @IsOptional()
     @IsString()
+    @Length(0, 200, { message: 'La sede no puede exceder 200 caracteres' })
     sede?: string;
 
     @IsOptional()
     @IsString()
+    @Length(0, 50, { message: 'El tipo de inscripción no puede exceder 50 caracteres' })
     tipoInscripcion?: string;
 
     @IsOptional()
     @IsString()
+    @Length(0, 1000, { message: 'Las notas no pueden exceder 1000 caracteres' })
     notas?: string;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    @Max(3)
+    numeroCuotas?: number; // 1, 2 o 3 cuotas
+
+    @IsOptional()
+    @IsString()
+    @Matches(/^(web|mobile|dashboard)$/, { message: 'El origen de registro debe ser: web, mobile o dashboard' })
+    origenRegistro?: string; // "web", "mobile", "dashboard"
+
+    @IsOptional()
+    @IsString()
+    documentoUrl?: string; // URL del documento/comprobante subido
 }
 
 export class UpdateInscripcionDto {
     @IsOptional()
     @IsString()
+    @Length(2, 50, { message: 'El nombre debe tener entre 2 y 50 caracteres' })
+    @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/, { message: 'El nombre solo puede contener letras, espacios, guiones y apóstrofes' })
     nombre?: string;
 
     @IsOptional()
     @IsString()
+    @Length(2, 50, { message: 'El apellido debe tener entre 2 y 50 caracteres' })
+    @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/, { message: 'El apellido solo puede contener letras, espacios, guiones y apóstrofes' })
     apellido?: string;
 
     @IsOptional()
-    @IsEmail()
+    @IsEmail({}, { message: 'Correo electrónico inválido' })
+    @Length(5, 254, { message: 'El correo electrónico debe tener entre 5 y 254 caracteres' })
     email?: string;
 
     @IsOptional()
     @IsString()
+    @Length(8, 20, { message: 'El teléfono debe tener entre 8 y 20 caracteres' })
+    @Matches(/^\+?[\d\s\-()]+$/, { message: 'El teléfono solo puede contener números, espacios, guiones, paréntesis y el símbolo +' })
     telefono?: string;
 
     @IsOptional()
     @IsString()
+    @Length(0, 200, { message: 'La sede no puede exceder 200 caracteres' })
     sede?: string;
 
     @IsOptional()
     @IsString()
+    @Length(0, 50, { message: 'El tipo de inscripción no puede exceder 50 caracteres' })
     tipoInscripcion?: string;
 
     @IsOptional()
@@ -68,7 +102,14 @@ export class UpdateInscripcionDto {
 
     @IsOptional()
     @IsString()
+    @Length(0, 1000, { message: 'Las notas no pueden exceder 1000 caracteres' })
     notas?: string;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    @Max(3)
+    numeroCuotas?: number; // 1, 2 o 3 cuotas
 }
 
 export class CreatePagoDto {
@@ -82,12 +123,22 @@ export class CreatePagoDto {
     metodoPago: string;
 
     @IsOptional()
+    @IsNumber()
+    @Min(1)
+    @Max(3)
+    numeroCuota?: number; // 1, 2, o 3 para identificar la cuota
+
+    @IsOptional()
     @IsEnum(EstadoPago)
     estado?: EstadoPago;
 
     @IsOptional()
     @IsString()
     referencia?: string;
+
+    @IsOptional()
+    @IsString()
+    comprobanteUrl?: string; // URL de la imagen del comprobante
 
     @IsOptional()
     @IsString()
@@ -104,6 +155,12 @@ export class UpdatePagoDto {
     metodoPago?: string;
 
     @IsOptional()
+    @IsNumber()
+    @Min(1)
+    @Max(3)
+    numeroCuota?: number; // 1, 2, o 3 para identificar la cuota
+
+    @IsOptional()
     @IsEnum(EstadoPago)
     estado?: EstadoPago;
 
@@ -113,5 +170,10 @@ export class UpdatePagoDto {
 
     @IsOptional()
     @IsString()
+    comprobanteUrl?: string; // URL de la imagen del comprobante
+
+    @IsOptional()
+    @IsString()
     notas?: string;
 }
+

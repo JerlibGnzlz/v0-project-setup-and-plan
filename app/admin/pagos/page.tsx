@@ -30,7 +30,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Search, CheckCircle, CreditCard, FileText, ChevronLeft } from 'lucide-react'
+import { Search, CheckCircle, CreditCard, FileText, ChevronLeft, Image as ImageIcon } from 'lucide-react'
+import Image from 'next/image'
 import { ScrollReveal } from '@/components/scroll-reveal'
 
 export default function PagosPage() {
@@ -54,15 +55,42 @@ export default function PagosPage() {
 
   const confirmarPago = async (pagoId: string) => {
     try {
+      const pago = pagos.find((p: any) => p.id === pagoId)
+      if (!pago) {
+        toast.error('No se encontró el pago')
+        return
+      }
+
+      const numeroCuota = pago?.numeroCuota
+      const inscripcion = pago.inscripcion
+      const numeroCuotasTotal = inscripcion?.numeroCuotas || 3
+      
+      // Verificar si tiene comprobante cuando es requerido
+      const requiereComprobante = (pago.metodoPago === 'transferencia' || pago.metodoPago === 'mercadopago')
+      if (requiereComprobante && !pago.comprobanteUrl) {
+        toast.warning('Este pago requiere un comprobante. Por favor, agrega el comprobante antes de validar.')
+        return
+      }
+
       await updatePagoMutation.mutateAsync({
         id: pagoId,
         data: {
-          estado: 'COMPLETADO',
-          fechaPago: new Date().toISOString()
+          estado: 'COMPLETADO' as const
         }
       })
-    } catch (error) {
-      // Error manejado por el hook
+      
+      // Mostrar mensaje informativo (el hook ya muestra un toast de éxito, pero este es más específico)
+      if (numeroCuota) {
+        toast.success(`Cuota ${numeroCuota}/${numeroCuotasTotal} validada exitosamente. Si es la última cuota, la inscripción será confirmada automáticamente.`)
+      } else {
+        toast.success('Pago validado exitosamente')
+      }
+    } catch (error: any) {
+      console.error('Error al validar pago:', error)
+      // El hook ya maneja el error y muestra un toast, pero podemos agregar más detalles si es necesario
+      if (error?.response?.data?.message) {
+        toast.error(`Error: ${error.response.data.message}`)
+      }
     }
   }
 
@@ -164,6 +192,7 @@ export default function PagosPage() {
                       <th className="p-3 text-sm font-medium">Monto</th>
                       <th className="p-3 text-sm font-medium">Método</th>
                       <th className="p-3 text-sm font-medium">Estado</th>
+                      <th className="p-3 text-sm font-medium">Comprobante</th>
                       <th className="p-3 text-sm font-medium">Notas</th>
                       <th className="p-3 text-sm font-medium">Acciones</th>
                     </tr>
@@ -194,9 +223,16 @@ export default function PagosPage() {
                               )}
                             </td>
                             <td className="p-3">
-                              <Badge variant="outline">
-                                Pago único
-                              </Badge>
+                              {pago.numeroCuota ? (
+                                <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700">
+                                  Cuota {pago.numeroCuota}
+                                  {pago.inscripcion?.numeroCuotas && `/${pago.inscripcion.numeroCuotas}`}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline">
+                                  Pago único
+                                </Badge>
+                              )}
                             </td>
                             <td className="p-3 text-sm">
                               {pago.fechaPago
@@ -221,6 +257,40 @@ export default function PagosPage() {
                                   pago.estado === 'PENDIENTE' ? 'Pendiente' :
                                     pago.estado}
                               </Badge>
+                            </td>
+                            <td className="p-3">
+                              {pago.comprobanteUrl ? (
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 text-xs hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                                    >
+                                      <ImageIcon className="size-3 mr-1" />
+                                      Ver
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-2xl">
+                                    <DialogHeader>
+                                      <DialogTitle>Comprobante de Pago</DialogTitle>
+                                      <DialogDescription>
+                                        {nombreCompleto} - {pago.referencia || 'Sin referencia'}
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="relative w-full h-[500px] rounded-lg overflow-hidden border">
+                                      <Image
+                                        src={pago.comprobanteUrl}
+                                        alt="Comprobante de pago"
+                                        fill
+                                        className="object-contain"
+                                      />
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">Sin comprobante</span>
+                              )}
                             </td>
                             <td className="p-3">
                               {pago.notas ? (

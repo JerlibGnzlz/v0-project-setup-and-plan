@@ -1,6 +1,9 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Navbar } from '@/components/navbar'
+import { toast } from 'sonner'
 import { HeroSection } from '@/components/hero-section'
 import { MarqueeTicker } from '@/components/marquee-ticker'
 import { SedesSection } from '@/components/sedes-section'
@@ -10,28 +13,67 @@ import { NewsSection } from '@/components/news-section'
 import { ConventionsSection } from '@/components/conventions-section'
 import { GallerySection } from '@/components/gallery-section'
 import { EducacionSection } from '@/components/educacion-section'
-import { RegistrationSection } from '@/components/registration-section'
 import { Footer } from '@/components/footer'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import { SectionIndicator } from '@/components/section-indicator'
 import { QueryProvider } from '@/lib/providers/query-provider'
+import { restoreScrollPosition } from '@/lib/utils/scroll-restore'
 
-export default function HomePage() {
+function HomePageContent() {
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    // Mostrar mensaje de éxito si viene de una inscripción exitosa
+    if (searchParams.get('inscripcion') === 'exito') {
+      toast.success('¡Inscripción exitosa!', {
+        description: 'Tu inscripción ha sido registrada correctamente. Te contactaremos pronto.',
+        duration: 5000,
+      })
+      
+      // Limpiar el parámetro de la URL sin recargar la página
+      const url = new URL(window.location.href)
+      url.searchParams.delete('inscripcion')
+      window.history.replaceState({}, '', url.toString())
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    // Restaurar la posición de scroll cuando se carga la página
+    // Esperar a que el DOM y las queries estén listas
+    const restore = () => {
+      // Esperar a que Next.js termine de hidratar
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(() => restoreScrollPosition(), 300)
+        })
+      } else {
+        setTimeout(() => restoreScrollPosition(), 300)
+      }
+    }
+
+    restore()
+
+    // También escuchar cuando la página se carga completamente
+    if (typeof window !== 'undefined') {
+      window.addEventListener('load', () => {
+        setTimeout(() => restoreScrollPosition(), 200)
+      })
+    }
+  }, [])
+
   return (
-    <QueryProvider>
-      {/* Tema oscuro moderno para toda la landing */}
-      <div
-        className="min-h-screen bg-[#0a1628] text-white"
-        style={{
-          colorScheme: 'dark',
-        }}
-      >
-        <main>
-          <Navbar />
-          <SectionIndicator />
-          <div id="inicio">
-            <HeroSection />
-          </div>
+    <div
+      className="min-h-screen bg-[#0a1628] text-white"
+      style={{
+        colorScheme: 'dark',
+      }}
+    >
+      <main>
+        <Navbar />
+        <SectionIndicator />
+        <div id="inicio">
+          <HeroSection />
+        </div>
           <MarqueeTicker />
           <div id="sedes">
             <ScrollReveal>
@@ -68,14 +110,16 @@ export default function HomePage() {
               <EducacionSection />
             </ScrollReveal>
           </div>
-          <div id="inscripcion">
-            <ScrollReveal delay={100}>
-              <RegistrationSection />
-            </ScrollReveal>
-          </div>
-          <Footer />
-        </main>
-      </div>
+        <Footer />
+      </main>
+    </div>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <QueryProvider>
+      <HomePageContent />
     </QueryProvider>
   )
 }

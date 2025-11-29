@@ -11,6 +11,8 @@ export interface Convencion {
   cupoMaximo?: number
   imagenUrl?: string
   activa: boolean
+  archivada?: boolean
+  fechaArchivado?: string
   createdAt: string
   updatedAt: string
 }
@@ -52,6 +54,16 @@ export const convencionesApi = {
 
   update: async (id: string, data: Partial<Convencion>): Promise<Convencion> => {
     const response = await apiClient.patch<Convencion>(`/convenciones/${id}`, data)
+    return response.data
+  },
+
+  archivar: async (id: string): Promise<Convencion> => {
+    const response = await apiClient.patch<Convencion>(`/convenciones/${id}/archivar`)
+    return response.data
+  },
+
+  desarchivar: async (id: string): Promise<Convencion> => {
+    const response = await apiClient.patch<Convencion>(`/convenciones/${id}/desarchivar`)
     return response.data
   },
 

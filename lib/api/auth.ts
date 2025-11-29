@@ -18,8 +18,19 @@ export interface LoginResponse {
 
 export const authApi = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
-    const response = await apiClient.post<LoginResponse>("/auth/login", data)
-    return response.data
+    console.log('[authApi] Enviando petición de login:', { email: data.email })
+    try {
+      const response = await apiClient.post<LoginResponse>("/auth/login", data)
+      console.log('[authApi] Respuesta recibida:', { hasToken: !!response.data.access_token, hasUser: !!response.data.user })
+      return response.data
+    } catch (error: any) {
+      console.error('[authApi] Error en login:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      })
+      throw error
+    }
   },
 
   register: async (data: {
@@ -31,8 +42,8 @@ export const authApi = {
     return response.data
   },
 
-  getProfile: async () => {
-    const response = await apiClient.get("/auth/me")
+  getProfile: async (): Promise<LoginResponse["user"]> => {
+    const response = await apiClient.get<LoginResponse["user"]>("/auth/me")
     return response.data
   },
 }

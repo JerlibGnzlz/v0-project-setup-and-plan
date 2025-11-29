@@ -26,10 +26,27 @@ export function useUpdatePago() {
     mutationFn: ({ id, data }: { id: string; data: Partial<Pago> }) => pagosApi.updatePago(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pagos"] })
+      queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
       toast.success("Pago actualizado exitosamente")
     },
     onError: () => {
       toast.error("Error al actualizar el pago")
+    },
+  })
+}
+
+export function useCreatePago() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: pagosApi.createPago,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pagos"] })
+      queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+      toast.success("Pago creado exitosamente")
+    },
+    onError: () => {
+      toast.error("Error al crear el pago")
     },
   })
 }
@@ -41,6 +58,7 @@ export function useDeletePago() {
     mutationFn: pagosApi.deletePago,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pagos"] })
+      queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
       toast.success("Pago eliminado exitosamente")
     },
     onError: () => {
@@ -48,3 +66,4 @@ export function useDeletePago() {
     },
   })
 }
+

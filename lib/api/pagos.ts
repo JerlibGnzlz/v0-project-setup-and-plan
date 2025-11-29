@@ -24,8 +24,10 @@ export interface Pago {
   inscripcionId: string
   monto: number | string
   metodoPago: string
+  numeroCuota?: number // 1, 2, o 3 para identificar la cuota
   estado: "PENDIENTE" | "COMPLETADO" | "CANCELADO" | "REEMBOLSADO"
   referencia?: string
+  comprobanteUrl?: string // URL de la imagen del comprobante
   fechaPago?: string
   notas?: string
   inscripcion?: Inscripcion
@@ -44,6 +46,20 @@ export const pagosApi = {
     return response.data
   },
 
+  createPago: async (data: {
+    inscripcionId: string
+    monto: string
+    metodoPago: string
+    numeroCuota?: number
+    estado?: "PENDIENTE" | "COMPLETADO" | "CANCELADO" | "REEMBOLSADO"
+    referencia?: string
+    comprobanteUrl?: string
+    notas?: string
+  }): Promise<Pago> => {
+    const response = await apiClient.post<Pago>("/pagos", data)
+    return response.data
+  },
+
   updatePago: async (id: string, data: Partial<Pago>): Promise<Pago> => {
     const response = await apiClient.patch<Pago>(`/pagos/${id}`, data)
     return response.data
@@ -53,3 +69,4 @@ export const pagosApi = {
     await apiClient.delete(`/pagos/${id}`)
   },
 }
+

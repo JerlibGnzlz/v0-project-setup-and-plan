@@ -39,6 +39,18 @@ export class ConvencionesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Patch(":id/archivar")
+  archivar(@Param("id") id: string) {
+    return this.convencionesService.archivar(id)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(":id/desarchivar")
+  desarchivar(@Param("id") id: string) {
+    return this.convencionesService.desarchivar(id)
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete(":id")
   remove(@Param("id") id: string) {
     return this.convencionesService.remove(id)

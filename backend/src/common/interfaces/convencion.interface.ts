@@ -79,3 +79,4 @@ export interface IConvencionWithRelations extends Convencion {
   inscripciones?: any[];
   galeria?: any[];
 }
+

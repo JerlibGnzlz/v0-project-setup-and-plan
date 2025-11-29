@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Facebook, Instagram, Mail, Phone, MapPin, Heart } from 'lucide-react'
+import { DownloadAppButton } from '@/components/download-app-button'
 
 const quickLinks = [
   { href: '#inicio', label: 'Inicio' },
@@ -54,6 +55,12 @@ export function Footer() {
               <p className="text-white/60 text-sm leading-relaxed mb-6">
                 Llevando formación pastoral y vida abundante a las naciones a través de convenciones, seminarios y recursos de formación continua.
               </p>
+              
+              {/* Download App Button */}
+              <div className="mb-6">
+                <DownloadAppButton />
+              </div>
+              
               {/* Social Links */}
               <div className="flex gap-3">
                 {socialLinks.map((social) => {

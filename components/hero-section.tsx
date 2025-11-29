@@ -19,8 +19,16 @@ export function HeroSection() {
   useEffect(() => {
     if (!isClient) return
 
+    let ticking = false
+
     const handleScroll = () => {
-      setScrollY(window.scrollY)
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrollY(window.scrollY)
+          ticking = false
+        })
+        ticking = true
+      }
     }
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -34,7 +42,7 @@ export function HeroSection() {
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
 
     return () => {
       window.removeEventListener('scroll', handleScroll)
@@ -44,6 +52,9 @@ export function HeroSection() {
 
   const parallaxY = scrollY * 0.4
   const opacity = Math.max(1 - scrollY / 600, 0.2)
+  
+  // Limitar el scale para evitar deformaciones extremas
+  const scaleValue = Math.min(1 + scrollY * 0.0002, 1.1)
 
   return (
     <section
@@ -101,6 +112,7 @@ export function HeroSection() {
         style={{
           transform: `translateY(${parallaxY}px)`,
           opacity: opacity,
+          willChange: 'transform, opacity',
         }}
       >
         <div
@@ -113,9 +125,12 @@ export function HeroSection() {
                   rotateX(${(50 - mousePosition.y) * 0.15}deg)
                   translateX(${(mousePosition.x - 50) * 0.3}px)
                   translateY(${(mousePosition.y - 50) * 0.3}px)
-                  scale(${1 + scrollY * 0.0002})
+                  scale(${scaleValue})
                 `
               : 'none',
+            transformStyle: 'preserve-3d',
+            willChange: 'transform',
+            backfaceVisibility: 'hidden',
           }}
         >
           {/* Imagen principal con efecto de flotación */}
@@ -128,7 +143,11 @@ export function HeroSection() {
                 drop-shadow(0 0 60px rgba(59, 130, 246, 0.3))
                 drop-shadow(0 0 120px rgba(16, 185, 129, 0.2))
               `,
+              willChange: 'transform',
+              backfaceVisibility: 'hidden',
+              imageRendering: 'crisp-edges',
             }}
+            draggable={false}
           />
 
           {/* Glow ring that follows mouse */}

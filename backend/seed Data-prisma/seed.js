@@ -26,39 +26,72 @@ async function main() {
     });
     console.log('✅ Admin creado:', admin.email);
 
-    // 2. Crear pastores
-    const pastores = await prisma.pastor.createMany({
-        data: [
-            {
-                nombre: 'Juan',
-                apellido: 'Pérez',
-                email: 'juan.perez@ministerio.org',
-                telefono: '+54 11 1234-5678',
-                sede: 'Buenos Aires',
-                cargo: 'Pastor Principal',
-                activo: true,
-            },
-            {
-                nombre: 'María',
-                apellido: 'González',
-                email: 'maria.gonzalez@ministerio.org',
-                telefono: '+54 11 2345-6789',
-                sede: 'Córdoba',
-                cargo: 'Pastora Asociada',
-                activo: true,
-            },
-            {
-                nombre: 'Carlos',
-                apellido: 'Rodríguez',
-                email: 'carlos.rodriguez@ministerio.org',
-                telefono: '+54 11 3456-7890',
-                sede: 'Rosario',
-                cargo: 'Pastor de Jóvenes',
-                activo: true,
-            },
-        ],
+    // 2. Crear pastores con autenticación
+    const hashedPasswordPastor = await bcrypt.hash('pastor123', 10);
+    
+    // Crear primer pastor con autenticación
+    const pastor1 = await prisma.pastor.create({
+        data: {
+            nombre: 'Juan',
+            apellido: 'Pérez',
+            email: 'juan.perez@ministerio.org',
+            telefono: '+54 11 1234-5678',
+            sede: 'Buenos Aires',
+            cargo: 'Pastor Principal',
+            activo: true,
+            auth: {
+                create: {
+                    email: 'juan.perez@ministerio.org',
+                    password: hashedPasswordPastor,
+                    emailVerificado: true,
+                }
+            }
+        },
     });
-    console.log('✅ Pastores creados:', pastores.count);
+    console.log('✅ Pastor creado con auth:', pastor1.email);
+
+    // Crear segundo pastor con autenticación
+    const pastor2 = await prisma.pastor.create({
+        data: {
+            nombre: 'María',
+            apellido: 'González',
+            email: 'maria.gonzalez@ministerio.org',
+            telefono: '+54 11 2345-6789',
+            sede: 'Córdoba',
+            cargo: 'Pastora Asociada',
+            activo: true,
+            auth: {
+                create: {
+                    email: 'maria.gonzalez@ministerio.org',
+                    password: hashedPasswordPastor,
+                    emailVerificado: true,
+                }
+            }
+        },
+    });
+    console.log('✅ Pastor creado con auth:', pastor2.email);
+
+    // Crear tercer pastor con autenticación
+    const pastor3 = await prisma.pastor.create({
+        data: {
+            nombre: 'Carlos',
+            apellido: 'Rodríguez',
+            email: 'carlos.rodriguez@ministerio.org',
+            telefono: '+54 11 3456-7890',
+            sede: 'Rosario',
+            cargo: 'Pastor de Jóvenes',
+            activo: true,
+            auth: {
+                create: {
+                    email: 'carlos.rodriguez@ministerio.org',
+                    password: hashedPasswordPastor,
+                    emailVerificado: true,
+                }
+            }
+        },
+    });
+    console.log('✅ Pastor creado con auth:', pastor3.email);
+    console.log('✅ Total pastores creados: 3');
 
     // 3. Crear convenciones
     const convenciones = await prisma.convencion.createMany({

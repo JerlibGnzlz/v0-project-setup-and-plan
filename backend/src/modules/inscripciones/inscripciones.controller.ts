@@ -17,6 +17,11 @@ export class InscripcionesController {
     return this.inscripcionesService.findOneInscripcion(id)
   }
 
+  @Get('check/:convencionId/:email')
+  checkInscripcion(@Param('convencionId') convencionId: string, @Param('email') email: string) {
+    return this.inscripcionesService.checkInscripcionByEmail(email, convencionId)
+  }
+
   @Post()
   create(@Body() dto: CreateInscripcionDto) {
     return this.inscripcionesService.createInscripcion(dto)
@@ -69,3 +74,4 @@ export class PagosController {
     return this.inscripcionesService.removePago(id)
   }
 }
+

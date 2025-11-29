@@ -6,11 +6,11 @@ import { memoryStorage } from "multer"
 import type { Express } from "express"
 
 @Controller("upload")
-@UseGuards(JwtAuthGuard)
 export class UploadController {
   constructor(private readonly uploadService: UploadService) { }
 
   @Post('image')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
@@ -32,6 +32,7 @@ export class UploadController {
   }
 
   @Post('galeria')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
@@ -53,6 +54,7 @@ export class UploadController {
   }
 
   @Post('video')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
@@ -88,6 +90,28 @@ export class UploadController {
       url: result.url,
       publicId: result.publicId,
       trimmed: !!trimOptions,
+    };
+  }
+
+  // Endpoint público para documentos de inscripción
+  @Post('inscripcion-documento')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    }),
+  )
+  async uploadInscripcionDocumento(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No se proporcionó ningún archivo');
+    }
+
+    const result = await this.uploadService.uploadImage(file, 'ministerio-amva/inscripciones');
+
+    return {
+      success: true,
+      url: result.url,
+      publicId: result.publicId,
     };
   }
 }

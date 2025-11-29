@@ -28,8 +28,6 @@ import {
   Globe, 
   MapPin, 
   ChevronLeft, 
-  Mail, 
-  Phone, 
   Briefcase,
   Eye,
   ChevronRight,
@@ -39,6 +37,7 @@ import {
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { QueryProvider } from '@/lib/providers/query-provider'
+import { getReturnUrl } from '@/lib/utils/scroll-restore'
 
 // Configuración de tipos
 const tipoConfig: Record<TipoPastor, { 
@@ -179,7 +178,7 @@ function EquipoContent() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link href="/">
+                <Link href={typeof window !== 'undefined' ? getReturnUrl() : '/#directiva'}>
                   <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
                     <ChevronLeft className="size-5" />
                   </Button>
@@ -209,71 +208,8 @@ function EquipoContent() {
         {/* Filters */}
         <div className="sticky top-[73px] z-40 bg-[#0a1628]/90 backdrop-blur-xl border-b border-white/5">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Search */}
-              <div className="relative flex-1 min-w-[200px] max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-white/40" />
-                <Input
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30"
-                />
-              </div>
-
-              {/* Tipo filter */}
-              <Select value={selectedTipo} onValueChange={(v) => setSelectedTipo(v as TipoPastor | 'todos')}>
-                <SelectTrigger className="w-[180px] bg-white/5 border-white/10 text-white">
-                  <Filter className="size-4 mr-2 text-white/50" />
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#0d1f35] border-white/10">
-                  <SelectItem value="todos" className="text-white">
-                    Todos ({counts.todos})
-                  </SelectItem>
-                  {(Object.keys(tipoConfig) as TipoPastor[]).map((tipo) => (
-                    <SelectItem key={tipo} value={tipo} className="text-white">
-                      {tipoConfig[tipo].label} ({counts[tipo] || 0})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* País filter */}
-              {paises.length > 0 && (
-                <Select value={selectedPais} onValueChange={setSelectedPais}>
-                  <SelectTrigger className="w-[150px] bg-white/5 border-white/10 text-white">
-                    <Globe className="size-4 mr-2 text-white/50" />
-                    <SelectValue placeholder="País" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#0d1f35] border-white/10">
-                    <SelectItem value="todos" className="text-white">Todos los países</SelectItem>
-                    {paises.map((pais) => (
-                      <SelectItem key={pais} value={pais} className="text-white">{pais}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {/* Región filter */}
-              {regiones.length > 0 && (
-                <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                  <SelectTrigger className="w-[150px] bg-white/5 border-white/10 text-white">
-                    <MapPin className="size-4 mr-2 text-white/50" />
-                    <SelectValue placeholder="Región" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#0d1f35] border-white/10">
-                    <SelectItem value="todos" className="text-white">Todas las regiones</SelectItem>
-                    {regiones.map((region) => (
-                      <SelectItem key={region} value={region} className="text-white">{region}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-
             {/* Type badges */}
-            <div className="flex flex-wrap gap-2 mt-3">
+            <div className="flex flex-wrap gap-2">
               <Badge 
                 variant={selectedTipo === 'todos' ? 'default' : 'outline'}
                 className={`cursor-pointer transition-all ${selectedTipo === 'todos' ? 'bg-white/20 text-white' : 'bg-transparent text-white/60 border-white/20 hover:border-white/40'}`}
@@ -337,8 +273,8 @@ function EquipoContent() {
                       <div className={`flex-1 h-px bg-gradient-to-r ${config.gradient} opacity-30 ml-4`} />
                     </div>
 
-                    {/* Cards grid */}
-                    <div className={`grid gap-6 ${
+                    {/* Cards grid - Tamaño uniforme y compacto */}
+                    <div className={`grid gap-4 ${
                       pastoresDelTipo.length === 1 ? 'grid-cols-1 max-w-sm' :
                       pastoresDelTipo.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl' :
                       pastoresDelTipo.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl' :
@@ -378,50 +314,54 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
   const location = [pastor.sede, pastor.region, pastor.pais].filter(Boolean).join(', ')
 
   return (
-    <div className="group">
-      <div className="relative">
+    <div className="group h-full">
+      <div className="relative h-full flex flex-col">
         {/* Glow effect */}
         <div className={`absolute -inset-1 bg-gradient-to-r ${gradient} rounded-2xl blur opacity-0 group-hover:opacity-40 transition-opacity duration-500`} />
         
-        {/* Card */}
-        <div className="relative rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300">
-          {/* Image */}
-          <div className="relative aspect-square overflow-hidden bg-white/5">
+        {/* Card - Altura fija y compacta */}
+        <div className="relative rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300 h-full flex flex-col">
+          {/* Image - Altura fija con fondo según tipo */}
+          <div className="relative h-48 overflow-hidden bg-white/5 flex-shrink-0">
             {pastor.fotoUrl ? (
-              <Image
-                src={pastor.fotoUrl}
-                alt={fullName}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                loading="lazy"
-              />
+              <>
+                {/* Fondo según tipo */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-30`} />
+                <Image
+                  src={pastor.fotoUrl}
+                  alt={fullName}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="object-cover object-center group-hover:scale-105 transition-transform duration-500 relative z-10"
+                  loading="lazy"
+                />
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/10 to-white/5">
-                <span className="text-4xl font-bold text-white/30">
+                <span className="text-3xl font-bold text-white/30">
                   {pastor.nombre?.[0]}{pastor.apellido?.[0]}
                 </span>
               </div>
             )}
-            <div className={`absolute inset-0 bg-gradient-to-t ${gradient} opacity-0 group-hover:opacity-30 transition-opacity duration-500`} />
+            <div className={`absolute inset-0 bg-gradient-to-t ${gradient} opacity-0 group-hover:opacity-30 transition-opacity duration-500 z-20 pointer-events-none`} />
             
             {/* Type badge */}
-            <div className="absolute top-3 left-3">
-              <Badge className={`bg-gradient-to-r ${gradient} text-white border-0 text-xs`}>
+            <div className="absolute top-2 left-2">
+              <Badge className={`bg-gradient-to-r ${gradient} text-white border-0 text-[10px] px-1.5 py-0.5`}>
                 {tipoConfig[pastor.tipo]?.label.split(' ')[0] || pastor.tipo}
               </Badge>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-4">
-            <h3 className="text-lg font-bold text-white mb-1 truncate">{fullName}</h3>
-            <p className={`text-sm font-medium bg-gradient-to-r ${gradient} bg-clip-text text-transparent mb-2 truncate`}>
+          {/* Content - Altura fija y compacta */}
+          <div className="p-3 flex flex-col flex-1 min-h-0">
+            <h3 className="text-sm font-bold text-white mb-0.5 truncate">{fullName}</h3>
+            <p className={`text-xs font-medium bg-gradient-to-r ${gradient} bg-clip-text text-transparent mb-1.5 truncate`}>
               {pastor.cargo || pastor.ministerio || 'Pastor'}
             </p>
             {location && (
-              <div className="flex items-center gap-2 text-white/50 text-xs mb-3">
-                <MapPin className="w-3 h-3 flex-shrink-0" />
+              <div className="flex items-center gap-1.5 text-white/50 text-[10px] mb-2">
+                <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
                 <span className="truncate">{location}</span>
               </div>
             )}
@@ -430,11 +370,11 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
               <DialogTrigger asChild>
                 <Button 
                   variant="ghost" 
-                  className="w-full bg-white/5 hover:bg-white/10 text-white border border-white/10 gap-2 text-sm"
+                  className="w-full bg-white/5 hover:bg-white/10 text-white border border-white/10 gap-1.5 text-[10px] h-7 mt-auto"
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-3 w-3" />
                   Ver Perfil
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3 w-3" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl bg-[#0d1f35] border-white/10 text-white">
@@ -451,18 +391,6 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
                         {location}
-                      </div>
-                    )}
-                    {pastor.email && (
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        {pastor.email}
-                      </div>
-                    )}
-                    {pastor.telefono && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4" />
-                        {pastor.telefono}
                       </div>
                     )}
                     {pastor.ministerio && (

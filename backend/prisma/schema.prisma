@@ -7,23 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modelo de Usuario para autenticación
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  nombre    String
-  avatar    String?  // URL del avatar del usuario
-  rol       UserRole @default(ADMIN)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
+  id             String               @id @default(uuid())
+  email          String               @unique
+  password       String
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  nombre         String
+  rol            UserRole             @default(ADMIN)
+  avatar         String?
   passwordResets PasswordResetToken[]
 
   @@map("users")
 }
 
-// Modelo de Token para Reset de Contraseña
 model PasswordResetToken {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
@@ -31,81 +28,58 @@ model PasswordResetToken {
   expiresAt DateTime @map("expires_at")
   used      Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([userId])
   @@map("password_reset_tokens")
 }
 
-enum UserRole {
-  ADMIN
-  EDITOR
-  VIEWER
-}
-
-// Modelo de Convención
 model Convencion {
-  id          String   @id @default(uuid())
-  titulo      String
-  descripcion String?
-  fechaInicio DateTime @map("fecha_inicio")
-  fechaFin    DateTime @map("fecha_fin")
-  ubicacion   String
-  costo       Decimal  @default(0) @db.Decimal(10, 2)
-  cupoMaximo  Int?     @map("cupo_maximo")
-  imagenUrl   String?  @map("imagen_url")
-  activa      Boolean  @default(true)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  inscripciones Inscripcion[]
-  galeria       GaleriaImagen[]
+  id             String          @id @default(uuid())
+  titulo         String
+  descripcion    String?
+  ubicacion      String
+  activa         Boolean         @default(true)
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  costo          Decimal         @default(0) @db.Decimal(10, 2)
+  cupoMaximo     Int?            @map("cupo_maximo")
+  fechaFin       DateTime        @map("fecha_fin")
+  fechaInicio    DateTime        @map("fecha_inicio")
+  imagenUrl      String?         @map("imagen_url")
+  archivada      Boolean         @default(false)
+  fechaArchivado DateTime?       @map("fecha_archivado")
+  galeria        GaleriaImagen[]
+  inscripciones  Inscripcion[]
 
   @@index([activa])
   @@index([fechaInicio])
   @@map("convenciones")
 }
 
-// Tipos de Pastor
-enum TipoPastor {
-  DIRECTIVA        // Directiva Pastoral (se muestra en landing)
-  SUPERVISOR       // Supervisor Provincial/Regional
-  PRESIDENTE       // Presidente de país
-  PASTOR           // Pastor regular
-}
-
-// Modelo de Pastor
 model Pastor {
-  id              String      @id @default(uuid())
-  nombre          String
-  apellido        String
-  email           String?     @unique
-  telefono        String?
-  
-  // Clasificación
-  tipo            TipoPastor  @default(PASTOR)
-  cargo           String?                        // "Pastor Principal", "Secretario", etc.
-  ministerio      String?                        // Área de ministerio
-  
-  // Ubicación
-  sede            String?                        // Sede/Iglesia
-  region          String?                        // Región o Provincia (para supervisores)
-  pais            String?                        // País (para presidentes)
-  
-  // Contenido
-  fotoUrl         String?     @map("foto_url")
-  biografia       String?                        // Descripción corta
-  trayectoria     String?     @db.Text           // Historia/trayectoria (texto largo)
-  
-  // Control de visualización
-  orden           Int         @default(0)        // Orden de aparición
-  activo          Boolean     @default(true)     // Si está activo en el sistema
-  mostrarEnLanding Boolean    @default(false) @map("mostrar_en_landing") // Si aparece en landing
-  
-  createdAt       DateTime    @default(now()) @map("created_at")
-  updatedAt       DateTime    @updatedAt @map("updated_at")
+  id                  String                @id @default(uuid())
+  nombre              String
+  apellido            String
+  email               String?               @unique
+  telefono            String?
+  cargo               String?
+  activo              Boolean               @default(true)
+  createdAt           DateTime              @default(now()) @map("created_at")
+  updatedAt           DateTime              @updatedAt @map("updated_at")
+  biografia           String?
+  fotoUrl             String?               @map("foto_url")
+  sede                String?
+  ministerio          String?
+  mostrarEnLanding    Boolean               @default(false) @map("mostrar_en_landing")
+  orden               Int                   @default(0)
+  pais                String?
+  region              String?
+  tipo                TipoPastor            @default(PASTOR)
+  trayectoria         String?
+  auth                PastorAuth?
+  NotificationHistory NotificationHistory[]
 
   @@index([activo])
   @@index([tipo])
@@ -114,80 +88,153 @@ model Pastor {
   @@map("pastores")
 }
 
-// Modelo de Inscripción
+model PastorAuth {
+  id              String        @id @default(uuid())
+  pastorId        String        @unique
+  email           String        @unique
+  password        String
+  googleId        String?       @unique
+  emailVerificado Boolean       @default(false) @map("email_verificado")
+  ultimoLogin     DateTime?     @map("ultimo_login")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  pastor          Pastor        @relation(fields: [pastorId], references: [id], onDelete: Cascade)
+  deviceTokens    DeviceToken[]
+
+  @@index([email])
+  @@index([googleId])
+  @@map("pastor_auth")
+}
+
+model DeviceToken {
+  id        String      @id @default(uuid())
+  pastorId  String      @map("pastor_id")
+  token     String      @unique
+  platform  String      // 'ios' | 'android'
+  deviceId  String?     @map("device_id")
+  active    Boolean     @default(true)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  pastorAuth PastorAuth @relation(fields: [pastorId], references: [pastorId], onDelete: Cascade)
+
+  @@index([pastorId])
+  @@index([token])
+  @@map("device_tokens")
+}
+
 model Inscripcion {
-  id               String   @id @default(uuid())
-  convencionId     String   @map("convencion_id")
+  id               String     @id @default(uuid())
   nombre           String
   apellido         String
   email            String
   telefono         String?
-  sede             String?
-  tipoInscripcion  String   @default("pastor") @map("tipo_inscripcion")
-  estado           String   @default("pendiente")
-  fechaInscripcion DateTime @default(now()) @map("fecha_inscripcion")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  convencionId     String     @map("convencion_id")
+  estado           String     @default("pendiente")
+  fechaInscripcion DateTime   @default(now()) @map("fecha_inscripcion")
   notas            String?
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
-
-  convencion Convencion @relation(fields: [convencionId], references: [id], onDelete: Cascade)
-  pagos      Pago[]
+  sede             String?
+  tipoInscripcion  String     @default("pastor") @map("tipo_inscripcion")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+  numeroCuotas     Int        @default(3) @map("numero_cuotas")
+  origenRegistro   String     @default("web") @map("origen_registro")
+  documentoUrl     String?    @map("documento_url")
+  convencion       Convencion @relation(fields: [convencionId], references: [id], onDelete: Cascade)
+  pagos            Pago[]
 
   @@index([convencionId])
   @@index([estado])
+  @@index([origenRegistro])
   @@map("inscripciones")
 }
 
-// Modelo de Imagen de Galería
 model GaleriaImagen {
-  id           String       @id @default(uuid())
-  titulo       String
-  descripcion  String?
-  imagenUrl    String       @map("imagen_url")
-  tipo         TipoGaleria  @default(IMAGEN)
-  categoria    String?
-  convencionId String?      @map("convencion_id")
-  orden        Int          @default(0)
-  activa       Boolean      @default(true)
-  createdAt    DateTime     @default(now()) @map("created_at")
-  updatedAt    DateTime     @updatedAt @map("updated_at")
-  
-  // Campos para videos - almacenar URL original y parámetros de recorte
-  videoOriginalUrl String?  @map("video_original_url")  // URL sin transformaciones
-  videoStartTime   Float?   @map("video_start_time")    // Segundo de inicio del recorte
-  videoEndTime     Float?   @map("video_end_time")      // Segundo de fin del recorte
-  thumbnailTime    Float?   @map("thumbnail_time")      // Segundo para el thumbnail
-
-  convencion Convencion? @relation(fields: [convencionId], references: [id], onDelete: SetNull)
+  id               String      @id @default(uuid())
+  titulo           String
+  descripcion      String?
+  imagenUrl        String      @map("imagen_url")
+  categoria        String?
+  convencionId     String?     @map("convencion_id")
+  orden            Int         @default(0)
+  activa           Boolean     @default(true)
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  tipo             TipoGaleria @default(IMAGEN)
+  thumbnailTime    Float?      @map("thumbnail_time")
+  videoEndTime     Float?      @map("video_end_time")
+  videoOriginalUrl String?     @map("video_original_url")
+  videoStartTime   Float?      @map("video_start_time")
+  convencion       Convencion? @relation(fields: [convencionId], references: [id])
 
   @@index([categoria])
   @@index([tipo])
   @@map("galeria")
 }
 
-enum TipoGaleria {
-  IMAGEN
-  VIDEO
-}
-
-// Modelo de Pago
 model Pago {
-  id            String     @id @default(uuid())
-  inscripcionId String     @map("inscripcion_id")
-  monto         Decimal    @db.Decimal(10, 2)
-  metodoPago    String     @map("metodo_pago")
-  estado        EstadoPago @default(PENDIENTE)
-  referencia    String?
-  fechaPago     DateTime?  @map("fecha_pago")
-  notas         String?
-  createdAt     DateTime   @default(now()) @map("created_at")
-  updatedAt     DateTime   @updatedAt @map("updated_at")
-
-  inscripcion Inscripcion @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
+  id             String      @id @default(uuid())
+  monto          Decimal     @db.Decimal(10, 2)
+  estado         EstadoPago  @default(PENDIENTE)
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+  fechaPago      DateTime?   @map("fecha_pago")
+  inscripcionId  String      @map("inscripcion_id")
+  metodoPago     String      @map("metodo_pago")
+  notas          String?
+  referencia     String?
+  numeroCuota    Int?        @map("numero_cuota")
+  comprobanteUrl String?     @map("comprobante_url")
+  inscripcion    Inscripcion @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
 
   @@index([inscripcionId])
   @@index([estado])
+  @@index([numeroCuota])
   @@map("pagos")
+}
+
+model Noticia {
+  id               String           @id @default(uuid())
+  titulo           String
+  slug             String           @unique
+  extracto         String?
+  contenido        String
+  imagenUrl        String?          @map("imagen_url")
+  categoria        CategoriaNoticia @default(ANUNCIO)
+  autor            String?
+  publicado        Boolean          @default(false)
+  destacado        Boolean          @default(false)
+  fechaPublicacion DateTime?        @map("fecha_publicacion")
+  metaTitle        String?          @map("meta_title")
+  metaDescription  String?          @map("meta_description")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  vistas           Int              @default(0)
+
+  @@index([publicado])
+  @@index([destacado])
+  @@index([categoria])
+  @@index([fechaPublicacion])
+  @@index([slug])
+  @@map("noticias")
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum TipoPastor {
+  DIRECTIVA
+  SUPERVISOR
+  PRESIDENTE
+  PASTOR
+}
+
+enum TipoGaleria {
+  IMAGEN
+  VIDEO
 }
 
 enum EstadoPago {
@@ -197,43 +244,36 @@ enum EstadoPago {
   REEMBOLSADO
 }
 
-// Categorías de Noticias
 enum CategoriaNoticia {
-  ANUNCIO          // Anuncios importantes
-  EVENTO           // Eventos y convenciones
-  DEVOCIONAL       // Contenido espiritual
-  CAPACITACION     // Cursos y talleres
-  TESTIMONIO       // Testimonios
-  COMUNICADO       // Comunicados oficiales
+  ANUNCIO
+  EVENTO
+  ACTIVIDAD
+  OPORTUNIDADES
+  CAPACITACION
+  COMUNICADO
 }
 
-// Modelo de Noticia/Blog
-model Noticia {
-  id          String            @id @default(uuid())
-  titulo      String
-  slug        String            @unique          // URL amigable
-  extracto    String?                            // Resumen corto
-  contenido   String            @db.Text         // Contenido completo (puede ser HTML/Markdown)
-  imagenUrl   String?           @map("imagen_url")
-  categoria   CategoriaNoticia  @default(ANUNCIO)
-  autor       String?                            // Nombre del autor
-  
-  // Control de publicación
-  publicado   Boolean           @default(false)  // Si está publicado
-  destacado   Boolean           @default(false)  // Si aparece destacado
-  fechaPublicacion DateTime?    @map("fecha_publicacion")
-  
-  // SEO
-  metaTitle       String?       @map("meta_title")
-  metaDescription String?       @map("meta_description")
-  
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
+model NotificationHistory {
+  id           String    @id @default(uuid())
+  pastorId     String    @map("pastor_id")
+  email        String
+  title        String
+  body         String
+  type         String // 'pago_validado', 'inscripcion_confirmada', etc.
+  data         Json? // Datos adicionales en formato JSON
+  sentVia      String    @default("push") @map("sent_via") // 'push', 'email', 'both'
+  pushSuccess  Boolean   @default(false) @map("push_success")
+  emailSuccess Boolean   @default(false) @map("email_success")
+  read         Boolean   @default(false)
+  readAt       DateTime? @map("read_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
 
-  @@index([publicado])
-  @@index([destacado])
-  @@index([categoria])
-  @@index([fechaPublicacion])
-  @@index([slug])
-  @@map("noticias")
+  pastor Pastor @relation(fields: [pastorId], references: [id], onDelete: Cascade)
+
+  @@index([pastorId])
+  @@index([email])
+  @@index([type])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notification_history")
 }

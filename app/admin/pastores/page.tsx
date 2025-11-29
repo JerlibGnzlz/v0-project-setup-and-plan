@@ -90,12 +90,15 @@ export default function PastoresPage() {
   const fotoUrl = watch("fotoUrl")
   const tipoValue = watch("tipo")
 
-  // Auto-activar "Mostrar en Landing" cuando el tipo es DIRECTIVA
+  // Manejar cambio de tipo: solo DIRECTIVA puede mostrar en landing
   const handleTipoChange = (value: TipoPastor) => {
     setValue("tipo", value)
     // Si es directiva, activar automáticamente mostrarEnLanding
     if (value === "DIRECTIVA") {
       setValue("mostrarEnLanding", true)
+    } else {
+      // Si no es directiva, desactivar mostrarEnLanding
+      setValue("mostrarEnLanding", false)
     }
   }
 
@@ -240,7 +243,7 @@ export default function PastoresPage() {
               <div className="absolute -inset-4 bg-gradient-to-r from-sky-500/10 via-emerald-500/10 to-amber-500/10 rounded-xl blur-xl" />
               <div className="relative">
                 <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-sky-600 via-emerald-600 to-amber-600 dark:from-sky-400 dark:via-emerald-400 dark:to-amber-400 bg-clip-text text-transparent">
-                  Gestión de Pastores
+                  Estructura Organizacional
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   Administra la directiva, supervisores y pastores
@@ -309,11 +312,11 @@ export default function PastoresPage() {
                         )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">Email (opcional, no se muestra en las cards)</Label>
                         <Input id="email" type="email" placeholder="pastor@iglesia.com" {...register("email")} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="telefono">Teléfono</Label>
+                        <Label htmlFor="telefono">Teléfono (opcional, no se muestra en las cards)</Label>
                         <Input id="telefono" placeholder="+504 9999-9999" {...register("telefono")} />
                       </div>
                     </div>
@@ -359,14 +362,30 @@ export default function PastoresPage() {
                           <Input id="ministerio" placeholder="Evangelismo, Educación..." {...register("ministerio")} />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="orden">Orden de aparición</Label>
+                          <Label htmlFor="orden" className="flex items-center gap-2">
+                            Orden de aparición
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="text-xs text-muted-foreground cursor-help">ℹ️</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-sm">Controla el orden en que aparecen los pastores en la landing page.</p>
+                                <p className="text-xs mt-1">Números menores aparecen primero. Si varios tienen el mismo número, se ordenan alfabéticamente.</p>
+                                <p className="text-xs mt-1 font-semibold">Ejemplo: 1 = primero, 2 = segundo, etc.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </Label>
                           <Input
                             id="orden"
                             type="number"
                             min={0}
                             defaultValue={0}
+                            placeholder="0"
                             {...register("orden")}
                           />
+                          <p className="text-xs text-muted-foreground">
+                            Los pastores se ordenan de menor a mayor número en la landing page
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -431,13 +450,29 @@ export default function PastoresPage() {
                           <Switch
                             id="mostrarEnLanding"
                             checked={watch("mostrarEnLanding")}
+                            disabled={watch("tipo") !== "DIRECTIVA"}
                             onCheckedChange={(checked) => setValue("mostrarEnLanding", checked)}
                           />
                           <Label htmlFor="mostrarEnLanding" className="flex items-center gap-2">
                             Mostrar en Landing Page
-                            <Badge variant="outline" className="text-xs">
-                              {watch("mostrarEnLanding") ? "Visible" : "Oculto"}
-                            </Badge>
+                            {watch("tipo") !== "DIRECTIVA" && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge variant="outline" className="text-xs cursor-help">
+                                    Solo Directiva
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Este switch solo está disponible para Directiva Pastoral.</p>
+                                  <p className="text-xs mt-1">Los demás tipos aparecerán en "Ver Todo el Equipo Pastoral".</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                            {watch("tipo") === "DIRECTIVA" && (
+                              <Badge variant="outline" className="text-xs">
+                                {watch("mostrarEnLanding") ? "Visible" : "Oculto"}
+                              </Badge>
+                            )}
                           </Label>
                         </div>
                       </div>

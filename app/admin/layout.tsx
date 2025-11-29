@@ -1,7 +1,7 @@
 'use client'
 
 import type React from "react"
-import { LogOut, Menu } from "lucide-react"
+import { LogOut, Menu, LayoutDashboard, Users, Newspaper, ImageIcon, CreditCard } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,8 @@ import { QueryProvider } from "@/lib/providers/query-provider"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { useRouter, usePathname } from "next/navigation"
 import { useEffect } from "react"
+import { AdminSidebar } from "@/components/admin/admin-sidebar"
+import { NotificationsBell } from "@/components/admin/notifications-bell"
 
 function AdminLayoutContent({
   children,
@@ -28,15 +30,20 @@ function AdminLayoutContent({
 
   // Verificar autenticación al montar
   useEffect(() => {
-    checkAuth()
+    const verifyAuth = async () => {
+      await checkAuth()
+    }
+    verifyAuth()
   }, [checkAuth])
 
   useEffect(() => {
+    console.log('[AdminLayout] Estado de autenticación:', { isHydrated, isAuthenticated, isPublicPath, pathname })
     // Solo redirigir después de que se haya verificado la autenticación
     if (isHydrated && !isAuthenticated && !isPublicPath) {
+      console.log('[AdminLayout] No autenticado, redirigiendo a login')
       router.push('/admin/login')
     }
-  }, [isAuthenticated, isHydrated, isPublicPath, router])
+  }, [isAuthenticated, isHydrated, isPublicPath, router, pathname])
 
   const handleLogout = () => {
     logout()
@@ -77,16 +84,15 @@ function AdminLayoutContent({
               <Image
                 src="/mundo.png"
                 alt="Logo AMVA"
-                width={70}
-                height={70}
-                className="relative w-16 h-16 object-contain"
+                width={48}
+                height={48}
+                className="relative w-12 h-12 object-contain"
               />
             </div>
             <div>
-              <h2 className="font-semibold bg-gradient-to-r from-sky-600 via-emerald-600 to-amber-600 dark:from-sky-400 dark:via-emerald-400 dark:to-amber-400 bg-clip-text text-transparent">
-                Asociación Misionera Vida Abundante
+              <h2 className="font-semibold text-base bg-gradient-to-r from-sky-600 via-emerald-600 to-amber-600 dark:from-sky-400 dark:via-emerald-400 dark:to-amber-400 bg-clip-text text-transparent">
+                Sede Digital AMVA
               </h2>
-              <p className="text-xs text-muted-foreground">Panel Administrativo</p>
             </div>
           </Link>
 
@@ -96,6 +102,8 @@ function AdminLayoutContent({
               <p className="text-sm font-medium">{user?.nombre || 'Admin'}</p>
               <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
             </div>
+            {/* Notifications Bell */}
+            <NotificationsBell />
             {/* Avatar */}
             {user?.avatar ? (
               <img
@@ -131,20 +139,94 @@ function AdminLayoutContent({
               <span className="sr-only">Abrir menú</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0 border-r-sky-200/50 dark:border-r-sky-500/20">
+          <SheetContent side="left" className="w-72 p-0 border-r-sky-200/50 dark:border-r-sky-500/20">
             <div className="flex h-full flex-col">
               {/* Logo */}
               <div className="flex h-16 items-center gap-3 border-b border-sky-200/50 dark:border-sky-500/20 px-6 bg-gradient-to-r from-sky-50/50 to-emerald-50/50 dark:from-sky-950/30 dark:to-emerald-950/30">
                 <Image
                   src="/mundo.png"
                   alt="Logo AMVA"
-                  width={56}
-                  height={56}
-                  className="w-14 h-14 object-contain"
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 object-contain"
                 />
                 <div>
-                  <h2 className="font-semibold bg-gradient-to-r from-sky-600 to-emerald-600 dark:from-sky-400 dark:to-emerald-400 bg-clip-text text-transparent">A.M.V.A</h2>
-                  <p className="text-xs text-muted-foreground">Panel Administrativo</p>
+                  <h2 className="font-semibold text-sm bg-gradient-to-r from-sky-600 via-emerald-600 to-amber-600 dark:from-sky-400 dark:via-emerald-400 dark:to-amber-400 bg-clip-text text-transparent">
+                    Sede Digital AMVA
+                  </h2>
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+                {[
+                  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, description: 'Vista general' },
+                  { name: 'Estructura Organizacional', href: '/admin/pastores', icon: Users, description: 'Gestionar pastores' },
+                  { name: 'Noticias', href: '/admin/noticias', icon: Newspaper, description: 'Gestionar noticias' },
+                  { name: 'Multimedia', href: '/admin/galeria', icon: ImageIcon, description: 'Gestionar multimedia' },
+                  { name: 'Pagos', href: '/admin/pagos', icon: CreditCard, description: 'Gestionar pagos' },
+                ].map((item) => {
+                  const isActive = pathname === item.href || (item.href !== '/admin' && pathname?.startsWith(item.href))
+                  const Icon = item.icon
+
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                        isActive
+                          ? 'bg-gradient-to-r from-sky-500/10 via-emerald-500/10 to-amber-500/10 dark:from-sky-500/20 dark:via-emerald-500/20 dark:to-amber-500/20 text-sky-700 dark:text-sky-300 shadow-sm border border-sky-200/50 dark:border-sky-500/30'
+                          : 'text-muted-foreground hover:bg-sky-50/50 dark:hover:bg-sky-950/20 hover:text-sky-700 dark:hover:text-sky-300'
+                      }`}
+                    >
+                      <div
+                        className={`p-2 rounded-lg transition-all duration-200 ${
+                          isActive
+                            ? 'bg-gradient-to-br from-sky-500/20 to-emerald-500/20 dark:from-sky-500/30 dark:to-emerald-500/30'
+                            : 'bg-sky-50/50 dark:bg-sky-950/20 group-hover:bg-sky-100/50 dark:group-hover:bg-sky-900/30'
+                        }`}
+                      >
+                        <Icon
+                          className={`h-5 w-5 transition-colors ${
+                            isActive
+                              ? 'text-sky-600 dark:text-sky-400'
+                              : 'text-muted-foreground group-hover:text-sky-600 dark:group-hover:text-sky-400'
+                          }`}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium">{item.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {item.description}
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </nav>
+
+              {/* User Section */}
+              <div className="px-4 py-4 border-t border-sky-200/50 dark:border-sky-500/20 bg-gradient-to-r from-sky-50/30 to-emerald-50/30 dark:from-sky-950/20 dark:to-emerald-950/20">
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/50 dark:bg-background/50 backdrop-blur-sm border border-sky-200/30 dark:border-sky-500/20 mb-3">
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.nombre || 'Admin'}
+                      className="size-10 rounded-full object-cover ring-2 ring-emerald-500/30"
+                    />
+                  ) : (
+                    <div className="size-10 rounded-full bg-gradient-to-br from-sky-500 via-emerald-500 to-amber-500 flex items-center justify-center text-white font-bold text-sm">
+                      {(user?.nombre || 'A').charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {user?.nombre || 'Admin'}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {user?.email || ''}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -189,8 +271,13 @@ function AdminLayoutContent({
         </div>
       </header>
 
+      {/* Sidebar */}
+      <AdminSidebar />
+
       {/* Main Content */}
-      <main className="container mx-auto p-6 lg:p-8 max-w-7xl">{children}</main>
+      <main className="lg:pl-72">
+        <div className="container mx-auto p-6 lg:p-8 max-w-7xl">{children}</div>
+      </main>
 
       <Toaster position="top-right" richColors closeButton />
     </div>

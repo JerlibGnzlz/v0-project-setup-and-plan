@@ -371,7 +371,7 @@ export default function GaleriaPage() {
             <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 rounded-xl blur-xl dark:from-amber-500/5 dark:via-orange-500/5 dark:to-rose-500/5" />
             <div className="relative">
               <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 dark:from-amber-400 dark:via-orange-400 dark:to-rose-400 bg-clip-text text-transparent">
-                Gestión de Galería
+                Multimedia
               </h1>
               <p className="text-muted-foreground mt-1">
                 Administra las imágenes y videos que se muestran en la landing page

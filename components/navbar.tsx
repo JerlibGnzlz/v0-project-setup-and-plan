@@ -39,6 +39,10 @@ export function Navbar() {
           const offsetHeight = element.offsetHeight
           if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
             setActiveSection(section)
+            // Guardar la sección activa mientras el usuario hace scroll
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('amva_last_section', section)
+            }
             break
           }
         }
@@ -53,6 +57,12 @@ export function Navbar() {
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault()
     const targetId = href.replace('#', '')
+    
+    // Guardar la sección activa
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('amva_last_section', targetId)
+    }
+    
     const element = document.getElementById(targetId)
 
     if (element) {
@@ -129,7 +139,15 @@ export function Navbar() {
             }}
           >
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link 
+              href="/" 
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  sessionStorage.setItem('amva_last_section', 'inicio')
+                }
+              }}
+              className="flex items-center gap-3 group"
+            >
               <div className="relative">
                 <Image
                   src="/mundo.png"

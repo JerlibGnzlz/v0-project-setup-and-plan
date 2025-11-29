@@ -81,6 +81,42 @@ export function useUpdateConvencion() {
   })
 }
 
+export function useArchivarConvencion() {
+  const queryClient = useQueryClient()
+  const { notifyChange } = useSmartSync()
+
+  return useMutation({
+    mutationFn: convencionesApi.archivar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["convenciones"] })
+      queryClient.invalidateQueries({ queryKey: ["convencion"] })
+      notifyChange("convencion")
+      toast.success("Convención archivada exitosamente")
+    },
+    onError: () => {
+      toast.error("Error al archivar la convención")
+    },
+  })
+}
+
+export function useDesarchivarConvencion() {
+  const queryClient = useQueryClient()
+  const { notifyChange } = useSmartSync()
+
+  return useMutation({
+    mutationFn: convencionesApi.desarchivar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["convenciones"] })
+      queryClient.invalidateQueries({ queryKey: ["convencion"] })
+      notifyChange("convencion")
+      toast.success("Convención desarchivada exitosamente")
+    },
+    onError: () => {
+      toast.error("Error al desarchivar la convención")
+    },
+  })
+}
+
 export function useDeleteConvencion() {
   const queryClient = useQueryClient()
   const { notifyChange } = useSmartSync()

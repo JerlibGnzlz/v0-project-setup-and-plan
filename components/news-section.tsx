@@ -7,7 +7,6 @@ import {
   Newspaper, 
   Calendar, 
   ArrowRight, 
-  Clock, 
   Star, 
   ChevronLeft, 
   ChevronRight,
@@ -24,12 +23,17 @@ import { Noticia, categoriaLabels, categoriaColors } from '@/lib/api/noticias'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { formatViews } from '@/lib/utils/view-tracker'
 
-// Formatear fecha
+// Formatear fecha con hora
 function formatDate(dateString: string | null): string {
   if (!dateString) return ''
   try {
-    return format(new Date(dateString), "d 'de' MMMM, yyyy", { locale: es })
+    const date = new Date(dateString)
+    // Asegurarse de que la fecha es válida
+    if (isNaN(date.getTime())) return ''
+    // Formato: "26 de noviembre, 2025 a las 14:30"
+    return format(date, "d 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })
   } catch {
     return ''
   }
@@ -39,17 +43,14 @@ function formatDate(dateString: string | null): string {
 function formatShortDate(dateString: string | null): string {
   if (!dateString) return ''
   try {
-    return format(new Date(dateString), "d MMM", { locale: es })
+    // Crear fecha y usar solo la parte de fecha (sin hora)
+    const date = new Date(dateString)
+    // Asegurarse de que la fecha es válida
+    if (isNaN(date.getTime())) return ''
+    return format(date, "d MMM", { locale: es })
   } catch {
     return ''
   }
-}
-
-// Tiempo de lectura estimado
-function getReadingTime(content: string): number {
-  const wordsPerMinute = 200
-  const words = content.split(/\s+/).length
-  return Math.ceil(words / wordsPerMinute)
 }
 
 // Breaking News Ticker
@@ -95,13 +96,13 @@ function MainNewsHero({ noticia }: { noticia: Noticia }) {
       className="group relative block overflow-hidden rounded-2xl bg-slate-900"
     >
       {/* Image container */}
-      <div className="relative aspect-[16/9] lg:aspect-[21/10]">
+      <div className="relative aspect-[16/9] lg:aspect-[21/10] bg-black/20">
         {noticia.imagenUrl ? (
           <Image
             src={noticia.imagenUrl}
             alt={noticia.titulo}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            className="object-contain transition-transform duration-700 group-hover:scale-105"
             priority
           />
         ) : (
@@ -130,10 +131,10 @@ function MainNewsHero({ noticia }: { noticia: Noticia }) {
             </div>
           </div>
 
-          {/* Reading time */}
+          {/* Views */}
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded bg-black/50 backdrop-blur-sm text-white/80 text-xs">
             <Eye className="w-3 h-3" />
-            {getReadingTime(noticia.contenido)} min lectura
+            {formatViews(noticia.vistas || 0)} vistas
           </div>
         </div>
       </div>
@@ -202,7 +203,7 @@ function SecondaryNewsCard({ noticia, size = 'normal' }: { noticia: Noticia; siz
       )}>
         {/* Image */}
         <div className={cn(
-          "relative overflow-hidden",
+          "relative overflow-hidden bg-black/20",
           isSmall ? "aspect-[16/10]" : "aspect-[16/9]"
         )}>
           {noticia.imagenUrl ? (
@@ -210,7 +211,7 @@ function SecondaryNewsCard({ noticia, size = 'normal' }: { noticia: Noticia; siz
               src={noticia.imagenUrl}
               alt={noticia.titulo}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-110"
+              className="object-contain transition-transform duration-500 group-hover:scale-110"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
@@ -260,8 +261,8 @@ function SecondaryNewsCard({ noticia, size = 'normal' }: { noticia: Noticia; siz
           {/* Footer */}
           <div className="flex items-center justify-between pt-3 border-t border-white/5">
             <div className="flex items-center gap-2 text-white/40 text-xs">
-              <Clock className="w-3 h-3" />
-              {getReadingTime(noticia.contenido)} min
+              <Eye className="w-3 h-3" />
+              {formatViews(noticia.vistas || 0)} vistas
             </div>
             <span className="flex items-center gap-1 text-emerald-400 text-xs font-medium group-hover:gap-2 transition-all">
               Leer
@@ -338,8 +339,95 @@ export function NewsSection() {
     )
   }
 
+  // Estado vacío profesional cuando no hay noticias
   if (noticias.length === 0) {
-    return null
+    return (
+      <section id="noticias" className="relative overflow-hidden bg-[#0a1628]">
+        {/* Background effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[150px]" />
+          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[150px]" />
+        </div>
+
+        <div className="container mx-auto px-4 py-16 sm:py-20 lg:py-24 relative z-10">
+          {/* Header */}
+          <div className="mb-10 sm:mb-12">
+            <div>
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <span className="text-sm text-emerald-400 font-medium">Noticias</span>
+              </div>
+              
+              {/* Title */}
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3">
+                Noticias y{' '}
+                <span className="relative inline-block">
+                  <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                    Actualidad
+                  </span>
+                  <svg className="absolute -bottom-2 left-0 w-full h-3 text-emerald-500/30" viewBox="0 0 100 12" preserveAspectRatio="none">
+                    <path d="M0 6 Q 25 0 50 6 T 100 6" stroke="currentColor" strokeWidth="2" fill="none" />
+                  </svg>
+                </span>
+              </h2>
+              
+              <p className="text-white/50 text-base sm:text-lg max-w-xl">
+                Mantente al día con los últimos acontecimientos y anuncios de nuestra comunidad
+              </p>
+            </div>
+          </div>
+
+          {/* Empty State */}
+          <div className="flex flex-col items-center justify-center py-16 sm:py-20 lg:py-24">
+            <div className="relative max-w-2xl mx-auto text-center">
+              {/* Icon container with glow */}
+              <div className="relative mb-8">
+                <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-2xl animate-pulse" />
+                <div className="relative w-24 h-24 mx-auto bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-2xl border border-emerald-500/30 flex items-center justify-center backdrop-blur-sm">
+                  <Newspaper className="w-12 h-12 text-emerald-400" />
+                </div>
+              </div>
+
+              {/* Message */}
+              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+                Próximamente
+              </h3>
+              <p className="text-white/60 text-lg mb-2 max-w-md mx-auto">
+                Estamos preparando contenido especial para ti
+              </p>
+              <p className="text-white/40 text-sm max-w-md mx-auto mb-8">
+                Muy pronto compartiremos noticias, anuncios y actualizaciones importantes de nuestra comunidad
+              </p>
+
+              {/* Decorative elements */}
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <div className="w-2 h-2 rounded-full bg-emerald-500/50 animate-pulse" style={{ animationDelay: '0s' }} />
+                <div className="w-2 h-2 rounded-full bg-teal-500/50 animate-pulse" style={{ animationDelay: '0.2s' }} />
+                <div className="w-2 h-2 rounded-full bg-cyan-500/50 animate-pulse" style={{ animationDelay: '0.4s' }} />
+              </div>
+
+              {/* Quote */}
+              <div className="mt-12 p-6 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm max-w-lg mx-auto">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center">
+                    <span className="text-emerald-400 text-xl">"</span>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-white/70 italic text-sm leading-relaxed">
+                      La información oportuna fortalece nuestra comunidad y nos mantiene unidos en propósito y visión.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom decorative line */}
+        <div className="h-1 bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+      </section>
+    )
   }
 
   return (
@@ -374,41 +462,29 @@ export function NewsSection() {
         <div className="container mx-auto px-4 relative z-10">
           {/* Header */}
           <div className="mb-10 sm:mb-12">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-              <div>
-                {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/30">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
-                  <span className="text-sm text-emerald-400 font-medium">Lo Último</span>
-                </div>
-                
-                {/* Title */}
-                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3">
-                  Noticias y{' '}
-                  <span className="relative inline-block">
-                    <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                      Actualidad
-                    </span>
-                    <svg className="absolute -bottom-2 left-0 w-full h-3 text-emerald-500/30" viewBox="0 0 100 12" preserveAspectRatio="none">
-                      <path d="M0 6 Q 25 0 50 6 T 100 6" stroke="currentColor" strokeWidth="2" fill="none" />
-                    </svg>
-                  </span>
-                </h2>
-                
-                <p className="text-white/50 text-base sm:text-lg max-w-xl">
-                  Mantente al día con los últimos acontecimientos y anuncios de nuestra comunidad
-                </p>
+            <div>
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <span className="text-sm text-emerald-400 font-medium">Lo Último</span>
               </div>
-
-              <Link href="/noticias">
-                <Button 
-                  className="group bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-300"
-                >
-                  <Newspaper className="w-4 h-4 mr-2" />
-                  Ver archivo completo
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+              
+              {/* Title */}
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3">
+                Noticias y{' '}
+                <span className="relative inline-block">
+                  <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                    Actualidad
+                  </span>
+                  <svg className="absolute -bottom-2 left-0 w-full h-3 text-emerald-500/30" viewBox="0 0 100 12" preserveAspectRatio="none">
+                    <path d="M0 6 Q 25 0 50 6 T 100 6" stroke="currentColor" strokeWidth="2" fill="none" />
+                  </svg>
+                </span>
+              </h2>
+              
+              <p className="text-white/50 text-base sm:text-lg max-w-xl">
+                Mantente al día con los últimos acontecimientos y anuncios de nuestra comunidad
+              </p>
             </div>
           </div>
 
@@ -452,7 +528,15 @@ export function NewsSection() {
                   <p className="text-white/60 text-sm mb-4">
                     Explora todas nuestras noticias, devocionales y anuncios.
                   </p>
-                  <Link href="/noticias" className="block">
+                  <Link 
+                    href="/noticias" 
+                    className="block"
+                    onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        sessionStorage.setItem('amva_last_section', 'noticias')
+                      }
+                    }}
+                  >
                     <Button 
                       className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white"
                     >
