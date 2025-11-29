@@ -40,3 +40,11 @@ yarn-error.log*
 *.swp
 *.swo
 *~
+
+# Mobile App
+amva-mobile/node_modules/
+amva-mobile/.expo/
+amva-mobile/android/app/build/
+amva-mobile/android/build/
+amva-mobile/.expo-shared/
+*.log

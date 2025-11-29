@@ -17,6 +17,21 @@ const nextConfig = {
       },
     ],
   },
+  // Configuración para Turbopack (Next.js 16+)
+  turbopack: {
+    // Configuración vacía para usar Turbopack por defecto
+  },
+  // Mantener webpack solo para compatibilidad si es necesario
+  webpack: (config, { isServer }) => {
+    // Prevenir que axios intente usar XMLHttpRequest en el servidor
+    if (isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        xhr: false,
+      }
+    }
+    return config
+  },
 }
 
 export default nextConfig

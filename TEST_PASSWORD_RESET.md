@@ -48,3 +48,4 @@ curl -X POST http://localhost:4000/api/auth/forgot-password \
 - **Backend console**: Deberías ver `🔐 Password Reset Link for...`
 - **Frontend console**: Deberías ver el `resetUrl` en el toast
 - **Network tab**: Verifica que la petición a `/auth/forgot-password` sea exitosa (200)
+
