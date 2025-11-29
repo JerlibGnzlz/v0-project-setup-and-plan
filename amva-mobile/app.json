@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "AMVA Go",
+    "slug": "amva-go",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "amva-app",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0a1628"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "org.vidaabundante.app"
+    },
+    "android": {
+      "package": "org.vidaabundante.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0a1628"
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "amva-app"
+            },
+            {
+              "scheme": "https",
+              "host": "vidaabundante.org"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "web": {
+    },
+    "extra": {
+      "eas": {
+        "projectId": "amva-mobile-example"
+      }
+    }
+  }
+}
+
+
