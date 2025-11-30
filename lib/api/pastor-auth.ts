@@ -49,8 +49,16 @@ export const pastorAuthApi = {
   },
 
   registerComplete: async (data: PastorRegisterCompleteRequest): Promise<PastorRegisterCompleteResponse> => {
-    const response = await apiClient.post<PastorRegisterCompleteResponse>("/auth/pastor/register-complete", data)
-    return response.data
+    try {
+      const response = await apiClient.post<PastorRegisterCompleteResponse>("/auth/pastor/register-complete", data)
+      return response.data
+    } catch (error: any) {
+      // Si hay un error, lanzarlo con más información
+      if (error.response) {
+        throw new Error(error.response.data?.message || error.response.data?.error || 'Error al registrar pastor')
+      }
+      throw error
+    }
   },
 
   getProfile: async () => {
@@ -58,5 +66,7 @@ export const pastorAuthApi = {
     return response.data
   },
 }
+
+
 
 

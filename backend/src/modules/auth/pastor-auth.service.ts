@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException, NotFoundException, Logger } from '@nestjs/common'
+import { Injectable, UnauthorizedException, BadRequestException, NotFoundException, Logger, Inject, forwardRef } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { PrismaService } from '../../prisma/prisma.service'
 import * as bcrypt from 'bcrypt'
@@ -9,6 +9,7 @@ import {
   PastorResetPasswordDto,
   PastorCompleteRegisterDto,
 } from './dto/pastor-auth.dto'
+import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
 export class PastorAuthService {
@@ -17,6 +18,8 @@ export class PastorAuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    @Inject(forwardRef(() => NotificationsService))
+    private notificationsService: NotificationsService,
   ) {}
 
   /**
@@ -151,6 +154,43 @@ export class PastorAuthService {
     })
 
     this.logger.log(`✅ Pastor creado desde cero: ${pastor.email}`)
+
+    // 6. Enviar notificación a todos los admins sobre el nuevo pastor registrado
+    try {
+      const admins = await this.prisma.user.findMany({
+        where: {
+          rol: {
+            in: ['ADMIN', 'EDITOR'],
+          },
+        },
+      })
+
+      const titulo = '👤 Nuevo Pastor Registrado'
+      const mensaje = `${pastor.nombre} ${pastor.apellido} (${pastor.email}) se ha registrado en el sistema.`
+
+      // Enviar notificación a cada admin
+      for (const admin of admins) {
+        await this.notificationsService.sendNotificationToAdmin(
+          admin.email,
+          titulo,
+          mensaje,
+          {
+            type: 'nuevo_pastor_registrado',
+            pastorId: pastor.id,
+            nombre: pastor.nombre,
+            apellido: pastor.apellido,
+            email: pastor.email,
+            sede: pastor.sede,
+            telefono: pastor.telefono,
+          }
+        )
+      }
+
+      this.logger.log(`📬 Notificaciones de nuevo pastor enviadas a ${admins.length} admin(s)`)
+    } catch (error) {
+      this.logger.error(`Error enviando notificaciones de nuevo pastor:`, error)
+      // No fallar si la notificación falla
+    }
 
     return {
       message: 'Pastor registrado exitosamente. Por favor, inicia sesión.',

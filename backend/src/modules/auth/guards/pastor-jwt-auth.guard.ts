@@ -5,3 +5,5 @@ import { AuthGuard } from '@nestjs/passport'
 export class PastorJwtAuthGuard extends AuthGuard('pastor-jwt') {}
 
 
+
+

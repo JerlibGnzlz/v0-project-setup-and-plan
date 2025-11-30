@@ -287,3 +287,5 @@ Si un usuario reporta que no recibió una notificación:
 4. ✅ Verifica que el usuario tenga la app instalada (para push)
 5. ✅ Revisa el historial de notificaciones en la base de datos
 
+
+

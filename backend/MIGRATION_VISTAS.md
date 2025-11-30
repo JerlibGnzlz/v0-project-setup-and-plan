@@ -43,3 +43,5 @@ Deberías ver el campo `vistas` en la tabla `noticias` con valor por defecto 0.
 El campo `vistas` se inicializa en 0 para todas las noticias existentes. Las nuevas vistas se contarán desde ahora.
 
 
+
+

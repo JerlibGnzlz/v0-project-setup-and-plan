@@ -16,7 +16,7 @@ import { PrismaModule } from '../../prisma/prisma.module'
   ],
   controllers: [NotificationsController, EmailTestController],
   providers: [EmailService, NotificationsGateway, NotificationsService],
-  exports: [NotificationsService, NotificationsGateway],
+  exports: [NotificationsService, NotificationsGateway, EmailService],
 })
 export class NotificationsModule {}
 

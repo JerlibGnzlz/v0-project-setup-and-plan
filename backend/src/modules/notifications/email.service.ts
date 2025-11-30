@@ -7,8 +7,7 @@ export class EmailService {
   private transporter: nodemailer.Transporter | null = null
 
   constructor() {
-    // Configurar transporter de email
-    // En producción, usar variables de entorno para credenciales
+    // Configurar Gmail SMTP
     const emailConfig = {
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
@@ -31,12 +30,13 @@ export class EmailService {
           pass: cleanPassword,
         },
       })
-      this.logger.log('✅ Servicio de email configurado')
+      this.logger.log('✅ Servicio de email configurado (Gmail SMTP)')
       this.logger.log(`📧 SMTP: ${emailConfig.host}:${emailConfig.port}`)
       this.logger.log(`👤 Usuario: ${emailConfig.auth.user}`)
     } else {
       this.logger.warn('⚠️ Servicio de email no configurado (faltan credenciales SMTP)')
       this.logger.warn('   Configura SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD en .env')
+      this.logger.warn('   Para Gmail, necesitas una App Password: https://myaccount.google.com/apppasswords')
     }
   }
 
@@ -69,8 +69,14 @@ export class EmailService {
       const info = await this.transporter.sendMail(mailOptions)
       this.logger.log(`✅ Email enviado a ${to}: ${info.messageId}`)
       return true
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error enviando email a ${to}:`, error)
+      if (error.code) {
+        this.logger.error(`Error code: ${error.code}`)
+      }
+      if (error.response) {
+        this.logger.error(`SMTP Error: ${error.response}`)
+      }
       return false
     }
   }
@@ -89,6 +95,9 @@ export class EmailService {
     } else if (tipo === 'inscripcion_confirmada') {
       icon = '🎉'
       color = '#f59e0b' // amber
+    } else if (tipo === 'inscripcion_recibida') {
+      icon = '📝'
+      color = '#3b82f6' // blue
     }
 
     return `
@@ -159,7 +168,16 @@ export class EmailService {
     }
 
     if (data.metodoPago) {
-      html += `<p style="margin: 0; color: #1f2937; font-size: 14px;"><strong>Método de pago:</strong> ${data.metodoPago}</p>`
+      html += `<p style="margin: 0 0 10px; color: #1f2937; font-size: 14px;"><strong>Método de pago:</strong> ${data.metodoPago}</p>`
+    }
+
+    if (data.convencionTitulo) {
+      html += `<p style="margin: 0 0 10px; color: #1f2937; font-size: 14px;"><strong>Convención:</strong> ${data.convencionTitulo}</p>`
+    }
+
+    if (data.numeroCuotas && data.montoPorCuota) {
+      const monto = typeof data.montoPorCuota === 'number' ? data.montoPorCuota : parseFloat(data.montoPorCuota)
+      html += `<p style="margin: 0; color: #1f2937; font-size: 14px;"><strong>Cuotas:</strong> ${data.numeroCuotas} cuota(s) de $${monto.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>`
     }
 
     html += '</div>'

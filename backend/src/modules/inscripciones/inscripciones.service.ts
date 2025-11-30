@@ -3,6 +3,7 @@ import { PrismaService } from "../../prisma/prisma.service"
 import { CreateInscripcionDto, UpdateInscripcionDto, CreatePagoDto, UpdatePagoDto } from "./dto/inscripcion.dto"
 import { Inscripcion, Pago, EstadoPago } from "@prisma/client"
 import { NotificationsService } from "../notifications/notifications.service"
+import { EmailService } from "../notifications/email.service"
 
 /**
  * Servicio para gestión de Inscripciones y Pagos
@@ -36,6 +37,7 @@ export class InscripcionesService {
         private prisma: PrismaService,
         @Inject(forwardRef(() => NotificationsService))
         private notificationsService: NotificationsService,
+        private emailService: EmailService,
     ) { }
 
     // ==================== INSCRIPCIONES ====================
@@ -185,6 +187,80 @@ export class InscripcionesService {
         } catch (error) {
             this.logger.error(`Error enviando notificaciones de nueva inscripción:`, error)
             // No fallar si la notificación falla
+        }
+
+        // Enviar email de confirmación al usuario que se inscribió
+        try {
+            const costoTotalFormateado = new Intl.NumberFormat('es-AR', {
+                style: 'currency',
+                currency: 'ARS',
+            }).format(costoTotal)
+
+            const montoPorCuotaFormateado = new Intl.NumberFormat('es-AR', {
+                style: 'currency',
+                currency: 'ARS',
+            }).format(montoPorCuota)
+
+            // Formatear fechas de la convención
+            const fechaInicio = new Date(convencion.fechaInicio).toLocaleDateString('es-AR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })
+            const fechaFin = new Date(convencion.fechaFin).toLocaleDateString('es-AR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })
+
+            const tituloEmail = `✅ Inscripción Recibida - ${convencion.titulo}`
+            const cuerpoEmail = `
+¡Hola ${inscripcion.nombre}!
+
+Tu inscripción a la convención "${convencion.titulo}" ha sido recibida exitosamente.
+
+📋 Detalles de tu inscripción:
+• Convención: ${convencion.titulo}
+• Fechas: ${fechaInicio} al ${fechaFin}
+• Ubicación: ${convencion.ubicacion}
+• Costo total: ${costoTotalFormateado}
+• Número de cuotas: ${numeroCuotas}
+• Monto por cuota: ${montoPorCuotaFormateado}
+
+⏳ Estado actual: Pendiente de pago
+
+Para completar tu inscripción, necesitas realizar el pago de las ${numeroCuotas} cuota(s). Una vez que valides los pagos, recibirás una confirmación.
+
+Si tienes alguna pregunta, no dudes en contactarnos.
+
+¡Te esperamos en la convención!
+            `.trim()
+
+            const emailEnviado = await this.emailService.sendNotificationEmail(
+                inscripcion.email,
+                tituloEmail,
+                cuerpoEmail,
+                {
+                    type: 'inscripcion_recibida',
+                    inscripcionId: inscripcion.id,
+                    convencionId: convencion.id,
+                    convencionTitulo: convencion.titulo,
+                    nombre: inscripcion.nombre,
+                    apellido: inscripcion.apellido,
+                    costoTotal: costoTotal,
+                    numeroCuotas: numeroCuotas,
+                    montoPorCuota: montoPorCuota,
+                }
+            )
+
+            if (emailEnviado) {
+                this.logger.log(`📧 Email de confirmación de inscripción enviado a ${inscripcion.email}`)
+            } else {
+                this.logger.warn(`⚠️ No se pudo enviar email de confirmación a ${inscripcion.email} (servicio no configurado o error)`)
+            }
+        } catch (error) {
+            this.logger.error(`Error enviando email de confirmación a ${inscripcion.email}:`, error)
+            // No fallar si el email falla
         }
 
         // Retornar la inscripción con los pagos incluidos
@@ -361,8 +437,9 @@ export class InscripcionesService {
                 mensaje += ` ¡Has completado todos los pagos! Tu inscripción será confirmada.`
             }
 
-            // Enviar notificación
-            await this.notificationsService.sendNotificationToUser(
+            // Intentar enviar notificación (puede ser pastor o usuario regular)
+            // Primero intentar con sendNotificationToUser (si es pastor registrado)
+            const notificationResult = await this.notificationsService.sendNotificationToUser(
                 inscripcion.email,
                 titulo,
                 mensaje,
@@ -379,7 +456,33 @@ export class InscripcionesService {
                 }
             )
 
-            this.logger.log(`📬 Notificación de pago validado enviada a ${inscripcion.email} (Cuota ${numeroCuota}/${numeroCuotas})`)
+            // Si no es pastor registrado, enviar email directamente
+            if (!notificationResult.success || !notificationResult.emailSuccess) {
+                const emailEnviado = await this.emailService.sendNotificationEmail(
+                    inscripcion.email,
+                    titulo,
+                    mensaje,
+                    {
+                        type: 'pago_validado',
+                        pagoId: pago.id,
+                        inscripcionId: inscripcion.id,
+                        convencionId: inscripcionCompleta.convencionId,
+                        numeroCuota: numeroCuota,
+                        cuotasPagadas: cuotasPagadas,
+                        cuotasTotales: numeroCuotas,
+                        monto: monto,
+                        metodoPago: pago.metodoPago,
+                    }
+                )
+
+                if (emailEnviado) {
+                    this.logger.log(`📧 Email de pago validado enviado directamente a ${inscripcion.email} (Cuota ${numeroCuota}/${numeroCuotas})`)
+                } else {
+                    this.logger.warn(`⚠️ No se pudo enviar email de pago validado a ${inscripcion.email}`)
+                }
+            } else {
+                this.logger.log(`📬 Notificación de pago validado enviada a ${inscripcion.email} (Cuota ${numeroCuota}/${numeroCuotas})`)
+            }
         } catch (error) {
             this.logger.error(`Error enviando notificación de pago validado:`, error)
             // No fallar si la notificación falla
@@ -422,7 +525,8 @@ export class InscripcionesService {
             
             // Enviar notificación push al usuario con mensaje más detallado
             try {
-                await this.notificationsService.sendNotificationToUser(
+                // Intentar enviar notificación (puede ser pastor o usuario regular)
+                const notificationResult = await this.notificationsService.sendNotificationToUser(
                     inscripcion.email,
                     '🎉 ¡Inscripción Confirmada!',
                     `Tu inscripción a "${tituloConvencion}" ha sido confirmada. Todos los pagos han sido validados exitosamente. ¡Te esperamos!`,
@@ -435,7 +539,31 @@ export class InscripcionesService {
                         cuotasTotales: numeroCuotas,
                     }
                 )
-                this.logger.log(`📬 Notificación de inscripción confirmada enviada a ${inscripcion.email}`)
+
+                // Si no es pastor registrado, enviar email directamente
+                if (!notificationResult.success || !notificationResult.emailSuccess) {
+                    const emailEnviado = await this.emailService.sendNotificationEmail(
+                        inscripcion.email,
+                        '🎉 ¡Inscripción Confirmada!',
+                        `Tu inscripción a "${tituloConvencion}" ha sido confirmada. Todos los pagos han sido validados exitosamente. ¡Te esperamos!`,
+                        {
+                            type: 'inscripcion_confirmada',
+                            inscripcionId: inscripcion.id,
+                            convencionId: inscripcion.convencionId,
+                            convencionTitulo: tituloConvencion,
+                            cuotasPagadas: cuotasCompletadas,
+                            cuotasTotales: numeroCuotas,
+                        }
+                    )
+
+                    if (emailEnviado) {
+                        this.logger.log(`📧 Email de inscripción confirmada enviado directamente a ${inscripcion.email}`)
+                    } else {
+                        this.logger.warn(`⚠️ No se pudo enviar email de inscripción confirmada a ${inscripcion.email}`)
+                    }
+                } else {
+                    this.logger.log(`📬 Notificación de inscripción confirmada enviada a ${inscripcion.email}`)
+                }
             } catch (error) {
                 this.logger.error(`Error enviando notificación a ${inscripcion.email}:`, error)
                 // No fallar si la notificación falla

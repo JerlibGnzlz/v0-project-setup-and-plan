@@ -75,6 +75,12 @@ export function NotificationsBell() {
         router.push('/admin/inscripciones')
         break
       
+      case 'nuevo_pastor_registrado':
+        // Navegar a la página de pastores
+        setOpen(false)
+        router.push('/admin/pastores')
+        break
+      
       default:
         // Para otros tipos, solo cerrar el popover
         setOpen(false)
@@ -92,6 +98,8 @@ export function NotificationsBell() {
         return 'Ver detalles'
       case 'inscripcion_confirmada':
         return 'Ver inscripción'
+      case 'nuevo_pastor_registrado':
+        return 'Ver pastores'
       default:
         return 'Ver más'
     }

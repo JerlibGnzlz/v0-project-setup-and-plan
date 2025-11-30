@@ -387,3 +387,5 @@ El dashboard automáticamente mostrará:
 7. **Distribución:** Beta testing con TestFlight/Play Console
 
 
+
+

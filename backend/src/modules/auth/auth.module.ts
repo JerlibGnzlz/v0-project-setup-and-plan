@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common"
+import { Module, forwardRef } from "@nestjs/common"
 import { JwtModule } from "@nestjs/jwt"
 import { PassportModule } from "@nestjs/passport"
 import { AuthService } from "./auth.service"
@@ -7,6 +7,7 @@ import { JwtStrategy } from "./strategies/jwt.strategy"
 import { PastorAuthService } from "./pastor-auth.service"
 import { PastorAuthController } from "./pastor-auth.controller"
 import { PastorJwtStrategy } from "./strategies/pastor-jwt.strategy"
+import { NotificationsModule } from "../notifications/notifications.module"
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PastorJwtStrategy } from "./strategies/pastor-jwt.strategy"
       secret: process.env.JWT_SECRET || "your-secret-key",
       signOptions: { expiresIn: process.env.JWT_EXPIRATION || "7d" },
     }),
+    forwardRef(() => NotificationsModule),
   ],
   controllers: [AuthController, PastorAuthController],
   providers: [AuthService, JwtStrategy, PastorAuthService, PastorJwtStrategy],
