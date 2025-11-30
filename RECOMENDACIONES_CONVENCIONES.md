@@ -94,3 +94,4 @@ ALTER TABLE convenciones ADD COLUMN fecha_archivado TIMESTAMP;
 - **Notificaciones**: Notificar a administradores cuando se archive una convención
 - **Reportes**: Mantener capacidad de generar reportes de convenciones archivadas
 
+

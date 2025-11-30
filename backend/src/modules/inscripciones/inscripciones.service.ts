@@ -148,6 +148,45 @@ export class InscripcionesService {
             this.logger.log(`✅ ${pagos.length} pago(s) creado(s) exitosamente`)
         }
 
+        // Enviar notificación a todos los admins sobre la nueva inscripción
+        try {
+            const admins = await this.prisma.user.findMany({
+                where: {
+                    rol: {
+                        in: ['ADMIN', 'EDITOR'],
+                    },
+                },
+            })
+
+            const origenTexto = origenRegistro === 'web' ? 'formulario web' : origenRegistro === 'mobile' ? 'app móvil' : 'dashboard'
+            const titulo = '📝 Nueva Inscripción Recibida'
+            const mensaje = `${inscripcion.nombre} ${inscripcion.apellido} se ha inscrito a "${convencion.titulo}" desde ${origenTexto}.`
+
+            // Enviar notificación a cada admin
+            for (const admin of admins) {
+                await this.notificationsService.sendNotificationToAdmin(
+                    admin.email,
+                    titulo,
+                    mensaje,
+                    {
+                        type: 'nueva_inscripcion',
+                        inscripcionId: inscripcion.id,
+                        convencionId: convencion.id,
+                        convencionTitulo: convencion.titulo,
+                        nombre: inscripcion.nombre,
+                        apellido: inscripcion.apellido,
+                        email: inscripcion.email,
+                        origenRegistro: origenRegistro,
+                    }
+                )
+            }
+
+            this.logger.log(`📬 Notificaciones de nueva inscripción enviadas a ${admins.length} admin(s)`)
+        } catch (error) {
+            this.logger.error(`Error enviando notificaciones de nueva inscripción:`, error)
+            // No fallar si la notificación falla
+        }
+
         // Retornar la inscripción con los pagos incluidos
         return this.findOneInscripcion(inscripcion.id)
     }

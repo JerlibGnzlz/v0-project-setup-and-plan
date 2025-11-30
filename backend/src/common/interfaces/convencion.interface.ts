@@ -80,3 +80,4 @@ export interface IConvencionWithRelations extends Convencion {
   galeria?: any[];
 }
 
+

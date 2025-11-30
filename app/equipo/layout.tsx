@@ -18,3 +18,4 @@ export default function EquipoLayout({
   return <>{children}</>
 }
 
+

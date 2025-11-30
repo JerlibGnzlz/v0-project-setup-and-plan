@@ -36,8 +36,15 @@ export const notificationsApi = {
   },
 
   getUnreadCount: async (): Promise<number> => {
-    const response = await apiClient.get<UnreadCountResponse>('/notifications/unread-count')
-    return response.data.count
+    try {
+      const response = await apiClient.get<UnreadCountResponse>('/notifications/unread-count')
+      // Asegurar que siempre retorne un número válido
+      return response.data?.count ?? 0
+    } catch (error) {
+      // Si hay error, retornar 0 en lugar de undefined
+      console.error('Error obteniendo conteo de notificaciones no leídas:', error)
+      return 0
+    }
   },
 
   markAsRead: async (id: string): Promise<void> => {

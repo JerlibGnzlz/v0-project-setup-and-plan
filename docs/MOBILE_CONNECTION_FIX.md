@@ -189,3 +189,4 @@ Si no funciona desde el navegador del móvil, el problema es:
 
 Si todo esto está correcto, debería funcionar. 🎉
 
+

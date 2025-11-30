@@ -65,6 +65,98 @@ export class NotificationsService {
   }
 
   /**
+   * Envía una notificación a un admin (usuario del dashboard)
+   * Guarda el historial y emite vía WebSocket
+   * Nota: Como el schema requiere pastorId, buscamos o creamos un "pastor" especial para admins
+   */
+  async sendNotificationToAdmin(email: string, title: string, body: string, data?: any) {
+    try {
+      // Verificar que es un usuario admin
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+      })
+
+      if (!user) {
+        this.logger.warn(`No se encontró usuario admin para ${email}`)
+        return { success: false, message: 'Usuario no encontrado' }
+      }
+
+      // Buscar o crear un "pastor" especial para este admin (solo para cumplir con el schema)
+      // Usamos el email como identificador único
+      let adminPastor = await this.prisma.pastor.findFirst({
+        where: {
+          email: `admin-${email}`,
+        },
+      })
+
+      if (!adminPastor) {
+        // Crear un pastor "virtual" para el admin (solo para cumplir con el schema)
+        adminPastor = await this.prisma.pastor.create({
+          data: {
+            nombre: user.nombre,
+            apellido: 'Admin',
+            email: `admin-${email}`,
+            activo: false, // No aparece en listados
+            tipo: 'PASTOR', // Tipo por defecto
+          },
+        })
+      }
+
+      // Guardar en historial
+      let notificationHistory = null
+      try {
+        notificationHistory = await this.prisma.notificationHistory.create({
+          data: {
+            pastorId: adminPastor.id,
+            email,
+            title,
+            body,
+            type: data?.type || 'general',
+            data: data || {},
+            sentVia: 'web', // Solo web para admins
+            pushSuccess: false,
+            emailSuccess: false,
+          },
+        })
+      } catch (historyError) {
+        this.logger.error(`Error guardando historial de notificación para admin:`, historyError)
+        // No fallar si el historial falla
+      }
+
+      // Emitir notificación en tiempo real vía WebSocket
+      try {
+        if (notificationHistory && this.notificationsGateway) {
+          await this.notificationsGateway.emitToUser(email, {
+            id: notificationHistory.id,
+            title,
+            body,
+            type: data?.type || 'general',
+            data: data || {},
+            createdAt: notificationHistory.createdAt,
+            read: false,
+          })
+          // Actualizar conteo de no leídas
+          await this.notificationsGateway.emitUnreadCountUpdate(email)
+        }
+      } catch (wsError) {
+        this.logger.error(`Error emitiendo notificación vía WebSocket:`, wsError)
+      }
+
+      this.logger.log(`✅ Notificación enviada a admin ${email}`)
+
+      return {
+        success: true,
+        pushSuccess: false,
+        emailSuccess: false,
+        sentVia: 'web',
+      }
+    } catch (error) {
+      this.logger.error(`Error enviando notificación a admin ${email}:`, error)
+      throw error
+    }
+  }
+
+  /**
    * Envía una notificación push a un usuario por email
    * Si no hay tokens push, envía email de respaldo
    * Guarda el historial de notificaciones
@@ -268,23 +360,43 @@ export class NotificationsService {
    * Obtiene el historial de notificaciones de un usuario
    */
   async getNotificationHistory(email: string, options: { limit: number; offset: number }) {
+    // Verificar si es un pastor
     const pastorAuth = await this.prisma.pastorAuth.findUnique({
       where: { email },
     })
 
-    if (!pastorAuth) {
-      throw new Error('Usuario no encontrado')
+    // Si es pastor, buscar por pastorId
+    if (pastorAuth) {
+      const notifications = await this.prisma.notificationHistory.findMany({
+        where: { pastorId: pastorAuth.pastorId },
+        orderBy: { createdAt: 'desc' },
+        take: options.limit,
+        skip: options.offset,
+      })
+
+      const total = await this.prisma.notificationHistory.count({
+        where: { pastorId: pastorAuth.pastorId },
+      })
+
+      return {
+        notifications,
+        total,
+        limit: options.limit,
+        offset: options.offset,
+      }
     }
 
+    // Si es admin, buscar por email directamente
+    // (aunque las notificaciones están diseñadas para pastores, permitimos búsqueda por email)
     const notifications = await this.prisma.notificationHistory.findMany({
-      where: { pastorId: pastorAuth.pastorId },
+      where: { email },
       orderBy: { createdAt: 'desc' },
       take: options.limit,
       skip: options.offset,
     })
 
     const total = await this.prisma.notificationHistory.count({
-      where: { pastorId: pastorAuth.pastorId },
+      where: { email },
     })
 
     return {
@@ -299,17 +411,25 @@ export class NotificationsService {
    * Obtiene el conteo de notificaciones no leídas
    */
   async getUnreadCount(email: string): Promise<number> {
+    // Verificar si es un pastor
     const pastorAuth = await this.prisma.pastorAuth.findUnique({
       where: { email },
     })
 
-    if (!pastorAuth) {
-      return 0
+    // Si es pastor, buscar por pastorId
+    if (pastorAuth) {
+      return this.prisma.notificationHistory.count({
+        where: {
+          pastorId: pastorAuth.pastorId,
+          read: false,
+        },
+      })
     }
 
+    // Si es admin, buscar por email directamente
     return this.prisma.notificationHistory.count({
       where: {
-        pastorId: pastorAuth.pastorId,
+        email,
         read: false,
       },
     })
@@ -319,19 +439,48 @@ export class NotificationsService {
    * Marca una notificación como leída
    */
   async markAsRead(notificationId: string, email: string) {
+    // Verificar si es un pastor
     const pastorAuth = await this.prisma.pastorAuth.findUnique({
       where: { email },
     })
 
-    if (!pastorAuth) {
-      throw new Error('Usuario no encontrado')
+    // Si es pastor, verificar por pastorId
+    if (pastorAuth) {
+      // Verificar que la notificación pertenece al pastor
+      const notification = await this.prisma.notificationHistory.findFirst({
+        where: {
+          id: notificationId,
+          pastorId: pastorAuth.pastorId,
+        },
+      })
+
+      if (!notification) {
+        throw new Error('Notificación no encontrada o no pertenece al usuario')
+      }
+
+      return this.prisma.notificationHistory.update({
+        where: { id: notificationId },
+        data: {
+          read: true,
+          readAt: new Date(),
+        },
+      })
+    }
+
+    // Si es admin, verificar por email
+    const notification = await this.prisma.notificationHistory.findFirst({
+      where: {
+        id: notificationId,
+        email,
+      },
+    })
+
+    if (!notification) {
+      throw new Error('Notificación no encontrada o no pertenece al usuario')
     }
 
     return this.prisma.notificationHistory.update({
-      where: {
-        id: notificationId,
-        pastorId: pastorAuth.pastorId, // Asegurar que pertenece al usuario
-      },
+      where: { id: notificationId },
       data: {
         read: true,
         readAt: new Date(),
@@ -343,17 +492,29 @@ export class NotificationsService {
    * Marca todas las notificaciones como leídas
    */
   async markAllAsRead(email: string) {
+    // Verificar si es un pastor
     const pastorAuth = await this.prisma.pastorAuth.findUnique({
       where: { email },
     })
 
-    if (!pastorAuth) {
-      throw new Error('Usuario no encontrado')
+    // Si es pastor, actualizar por pastorId
+    if (pastorAuth) {
+      return this.prisma.notificationHistory.updateMany({
+        where: {
+          pastorId: pastorAuth.pastorId,
+          read: false,
+        },
+        data: {
+          read: true,
+          readAt: new Date(),
+        },
+      })
     }
 
+    // Si es admin, actualizar por email
     return this.prisma.notificationHistory.updateMany({
       where: {
-        pastorId: pastorAuth.pastorId,
+        email,
         read: false,
       },
       data: {

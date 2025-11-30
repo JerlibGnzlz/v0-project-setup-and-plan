@@ -15,9 +15,16 @@ export function useNotificationHistory(limit = 50, offset = 0) {
 export function useUnreadCount() {
   return useQuery({
     queryKey: ['notifications', 'unread-count'],
-    queryFn: () => notificationsApi.getUnreadCount(),
+    queryFn: async () => {
+      const count = await notificationsApi.getUnreadCount()
+      // Asegurar que siempre retorne un número válido
+      return typeof count === 'number' ? count : 0
+    },
     refetchInterval: 30000, // Actualizar cada 30 segundos
     refetchOnWindowFocus: true,
+    // Valor por defecto para evitar undefined
+    initialData: 0,
+    placeholderData: 0,
   })
 }
 

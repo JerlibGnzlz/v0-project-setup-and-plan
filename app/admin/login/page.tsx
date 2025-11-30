@@ -26,9 +26,10 @@ export default function AdminLogin() {
     console.log('[Login Page] Estado de autenticación:', { isHydrated, isAuthenticated })
     if (isHydrated && isAuthenticated) {
       console.log('[Login Page] Ya autenticado, redirigiendo a /admin')
-      window.location.href = '/admin'
+      // Usar router.push para mejor UX (sin recarga completa)
+      router.push('/admin')
     }
-  }, [isAuthenticated, isHydrated])
+  }, [isAuthenticated, isHydrated, router])
 
   const {
     register,
@@ -49,38 +50,37 @@ export default function AdminLogin() {
     try {
       console.log('[Login Page] Iniciando login...')
       await login({ ...data, rememberMe })
-      console.log('[Login Page] Login exitoso, redirigiendo...')
+      console.log('[Login Page] Login exitoso')
+      
+      // Esperar un momento para asegurar que el storage se haya guardado
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Verificar que el token esté guardado antes de redirigir
+      const storage = rememberMe ? localStorage : sessionStorage
+      const storedToken = storage.getItem("auth_token")
+      const storedUser = storage.getItem("auth_user")
+      
+      if (!storedToken || !storedUser) {
+        console.error('[Login Page] ERROR: Token no guardado en storage')
+        setLoginError('Error al guardar la sesión. Por favor, intenta nuevamente.')
+        return
+      }
+      
+      console.log('[Login Page] Token verificado en storage, redirigiendo...')
       
       toast.success('Bienvenido', {
         description: 'Has iniciado sesión correctamente',
       })
       
-      // Esperar a que el estado se actualice y luego redirigir
-      // Verificar el estado antes de redirigir
+      // Usar router.push en lugar de window.location.href para mejor UX
+      // Pero esperar un momento más para asegurar que el estado esté actualizado
       setTimeout(() => {
-        const authState = useAuth.getState()
-        console.log('[Login Page] Estado antes de redirigir:', {
-          isAuthenticated: authState.isAuthenticated,
-          hasToken: !!authState.token,
-          hasUser: !!authState.user
-        })
-        
-        // Verificar también en localStorage/sessionStorage
-        const storedToken = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token")
-        const storedUser = localStorage.getItem("auth_user") || sessionStorage.getItem("auth_user")
-        console.log('[Login Page] Storage verificado:', {
-          hasStoredToken: !!storedToken,
-          hasStoredUser: !!storedUser
-        })
-        
-        if (authState.isAuthenticated || storedToken) {
-          console.log('[Login Page] Redirigiendo a /admin')
-          window.location.href = '/admin'
-        } else {
-          console.error('[Login Page] ERROR: Estado no autenticado después del login')
-          setLoginError('Error al actualizar el estado de autenticación. Por favor, intenta nuevamente.')
-        }
-      }, 300)
+        router.push('/admin')
+        // Forzar recarga después de un momento para asegurar que el layout lea el nuevo estado
+        setTimeout(() => {
+          router.refresh()
+        }, 100)
+      }, 200)
     } catch (error: any) {
       console.error('[Login Page] Error en login admin:', error)
       const errorMessage = error.response?.data?.message || error.message || 'Credenciales inválidas'

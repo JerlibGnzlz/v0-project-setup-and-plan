@@ -51,19 +51,30 @@ export const useAuth = create<AuthState>()((set) => ({
     })
 
     // Limpiar ambos storages primero
-    localStorage.removeItem("auth_token")
-    localStorage.removeItem("auth_user")
-    sessionStorage.removeItem("auth_token")
-    sessionStorage.removeItem("auth_user")
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem("auth_token")
+      localStorage.removeItem("auth_user")
+      sessionStorage.removeItem("auth_token")
+      sessionStorage.removeItem("auth_user")
 
-    // Si rememberMe es true, usar localStorage (persistente)
-    // Si es false, usar sessionStorage (se borra al cerrar navegador)
-    const storage = data.rememberMe ? localStorage : sessionStorage
+      // Si rememberMe es true, usar localStorage (persistente)
+      // Si es false, usar sessionStorage (se borra al cerrar navegador)
+      const storage = data.rememberMe ? localStorage : sessionStorage
 
-    storage.setItem("auth_token", response.access_token)
-    storage.setItem("auth_user", JSON.stringify(response.user))
-    console.log('[useAuth] Token y usuario guardados en', data.rememberMe ? 'localStorage' : 'sessionStorage')
+      // Guardar token y usuario en storage
+      storage.setItem("auth_token", response.access_token)
+      storage.setItem("auth_user", JSON.stringify(response.user))
+      console.log('[useAuth] Token y usuario guardados en', data.rememberMe ? 'localStorage' : 'sessionStorage')
+      
+      // Verificar que se guardó correctamente
+      const verifyToken = storage.getItem("auth_token")
+      const verifyUser = storage.getItem("auth_user")
+      if (!verifyToken || !verifyUser) {
+        throw new Error('Error al guardar la sesión en storage')
+      }
+    }
 
+    // Actualizar estado de Zustand
     const newState = {
       user: response.user,
       token: response.access_token,
@@ -73,15 +84,8 @@ export const useAuth = create<AuthState>()((set) => ({
     set(newState)
     console.log('[useAuth] Estado actualizado:', newState)
     
-    // Verificar que el estado se guardó correctamente
-    setTimeout(() => {
-      const currentState = useAuth.getState()
-      console.log('[useAuth] Estado después de actualizar:', {
-        isAuthenticated: currentState.isAuthenticated,
-        hasToken: !!currentState.token,
-        hasUser: !!currentState.user
-      })
-    }, 50)
+    // Retornar para que el login page pueda esperar
+    return Promise.resolve()
   },
 
   logout: () => {

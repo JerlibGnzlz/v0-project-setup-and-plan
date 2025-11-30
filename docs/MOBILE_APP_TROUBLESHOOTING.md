@@ -182,3 +182,4 @@ Si quieres ocultarlos:
 4. Revisa los logs de Expo para ver el error exacto
 5. Prueba el endpoint directamente con `curl` (ver arriba)
 
+

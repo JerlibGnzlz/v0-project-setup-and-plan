@@ -24,10 +24,20 @@ export function useUpdatePago() {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Pago> }) => pagosApi.updatePago(id, data),
-    onSuccess: () => {
+    onSuccess: (_data: any, variables: { id: string; data: Partial<Pago> }) => {
       queryClient.invalidateQueries({ queryKey: ["pagos"] })
       queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
-      toast.success("Pago actualizado exitosamente")
+      // Invalidar notificaciones para actualizar el contador
+      queryClient.invalidateQueries({ queryKey: ["notifications"] })
+
+      // Mensaje personalizado según el estado
+      if (variables.data?.estado === 'COMPLETADO') {
+        toast.success("✅ Pago validado exitosamente", {
+          description: "El usuario recibirá una notificación de confirmación",
+        })
+      } else {
+        toast.success("Pago actualizado exitosamente")
+      }
     },
     onError: () => {
       toast.error("Error al actualizar el pago")

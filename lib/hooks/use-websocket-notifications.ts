@@ -67,7 +67,9 @@ export function useWebSocketNotifications() {
 
     socket.on('unread-count', (data: { count: number }) => {
       console.log('📊 Conteo de no leídas actualizado:', data.count)
-      queryClient.setQueryData(['notifications', 'unread-count'], data.count)
+      // Asegurar que siempre sea un número válido
+      const count = typeof data?.count === 'number' ? data.count : 0
+      queryClient.setQueryData(['notifications', 'unread-count'], count)
     })
 
     socket.on('connect_error', (error) => {

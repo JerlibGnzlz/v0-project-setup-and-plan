@@ -206,3 +206,4 @@
 
 **El sistema está listo para que los pastores se registren y usen la app móvil cuando esté disponible.**
 
+

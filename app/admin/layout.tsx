@@ -31,6 +31,8 @@ function AdminLayoutContent({
   // Verificar autenticación al montar
   useEffect(() => {
     const verifyAuth = async () => {
+      // Pequeño delay para asegurar que el storage esté disponible después de login
+      await new Promise(resolve => setTimeout(resolve, 50))
       await checkAuth()
     }
     verifyAuth()
@@ -38,12 +40,25 @@ function AdminLayoutContent({
 
   useEffect(() => {
     console.log('[AdminLayout] Estado de autenticación:', { isHydrated, isAuthenticated, isPublicPath, pathname })
+    
     // Solo redirigir después de que se haya verificado la autenticación
+    // Y dar un momento extra para que el estado se actualice después del login
     if (isHydrated && !isAuthenticated && !isPublicPath) {
-      console.log('[AdminLayout] No autenticado, redirigiendo a login')
-      router.push('/admin/login')
+      // Verificar también en storage como respaldo
+      const storedToken = typeof window !== 'undefined' 
+        ? (localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token"))
+        : null
+      
+      if (!storedToken) {
+        console.log('[AdminLayout] No autenticado y sin token en storage, redirigiendo a login')
+        router.push('/admin/login')
+      } else {
+        // Si hay token en storage pero el estado no está actualizado, forzar verificación
+        console.log('[AdminLayout] Token encontrado en storage pero estado no actualizado, verificando...')
+        checkAuth()
+      }
     }
-  }, [isAuthenticated, isHydrated, isPublicPath, router, pathname])
+  }, [isAuthenticated, isHydrated, isPublicPath, router, pathname, checkAuth])
 
   const handleLogout = () => {
     logout()

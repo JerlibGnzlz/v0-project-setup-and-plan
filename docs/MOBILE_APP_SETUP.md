@@ -386,3 +386,4 @@ El dashboard automáticamente mostrará:
 6. **Testing:** Probar en dispositivos reales
 7. **Distribución:** Beta testing con TestFlight/Play Console
 
+
