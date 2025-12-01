@@ -40,15 +40,15 @@ function AdminLayoutContent({
 
   useEffect(() => {
     console.log('[AdminLayout] Estado de autenticación:', { isHydrated, isAuthenticated, isPublicPath, pathname })
-    
+
     // Solo redirigir después de que se haya verificado la autenticación
     // Y dar un momento extra para que el estado se actualice después del login
     if (isHydrated && !isAuthenticated && !isPublicPath) {
       // Verificar también en storage como respaldo
-      const storedToken = typeof window !== 'undefined' 
+      const storedToken = typeof window !== 'undefined'
         ? (localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token"))
         : null
-      
+
       if (!storedToken) {
         console.log('[AdminLayout] No autenticado y sin token en storage, redirigiendo a login')
         router.push('/admin/login')
@@ -106,7 +106,7 @@ function AdminLayoutContent({
             </div>
             <div>
               <h2 className="font-semibold text-base bg-gradient-to-r from-sky-600 via-emerald-600 to-amber-600 dark:from-sky-400 dark:via-emerald-400 dark:to-amber-400 bg-clip-text text-transparent">
-                Sede Digital AMVA
+                AMVA Digital
               </h2>
             </div>
           </Link>
@@ -167,7 +167,7 @@ function AdminLayoutContent({
                 />
                 <div>
                   <h2 className="font-semibold text-sm bg-gradient-to-r from-sky-600 via-emerald-600 to-amber-600 dark:from-sky-400 dark:via-emerald-400 dark:to-amber-400 bg-clip-text text-transparent">
-                    Sede Digital AMVA
+                    AMVA Digital
                   </h2>
                 </div>
               </div>
@@ -188,25 +188,22 @@ function AdminLayoutContent({
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                        isActive
+                      className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
                           ? 'bg-gradient-to-r from-sky-500/10 via-emerald-500/10 to-amber-500/10 dark:from-sky-500/20 dark:via-emerald-500/20 dark:to-amber-500/20 text-sky-700 dark:text-sky-300 shadow-sm border border-sky-200/50 dark:border-sky-500/30'
                           : 'text-muted-foreground hover:bg-sky-50/50 dark:hover:bg-sky-950/20 hover:text-sky-700 dark:hover:text-sky-300'
-                      }`}
+                        }`}
                     >
                       <div
-                        className={`p-2 rounded-lg transition-all duration-200 ${
-                          isActive
+                        className={`p-2 rounded-lg transition-all duration-200 ${isActive
                             ? 'bg-gradient-to-br from-sky-500/20 to-emerald-500/20 dark:from-sky-500/30 dark:to-emerald-500/30'
                             : 'bg-sky-50/50 dark:bg-sky-950/20 group-hover:bg-sky-100/50 dark:group-hover:bg-sky-900/30'
-                        }`}
+                          }`}
                       >
                         <Icon
-                          className={`h-5 w-5 transition-colors ${
-                            isActive
+                          className={`h-5 w-5 transition-colors ${isActive
                               ? 'text-sky-600 dark:text-sky-400'
                               : 'text-muted-foreground group-hover:text-sky-600 dark:group-hover:text-sky-400'
-                          }`}
+                            }`}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -247,7 +244,7 @@ function AdminLayoutContent({
             </div>
           </SheetContent>
         </Sheet>
-        
+
         {/* Logo visible en el header móvil */}
         <Link href="/admin" className="flex items-center gap-3">
           <Image
@@ -259,7 +256,7 @@ function AdminLayoutContent({
           />
           <h2 className="font-semibold bg-gradient-to-r from-sky-600 to-emerald-600 dark:from-sky-400 dark:to-emerald-400 bg-clip-text text-transparent">A.M.V.A</h2>
         </Link>
-        
+
         {/* User info and actions */}
         <div className="ml-auto flex items-center gap-2">
           {/* Avatar */}

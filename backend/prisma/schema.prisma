@@ -140,12 +140,14 @@ model Inscripcion {
   numeroCuotas     Int        @default(3) @map("numero_cuotas")
   origenRegistro   String     @default("web") @map("origen_registro")
   documentoUrl     String?    @map("documento_url")
+  codigoReferencia String?    @unique @map("codigo_referencia")
   convencion       Convencion @relation(fields: [convencionId], references: [id], onDelete: Cascade)
   pagos            Pago[]
 
   @@index([convencionId])
   @@index([estado])
   @@index([origenRegistro])
+  @@index([codigoReferencia])
   @@map("inscripciones")
 }
 

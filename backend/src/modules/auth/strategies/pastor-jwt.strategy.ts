@@ -28,3 +28,4 @@ export class PastorJwtStrategy extends PassportStrategy(Strategy, 'pastor-jwt') 
 
 
 
+

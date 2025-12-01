@@ -44,8 +44,10 @@ export default function PagosPage() {
     const nombreCompleto = pago.inscripcion
       ? `${pago.inscripcion.nombre} ${pago.inscripcion.apellido}`
       : ''
+    const codigoReferencia = pago.inscripcion?.codigoReferencia || ''
     const matchSearch = nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (pago.referencia && pago.referencia.toLowerCase().includes(searchTerm.toLowerCase()))
+      (pago.referencia && pago.referencia.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (codigoReferencia && codigoReferencia.toLowerCase().includes(searchTerm.toLowerCase()))
     const matchEstado = estadoFilter === 'todos' ||
       (estadoFilter === 'confirmado' && pago.estado === 'COMPLETADO') ||
       (estadoFilter === 'pendiente' && pago.estado === 'PENDIENTE') ||
@@ -143,7 +145,7 @@ export default function PagosPage() {
                 <div className="relative md:col-span-2">
                   <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por nombre o referencia..."
+                    placeholder="Buscar por nombre, código de referencia o referencia..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-9"
@@ -218,6 +220,11 @@ export default function PagosPage() {
                           <tr key={pago.id} className="border-b last:border-0 hover:bg-muted/50">
                             <td className="p-3">
                               <p className="font-medium text-sm">{nombreCompleto}</p>
+                              {inscripcion?.codigoReferencia && (
+                                <p className="text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                                  🔖 {inscripcion.codigoReferencia}
+                                </p>
+                              )}
                               {pago.referencia && (
                                 <p className="text-xs text-muted-foreground">{pago.referencia}</p>
                               )}

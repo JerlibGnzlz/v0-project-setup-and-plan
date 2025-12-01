@@ -51,27 +51,27 @@ export default function AdminLogin() {
       console.log('[Login Page] Iniciando login...')
       await login({ ...data, rememberMe })
       console.log('[Login Page] Login exitoso')
-      
+
       // Esperar un momento para asegurar que el storage se haya guardado
       await new Promise(resolve => setTimeout(resolve, 100))
-      
+
       // Verificar que el token esté guardado antes de redirigir
       const storage = rememberMe ? localStorage : sessionStorage
       const storedToken = storage.getItem("auth_token")
       const storedUser = storage.getItem("auth_user")
-      
+
       if (!storedToken || !storedUser) {
         console.error('[Login Page] ERROR: Token no guardado en storage')
         setLoginError('Error al guardar la sesión. Por favor, intenta nuevamente.')
         return
       }
-      
+
       console.log('[Login Page] Token verificado en storage, redirigiendo...')
-      
+
       toast.success('Bienvenido', {
         description: 'Has iniciado sesión correctamente',
       })
-      
+
       // Usar router.push en lugar de window.location.href para mejor UX
       // Pero esperar un momento más para asegurar que el estado esté actualizado
       setTimeout(() => {
@@ -139,9 +139,9 @@ export default function AdminLogin() {
 
               {/* Title with gradient */}
               <h1 className="mt-6 text-2xl sm:text-3xl font-bold text-center bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
-                Sede Digital AMVA
+                AMVA Digital
               </h1>
-              
+
               {/* Subtitle */}
               <p className="mt-2 text-sm text-white/60 text-center">
                 Asociación Misionera Vida Abundante

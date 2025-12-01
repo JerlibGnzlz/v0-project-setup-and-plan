@@ -11,8 +11,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "seed": "ts-node prisma/seed.ts",
-    "seed:prod": "node prisma/seed.js",
+    "seed": "node \"seed Data-prisma/seed.js\"",
+    "seed:prod": "node \"seed Data-prisma/seed.js\"",
     "create-test-pastor": "ts-node scripts/create-test-pastor.ts"
   },
   "dependencies": {

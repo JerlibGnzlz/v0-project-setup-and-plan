@@ -29,7 +29,7 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { Search, UserCheck, ChevronLeft, Mail, Phone, MapPin, Calendar, FileText, CreditCard, Plus, DollarSign, CheckCircle2, Image as ImageIcon, X, Printer, Download } from 'lucide-react'
+import { Search, UserCheck, ChevronLeft, Mail, Phone, MapPin, Calendar, FileText, CreditCard, Plus, DollarSign, CheckCircle2, Image as ImageIcon, X, Printer, Download, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import { ComprobanteUpload } from '@/components/ui/comprobante-upload'
 import { uploadApi } from '@/lib/api/upload'
@@ -110,10 +110,12 @@ export default function InscripcionesPage() {
         const nombreCompleto = `${insc.nombre} ${insc.apellido}`.toLowerCase()
         const email = (insc.email || '').toLowerCase()
         const sede = (insc.sede || '').toLowerCase()
+        const codigoRef = (insc.codigoReferencia || '').toLowerCase()
         const matchSearch = nombreCompleto.includes(searchTerm.toLowerCase()) ||
             email.includes(searchTerm.toLowerCase()) ||
             (insc.telefono && insc.telefono.includes(searchTerm)) ||
-            sede.includes(searchTerm.toLowerCase())
+            sede.includes(searchTerm.toLowerCase()) ||
+            codigoRef.includes(searchTerm.toLowerCase())
 
         const matchEstado = estadoFilter === 'todos' || insc.estado === estadoFilter
 
@@ -128,6 +130,41 @@ export default function InscripcionesPage() {
 
         return matchSearch && matchEstado && matchConvencion && matchPagoCompleto
     })
+        .sort((a: any, b: any) => {
+            // Ordenar por fecha de inscripción descendente (más recientes primero)
+            const fechaA = new Date(a.fechaInscripcion).getTime()
+            const fechaB = new Date(b.fechaInscripcion).getTime()
+            return fechaB - fechaA
+        })
+
+    // Calcular estadísticas
+    const ahora = new Date()
+    const hace24Horas = new Date(ahora.getTime() - 24 * 60 * 60 * 1000)
+    const hoy = new Date(ahora.setHours(0, 0, 0, 0))
+
+    const estadisticas = {
+        total: inscripciones.length,
+        nuevas: inscripciones.filter((insc: any) => {
+            const fechaInsc = new Date(insc.fechaInscripcion)
+            return fechaInsc >= hace24Horas
+        }).length,
+        hoy: inscripciones.filter((insc: any) => {
+            const fechaInsc = new Date(insc.fechaInscripcion)
+            return fechaInsc >= hoy
+        }).length,
+        pendientes: inscripciones.filter((insc: any) => insc.estado === 'pendiente').length,
+        confirmadas: inscripciones.filter((insc: any) => insc.estado === 'confirmado').length,
+        conPagoCompleto: inscripciones.filter((insc: any) => {
+            const pagosInfo = getPagosInfo(insc)
+            return pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
+        }).length,
+    }
+
+    // Función para verificar si una inscripción es nueva (últimas 24 horas)
+    const esNueva = (inscripcion: any) => {
+        const fechaInsc = new Date(inscripcion.fechaInscripcion)
+        return fechaInsc >= hace24Horas
+    }
 
     const handleUploadComprobante = async (file: File): Promise<string> => {
         setIsUploadingComprobante(true)
@@ -304,6 +341,7 @@ export default function InscripcionesPage() {
                 <th>Teléfono</th>
                 <th>Sede</th>
                 <th>País</th>
+                <th>Código Referencia</th>
                 <th>Cuotas</th>
                 <th>Estado Pago</th>
                 <th>Estado</th>
@@ -339,6 +377,7 @@ export default function InscripcionesPage() {
                     <td>${insc.telefono || '-'}</td>
                     <td>${sedeNombre}</td>
                     <td>${pais}</td>
+                    <td><strong style="font-family: monospace;">${insc.codigoReferencia || '-'}</strong></td>
                     <td>${pagosInfo.cuotasPagadas}/${pagosInfo.numeroCuotas}</td>
                     <td>
                       <span class="badge ${pagoCompleto ? 'badge-completo' : 'badge-pendiente'}">
@@ -353,7 +392,7 @@ export default function InscripcionesPage() {
           </table>
 
           <div class="footer">
-            <p>Asociación Misionera Vida Abundante - Sede Digital AMVA</p>
+            <p>Asociación Misionera Vida Abundante - AMVA Digital</p>
             <p>Documento generado el ${fechaExport}</p>
           </div>
         </body>
@@ -380,6 +419,7 @@ export default function InscripcionesPage() {
             'Sede',
             'País',
             'Convención',
+            'Código de Referencia',
             'Cuotas Pagadas',
             'Total Cuotas',
             'Estado Pago',
@@ -416,6 +456,7 @@ export default function InscripcionesPage() {
                 sedeNombre,
                 pais,
                 insc.convencion?.titulo || '',
+                insc.codigoReferencia || '',
                 pagosInfo.cuotasPagadas,
                 pagosInfo.numeroCuotas,
                 pagoCompleto ? 'Completo' : 'Pendiente',
@@ -474,6 +515,62 @@ export default function InscripcionesPage() {
                 </div>
             </div>
 
+            {/* Estadísticas */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Total</p>
+                                <p className="text-2xl font-bold">{estadisticas.total}</p>
+                            </div>
+                            <div className="p-3 bg-blue-500/10 rounded-lg">
+                                <UserCheck className="size-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Nuevas (24h)</p>
+                                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{estadisticas.nuevas}</p>
+                            </div>
+                            <div className="p-3 bg-emerald-500/10 rounded-lg">
+                                <Sparkles className="size-5 text-emerald-600 dark:text-emerald-400" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Hoy</p>
+                                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{estadisticas.hoy}</p>
+                            </div>
+                            <div className="p-3 bg-amber-500/10 rounded-lg">
+                                <Calendar className="size-5 text-amber-600 dark:text-amber-400" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Confirmadas</p>
+                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{estadisticas.confirmadas}</p>
+                            </div>
+                            <div className="p-3 bg-green-500/10 rounded-lg">
+                                <CheckCircle2 className="size-5 text-green-600 dark:text-green-400" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
             <ScrollReveal>
                 <Card>
                     <CardHeader>
@@ -506,7 +603,7 @@ export default function InscripcionesPage() {
                             <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground size-4" />
                                 <Input
-                                    placeholder="Buscar por nombre, email o teléfono..."
+                                    placeholder="Buscar por nombre, email, código de referencia o teléfono..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="pl-10"
@@ -573,12 +670,28 @@ export default function InscripcionesPage() {
                                                     {/* Información del inscrito */}
                                                     <div className="lg:col-span-5 space-y-4">
                                                         <div>
-                                                            <h3 className="font-semibold text-lg">
-                                                                {insc.nombre} {insc.apellido}
-                                                            </h3>
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                <h3 className="font-semibold text-lg">
+                                                                    {insc.nombre} {insc.apellido}
+                                                                </h3>
+                                                                {esNueva(insc) && (
+                                                                    <Badge className="bg-emerald-500 text-white animate-pulse">
+                                                                        ✨ Nueva
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
                                                             <p className="text-sm text-muted-foreground">
                                                                 {insc.convencion?.titulo || 'Sin convención'}
                                                             </p>
+                                                            <p className="text-xs text-muted-foreground mt-1">
+                                                                Inscrito: {format(new Date(insc.fechaInscripcion), "d 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })}
+                                                            </p>
+                                                            {insc.codigoReferencia && (
+                                                                <div className="mt-2 p-2 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+                                                                    <p className="text-xs text-emerald-700 dark:text-emerald-300 font-semibold mb-1">🔖 Código de Referencia:</p>
+                                                                    <p className="text-sm font-mono font-bold text-emerald-900 dark:text-emerald-100">{insc.codigoReferencia}</p>
+                                                                </div>
+                                                            )}
                                                         </div>
 
                                                         <div className="space-y-2 text-sm">
@@ -617,7 +730,7 @@ export default function InscripcionesPage() {
                                                                                         const ubicacion = insc.sede.split(' - ').slice(-1)[0]
                                                                                         if (ubicacion.includes(',')) {
                                                                                             // Si tiene coma, separar país y provincia
-                                                                                            const [pais, provincia] = ubicacion.split(',').map(s => s.trim())
+                                                                                            const [pais, provincia] = ubicacion.split(',').map((s: string) => s.trim())
                                                                                             return (
                                                                                                 <span>
                                                                                                     <span className="text-amber-600 dark:text-amber-400">{pais}</span>
@@ -672,14 +785,14 @@ export default function InscripcionesPage() {
                                                         <div className="space-y-4">
                                                             {/* Resumen de pagos */}
                                                             <div className={`p-4 rounded-lg border ${pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
-                                                                    ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/50'
-                                                                    : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/50 dark:border-amber-800/50'
+                                                                ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/50'
+                                                                : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/50 dark:border-amber-800/50'
                                                                 }`}>
                                                                 <div className="flex items-center justify-between mb-3">
                                                                     <div className="flex items-center gap-2">
                                                                         <DollarSign className={`size-4 ${pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
-                                                                                ? 'text-emerald-600 dark:text-emerald-400'
-                                                                                : 'text-amber-600 dark:text-amber-400'
+                                                                            ? 'text-emerald-600 dark:text-emerald-400'
+                                                                            : 'text-amber-600 dark:text-amber-400'
                                                                             }`} />
                                                                         <span className="font-semibold text-sm">Estado de Pagos</span>
                                                                     </div>
@@ -739,8 +852,8 @@ export default function InscripcionesPage() {
                                                                     >
                                                                         <div className="flex items-center gap-3">
                                                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${cuota.estado === 'COMPLETADO'
-                                                                                    ? 'bg-emerald-500 text-white'
-                                                                                    : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+                                                                                ? 'bg-emerald-500 text-white'
+                                                                                : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                                                                                 }`}>
                                                                                 {cuota.numero}
                                                                             </div>

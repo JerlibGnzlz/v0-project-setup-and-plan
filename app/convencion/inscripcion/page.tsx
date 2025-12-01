@@ -4,13 +4,16 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useConvencionActiva } from '@/lib/hooks/use-convencion'
 import { usePastorAuth } from '@/lib/hooks/use-pastor-auth'
+import { useCheckInscripcion } from '@/lib/hooks/use-inscripciones'
 import { Step1Auth } from '@/components/convencion/step1-auth'
 import { Step2ConvencionInfo } from '@/components/convencion/step2-convencion-info'
 import { Step3Formulario } from '@/components/convencion/step3-formulario'
+import { Step4Resumen } from '@/components/convencion/step4-resumen'
 import Image from 'next/image'
 import { CheckCircle2, Circle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { QueryProvider } from '@/lib/providers/query-provider'
+import { Button } from '@/components/ui/button'
 
 function ConvencionInscripcionPageContent() {
   const router = useRouter()
@@ -18,6 +21,23 @@ function ConvencionInscripcionPageContent() {
   const { pastor, isAuthenticated, isHydrated, checkAuth } = usePastorAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<any>(null)
+  const [pasosCompletados, setPasosCompletados] = useState<number[]>([])
+  
+  // Verificar si ya está inscrito y si está confirmado
+  const { data: inscripcionExistente } = useCheckInscripcion(
+    convencion?.id,
+    pastor?.email
+  )
+  const estaConfirmado = inscripcionExistente?.estado === 'confirmado'
+  
+  // Cuando se completa el paso 2 (selección de plan de pago), marcar pasos 1-4 como completados
+  useEffect(() => {
+    if (currentStep >= 2 && formData?.numeroCuotas) {
+      setPasosCompletados([1, 2, 3, 4])
+    } else if (currentStep >= 1) {
+      setPasosCompletados([1])
+    }
+  }, [currentStep, formData?.numeroCuotas])
 
   // Verificar autenticación al montar
   useEffect(() => {
@@ -74,13 +94,19 @@ function ConvencionInscripcionPageContent() {
     { number: 1, title: 'Autenticación', description: 'Inicia sesión o crea tu cuenta' },
     { number: 2, title: 'Información', description: 'Detalles de la convención' },
     { number: 3, title: 'Inscripción', description: 'Completa tus datos' },
+    { number: 4, title: 'Confirmación', description: 'Revisa y confirma' },
   ]
 
   const handleStepComplete = (step: number, data?: any) => {
+    // Si está confirmado, no permitir avanzar a pasos 3 y 4
+    if (estaConfirmado && (step + 1 === 3 || step + 1 === 4)) {
+      return
+    }
+    
     if (data) {
       setFormData((prev: any) => ({ ...prev, ...data }))
     }
-    if (step < 3) {
+    if (step < 4) {
       setCurrentStep(step + 1)
     }
   }
@@ -124,6 +150,10 @@ function ConvencionInscripcionPageContent() {
                 <div className="flex flex-col items-center flex-1">
                   <button
                     onClick={() => {
+                      // Si está confirmado, no permitir ir a pasos 3 y 4
+                      if (estaConfirmado && (step.number === 3 || step.number === 4)) {
+                        return
+                      }
                       // Solo permitir ir a steps anteriores o al siguiente
                       if (step.number <= currentStep || (step.number === currentStep + 1 && isAuthenticated)) {
                         setCurrentStep(step.number)
@@ -131,15 +161,17 @@ function ConvencionInscripcionPageContent() {
                     }}
                     className={cn(
                       'w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300',
-                      step.number < currentStep
+                      estaConfirmado && (step.number === 3 || step.number === 4)
+                        ? 'bg-white/5 text-white/30 border border-white/10 cursor-not-allowed opacity-50'
+                        : pasosCompletados.includes(step.number)
                         ? 'bg-emerald-500 text-white'
                         : step.number === currentStep
                         ? 'bg-emerald-500 text-white ring-4 ring-emerald-500/30 scale-110'
                         : 'bg-white/10 text-white/50 border border-white/20'
                     )}
-                    disabled={step.number > currentStep && !isAuthenticated}
+                    disabled={(step.number > currentStep && !isAuthenticated) || (estaConfirmado && (step.number === 3 || step.number === 4))}
                   >
-                    {step.number < currentStep ? (
+                    {pasosCompletados.includes(step.number) ? (
                       <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
                     ) : (
                       <span className="text-sm sm:text-base font-semibold">{step.number}</span>
@@ -149,7 +181,9 @@ function ConvencionInscripcionPageContent() {
                     <p
                       className={cn(
                         'text-xs font-medium',
-                        step.number <= currentStep ? 'text-white' : 'text-white/50'
+                        estaConfirmado && (step.number === 3 || step.number === 4)
+                          ? 'text-white/30'
+                          : pasosCompletados.includes(step.number) || step.number <= currentStep ? 'text-white' : 'text-white/50'
                       )}
                     >
                       {step.title}
@@ -161,7 +195,7 @@ function ConvencionInscripcionPageContent() {
                   <div
                     className={cn(
                       'h-0.5 flex-1 mx-2 transition-all duration-300',
-                      step.number < currentStep ? 'bg-emerald-500' : 'bg-white/10'
+                      pasosCompletados.includes(step.number) ? 'bg-emerald-500' : 'bg-white/10'
                     )}
                   />
                 )}
@@ -183,8 +217,9 @@ function ConvencionInscripcionPageContent() {
         {currentStep === 2 && convencion && (
           <Step2ConvencionInfo
             convencion={convencion}
-            onComplete={() => handleStepComplete(2)}
+            onComplete={(data) => handleStepComplete(2, data)}
             onBack={handleBack}
+            initialNumeroCuotas={formData?.numeroCuotas || 3}
           />
         )}
 
@@ -193,12 +228,44 @@ function ConvencionInscripcionPageContent() {
             convencion={convencion}
             pastor={pastor}
             initialData={formData}
-            onComplete={() => {
-              // Redirigir a landing con mensaje de éxito
-              router.push('/?inscripcion=exito#convenciones')
+            onComplete={(data) => handleStepComplete(3, data)}
+            onBack={handleBack}
+            estaConfirmado={estaConfirmado}
+          />
+        )}
+
+        {currentStep === 4 && convencion && formData && !estaConfirmado && (
+          <Step4Resumen
+            convencion={convencion}
+            formData={formData}
+            onConfirm={() => {
+              // El step4 maneja el envío internamente
             }}
             onBack={handleBack}
           />
+        )}
+        
+        {/* Mensaje si intenta acceder a paso 4 estando confirmado */}
+        {currentStep === 4 && estaConfirmado && (
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl text-center">
+              <div className="mb-4">
+                <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">Inscripción Confirmada</h2>
+                <p className="text-white/70">
+                  Tu inscripción ya está confirmada. No puedes modificar los datos.
+                </p>
+              </div>
+              <Button
+                onClick={() => router.push('/#convenciones')}
+                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white"
+              >
+                Volver a la página principal
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </div>

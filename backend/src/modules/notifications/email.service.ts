@@ -22,7 +22,7 @@ export class EmailService {
     if (emailConfig.auth.user && emailConfig.auth.pass) {
       // Remover espacios del password (Gmail App Passwords pueden tener espacios)
       const cleanPassword = emailConfig.auth.pass.replace(/\s/g, '')
-      
+
       this.transporter = nodemailer.createTransport({
         ...emailConfig,
         auth: {
@@ -123,9 +123,11 @@ export class EmailService {
           <!-- Content -->
           <tr>
             <td style="padding: 30px;">
-              <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 20px; font-weight: 600;">${title}</h2>
-              <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">${body}</p>
-              ${data ? this.buildDataSection(data) : ''}
+              ${body.trim().startsWith('<div') || body.trim().startsWith('<!DOCTYPE')
+        ? body
+        : `<h2 style="margin: 0 0 20px; color: #1f2937; font-size: 20px; font-weight: 600;">${title}</h2>
+                   <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">${body}</p>
+                   ${data ? this.buildDataSection(data) : ''}`}
             </td>
           </tr>
           <!-- Footer -->

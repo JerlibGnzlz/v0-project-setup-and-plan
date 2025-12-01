@@ -131,3 +131,4 @@ echo "   - Nueva inscripción recibida"
 echo "   - (Aparecen en la campana de notificaciones)"
 echo ""
 
+

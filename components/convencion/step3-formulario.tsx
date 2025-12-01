@@ -30,36 +30,77 @@ interface Step3FormularioProps {
     email: string
     nombre: string
     apellido?: string
+    telefono?: string
+    sede?: string
   }
   initialData?: any
-  onComplete: () => void
+  onComplete: (data?: any) => void
   onBack: () => void
+  estaConfirmado?: boolean
 }
 
-export function Step3Formulario({ convencion, pastor, initialData, onComplete, onBack }: Step3FormularioProps) {
+export function Step3Formulario({ convencion, pastor, initialData, onComplete, onBack, estaConfirmado = false }: Step3FormularioProps) {
   // Pre-llenar con datos del pastor
   const nombreDefault = pastor.nombre || ''
   const apellidoDefault = pastor.apellido || ''
+  
+  // Campos que vienen del pastor y no se pueden modificar
+  const camposDelPastor = {
+    nombre: nombreDefault,
+    apellido: apellidoDefault,
+    email: pastor.email,
+  }
 
   // Convertir costo a número de forma segura (puede venir como Decimal de Prisma)
   const costo = typeof convencion.costo === 'number' 
     ? convencion.costo 
     : parseFloat(String(convencion.costo || 0))
 
+  // Obtener teléfono y sede del pastor o initialData
+  const telefonoDelPastor = pastor.telefono || initialData?.telefono || ''
+  const sedeDelPastor = pastor.sede || initialData?.sede || ''
+  
+  // Extraer código de país del teléfono si viene completo
+  const extraerCodigoPais = (telefono: string): string => {
+    if (telefono.startsWith('+')) {
+      const match = telefono.match(/^(\+\d{1,3})/)
+      return match ? match[1] : '+54'
+    }
+    return '+54'
+  }
+  
+  const codigoPaisDefault = initialData?.codigoPais || (telefonoDelPastor ? extraerCodigoPais(telefonoDelPastor) : '+54')
+  const telefonoSinCodigo = telefonoDelPastor && telefonoDelPastor.startsWith('+') 
+    ? telefonoDelPastor.replace(/^\+\d{1,3}\s*/, '') 
+    : telefonoDelPastor
+
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || nombreDefault,
     apellido: initialData?.apellido || apellidoDefault,
     email: initialData?.email || pastor.email,
-    codigoPais: initialData?.codigoPais || '+54',
-    telefono: initialData?.telefono || '',
+    codigoPais: codigoPaisDefault,
+    telefono: telefonoSinCodigo,
     pais: initialData?.pais || 'Argentina',
     provincia: initialData?.provincia || '',
-    sede: initialData?.sede || '',
+    sede: initialData?.sede || sedeDelPastor || '', // Asegurar que siempre tenga un valor
     tipoInscripcion: initialData?.tipoInscripcion || 'pastor',
     numeroCuotas: initialData?.numeroCuotas || 3,
     documentoUrl: initialData?.documentoUrl || '',
     notas: initialData?.notas || '',
   })
+  
+  // Determinar qué campos ya están llenados y deben ser solo lectura
+  const camposLlenados = {
+    nombre: !!(initialData?.nombre || nombreDefault),
+    apellido: !!(initialData?.apellido || apellidoDefault),
+    email: !!(initialData?.email || pastor.email),
+    codigoPais: !!codigoPaisDefault,
+    telefono: !!telefonoDelPastor,
+    pais: !!initialData?.pais,
+    provincia: !!initialData?.provincia,
+    sede: !!sedeDelPastor,
+    tipoInscripcion: !!initialData?.tipoInscripcion,
+  }
 
   // Lista de países
   const paises = [
@@ -153,20 +194,6 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
           delete newErrors.email
         }
         break
-      case 'telefono':
-        if (!value || value.trim().length < 8) {
-          newErrors.telefono = 'El teléfono debe tener al menos 8 dígitos'
-        } else {
-          delete newErrors.telefono
-        }
-        break
-      case 'sede':
-        if (!value || value.trim().length < 2) {
-          newErrors.sede = 'La sede debe tener al menos 2 caracteres'
-        } else {
-          delete newErrors.sede
-        }
-        break
       case 'provincia':
         if (formData.pais === 'Argentina' && (!value || value.trim().length < 2)) {
           newErrors.provincia = 'La provincia es requerida para Argentina'
@@ -185,7 +212,10 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
   }
 
   const validateForm = () => {
-    const requiredFields = ['nombre', 'apellido', 'email', 'telefono', 'sede', 'pais']
+    // Si no hay sede del pastor, agregar sede a los campos requeridos
+    const requiredFields = sedeDelPastor 
+      ? ['nombre', 'apellido', 'email', 'pais']
+      : ['nombre', 'apellido', 'email', 'pais', 'sede']
     const newErrors: Record<string, string> = {}
     
     requiredFields.forEach(field => {
@@ -205,6 +235,11 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
     if (formData.pais === 'Argentina' && !formData.provincia) {
       newErrors.provincia = 'La provincia es requerida para Argentina'
     }
+    
+    // Validar sede si no viene del pastor
+    if (!sedeDelPastor && (!formData.sede || formData.sede.trim().length < 2)) {
+      newErrors.sede = 'La sede debe tener al menos 2 caracteres'
+    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -222,7 +257,7 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
     }
 
     // Marcar todos los campos como touched
-    const allFields = ['nombre', 'apellido', 'email', 'telefono', 'sede', 'pais', 'provincia']
+    const allFields = ['nombre', 'apellido', 'email', 'pais', 'provincia']
     const newTouched: Record<string, boolean> = {}
     allFields.forEach(field => {
       newTouched[field] = true
@@ -235,43 +270,57 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
 
     setIsSubmitting(true)
 
-    // Construir telefono completo
-    const telefonoCompleto = `${formData.codigoPais}${formData.telefono}`
+    // Construir telefono completo (usar del pastor o formData)
+    const telefonoCompleto = telefonoDelPastor || `${formData.codigoPais}${formData.telefono}`
 
-    // Construir sede completa
-    let sedeCompleta = formData.sede
-    if (formData.pais === 'Argentina' && formData.provincia) {
-      sedeCompleta = `${formData.sede} - ${formData.pais}, ${formData.provincia}`
-    } else {
-      sedeCompleta = `${formData.sede} - ${formData.pais}`
-    }
-
-    try {
-      await createInscripcionMutation.mutateAsync({
-        convencionId: convencion.id,
-        nombre: formData.nombre.trim(),
-        apellido: formData.apellido.trim(),
-        email: formData.email.trim(),
-        telefono: telefonoCompleto,
-        sede: sedeCompleta,
-        tipoInscripcion: formData.tipoInscripcion,
-        numeroCuotas: formData.numeroCuotas,
-        origenRegistro: 'web',
-        documentoUrl: formData.documentoUrl || undefined,
-        notas: formData.notas.trim() || undefined,
+    // Construir sede completa (usar del pastor o formData)
+    // Prioridad: formData.sede > sedeDelPastor > valor por defecto
+    let sedeCompleta = formData.sede || sedeDelPastor
+    
+    // Validar que sede no esté vacía antes de continuar
+    if (!sedeCompleta || sedeCompleta.trim().length === 0) {
+      toast.error('Sede requerida', {
+        description: 'Por favor, proporciona tu iglesia o sede. Puedes agregarla en tu perfil o contactar a la administración.',
       })
-
-      onComplete()
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Error al enviar la inscripción. Por favor, intenta nuevamente.'
-      
-      // El toast ya se muestra en el hook, pero agregamos el error al estado para mostrarlo en el formulario también
-      setErrors({
-        submit: errorMessage,
-      })
-    } finally {
       setIsSubmitting(false)
+      return
     }
+    
+    // Agregar país y provincia a la sede
+    if (sedeCompleta && formData.pais === 'Argentina' && formData.provincia) {
+      sedeCompleta = `${sedeCompleta.trim()} - ${formData.pais}, ${formData.provincia}`
+    } else if (sedeCompleta && formData.pais) {
+      sedeCompleta = `${sedeCompleta.trim()} - ${formData.pais}`
+    } else {
+      sedeCompleta = sedeCompleta.trim()
+    }
+    
+    // Validar nuevamente después de construir la sede completa
+    if (!sedeCompleta || sedeCompleta.length === 0) {
+      toast.error('Sede requerida', {
+        description: 'No se pudo construir la sede. Por favor, verifica tus datos.',
+      })
+      setIsSubmitting(false)
+      return
+    }
+
+    // En lugar de enviar directamente, pasar los datos al siguiente paso (resumen)
+    const datosCompletos = {
+      nombre: formData.nombre.trim(),
+      apellido: formData.apellido.trim(),
+      email: formData.email.trim(),
+      telefono: telefonoCompleto,
+      sede: sedeCompleta,
+      pais: formData.pais,
+      provincia: formData.provincia,
+      tipoInscripcion: formData.tipoInscripcion,
+      numeroCuotas: formData.numeroCuotas,
+      documentoUrl: formData.documentoUrl || undefined,
+      notas: formData.notas.trim() || undefined,
+    }
+
+    setIsSubmitting(false)
+    onComplete(datosCompletos)
   }
 
   const filteredPaises = paises.filter(pais =>
@@ -282,15 +331,27 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
     provincia.toLowerCase().includes(provinciaSearch.toLowerCase())
   )
 
-  const requiredFields = ['nombre', 'apellido', 'email', 'pais', 'numeroCuotas']
+  // Si no hay sede del pastor, agregar sede a los campos requeridos
+  const requiredFields = sedeDelPastor 
+    ? ['nombre', 'apellido', 'email', 'pais']
+    : ['nombre', 'apellido', 'email', 'pais', 'sede']
   const requiredCompleted = requiredFields.filter(field => {
     if (field === 'provincia') {
       return formData.pais !== 'Argentina' || formData.provincia
     }
     return formData[field as keyof typeof formData]
   }).length
-  const totalRequired = formData.pais === 'Argentina' ? requiredFields.length + 1 : requiredFields.length
-  const progress = (requiredCompleted / totalRequired) * 100
+  
+  // Agregar provincia si es Argentina
+  const totalRequired = formData.pais === 'Argentina' 
+    ? requiredFields.length + 1 // +1 para provincia
+    : requiredFields.length
+  
+  // Contar provincia si es Argentina y está completa
+  const provinciaCompleta = formData.pais === 'Argentina' ? !!formData.provincia : true
+  const completed = requiredCompleted + (formData.pais === 'Argentina' && provinciaCompleta ? 1 : 0)
+  
+  const progress = totalRequired > 0 ? (completed / totalRequired) * 100 : 0
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -325,15 +386,21 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
             <div>
               <Label htmlFor="nombre" className="text-white/90 mb-2 block">
                 Nombre <span className="text-red-400">*</span>
+                {camposDelPastor.nombre && (
+                  <span className="text-xs text-white/50 ml-2">(Desde tu cuenta)</span>
+                )}
               </Label>
               <Input
                 id="nombre"
                 value={formData.nombre}
                 onChange={(e) => handleChange('nombre', e.target.value)}
                 onBlur={() => handleBlur('nombre')}
+                disabled={!!camposDelPastor.nombre || estaConfirmado}
+                readOnly={!!camposDelPastor.nombre}
                 className={cn(
                   'bg-white/5 border-white/20 text-white placeholder:text-white/40',
-                  errors.nombre && 'border-red-500'
+                  errors.nombre && 'border-red-500',
+                  (camposDelPastor.nombre || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
                 )}
                 placeholder="Tu nombre"
               />
@@ -354,15 +421,21 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
             <div>
               <Label htmlFor="apellido" className="text-white/90 mb-2 block">
                 Apellido <span className="text-red-400">*</span>
+                {camposDelPastor.apellido && (
+                  <span className="text-xs text-white/50 ml-2">(Desde tu cuenta)</span>
+                )}
               </Label>
               <Input
                 id="apellido"
                 value={formData.apellido}
                 onChange={(e) => handleChange('apellido', e.target.value)}
                 onBlur={() => handleBlur('apellido')}
+                disabled={!!camposDelPastor.apellido || estaConfirmado}
+                readOnly={!!camposDelPastor.apellido}
                 className={cn(
                   'bg-white/5 border-white/20 text-white placeholder:text-white/40',
-                  errors.apellido && 'border-red-500'
+                  errors.apellido && 'border-red-500',
+                  (camposDelPastor.apellido || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
                 )}
                 placeholder="Tu apellido"
               />
@@ -385,6 +458,9 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
           <div>
             <Label htmlFor="email" className="text-white/90 mb-2 block">
               Correo electrónico <span className="text-red-400">*</span>
+              {camposDelPastor.email && (
+                <span className="text-xs text-white/50 ml-2">(Desde tu cuenta)</span>
+              )}
             </Label>
             <Input
               id="email"
@@ -392,9 +468,12 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
               value={formData.email}
               onChange={(e) => handleChange('email', e.target.value)}
               onBlur={() => handleBlur('email')}
+              disabled={!!camposDelPastor.email || estaConfirmado}
+              readOnly={!!camposDelPastor.email}
               className={cn(
                 'bg-white/5 border-white/20 text-white placeholder:text-white/40',
-                errors.email && 'border-red-500'
+                errors.email && 'border-red-500',
+                (camposDelPastor.email || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
               )}
               placeholder="tu@email.com"
             />
@@ -412,47 +491,15 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
             )}
           </div>
 
-          {/* Teléfono */}
-          <div>
-            <Label htmlFor="telefono" className="text-white/90 mb-2 block">
-              Teléfono <span className="text-red-400">*</span>
-            </Label>
-            <div className="flex gap-2">
-              <Select
-                value={formData.codigoPais}
-                onValueChange={(value) => handleChange('codigoPais', value)}
-              >
-                <SelectTrigger className="w-32 bg-white/5 border-white/20 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#0a1628] border-white/20">
-                  {countryCodes.map(({ code, country }) => (
-                    <SelectItem key={code} value={code} className="text-white">
-                      {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Input
-                id="telefono"
-                type="tel"
-                value={formData.telefono}
-                onChange={(e) => handleChange('telefono', e.target.value.replace(/\D/g, ''))}
-                onBlur={() => handleBlur('telefono')}
-                className={cn(
-                  'flex-1 bg-white/5 border-white/20 text-white placeholder:text-white/40',
-                  errors.telefono && 'border-red-500'
-                )}
-                placeholder="1234567890"
-              />
-            </div>
-            {touched.telefono && errors.telefono && (
-              <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" />
-                {errors.telefono}
+          {/* Teléfono - Oculto, se obtiene del pastor */}
+          {telefonoDelPastor && (
+            <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <p className="text-sm text-blue-300 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Teléfono: {telefonoDelPastor} (desde tu cuenta)
               </p>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* País */}
           <div>
@@ -467,9 +514,14 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
                   setPaisSearch(e.target.value)
                   setShowPaisDropdown(true)
                 }}
-                onFocus={() => setShowPaisDropdown(true)}
+                onFocus={() => !camposLlenados.pais && !estaConfirmado && setShowPaisDropdown(true)}
                 onBlur={() => setTimeout(() => setShowPaisDropdown(false), 200)}
-                className="bg-white/5 border-white/20 text-white placeholder:text-white/40"
+                disabled={camposLlenados.pais || estaConfirmado}
+                readOnly={camposLlenados.pais}
+                className={cn(
+                  'bg-white/5 border-white/20 text-white placeholder:text-white/40',
+                  (camposLlenados.pais || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
+                )}
                 placeholder="Buscar país..."
               />
               {showPaisDropdown && filteredPaises.length > 0 && (
@@ -507,11 +559,14 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
                     setProvinciaSearch(e.target.value)
                     setShowProvinciaDropdown(true)
                   }}
-                  onFocus={() => setShowProvinciaDropdown(true)}
+                  onFocus={() => !camposLlenados.provincia && !estaConfirmado && setShowProvinciaDropdown(true)}
                   onBlur={() => setTimeout(() => setShowProvinciaDropdown(false), 200)}
+                  disabled={camposLlenados.provincia || estaConfirmado}
+                  readOnly={camposLlenados.provincia}
                   className={cn(
                     'bg-white/5 border-white/20 text-white placeholder:text-white/40',
-                    errors.provincia && 'border-red-500'
+                    errors.provincia && 'border-red-500',
+                    (camposLlenados.provincia || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
                   )}
                   placeholder="Buscar provincia..."
                 />
@@ -543,70 +598,85 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
             </div>
           )}
 
-          {/* Sede */}
-          <div>
-            <Label htmlFor="sede" className="text-white/90 mb-2 block">
-              Iglesia / Sede <span className="text-red-400">*</span>
-            </Label>
-            <Input
-              id="sede"
-              value={formData.sede}
-              onChange={(e) => handleChange('sede', e.target.value)}
-              onBlur={() => handleBlur('sede')}
-              className={cn(
-                'bg-white/5 border-white/20 text-white placeholder:text-white/40',
-                errors.sede && 'border-red-500'
-              )}
-              placeholder="Nombre de tu iglesia o sede"
-            />
-            {touched.sede && errors.sede && (
-              <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" />
-                {errors.sede}
+          {/* Sede - Mostrar si viene del pastor, o campo de entrada si no */}
+          {sedeDelPastor ? (
+            <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <p className="text-sm text-blue-300 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Iglesia / Sede: {sedeDelPastor} (desde tu cuenta)
               </p>
-            )}
+            </div>
+          ) : (
+            <div>
+              <Label htmlFor="sede" className="text-white/90 mb-2 block">
+                Iglesia / Sede <span className="text-red-400">*</span>
+              </Label>
+              <Input
+                id="sede"
+                value={formData.sede}
+                onChange={(e) => handleChange('sede', e.target.value)}
+                onBlur={() => handleBlur('sede')}
+                disabled={estaConfirmado}
+                readOnly={estaConfirmado}
+                className={cn(
+                  'bg-white/5 border-white/20 text-white placeholder:text-white/40',
+                  errors.sede && 'border-red-500',
+                  estaConfirmado && 'opacity-60 cursor-not-allowed bg-white/3'
+                )}
+                placeholder="Nombre de tu iglesia o sede"
+                required
+              />
+              {touched.sede && errors.sede && (
+                <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  {errors.sede}
+                </p>
+              )}
+              {touched.sede && !errors.sede && formData.sede && (
+                <p className="mt-1 text-sm text-emerald-400 flex items-center gap-1">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Sede válida
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Tipo de Inscripción */}
+          <div>
+            <Label htmlFor="tipoInscripcion" className="text-white/90 mb-2 block">
+              Tipo de Inscripción
+            </Label>
+            <Select
+              value={formData.tipoInscripcion}
+              onValueChange={(value) => handleChange('tipoInscripcion', value)}
+              disabled={camposLlenados.tipoInscripcion || estaConfirmado}
+            >
+              <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0a1628] border-white/20">
+                <SelectItem value="pastor" className="text-white">Pastor</SelectItem>
+                <SelectItem value="lider" className="text-white">Líder</SelectItem>
+                <SelectItem value="miembro" className="text-white">Miembro</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Tipo de Inscripción y Número de Cuotas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="tipoInscripcion" className="text-white/90 mb-2 block">
-                Tipo de Inscripción
-              </Label>
-              <Select
-                value={formData.tipoInscripcion}
-                onValueChange={(value) => handleChange('tipoInscripcion', value)}
-              >
-                <SelectTrigger className="bg-white/5 border-white/20 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#0a1628] border-white/20">
-                  <SelectItem value="pastor" className="text-white">Pastor</SelectItem>
-                  <SelectItem value="lider" className="text-white">Líder</SelectItem>
-                  <SelectItem value="miembro" className="text-white">Miembro</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Información de cuotas seleccionadas (solo lectura) */}
+          {formData.numeroCuotas && (
+            <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                <p className="text-sm font-semibold text-emerald-300">Plan de pago seleccionado</p>
+              </div>
+              <p className="text-sm text-white/70">
+                {formData.numeroCuotas} cuota{formData.numeroCuotas > 1 ? 's' : ''} de ${(costo / formData.numeroCuotas).toFixed(2)} cada una
+              </p>
+              <p className="text-xs text-white/50 mt-1">
+                Total: ${costo.toFixed(2)}
+              </p>
             </div>
-
-            <div>
-              <Label htmlFor="numeroCuotas" className="text-white/90 mb-2 block">
-                Número de Cuotas <span className="text-red-400">*</span>
-              </Label>
-              <Select
-                value={String(formData.numeroCuotas)}
-                onValueChange={(value) => handleChange('numeroCuotas', parseInt(value))}
-              >
-                <SelectTrigger className="bg-white/5 border-white/20 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#0a1628] border-white/20">
-                  <SelectItem value="1" className="text-white">1 Cuota (${costo.toFixed(2)})</SelectItem>
-                  <SelectItem value="2" className="text-white">2 Cuotas (${(costo / 2).toFixed(2)} c/u)</SelectItem>
-                  <SelectItem value="3" className="text-white">3 Cuotas (${(costo / 3).toFixed(2)} c/u)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          )}
 
           {/* Documento/Comprobante (Opcional) */}
           <div>

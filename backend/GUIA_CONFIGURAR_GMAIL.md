@@ -102,3 +102,4 @@ Si tienes problemas:
 3. Asegúrate de copiarla SIN espacios
 4. Reinicia el backend después de actualizar el `.env`
 
+

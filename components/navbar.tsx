@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { ChevronRight, Sparkles } from 'lucide-react'
+import { ChevronRight, Sparkles, User } from 'lucide-react'
+import { usePastorAuth } from '@/lib/hooks/use-pastor-auth'
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -12,6 +13,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const navContainerRef = useRef<HTMLDivElement>(null)
   const navLinksRef = useRef<{ [key: string]: HTMLAnchorElement | null }>({})
+  const { pastor, isAuthenticated, isHydrated } = usePastorAuth()
 
   useEffect(() => {
     if (isOpen) {
@@ -228,6 +230,20 @@ export function Navbar() {
                   </Link>
                 )
               })}
+
+              {/* Mi Cuenta Button (si está autenticado) */}
+              {isHydrated && isAuthenticated && pastor && (
+                <Button
+                  asChild
+                  variant="outline"
+                  className="ml-4 border-white/20 text-white hover:bg-white/10"
+                >
+                  <Link href="/mi-cuenta" className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Mi Cuenta
+                  </Link>
+                </Button>
+              )}
 
               {/* CTA Button with gradient */}
               <Button
