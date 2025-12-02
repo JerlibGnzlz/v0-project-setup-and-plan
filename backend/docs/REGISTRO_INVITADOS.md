@@ -84,3 +84,5 @@ Los invitados pueden registrarse desde la web para:
 - Los invitados pueden ser promovidos a organizacionales cambiando `activo=true` desde admin
 - Las inscripciones son independientes de la estructura organizacional
 
+
+

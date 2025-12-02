@@ -259,3 +259,5 @@ export class InscripcionActualizadaEvent implements BaseNotificationEvent {
   }
 }
 
+
+

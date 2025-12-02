@@ -438,3 +438,5 @@ export function StatsCharts({ inscripciones, pagos, pastores }: StatsChartsProps
   )
 }
 
+
+

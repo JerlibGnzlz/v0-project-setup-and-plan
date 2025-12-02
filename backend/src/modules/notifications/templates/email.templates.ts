@@ -322,3 +322,5 @@ export function getEmailTemplate(type: string, data: EmailTemplateData): EmailTe
   return templateFn(data)
 }
 
+
+

@@ -86,3 +86,5 @@ ALTER TABLE "invitado_device_tokens" ADD CONSTRAINT "invitado_device_tokens_invi
 -- AddForeignKey
 ALTER TABLE "inscripciones" ADD CONSTRAINT "inscripciones_invitado_id_fkey" FOREIGN KEY ("invitado_id") REFERENCES "invitados"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
+
+

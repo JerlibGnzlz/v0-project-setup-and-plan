@@ -59,3 +59,5 @@ export class InvitadoCompleteRegisterDto {
   sede?: string
 }
 
+
+
