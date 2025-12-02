@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { pastorSchema, type PastorFormData, tipoPastorLabels, type TipoPastor } from "@/lib/validations/pastor"
@@ -41,7 +41,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Search, Eye, Plus, Edit, AlertCircle, UserX, UserCheck, ChevronLeft, Globe, Users, Crown, Star } from "lucide-react"
+import { Search, Eye, Plus, Edit, AlertCircle, UserX, UserCheck, ChevronLeft, ChevronRight, Globe, Users, Crown, Star } from "lucide-react"
 import Link from "next/link"
 import { ScrollReveal } from "@/components/scroll-reveal"
 import { usePastores, useCreatePastor, useUpdatePastor } from "@/lib/hooks/use-pastores"
@@ -62,11 +62,56 @@ export default function PastoresPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<"todos" | "activos" | "inactivos">("todos")
   const [tipoFilter, setTipoFilter] = useState<TipoPastor | "todos">("todos")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize] = useState(20)
   const [selectedPastor, setSelectedPastor] = useState<Pastor | null>(null)
   const [isAddingPastor, setIsAddingPastor] = useState(false)
   const [isEditingPastor, setIsEditingPastor] = useState(false)
 
-  const { data: pastores = [], isLoading } = usePastores()
+  // Debounce para búsqueda
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setCurrentPage(1) // Reset a página 1 cuando cambia la búsqueda
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  // Construir filtros para el servidor
+  // IMPORTANTE: Enviar "todos" explícitamente para que el backend sepa que debe mostrar todos
+  const filters = {
+    search: debouncedSearchTerm || undefined,
+    status: statusFilter, // Enviar "todos", "activos" o "inactivos" explícitamente
+    tipo: tipoFilter !== "todos" ? tipoFilter : undefined,
+  }
+
+  const { data: pastoresResponse, isLoading, error } = usePastores(currentPage, pageSize, filters)
+  
+  // Debug: Log para ver qué está pasando
+  useEffect(() => {
+    if (error) {
+      console.error('[PastoresPage] Error al cargar pastores:', error)
+    }
+    if (pastoresResponse) {
+      console.log('[PastoresPage] Respuesta recibida:', {
+        isArray: Array.isArray(pastoresResponse),
+        hasData: !!pastoresResponse?.data,
+        dataLength: Array.isArray(pastoresResponse) ? pastoresResponse.length : pastoresResponse?.data?.length,
+        meta: pastoresResponse?.meta,
+        filters,
+      })
+    }
+  }, [pastoresResponse, error, filters])
+  
+  // Manejar respuesta paginada o array directo (compatibilidad)
+  const pastores = Array.isArray(pastoresResponse) 
+    ? pastoresResponse 
+    : pastoresResponse?.data || []
+  const paginationMeta = Array.isArray(pastoresResponse) 
+    ? null 
+    : pastoresResponse?.meta
   const createPastorMutation = useCreatePastor()
   const updatePastorMutation = useUpdatePastor()
 
@@ -82,7 +127,7 @@ export default function PastoresPage() {
     defaultValues: {
       activo: true,
       mostrarEnLanding: false,
-      tipo: "PASTOR",
+      tipo: "DIRECTIVA",
       orden: 0,
     },
   })
@@ -107,27 +152,17 @@ export default function PastoresPage() {
     return result.url
   }
 
-  const filteredPastores = pastores.filter((pastor: Pastor) => {
-    const matchSearch =
-      pastor.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pastor.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pastor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pastor.sede?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pastor.region?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Los filtros ahora se hacen en el servidor, así que usamos directamente los datos
+  const filteredPastores = pastores
 
-    const isActivo = pastor.activo === true
-    const matchStatus =
-      statusFilter === "todos" ||
-      (statusFilter === "activos" && isActivo) ||
-      (statusFilter === "inactivos" && !isActivo)
+  // Resetear página cuando cambian los filtros
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [statusFilter, tipoFilter, debouncedSearchTerm])
 
-    const matchTipo = tipoFilter === "todos" || pastor.tipo === tipoFilter
-
-    return matchSearch && matchStatus && matchTipo
-  })
-
+  // Contadores basados en los datos actuales (pueden ser aproximados si hay filtros activos)
   const counts = {
-    todos: pastores.length,
+    todos: paginationMeta?.total || pastores.length,
     activos: pastores.filter((p: Pastor) => p.activo).length,
     inactivos: pastores.filter((p: Pastor) => !p.activo).length,
   }
@@ -140,7 +175,7 @@ export default function PastoresPage() {
         apellido: data.apellido,
         email: data.email || undefined,
         telefono: data.telefono || undefined,
-        tipo: data.tipo || "PASTOR",
+        tipo: data.tipo || "DIRECTIVA",
         cargo: data.cargo || undefined,
         ministerio: data.ministerio || undefined,
         sede: data.sede || undefined,
@@ -187,7 +222,7 @@ export default function PastoresPage() {
     setValue("apellido", pastor.apellido)
     setValue("email", pastor.email || "")
     setValue("telefono", pastor.telefono || "")
-    setValue("tipo", pastor.tipo || "PASTOR")
+    setValue("tipo", pastor.tipo || "DIRECTIVA")
     setValue("cargo", pastor.cargo || "")
     setValue("ministerio", pastor.ministerio || "")
     setValue("sede", pastor.sede || "")
@@ -338,7 +373,7 @@ export default function PastoresPage() {
                               <SelectValue placeholder="Selecciona un tipo" />
                             </SelectTrigger>
                             <SelectContent>
-                              {(Object.keys(tipoPastorLabels) as TipoPastor[]).map((tipo) => {
+                              {(Object.keys(tipoPastorLabels) as TipoPastor[]).filter(tipo => tipo !== 'PASTOR').map((tipo) => {
                                 const config = tipoConfig[tipo]
                                 const Icon = config.icon
                                 return (
@@ -510,7 +545,7 @@ export default function PastoresPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos los tipos</SelectItem>
-                      {(Object.keys(tipoPastorLabels) as TipoPastor[]).map((tipo) => (
+                      {(Object.keys(tipoPastorLabels) as TipoPastor[]).filter(tipo => tipo !== 'PASTOR').map((tipo) => (
                         <SelectItem key={tipo} value={tipo}>{tipoPastorLabels[tipo]}</SelectItem>
                       ))}
                     </SelectContent>
@@ -666,6 +701,38 @@ export default function PastoresPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Controles de paginación */}
+              {paginationMeta && paginationMeta.totalPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, paginationMeta.total)} de {paginationMeta.total} pastores
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={!paginationMeta.hasPreviousPage || isLoading}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Anterior
+                    </Button>
+                    <div className="text-sm text-muted-foreground">
+                      Página {currentPage} de {paginationMeta.totalPages}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => p + 1)}
+                      disabled={!paginationMeta.hasNextPage || isLoading}
+                    >
+                      Siguiente
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

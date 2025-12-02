@@ -25,13 +25,14 @@ interface Step3FormularioProps {
     titulo: string
     costo?: number
   }
-  pastor: {
+  user: {
     id: string
     email: string
     nombre: string
     apellido?: string
     telefono?: string
     sede?: string
+    tipo: 'PASTOR' | 'INVITADO' | 'ADMIN'
   }
   initialData?: any
   onComplete: (data?: any) => void
@@ -39,16 +40,16 @@ interface Step3FormularioProps {
   estaConfirmado?: boolean
 }
 
-export function Step3Formulario({ convencion, pastor, initialData, onComplete, onBack, estaConfirmado = false }: Step3FormularioProps) {
-  // Pre-llenar con datos del pastor
-  const nombreDefault = pastor.nombre || ''
-  const apellidoDefault = pastor.apellido || ''
+export function Step3Formulario({ convencion, user, initialData, onComplete, onBack, estaConfirmado = false }: Step3FormularioProps) {
+  // Pre-llenar con datos del usuario (pastor o invitado)
+  const nombreDefault = user.nombre || ''
+  const apellidoDefault = user.apellido || ''
   
-  // Campos que vienen del pastor y no se pueden modificar
-  const camposDelPastor = {
+  // Campos que vienen del usuario y no se pueden modificar
+  const camposDelUsuario = {
     nombre: nombreDefault,
     apellido: apellidoDefault,
-    email: pastor.email,
+    email: user.email,
   }
 
   // Convertir costo a número de forma segura (puede venir como Decimal de Prisma)
@@ -56,9 +57,9 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
     ? convencion.costo 
     : parseFloat(String(convencion.costo || 0))
 
-  // Obtener teléfono y sede del pastor o initialData
-  const telefonoDelPastor = pastor.telefono || initialData?.telefono || ''
-  const sedeDelPastor = pastor.sede || initialData?.sede || ''
+  // Obtener teléfono y sede del usuario (pastor o invitado) o initialData
+  const telefonoDelUsuario = user.telefono || initialData?.telefono || ''
+  const sedeDelUsuario = user.sede || initialData?.sede || ''
   
   // Extraer código de país del teléfono si viene completo
   const extraerCodigoPais = (telefono: string): string => {
@@ -69,21 +70,21 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
     return '+54'
   }
   
-  const codigoPaisDefault = initialData?.codigoPais || (telefonoDelPastor ? extraerCodigoPais(telefonoDelPastor) : '+54')
-  const telefonoSinCodigo = telefonoDelPastor && telefonoDelPastor.startsWith('+') 
-    ? telefonoDelPastor.replace(/^\+\d{1,3}\s*/, '') 
-    : telefonoDelPastor
+  const codigoPaisDefault = initialData?.codigoPais || (telefonoDelUsuario ? extraerCodigoPais(telefonoDelUsuario) : '+54')
+  const telefonoSinCodigo = telefonoDelUsuario && telefonoDelUsuario.startsWith('+') 
+    ? telefonoDelUsuario.replace(/^\+\d{1,3}\s*/, '') 
+    : telefonoDelUsuario
 
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || nombreDefault,
     apellido: initialData?.apellido || apellidoDefault,
-    email: initialData?.email || pastor.email,
+    email: initialData?.email || user.email,
     codigoPais: codigoPaisDefault,
     telefono: telefonoSinCodigo,
     pais: initialData?.pais || 'Argentina',
     provincia: initialData?.provincia || '',
-    sede: initialData?.sede || sedeDelPastor || '', // Asegurar que siempre tenga un valor
-    tipoInscripcion: initialData?.tipoInscripcion || 'pastor',
+    sede: initialData?.sede || sedeDelUsuario || '', // Asegurar que siempre tenga un valor
+    tipoInscripcion: initialData?.tipoInscripcion || (user.tipo === 'INVITADO' ? 'invitado' : 'pastor'),
     numeroCuotas: initialData?.numeroCuotas || 3,
     documentoUrl: initialData?.documentoUrl || '',
     notas: initialData?.notas || '',
@@ -93,12 +94,12 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
   const camposLlenados = {
     nombre: !!(initialData?.nombre || nombreDefault),
     apellido: !!(initialData?.apellido || apellidoDefault),
-    email: !!(initialData?.email || pastor.email),
+    email: !!(initialData?.email || user.email),
     codigoPais: !!codigoPaisDefault,
-    telefono: !!telefonoDelPastor,
+    telefono: !!telefonoDelUsuario,
     pais: !!initialData?.pais,
     provincia: !!initialData?.provincia,
-    sede: !!sedeDelPastor,
+    sede: !!sedeDelUsuario,
     tipoInscripcion: !!initialData?.tipoInscripcion,
   }
 
@@ -131,7 +132,7 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
   const createInscripcionMutation = useCreateInscripcion()
   
   // Verificar si ya está inscrito antes de enviar
-  const { data: inscripcionExistente } = useCheckInscripcion(convencion?.id, pastor?.email)
+  const { data: inscripcionExistente } = useCheckInscripcion(convencion?.id, user?.email)
 
   // Códigos de país comunes
   const countryCodes = [
@@ -212,8 +213,8 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
   }
 
   const validateForm = () => {
-    // Si no hay sede del pastor, agregar sede a los campos requeridos
-    const requiredFields = sedeDelPastor 
+    // Si no hay sede del usuario, agregar sede a los campos requeridos
+    const requiredFields = sedeDelUsuario 
       ? ['nombre', 'apellido', 'email', 'pais']
       : ['nombre', 'apellido', 'email', 'pais', 'sede']
     const newErrors: Record<string, string> = {}
@@ -236,8 +237,8 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
       newErrors.provincia = 'La provincia es requerida para Argentina'
     }
     
-    // Validar sede si no viene del pastor
-    if (!sedeDelPastor && (!formData.sede || formData.sede.trim().length < 2)) {
+    // Validar sede si no viene del usuario
+    if (!sedeDelUsuario && (!formData.sede || formData.sede.trim().length < 2)) {
       newErrors.sede = 'La sede debe tener al menos 2 caracteres'
     }
 
@@ -270,12 +271,12 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
 
     setIsSubmitting(true)
 
-    // Construir telefono completo (usar del pastor o formData)
-    const telefonoCompleto = telefonoDelPastor || `${formData.codigoPais}${formData.telefono}`
-
-    // Construir sede completa (usar del pastor o formData)
-    // Prioridad: formData.sede > sedeDelPastor > valor por defecto
-    let sedeCompleta = formData.sede || sedeDelPastor
+    // Construir telefono completo (usar del usuario o formData)
+    const telefonoCompleto = telefonoDelUsuario || `${formData.codigoPais}${formData.telefono}`
+    
+    // Construir sede completa (usar del usuario o formData)
+    // Prioridad: formData.sede > sedeDelUsuario > valor por defecto
+    let sedeCompleta = formData.sede || sedeDelUsuario
     
     // Validar que sede no esté vacía antes de continuar
     if (!sedeCompleta || sedeCompleta.trim().length === 0) {
@@ -331,8 +332,8 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
     provincia.toLowerCase().includes(provinciaSearch.toLowerCase())
   )
 
-  // Si no hay sede del pastor, agregar sede a los campos requeridos
-  const requiredFields = sedeDelPastor 
+  // Si no hay sede del usuario, agregar sede a los campos requeridos
+  const requiredFields = sedeDelUsuario 
     ? ['nombre', 'apellido', 'email', 'pais']
     : ['nombre', 'apellido', 'email', 'pais', 'sede']
   const requiredCompleted = requiredFields.filter(field => {
@@ -386,7 +387,7 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
             <div>
               <Label htmlFor="nombre" className="text-white/90 mb-2 block">
                 Nombre <span className="text-red-400">*</span>
-                {camposDelPastor.nombre && (
+                {camposDelUsuario.nombre && (
                   <span className="text-xs text-white/50 ml-2">(Desde tu cuenta)</span>
                 )}
               </Label>
@@ -395,12 +396,12 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
                 value={formData.nombre}
                 onChange={(e) => handleChange('nombre', e.target.value)}
                 onBlur={() => handleBlur('nombre')}
-                disabled={!!camposDelPastor.nombre || estaConfirmado}
-                readOnly={!!camposDelPastor.nombre}
+                disabled={!!camposDelUsuario.nombre || estaConfirmado}
+                readOnly={!!camposDelUsuario.nombre}
                 className={cn(
                   'bg-white/5 border-white/20 text-white placeholder:text-white/40',
                   errors.nombre && 'border-red-500',
-                  (camposDelPastor.nombre || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
+                  (camposDelUsuario.nombre || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
                 )}
                 placeholder="Tu nombre"
               />
@@ -421,7 +422,7 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
             <div>
               <Label htmlFor="apellido" className="text-white/90 mb-2 block">
                 Apellido <span className="text-red-400">*</span>
-                {camposDelPastor.apellido && (
+                {camposDelUsuario.apellido && (
                   <span className="text-xs text-white/50 ml-2">(Desde tu cuenta)</span>
                 )}
               </Label>
@@ -430,12 +431,12 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
                 value={formData.apellido}
                 onChange={(e) => handleChange('apellido', e.target.value)}
                 onBlur={() => handleBlur('apellido')}
-                disabled={!!camposDelPastor.apellido || estaConfirmado}
-                readOnly={!!camposDelPastor.apellido}
+                disabled={!!camposDelUsuario.apellido || estaConfirmado}
+                readOnly={!!camposDelUsuario.apellido}
                 className={cn(
                   'bg-white/5 border-white/20 text-white placeholder:text-white/40',
                   errors.apellido && 'border-red-500',
-                  (camposDelPastor.apellido || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
+                  (camposDelUsuario.apellido || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
                 )}
                 placeholder="Tu apellido"
               />
@@ -458,7 +459,7 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
           <div>
             <Label htmlFor="email" className="text-white/90 mb-2 block">
               Correo electrónico <span className="text-red-400">*</span>
-              {camposDelPastor.email && (
+              {camposDelUsuario.email && (
                 <span className="text-xs text-white/50 ml-2">(Desde tu cuenta)</span>
               )}
             </Label>
@@ -468,12 +469,12 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
               value={formData.email}
               onChange={(e) => handleChange('email', e.target.value)}
               onBlur={() => handleBlur('email')}
-              disabled={!!camposDelPastor.email || estaConfirmado}
-              readOnly={!!camposDelPastor.email}
+              disabled={!!camposDelUsuario.email || estaConfirmado}
+              readOnly={!!camposDelUsuario.email}
               className={cn(
                 'bg-white/5 border-white/20 text-white placeholder:text-white/40',
                 errors.email && 'border-red-500',
-                (camposDelPastor.email || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
+                (camposDelUsuario.email || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
               )}
               placeholder="tu@email.com"
             />
@@ -491,12 +492,12 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
             )}
           </div>
 
-          {/* Teléfono - Oculto, se obtiene del pastor */}
-          {telefonoDelPastor && (
+          {/* Teléfono - Oculto, se obtiene del usuario */}
+          {telefonoDelUsuario && (
             <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
               <p className="text-sm text-blue-300 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
-                Teléfono: {telefonoDelPastor} (desde tu cuenta)
+                Teléfono: {telefonoDelUsuario} (desde tu cuenta)
               </p>
             </div>
           )}
@@ -598,12 +599,12 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
             </div>
           )}
 
-          {/* Sede - Mostrar si viene del pastor, o campo de entrada si no */}
-          {sedeDelPastor ? (
+          {/* Sede - Mostrar si viene del usuario, o campo de entrada si no */}
+          {sedeDelUsuario ? (
             <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
               <p className="text-sm text-blue-300 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
-                Iglesia / Sede: {sedeDelPastor} (desde tu cuenta)
+                Iglesia / Sede: {sedeDelUsuario} (desde tu cuenta)
               </p>
             </div>
           ) : (

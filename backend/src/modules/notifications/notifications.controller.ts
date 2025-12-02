@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Req, Query, Param, Patch } from '@nestjs/common'
+import { Controller, Post, Get, Body, UseGuards, Req, Query, Param, Patch, Delete } from '@nestjs/common'
 import { NotificationsService } from './notifications.service'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { PastorJwtAuthGuard } from '../auth/guards/pastor-jwt-auth.guard'
@@ -51,6 +51,23 @@ export class NotificationsController {
   async markAllAsRead(@Req() req: any) {
     const email = req.user.email
     return this.notificationsService.markAllAsRead(email)
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async deleteNotification(@Req() req: any, @Param('id') id: string) {
+    const email = req.user.email
+    return this.notificationsService.deleteNotification(id, email)
+  }
+
+  @Delete()
+  @UseGuards(JwtAuthGuard)
+  async deleteNotifications(
+    @Req() req: any,
+    @Body() body: { ids?: string[]; deleteRead?: boolean; olderThanDays?: number },
+  ) {
+    const email = req.user.email
+    return this.notificationsService.deleteNotifications(email, body)
   }
 }
 

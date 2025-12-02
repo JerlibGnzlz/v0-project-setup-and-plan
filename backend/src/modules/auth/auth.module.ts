@@ -7,6 +7,10 @@ import { JwtStrategy } from "./strategies/jwt.strategy"
 import { PastorAuthService } from "./pastor-auth.service"
 import { PastorAuthController } from "./pastor-auth.controller"
 import { PastorJwtStrategy } from "./strategies/pastor-jwt.strategy"
+import { InvitadoAuthService } from "./invitado-auth.service"
+import { InvitadoAuthController } from "./invitado-auth.controller"
+import { InvitadoJwtStrategy } from "./strategies/invitado-jwt.strategy"
+import { UnifiedAuthService } from "./unified-auth.service"
 import { NotificationsModule } from "../notifications/notifications.module"
 
 @Module({
@@ -18,8 +22,16 @@ import { NotificationsModule } from "../notifications/notifications.module"
     }),
     forwardRef(() => NotificationsModule),
   ],
-  controllers: [AuthController, PastorAuthController],
-  providers: [AuthService, JwtStrategy, PastorAuthService, PastorJwtStrategy],
-  exports: [AuthService, PastorAuthService],
+  controllers: [AuthController, PastorAuthController, InvitadoAuthController],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    PastorAuthService,
+    PastorJwtStrategy,
+    InvitadoAuthService,
+    InvitadoJwtStrategy,
+    UnifiedAuthService,
+  ],
+  exports: [AuthService, PastorAuthService, InvitadoAuthService, UnifiedAuthService],
 })
 export class AuthModule { }

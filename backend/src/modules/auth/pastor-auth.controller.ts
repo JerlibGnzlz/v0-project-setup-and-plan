@@ -9,36 +9,43 @@ import {
 } from './dto/pastor-auth.dto'
 import { RefreshTokenDto } from './dto/auth.dto'
 import { PastorJwtAuthGuard } from './guards/pastor-jwt-auth.guard'
+import { ThrottleAuth, ThrottleRegister, ThrottlePasswordReset } from '../../common/decorators/throttle-auth.decorator'
 
 @Controller('auth/pastor')
 export class PastorAuthController {
   constructor(private pastorAuthService: PastorAuthService) {}
 
+  @ThrottleRegister()
   @Post('register')
   async register(@Body() dto: PastorRegisterDto) {
     return this.pastorAuthService.register(dto)
   }
 
+  @ThrottleRegister()
   @Post('register-complete')
   async registerComplete(@Body() dto: PastorCompleteRegisterDto) {
     return this.pastorAuthService.registerComplete(dto)
   }
 
+  @ThrottleAuth()
   @Post('login')
   async login(@Body() dto: PastorLoginDto) {
     return this.pastorAuthService.login(dto)
   }
 
+  @ThrottleAuth()
   @Post('refresh')
   async refreshToken(@Body() dto: RefreshTokenDto) {
     return this.pastorAuthService.refreshAccessToken(dto.refreshToken)
   }
 
+  @ThrottlePasswordReset()
   @Post('forgot-password')
   async forgotPassword(@Body() dto: PastorForgotPasswordDto) {
     return this.pastorAuthService.forgotPassword(dto)
   }
 
+  @ThrottlePasswordReset()
   @Post('reset-password')
   async resetPassword(@Body() dto: PastorResetPasswordDto) {
     return this.pastorAuthService.resetPassword(dto)

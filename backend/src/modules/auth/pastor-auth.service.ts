@@ -20,7 +20,7 @@ export class PastorAuthService {
     private jwtService: JwtService,
     @Inject(forwardRef(() => NotificationsService))
     private notificationsService: NotificationsService,
-  ) {}
+  ) { }
 
   /**
    * Registro de pastor - Verifica que el email existe en la tabla Pastores
@@ -100,22 +100,57 @@ export class PastorAuthService {
   }
 
   /**
-   * Registro completo de pastor desde cero (para convenciones)
-   * Crea el pastor en la base de datos y su autenticación
+   * Registro completo de pastor/invitado
+   * 
+   * Este endpoint permite:
+   * 1. Pastores organizacionales: Crear cuenta de autenticación si ya existen en estructura organizacional
+   * 2. Invitados: Crear pastor con activo=false (NO aparece en estructura organizacional) + cuenta de autenticación
+   * 
+   * Separación:
+   * - Pastores organizacionales: activo=true, aparecen en /admin/pastores
+   * - Invitados: activo=false, NO aparecen en estructura organizacional, solo para autenticación
    */
   async registerComplete(dto: PastorCompleteRegisterDto) {
-    // 1. Verificar que el email no existe ya
-    const existingPastor = await this.prisma.pastor.findUnique({
+    // 1. Verificar si el pastor ya existe
+    let pastor = await this.prisma.pastor.findUnique({
       where: { email: dto.email },
     })
 
-    if (existingPastor) {
-      throw new BadRequestException(
-        'Ya existe un pastor registrado con este email. Por favor, inicia sesión.'
-      )
+    const esInvitado = !pastor // Si no existe, es un invitado
+
+    if (!pastor) {
+      // 2. Si no existe, crear pastor como INVITADO (activo=false)
+      // Esto permite que puedan autenticarse pero NO aparecen en estructura organizacional
+      this.logger.log(`📝 Creando pastor invitado: ${dto.email}`)
+
+      pastor = await this.prisma.pastor.create({
+        data: {
+          nombre: dto.nombre,
+          apellido: dto.apellido,
+          email: dto.email,
+          telefono: dto.telefono,
+          sede: dto.sede,
+          tipo: 'PASTOR',
+          activo: false, // CRÍTICO: Invitados NO aparecen en estructura organizacional
+          mostrarEnLanding: false, // Invitados NO se muestran en landing
+        },
+      })
+
+      this.logger.log(`✅ Pastor invitado creado: ${pastor.id} (activo=false, NO aparece en estructura organizacional)`)
+    } else {
+      // 3. Si existe, verificar que esté activo (solo para pastores organizacionales)
+      if (!pastor.activo) {
+        // Si está inactivo, activarlo (puede ser un invitado que ahora se vuelve organizacional)
+        await this.prisma.pastor.update({
+          where: { id: pastor.id },
+          data: { activo: true },
+        })
+        pastor.activo = true
+        this.logger.log(`✅ Pastor reactivado: ${pastor.email}`)
+      }
     }
 
-    // 2. Verificar que no existe ya una cuenta de autenticación
+    // 4. Verificar que no existe ya una cuenta de autenticación
     const existingAuth = await this.prisma.pastorAuth.findUnique({
       where: { email: dto.email },
     })
@@ -126,24 +161,10 @@ export class PastorAuthService {
       )
     }
 
-    // 3. Hash de la contraseña
+    // 5. Hash de la contraseña
     const hashedPassword = await bcrypt.hash(dto.password, 10)
 
-    // 4. Crear el pastor en la base de datos
-    const pastor = await this.prisma.pastor.create({
-      data: {
-        nombre: dto.nombre,
-        apellido: dto.apellido,
-        email: dto.email,
-        telefono: dto.telefono,
-        sede: dto.sede,
-        tipo: 'PASTOR', // Por defecto es PASTOR
-        activo: true, // Activo por defecto
-        mostrarEnLanding: false, // No se muestra en landing por defecto
-      },
-    })
-
-    // 5. Crear registro de autenticación
+    // 6. Crear registro de autenticación
     await this.prisma.pastorAuth.create({
       data: {
         pastorId: pastor.id,
@@ -153,9 +174,13 @@ export class PastorAuthService {
       },
     })
 
-    this.logger.log(`✅ Pastor creado desde cero: ${pastor.email}`)
+    if (esInvitado) {
+      this.logger.log(`✅ Cuenta de invitado creada: ${pastor.email} (NO aparece en estructura organizacional)`)
+    } else {
+      this.logger.log(`✅ Autenticación creada para pastor organizacional: ${pastor.email}`)
+    }
 
-    // 6. Enviar notificación a todos los admins sobre el nuevo pastor registrado
+    // 6. Enviar notificación a todos los admins sobre el nuevo registro de autenticación
     try {
       const admins = await this.prisma.user.findMany({
         where: {
@@ -165,8 +190,12 @@ export class PastorAuthService {
         },
       })
 
-      const titulo = '👤 Nuevo Pastor Registrado'
-      const mensaje = `${pastor.nombre} ${pastor.apellido} (${pastor.email}) se ha registrado en el sistema.`
+      const titulo = esInvitado
+        ? '👤 Nuevo Invitado Registrado'
+        : '🔐 Nuevo Registro de Autenticación'
+      const mensaje = esInvitado
+        ? `${pastor.nombre} ${pastor.apellido} (${pastor.email}) se ha registrado como invitado. Puede autenticarse pero NO aparece en estructura organizacional.`
+        : `${pastor.nombre} ${pastor.apellido} (${pastor.email}) ha creado su cuenta de autenticación para la app móvil.`
 
       // Enviar notificación a cada admin
       for (const admin of admins) {
@@ -175,30 +204,33 @@ export class PastorAuthService {
           titulo,
           mensaje,
           {
-            type: 'nuevo_pastor_registrado',
+            type: esInvitado ? 'nuevo_invitado' : 'nuevo_pastor_auth',
             pastorId: pastor.id,
             nombre: pastor.nombre,
             apellido: pastor.apellido,
             email: pastor.email,
-            sede: pastor.sede,
-            telefono: pastor.telefono,
+            esInvitado,
           }
         )
       }
 
-      this.logger.log(`📬 Notificaciones de nuevo pastor enviadas a ${admins.length} admin(s)`)
+      this.logger.log(`📬 Notificaciones enviadas a ${admins.length} admin(s)`)
     } catch (error) {
-      this.logger.error(`Error enviando notificaciones de nuevo pastor:`, error)
+      this.logger.error(`Error enviando notificaciones:`, error)
       // No fallar si la notificación falla
     }
 
     return {
-      message: 'Pastor registrado exitosamente. Por favor, inicia sesión.',
+      message: esInvitado
+        ? 'Cuenta creada exitosamente. Puedes iniciar sesión y usar la app móvil.'
+        : 'Cuenta de autenticación creada exitosamente. Por favor, inicia sesión.',
       pastor: {
         id: pastor.id,
         nombre: pastor.nombre,
         apellido: pastor.apellido,
         email: pastor.email,
+        activo: pastor.activo,
+        esInvitado,
       },
     }
   }
@@ -297,7 +329,7 @@ export class PastorAuthService {
   async refreshAccessToken(refreshToken: string) {
     try {
       const payload = this.jwtService.verify(refreshToken)
-      
+
       if (payload.type !== 'refresh') {
         throw new UnauthorizedException('Token inválido')
       }

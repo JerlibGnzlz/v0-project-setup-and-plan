@@ -4,11 +4,13 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
 import { UploadService } from "./upload.service"
 import { memoryStorage } from "multer"
 import type { Express } from "express"
+import { ThrottleUpload } from "../../common/decorators/throttle-auth.decorator"
 
 @Controller("upload")
 export class UploadController {
   constructor(private readonly uploadService: UploadService) { }
 
+  @ThrottleUpload()
   @Post('image')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
@@ -31,6 +33,7 @@ export class UploadController {
     };
   }
 
+  @ThrottleUpload()
   @Post('galeria')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
@@ -53,6 +56,7 @@ export class UploadController {
     };
   }
 
+  @ThrottleUpload()
   @Post('video')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
@@ -94,6 +98,7 @@ export class UploadController {
   }
 
   // Endpoint público para documentos de inscripción
+  @ThrottleUpload()
   @Post('inscripcion-documento')
   @UseInterceptors(
     FileInterceptor('file', {

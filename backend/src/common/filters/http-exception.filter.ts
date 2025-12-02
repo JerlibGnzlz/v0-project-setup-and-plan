@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+import { ThrottlerException } from '@nestjs/throttler';
 import { Request, Response } from 'express';
 import { ErrorResponse } from '../dto/api-response.dto';
 
@@ -33,8 +34,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let error = 'Internal Server Error';
     let details: any = undefined;
 
+    // Manejar ThrottlerException (Rate Limiting)
+    if (exception instanceof ThrottlerException) {
+      status = HttpStatus.TOO_MANY_REQUESTS;
+      message = 'Demasiadas solicitudes. Por favor, intenta nuevamente más tarde.';
+      error = 'Too Many Requests';
+      details = {
+        retryAfter: 'Por favor espera unos momentos antes de intentar nuevamente',
+        message: 'Has excedido el límite de solicitudes permitidas. Esto ayuda a proteger el sistema contra abuso.',
+      };
+    }
     // Manejar HttpException (errores controlados de NestJS)
-    if (exception instanceof HttpException) {
+    else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
@@ -105,9 +116,23 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     switch (code) {
       case 'P2002':
         // Unique constraint violation
+        // Intentar extraer información más específica del error
+        const meta = exception.meta as any;
+        let message = 'Ya existe un registro con estos datos';
+        
+        // Si el error menciona email, hacer el mensaje más específico
+        if (meta?.target && Array.isArray(meta.target)) {
+          const targetFields = meta.target as string[];
+          if (targetFields.includes('email')) {
+            message = 'Ya existe un pastor con este correo electrónico';
+          } else if (targetFields.length > 0) {
+            message = `Ya existe un registro con este ${targetFields.join(', ')}`;
+          }
+        }
+        
         return {
           status: HttpStatus.CONFLICT,
-          message: 'Ya existe un registro con estos datos',
+          message,
           error: 'Conflict',
         };
 

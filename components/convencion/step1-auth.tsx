@@ -8,8 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Mail, Lock, AlertCircle, Eye, EyeOff, Loader2, CheckCircle2, User } from 'lucide-react'
-import { usePastorAuth } from '@/lib/hooks/use-pastor-auth'
-import { pastorAuthApi } from '@/lib/api/pastor-auth'
+import { useUnifiedAuth } from '@/lib/hooks/use-unified-auth'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -22,7 +21,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const { login: loginPastor, checkAuth } = usePastorAuth()
+  const { login, registerInvitado, checkAuth } = useUnifiedAuth()
 
   const {
     register: registerLogin,
@@ -52,14 +51,16 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
 
   const onLogin = async (data: LoginFormData) => {
     try {
-      await loginPastor({ email: data.email, password: data.password })
-      // Verificar el estado actualizado
-      checkAuth()
+      // Usar login unificado que busca en admins, pastores e invitados
+      await login(data.email, data.password)
+      
       toast.success('Bienvenido', {
         description: 'Has iniciado sesión correctamente',
       })
+      
       // Esperar un momento para que el estado se actualice completamente
       setTimeout(() => {
+        checkAuth() // Refrescar el estado
         onComplete()
       }, 300)
     } catch (error: any) {
@@ -73,7 +74,8 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
 
   const onRegister = async (data: RegisterFormData) => {
     try {
-      await pastorAuthApi.registerComplete({
+      // Usar el endpoint de invitados - esto crea en tabla 'invitados', NO en 'pastores'
+      await registerInvitado({
         nombre: data.nombre,
         apellido: data.apellido,
         email: data.email,
@@ -82,21 +84,15 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
         telefono: data.telefono,
       })
       
-      toast.success('Cuenta creada exitosamente', {
-        description: 'Por favor, inicia sesión con tus credenciales',
-      })
-      
+      // El hook ya muestra el toast de éxito
       // Cambiar a la pestaña de login después del registro
       setActiveTab('login')
       
       // Pre-llenar el email en el formulario de login
       setLoginValue('email', data.email)
     } catch (error: any) {
+      // El hook ya maneja el error y muestra el toast
       console.error('Error en registro:', error)
-      const errorMessage = error.response?.data?.message || error.message || 'Error al crear la cuenta'
-      toast.error('Error de registro', {
-        description: errorMessage,
-      })
     }
   }
 

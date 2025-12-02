@@ -42,6 +42,8 @@ export class EmailService {
 
   /**
    * Envía un email de notificación
+   * Si el body ya es HTML completo (contiene <!DOCTYPE), lo usa directamente
+   * Si no, construye el template usando el método legacy
    */
   async sendNotificationEmail(
     to: string,
@@ -55,15 +57,21 @@ export class EmailService {
     }
 
     try {
-      // Construir HTML del email
-      const htmlContent = this.buildEmailTemplate(title, body, data)
+      // Si el body ya es HTML completo (de templates centralizados), usarlo directamente
+      // Si no, construir usando el método legacy para compatibilidad
+      const htmlContent = body.trim().startsWith('<!DOCTYPE') 
+        ? body 
+        : this.buildEmailTemplate(title, body, data)
+
+      // Extraer texto plano del HTML para la versión de texto
+      const textContent = body.replace(/<[^>]*>/g, '').trim() || title
 
       const mailOptions = {
         from: `"AMVA Digital" <${process.env.SMTP_USER}>`,
         to,
         subject: title,
         html: htmlContent,
-        text: body, // Versión de texto plano
+        text: textContent,
       }
 
       const info = await this.transporter.sendMail(mailOptions)

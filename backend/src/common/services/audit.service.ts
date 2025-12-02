@@ -1,0 +1,203 @@
+import { Injectable, Logger } from '@nestjs/common'
+import { PrismaService } from '../../prisma/prisma.service'
+
+export type AuditEntityType = 
+  | 'INSCRIPCION'
+  | 'PAGO'
+  | 'PASTOR'
+  | 'CONVENCION'
+  | 'NOTICIA'
+  | 'GALERIA'
+  | 'USUARIO'
+
+export type AuditAction =
+  | 'CREATE'
+  | 'UPDATE'
+  | 'DELETE'
+  | 'VALIDAR'
+  | 'RECHAZAR'
+  | 'REHABILITAR'
+  | 'CANCELAR'
+  | 'ACTIVAR'
+  | 'DESACTIVAR'
+  | 'ARCHIVAR'
+  | 'PUBLICAR'
+  | 'ACTUALIZAR'
+
+export interface AuditLogData {
+  entityType: AuditEntityType
+  entityId: string
+  action: AuditAction
+  userId?: string
+  userEmail?: string
+  changes?: {
+    field: string
+    oldValue: any
+    newValue: any
+  }[]
+  metadata?: Record<string, any>
+  ipAddress?: string
+  userAgent?: string
+}
+
+/**
+ * Servicio centralizado para auditoría de cambios importantes
+ * 
+ * Registra todas las acciones críticas en el sistema para trazabilidad
+ */
+@Injectable()
+export class AuditService {
+  private readonly logger = new Logger(AuditService.name)
+
+  constructor(private prisma: PrismaService) {}
+
+  /**
+   * Registra una acción de auditoría
+   */
+  async log(data: AuditLogData): Promise<void> {
+    try {
+      // Usar el modelo de AuditoriaPago existente para pagos
+      if (data.entityType === 'PAGO') {
+        await this.logPagoAudit(data)
+        return
+      }
+
+      // Para otras entidades, usar una tabla genérica de auditoría
+      // Por ahora, solo logueamos ya que no tenemos tabla genérica
+      // En el futuro se puede crear una tabla `auditoria` genérica
+      this.logger.log(
+        `📝 Auditoría [${data.entityType}]: ${data.action} en ${data.entityId} por ${data.userEmail || 'sistema'}`
+      )
+
+      // Log detallado de cambios
+      if (data.changes && data.changes.length > 0) {
+        this.logger.debug(
+          `   Cambios: ${data.changes.map(c => `${c.field}: ${c.oldValue} -> ${c.newValue}`).join(', ')}`
+        )
+      }
+
+      // TODO: Crear tabla genérica de auditoría cuando sea necesario
+      // await this.prisma.auditoria.create({ data: { ... } })
+    } catch (error: any) {
+      this.logger.error(`Error registrando auditoría: ${error.message}`, error.stack)
+      // No fallar si la auditoría falla - es crítico pero no debe romper el flujo
+    }
+  }
+
+  /**
+   * Registra auditoría específica para pagos (usa tabla existente)
+   */
+  private async logPagoAudit(data: AuditLogData): Promise<void> {
+    try {
+      // Extraer información específica de pagos
+      const pagoId = data.entityId
+      const inscripcionId = data.metadata?.inscripcionId || ''
+
+      // Determinar estados anterior y nuevo
+      const estadoAnterior = data.changes?.find(c => c.field === 'estado')?.oldValue
+      const estadoNuevo = data.changes?.find(c => c.field === 'estado')?.newValue
+
+      // Mapear acción a formato de AuditoriaPago
+      let accion = data.action
+      if (data.action === 'VALIDAR') accion = 'VALIDAR'
+      else if (data.action === 'RECHAZAR') accion = 'RECHAZAR'
+      else if (data.action === 'REHABILITAR') accion = 'REHABILITAR'
+      else if (data.action === 'UPDATE') accion = 'ACTUALIZAR'
+
+      await (this.prisma as any).auditoriaPago.create({
+        data: {
+          pagoId,
+          inscripcionId,
+          accion,
+          estadoAnterior,
+          estadoNuevo,
+          usuarioId: data.userId,
+          motivo: data.metadata?.motivo,
+          metadata: {
+            ...data.metadata,
+            changes: data.changes,
+            ipAddress: data.ipAddress,
+            userAgent: data.userAgent,
+          },
+        },
+      })
+
+      this.logger.log(`📝 Auditoría de pago registrada: ${accion} en ${pagoId}`)
+    } catch (error: any) {
+      this.logger.error(`Error registrando auditoría de pago: ${error.message}`)
+    }
+  }
+
+  /**
+   * Obtiene el historial de auditoría de una entidad
+   */
+  async getAuditHistory(
+    entityType: AuditEntityType,
+    entityId: string
+  ): Promise<any[]> {
+    try {
+      if (entityType === 'PAGO') {
+        const auditoriaPagoModel = (this.prisma as any).auditoriaPago
+        if (!auditoriaPagoModel) {
+          this.logger.warn('Modelo auditoriaPago no disponible en Prisma')
+          return []
+        }
+        return auditoriaPagoModel.findMany({
+          where: { pagoId: entityId },
+          orderBy: { createdAt: 'desc' },
+        })
+      }
+
+      // Para otras entidades, retornar array vacío por ahora
+      // TODO: Implementar cuando se cree tabla genérica
+      this.logger.warn(`Historial de auditoría no implementado para ${entityType}`)
+      return []
+    } catch (error: any) {
+      this.logger.error(`Error obteniendo historial de auditoría: ${error.message}`)
+      return []
+    }
+  }
+
+  /**
+   * Helper para crear datos de auditoría desde cambios de entidad
+   */
+  createAuditDataFromChanges<T extends Record<string, any>>(
+    entityType: AuditEntityType,
+    entityId: string,
+    action: AuditAction,
+    oldData: T | null,
+    newData: Partial<T>,
+    userId?: string,
+    userEmail?: string
+  ): AuditLogData {
+    const changes: { field: string; oldValue: any; newValue: any }[] = []
+
+    // Comparar campos y detectar cambios
+    Object.keys(newData).forEach((key) => {
+      const oldValue = oldData?.[key]
+      const newValue = newData[key]
+
+      // Solo registrar si realmente cambió
+      if (oldValue !== newValue && newValue !== undefined) {
+        changes.push({
+          field: key,
+          oldValue: oldValue ?? null,
+          newValue: newValue ?? null,
+        })
+      }
+    })
+
+    return {
+      entityType,
+      entityId,
+      action,
+      userId,
+      userEmail,
+      changes: changes.length > 0 ? changes : undefined,
+      metadata: {
+        timestamp: new Date().toISOString(),
+      },
+    }
+  }
+}
+

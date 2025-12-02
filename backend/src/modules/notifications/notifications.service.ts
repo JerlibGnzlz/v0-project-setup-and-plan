@@ -523,4 +523,116 @@ export class NotificationsService {
       },
     })
   }
+
+  /**
+   * Elimina una notificación específica
+   */
+  async deleteNotification(notificationId: string, email: string) {
+    // Verificar si es un pastor
+    const pastorAuth = await this.prisma.pastorAuth.findUnique({
+      where: { email },
+    })
+
+    // Si es pastor, verificar por pastorId
+    if (pastorAuth) {
+      // Verificar que la notificación pertenece al pastor
+      const notification = await this.prisma.notificationHistory.findFirst({
+        where: {
+          id: notificationId,
+          pastorId: pastorAuth.pastorId,
+        },
+      })
+
+      if (!notification) {
+        throw new Error('Notificación no encontrada o no pertenece al usuario')
+      }
+
+      return this.prisma.notificationHistory.delete({
+        where: { id: notificationId },
+      })
+    }
+
+    // Si es admin, verificar por email
+    const notification = await this.prisma.notificationHistory.findFirst({
+      where: {
+        id: notificationId,
+        email,
+      },
+    })
+
+    if (!notification) {
+      throw new Error('Notificación no encontrada o no pertenece al usuario')
+    }
+
+    return this.prisma.notificationHistory.delete({
+      where: { id: notificationId },
+    })
+  }
+
+  /**
+   * Elimina múltiples notificaciones según criterios
+   */
+  async deleteNotifications(email: string, options: { ids?: string[]; deleteRead?: boolean; olderThanDays?: number }) {
+    // Verificar si es un pastor
+    const pastorAuth = await this.prisma.pastorAuth.findUnique({
+      where: { email },
+    })
+
+    const where: any = {}
+
+    if (pastorAuth) {
+      where.pastorId = pastorAuth.pastorId
+    } else {
+      where.email = email
+    }
+
+    // Si se especifican IDs, eliminar solo esas
+    if (options.ids && options.ids.length > 0) {
+      where.id = { in: options.ids }
+    }
+
+    // Si se solicita eliminar leídas
+    if (options.deleteRead) {
+      where.read = true
+    }
+
+    // Si se especifica eliminar más antiguas que X días
+    if (options.olderThanDays) {
+      const cutoffDate = new Date()
+      cutoffDate.setDate(cutoffDate.getDate() - options.olderThanDays)
+      where.createdAt = { lt: cutoffDate }
+    }
+
+    const result = await this.prisma.notificationHistory.deleteMany({
+      where,
+    })
+
+    return {
+      deleted: result.count,
+      message: `Se eliminaron ${result.count} notificación(es)`,
+    }
+  }
+
+  /**
+   * Limpia notificaciones antiguas automáticamente
+   * Se ejecuta como tarea programada
+   */
+  async cleanupOldNotifications(daysToKeep: number = 30) {
+    const cutoffDate = new Date()
+    cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
+
+    const result = await this.prisma.notificationHistory.deleteMany({
+      where: {
+        createdAt: { lt: cutoffDate },
+        read: true, // Solo eliminar las leídas
+      },
+    })
+
+    this.logger.log(`🧹 Limpieza automática: Se eliminaron ${result.count} notificaciones leídas anteriores a ${daysToKeep} días`)
+
+    return {
+      deleted: result.count,
+      cutoffDate: cutoffDate.toISOString(),
+    }
+  }
 }

@@ -34,14 +34,25 @@ import { usePagos } from '@/lib/hooks/use-pagos'
 import { usePastores } from '@/lib/hooks/use-pastores'
 import { useInscripciones } from '@/lib/hooks/use-inscripciones'
 import { Skeleton } from '@/components/ui/skeleton'
+import { StatsCharts } from '@/components/admin/stats-charts'
 
 export default function AdminDashboard() {
   const { data: convenciones = [], isLoading: loadingConvencion } = useConvenciones()
   // Tomar la primera convención (la más reciente) - siempre visible en admin sin importar si está activa
   const convencionActiva = convenciones[0] || null
-  const { data: pagos = [], isLoading: loadingPagos } = usePagos()
-  const { data: pastores = [], isLoading: loadingPastores } = usePastores()
-  const { data: inscripciones = [], isLoading: loadingInscripciones } = useInscripciones()
+  const { data: pagosResponse } = usePagos()
+  const { data: pastoresResponse } = usePastores()
+  const { data: inscripcionesResponse } = useInscripciones()
+  
+  // Manejar respuesta paginada o array directo (compatibilidad)
+  const pagos = Array.isArray(pagosResponse) ? pagosResponse : pagosResponse?.data || []
+  const pastores = Array.isArray(pastoresResponse) ? pastoresResponse : pastoresResponse?.data || []
+  const inscripciones = Array.isArray(inscripcionesResponse) ? inscripcionesResponse : inscripcionesResponse?.data || []
+  
+  const isLoading: any = false // Los stats no necesitan loading state
+  const loadingPagos = false
+  const loadingPastores = false
+  const loadingInscripciones = false
   const updateConvencionMutation = useUpdateConvencion()
   const createConvencionMutation = useCreateConvencion()
   const deleteConvencionMutation = useDeleteConvencion()
@@ -913,6 +924,15 @@ export default function AdminDashboard() {
           </Card>
         </ScrollReveal>
       </div>
+
+      {/* Dashboard de Estadísticas con Gráficos */}
+      <ScrollReveal delay={300}>
+        <StatsCharts 
+          inscripciones={inscripciones}
+          pagos={pagos}
+          pastores={pastores}
+        />
+      </ScrollReveal>
 
       {/* Navigation Cards con colores del mundo */}
       <div className="grid gap-6 md:grid-cols-3">

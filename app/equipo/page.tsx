@@ -112,9 +112,12 @@ function EquipoContent() {
     return Array.from(set).sort()
   }, [pastores])
 
-  // Filtrar pastores
+  // Filtrar pastores (excluir tipo PASTOR)
   const filteredPastores = useMemo(() => {
     return pastores.filter((pastor: Pastor) => {
+      // Excluir pastores de tipo PASTOR
+      if (pastor.tipo === 'PASTOR') return false
+      
       const matchTipo = selectedTipo === 'todos' || pastor.tipo === selectedTipo
       const matchPais = selectedPais === 'todos' || pastor.pais === selectedPais
       const matchRegion = selectedRegion === 'todos' || pastor.region === selectedRegion
@@ -188,7 +191,7 @@ function EquipoContent() {
                     Nuestro Equipo
                   </h1>
                   <p className="text-sm text-white/50">
-                    {filteredPastores.length} de {pastores.length} miembros
+                    {filteredPastores.length} de {pastores.filter(p => p.tipo !== 'PASTOR').length} miembros
                   </p>
                 </div>
               </div>
@@ -217,7 +220,7 @@ function EquipoContent() {
               >
                 Todos
               </Badge>
-              {(Object.keys(tipoConfig) as TipoPastor[]).map((tipo) => {
+              {(Object.keys(tipoConfig) as TipoPastor[]).filter(tipo => tipo !== 'PASTOR').map((tipo) => {
                 const config = tipoConfig[tipo]
                 const Icon = config.icon
                 const isActive = selectedTipo === tipo
@@ -252,7 +255,7 @@ function EquipoContent() {
           ) : (
             <div className="space-y-12">
               {/* Render by type sections */}
-              {(Object.keys(tipoConfig) as TipoPastor[]).map((tipo) => {
+              {(Object.keys(tipoConfig) as TipoPastor[]).filter(tipo => tipo !== 'PASTOR').map((tipo) => {
                 const pastoresDelTipo = groupedPastores[tipo]
                 if (pastoresDelTipo.length === 0) return null
                 

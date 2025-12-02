@@ -3,11 +3,12 @@ import { InscripcionesController, PagosController } from "./inscripciones.contro
 import { InscripcionesService } from "./inscripciones.service"
 import { PrismaModule } from "../../prisma/prisma.module"
 import { NotificationsModule } from "../notifications/notifications.module"
+import { AuditService } from "../../common/services/audit.service"
 
 @Module({
   imports: [PrismaModule, forwardRef(() => NotificationsModule)],
   controllers: [InscripcionesController, PagosController],
-  providers: [InscripcionesService],
+  providers: [InscripcionesService, AuditService],
   exports: [InscripcionesService],
 })
 export class InscripcionesModule { }

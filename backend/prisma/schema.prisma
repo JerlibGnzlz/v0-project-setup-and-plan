@@ -107,20 +107,71 @@ model PastorAuth {
 }
 
 model DeviceToken {
-  id        String      @id @default(uuid())
-  pastorId  String      @map("pastor_id")
-  token     String      @unique
-  platform  String      // 'ios' | 'android'
-  deviceId  String?     @map("device_id")
-  active    Boolean     @default(true)
-  createdAt DateTime    @default(now()) @map("created_at")
-  updatedAt DateTime    @updatedAt @map("updated_at")
+  id        String   @id @default(uuid())
+  pastorId  String   @map("pastor_id")
+  token     String   @unique
+  platform  String // 'ios' | 'android'
+  deviceId  String?  @map("device_id")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   pastorAuth PastorAuth @relation(fields: [pastorId], references: [pastorId], onDelete: Cascade)
 
   @@index([pastorId])
   @@index([token])
   @@map("device_tokens")
+}
+
+model Invitado {
+  id            String        @id @default(uuid())
+  nombre        String
+  apellido      String
+  email         String        @unique
+  telefono      String?
+  sede          String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  auth          InvitadoAuth?
+  inscripciones Inscripcion[]
+
+  @@index([email])
+  @@map("invitados")
+}
+
+model InvitadoAuth {
+  id              String                @id @default(uuid())
+  invitadoId      String                @unique @map("invitado_id")
+  email           String                @unique
+  password        String
+  googleId        String?               @unique
+  emailVerificado Boolean               @default(false) @map("email_verificado")
+  ultimoLogin     DateTime?             @map("ultimo_login")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+  invitado        Invitado              @relation(fields: [invitadoId], references: [id], onDelete: Cascade)
+  deviceTokens    InvitadoDeviceToken[]
+
+  @@index([email])
+  @@index([googleId])
+  @@map("invitado_auth")
+}
+
+model InvitadoDeviceToken {
+  id         String   @id @default(uuid())
+  invitadoId String   @map("invitado_id")
+  token      String   @unique
+  platform   String // 'ios' | 'android'
+  deviceId   String?  @map("device_id")
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  invitadoAuth InvitadoAuth @relation(fields: [invitadoId], references: [invitadoId], onDelete: Cascade)
+
+  @@index([invitadoId])
+  @@index([token])
+  @@map("invitado_device_tokens")
 }
 
 model Inscripcion {
@@ -141,13 +192,16 @@ model Inscripcion {
   origenRegistro   String     @default("web") @map("origen_registro")
   documentoUrl     String?    @map("documento_url")
   codigoReferencia String?    @unique @map("codigo_referencia")
+  invitadoId       String?    @map("invitado_id") // Relación opcional con invitado
   convencion       Convencion @relation(fields: [convencionId], references: [id], onDelete: Cascade)
+  invitado         Invitado?  @relation(fields: [invitadoId], references: [id], onDelete: SetNull)
   pagos            Pago[]
 
   @@index([convencionId])
   @@index([estado])
   @@index([origenRegistro])
   @@index([codigoReferencia])
+  @@index([invitadoId])
   @@map("inscripciones")
 }
 
@@ -175,24 +229,46 @@ model GaleriaImagen {
 }
 
 model Pago {
-  id             String      @id @default(uuid())
-  monto          Decimal     @db.Decimal(10, 2)
-  estado         EstadoPago  @default(PENDIENTE)
-  createdAt      DateTime    @default(now()) @map("created_at")
-  updatedAt      DateTime    @updatedAt @map("updated_at")
-  fechaPago      DateTime?   @map("fecha_pago")
-  inscripcionId  String      @map("inscripcion_id")
-  metodoPago     String      @map("metodo_pago")
+  id             String          @id @default(uuid())
+  monto          Decimal         @db.Decimal(10, 2)
+  estado         EstadoPago      @default(PENDIENTE)
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  fechaPago      DateTime?       @map("fecha_pago")
+  inscripcionId  String          @map("inscripcion_id")
+  metodoPago     String          @map("metodo_pago")
   notas          String?
   referencia     String?
-  numeroCuota    Int?        @map("numero_cuota")
-  comprobanteUrl String?     @map("comprobante_url")
-  inscripcion    Inscripcion @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
+  numeroCuota    Int?            @map("numero_cuota")
+  comprobanteUrl String?         @map("comprobante_url")
+  inscripcion    Inscripcion     @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
+  auditorias     AuditoriaPago[]
 
   @@index([inscripcionId])
   @@index([estado])
   @@index([numeroCuota])
   @@map("pagos")
+}
+
+model AuditoriaPago {
+  id             String   @id @default(uuid())
+  pagoId         String   @map("pago_id")
+  inscripcionId  String   @map("inscripcion_id")
+  accion         String // VALIDAR, RECHAZAR, REHABILITAR, ACTUALIZAR
+  estadoAnterior String?  @map("estado_anterior")
+  estadoNuevo    String?  @map("estado_nuevo")
+  usuarioId      String?  @map("usuario_id")
+  motivo         String?
+  metadata       Json? // Información adicional (monto, referencia, etc.)
+  createdAt      DateTime @default(now()) @map("created_at")
+  pago           Pago     @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+
+  @@index([pagoId])
+  @@index([inscripcionId])
+  @@index([usuarioId])
+  @@index([accion])
+  @@index([createdAt])
+  @@map("auditoria_pagos")
 }
 
 model Noticia {

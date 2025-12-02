@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from "@nestjs/common"
 import { cloudinary } from "./cloudinary.config"
+import { FileValidatorService } from "./file-validator.service"
 import * as streamifier from "streamifier"
 import * as fs from "fs"
 import * as path from "path"
@@ -12,6 +13,8 @@ export interface UploadResult {
 
 @Injectable()
 export class UploadService {
+  constructor(private readonly fileValidator: FileValidatorService) {}
+
   private isCloudinaryConfigured(): boolean {
     return !!(
       process.env.CLOUDINARY_CLOUD_NAME &&
@@ -21,21 +24,18 @@ export class UploadService {
   }
 
   async uploadImage(file: Express.Multer.File, folder = "ministerio-amva"): Promise<UploadResult> {
-    if (!file) {
-      throw new BadRequestException("No se proporcionó ningún archivo")
-    }
+    // Validación avanzada usando FileValidatorService
+    await this.fileValidator.validateImage(file, {
+      maxSize: 5 * 1024 * 1024, // 5MB
+      allowedMimes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+      minWidth: 1,
+      maxWidth: 10000,
+      minHeight: 1,
+      maxHeight: 10000,
+    })
 
-    // Validar tipo de archivo
-    const allowedMimes = ["image/jpeg", "image/png", "image/webp", "image/gif"]
-    if (!allowedMimes.includes(file.mimetype)) {
-      throw new BadRequestException("Tipo de archivo no permitido. Solo se aceptan imágenes JPG, PNG, WEBP o GIF")
-    }
-
-    // Validar tamaño (max 5MB)
-    const maxSize = 5 * 1024 * 1024
-    if (file.size > maxSize) {
-      throw new BadRequestException("El archivo excede el tamaño máximo de 5MB")
-    }
+    // Validar nombre de archivo
+    this.fileValidator.validateFileName(file.originalname)
 
     // Si Cloudinary está configurado, intentar usarlo
     if (this.isCloudinaryConfigured()) {
@@ -111,21 +111,14 @@ export class UploadService {
     folder = "ministerio-amva/videos",
     trimOptions?: { startTime: number; endTime: number }
   ): Promise<UploadResult> {
-    if (!file) {
-      throw new BadRequestException("No se proporcionó ningún archivo")
-    }
+    // Validación avanzada usando FileValidatorService
+    await this.fileValidator.validateVideo(file, {
+      maxSize: 100 * 1024 * 1024, // 100MB
+      allowedMimes: ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'],
+    })
 
-    // Validar tipo de archivo de video
-    const allowedMimes = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"]
-    if (!allowedMimes.includes(file.mimetype)) {
-      throw new BadRequestException("Tipo de archivo no permitido. Solo se aceptan videos MP4, WebM, MOV o AVI")
-    }
-
-    // Validar tamaño (max 100MB para videos - aumentado para permitir recortes)
-    const maxSize = 100 * 1024 * 1024
-    if (file.size > maxSize) {
-      throw new BadRequestException("El archivo excede el tamaño máximo de 100MB")
-    }
+    // Validar nombre de archivo
+    this.fileValidator.validateFileName(file.originalname)
 
     // Si Cloudinary está configurado, intentar usarlo
     if (this.isCloudinaryConfigured()) {

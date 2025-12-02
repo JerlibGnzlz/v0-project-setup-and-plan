@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useConvencionActiva } from '@/lib/hooks/use-convencion'
-import { usePastorAuth } from '@/lib/hooks/use-pastor-auth'
+import { useUnifiedAuth } from '@/lib/hooks/use-unified-auth'
 import { useCheckInscripcion } from '@/lib/hooks/use-inscripciones'
 import { Step1Auth } from '@/components/convencion/step1-auth'
 import { Step2ConvencionInfo } from '@/components/convencion/step2-convencion-info'
 import { Step3Formulario } from '@/components/convencion/step3-formulario'
 import { Step4Resumen } from '@/components/convencion/step4-resumen'
+import { InscripcionExistenteCard } from '@/components/convencion/inscripcion-existente-card'
 import Image from 'next/image'
 import { CheckCircle2, Circle } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -18,7 +19,7 @@ import { Button } from '@/components/ui/button'
 function ConvencionInscripcionPageContent() {
   const router = useRouter()
   const { data: convencion, isLoading: loadingConvencion } = useConvencionActiva()
-  const { pastor, isAuthenticated, isHydrated, checkAuth } = usePastorAuth()
+  const { user, isAuthenticated, isHydrated, checkAuth } = useUnifiedAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<any>(null)
   const [pasosCompletados, setPasosCompletados] = useState<number[]>([])
@@ -26,7 +27,7 @@ function ConvencionInscripcionPageContent() {
   // Verificar si ya está inscrito y si está confirmado
   const { data: inscripcionExistente } = useCheckInscripcion(
     convencion?.id,
-    pastor?.email
+    user?.email
   )
   const estaConfirmado = inscripcionExistente?.estado === 'confirmado'
   
@@ -39,10 +40,8 @@ function ConvencionInscripcionPageContent() {
     }
   }, [currentStep, formData?.numeroCuotas])
 
-  // Verificar autenticación al montar
-  useEffect(() => {
-    checkAuth()
-  }, [checkAuth])
+  // El hook useUnifiedAuth ya verifica la autenticación al montar
+  // No necesitamos llamar checkAuth manualmente aquí
 
   // Si no hay convención activa, redirigir a landing
   useEffect(() => {
@@ -214,7 +213,17 @@ function ConvencionInscripcionPageContent() {
           />
         )}
 
-        {currentStep === 2 && convencion && (
+        {/* Si ya está inscrito, mostrar el card informativo */}
+        {currentStep >= 2 && convencion && inscripcionExistente && (
+          <InscripcionExistenteCard
+            inscripcion={inscripcionExistente}
+            convencion={convencion}
+            onVolverInicio={() => router.push('/#convenciones')}
+          />
+        )}
+
+        {/* Si NO está inscrito, mostrar el flujo normal */}
+        {currentStep === 2 && convencion && !inscripcionExistente && (
           <Step2ConvencionInfo
             convencion={convencion}
             onComplete={(data) => handleStepComplete(2, data)}
@@ -223,10 +232,10 @@ function ConvencionInscripcionPageContent() {
           />
         )}
 
-        {currentStep === 3 && convencion && pastor && (
+        {currentStep === 3 && convencion && user && !inscripcionExistente && (
           <Step3Formulario
             convencion={convencion}
-            pastor={pastor}
+            user={user}
             initialData={formData}
             onComplete={(data) => handleStepComplete(3, data)}
             onBack={handleBack}
@@ -234,7 +243,7 @@ function ConvencionInscripcionPageContent() {
           />
         )}
 
-        {currentStep === 4 && convencion && formData && !estaConfirmado && (
+        {currentStep === 4 && convencion && formData && !inscripcionExistente && (
           <Step4Resumen
             convencion={convencion}
             formData={formData}
@@ -243,29 +252,6 @@ function ConvencionInscripcionPageContent() {
             }}
             onBack={handleBack}
           />
-        )}
-        
-        {/* Mensaje si intenta acceder a paso 4 estando confirmado */}
-        {currentStep === 4 && estaConfirmado && (
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl text-center">
-              <div className="mb-4">
-                <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-400" />
-                </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Inscripción Confirmada</h2>
-                <p className="text-white/70">
-                  Tu inscripción ya está confirmada. No puedes modificar los datos.
-                </p>
-              </div>
-              <Button
-                onClick={() => router.push('/#convenciones')}
-                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white"
-              >
-                Volver a la página principal
-              </Button>
-            </div>
-          </div>
         )}
       </div>
     </div>

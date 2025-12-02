@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from "@nestjs/common"
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Request } from "@nestjs/common"
 import { PastoresService } from "./pastores.service"
 import { CreatePastorDto, UpdatePastorDto } from "./dto/pastor.dto"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
+import { PaginationDto } from "../../common/dto/pagination.dto"
+import { PastorFilterDto } from "../../common/dto/search-filter.dto"
 
 @Controller("pastores")
 export class PastoresController {
@@ -49,8 +51,18 @@ export class PastoresController {
   // ==========================================
 
   @Get()
-  findAll() {
-    return this.pastoresService.findAll()
+  findAll(@Query() query: PaginationDto & PastorFilterDto) {
+    // Siempre usar paginación por defecto para evitar problemas con grandes volúmenes
+    const page = query.page ? Number(query.page) : 1
+    const limit = query.limit ? Number(query.limit) : 20
+    const filters: PastorFilterDto = {
+      search: query.search,
+      q: query.q,
+      status: query.status as any, // Aceptar 'todos', 'activos', 'inactivos' o undefined
+      tipo: query.tipo as any,
+      mostrarEnLanding: query.mostrarEnLanding,
+    }
+    return this.pastoresService.findAllPaginated(page, limit, filters)
   }
 
   @Get('active')
@@ -69,19 +81,19 @@ export class PastoresController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreatePastorDto) {
-    return this.pastoresService.create(dto)
+  create(@Request() req, @Body() dto: CreatePastorDto) {
+    return this.pastoresService.createWithAudit(dto, req.user?.id, req.user?.email)
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(":id")
-  update(@Param('id') id: string, @Body() dto: UpdatePastorDto) {
-    return this.pastoresService.update(id, dto)
+  update(@Request() req, @Param('id') id: string, @Body() dto: UpdatePastorDto) {
+    return this.pastoresService.updateWithAudit(id, dto, req.user?.id, req.user?.email)
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.pastoresService.remove(id)
+  remove(@Request() req, @Param('id') id: string) {
+    return this.pastoresService.removeWithAudit(id, req.user?.id, req.user?.email)
   }
 }

@@ -1,11 +1,29 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common"
+import { Injectable, Logger, NotFoundException, ConflictException } from "@nestjs/common"
 import { PrismaService } from "../../prisma/prisma.service"
 import { CreatePastorDto, UpdatePastorDto } from "./dto/pastor.dto"
 import { BaseService } from "../../common/base.service"
 import { Pastor } from "@prisma/client"
+import { AuditService } from "../../common/services/audit.service"
+import { PastorFilterDto } from "../../common/dto/search-filter.dto"
+import { Prisma } from "@prisma/client"
 
 /**
- * Servicio para gestión de Pastores
+ * Servicio para gestión de Pastores (Estructura Organizacional)
+ * 
+ * IMPORTANTE: Este servicio gestiona SOLO la estructura organizacional del ministerio.
+ * NO gestiona inscripciones a convenciones (ver InscripcionesService).
+ * 
+ * Separación de conceptos:
+ * - Pastores: Estructura organizacional (directiva, equipo pastoral)
+ * - Inscripciones: Participantes de convenciones (tabla separada)
+ * 
+ * Los pastores se crean SOLO desde:
+ * - app/admin/pastores (gestión de estructura organizacional)
+ * 
+ * Las inscripciones se crean desde:
+ * - Landing page (origenRegistro: 'web')
+ * - Admin dashboard (origenRegistro: 'dashboard')
+ * - App móvil (origenRegistro: 'mobile')
  * 
  * Extiende BaseService para heredar operaciones CRUD básicas
  * y añade lógica de negocio específica para pastores
@@ -18,17 +36,137 @@ export class PastoresService extends BaseService<
 > {
   private readonly logger = new Logger(PastoresService.name)
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private auditService: AuditService,
+  ) {
     super(prisma.pastor, { entityName: 'Pastor' })
   }
 
   /**
    * Sobrescribe findAll para ordenar por nombre
+   * IMPORTANTE: Solo retorna pastores activos (estructura organizacional)
+   * Los invitados (activo=false) NO aparecen aquí
    */
   override async findAll(): Promise<Pastor[]> {
     return this.model.findMany({
+      where: { activo: true }, // Solo pastores organizacionales
       orderBy: { nombre: "asc" },
     })
+  }
+
+  /**
+   * Obtiene pastores con paginación, búsqueda y filtros
+   */
+  async findAllPaginated(
+    page: number = 1,
+    limit: number = 20,
+    filters?: PastorFilterDto
+  ): Promise<{
+    data: Pastor[]
+    meta: {
+      page: number
+      limit: number
+      total: number
+      totalPages: number
+      hasNextPage: boolean
+      hasPreviousPage: boolean
+    }
+  }> {
+    const skip = (page - 1) * limit
+    const take = limit
+
+    this.logger.log(`🔍 Buscando pastores - página: ${page}, límite: ${limit}, filtros: ${JSON.stringify(filters)}`)
+
+    // Construir condiciones WHERE
+    const where: Prisma.PastorWhereInput = {}
+
+    // Aplicar filtro de estado
+    // IMPORTANTE: Si es 'todos' o no se especifica, mostrar TODOS (activos e inactivos)
+    // Solo filtrar cuando se especifica explícitamente 'activos' o 'inactivos'
+    if (filters?.status === 'activos') {
+      where.activo = true
+    } else if (filters?.status === 'inactivos') {
+      where.activo = false
+    }
+    // Si es 'todos', undefined, o cualquier otro valor, no aplicar filtro de activo (muestra todos)
+
+    // Aplicar filtro de tipo
+    if (filters?.tipo && filters.tipo !== 'todos') {
+      where.tipo = filters.tipo
+    }
+
+    // Aplicar filtro de mostrarEnLanding
+    if (filters?.mostrarEnLanding !== undefined) {
+      where.mostrarEnLanding = filters.mostrarEnLanding
+    }
+
+    // Aplicar búsqueda (busca en nombre, apellido, email, cargo, ministerio, sede)
+    if (filters?.search || filters?.q) {
+      const searchTerm = (filters.search || filters.q || '').trim()
+      if (searchTerm) {
+        where.OR = [
+          { nombre: { contains: searchTerm, mode: 'insensitive' } },
+          { apellido: { contains: searchTerm, mode: 'insensitive' } },
+          { email: { contains: searchTerm, mode: 'insensitive' } },
+          { cargo: { contains: searchTerm, mode: 'insensitive' } },
+          { ministerio: { contains: searchTerm, mode: 'insensitive' } },
+          { sede: { contains: searchTerm, mode: 'insensitive' } },
+          { region: { contains: searchTerm, mode: 'insensitive' } },
+        ]
+      }
+    }
+
+    // Construir opciones de consulta
+    const hasFilters = Object.keys(where).length > 0
+    const findManyOptions: any = {
+      orderBy: { nombre: "asc" },
+      skip,
+      take,
+    }
+    
+    if (hasFilters) {
+      findManyOptions.where = where
+    }
+
+    const countOptions: any = hasFilters ? { where } : {}
+
+    this.logger.log(`📋 FindMany options: ${JSON.stringify(findManyOptions, null, 2)}`)
+    this.logger.log(`📋 Count options: ${JSON.stringify(countOptions, null, 2)}`)
+
+    try {
+      const [data, total] = await Promise.all([
+        this.prisma.pastor.findMany(findManyOptions),
+        this.prisma.pastor.count(countOptions),
+      ])
+
+      this.logger.log(`✅ Encontrados ${data.length} pastores de ${total} totales`)
+
+      const totalPages = Math.ceil(total / limit)
+
+      return {
+        data,
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      }
+    } catch (error: any) {
+      this.logger.error(`❌ Error al buscar pastores:`, error)
+      this.logger.error(`FindMany options que causaron el error:`, JSON.stringify(findManyOptions, null, 2))
+      this.logger.error(`Count options que causaron el error:`, JSON.stringify(countOptions, null, 2))
+      this.logger.error(`Error completo:`, {
+        message: error.message,
+        code: error.code,
+        meta: error.meta,
+        stack: error.stack?.substring(0, 500), // Limitar stack trace
+      })
+      throw error
+    }
   }
 
   /**
@@ -65,7 +203,35 @@ export class PastoresService extends BaseService<
   }
 
   /**
+   * Actualiza un pastor con auditoría
+   */
+  async updateWithAudit(id: string, data: UpdatePastorDto, userId?: string, userEmail?: string): Promise<Pastor> {
+    const currentPastor = await this.findOneOrNull(id)
+    
+    if (!currentPastor) {
+      throw new NotFoundException('Pastor no encontrado')
+    }
+
+    const updated = await this.update(id, data)
+
+    // Registrar auditoría
+    const auditData = this.auditService.createAuditDataFromChanges(
+      'PASTOR',
+      id,
+      'UPDATE',
+      currentPastor,
+      data,
+      userId,
+      userEmail
+    )
+    await this.auditService.log(auditData)
+
+    return updated
+  }
+
+  /**
    * Sobrescribe create para asegurar que solo DIRECTIVA puede tener mostrarEnLanding = true
+   * También valida duplicados antes de crear
    */
   override async create(data: CreatePastorDto): Promise<Pastor> {
     // Si el tipo no es DIRECTIVA, forzar mostrarEnLanding = false
@@ -74,7 +240,49 @@ export class PastoresService extends BaseService<
       this.logger.log(`⚠️ Pastor nuevo no es DIRECTIVA, desactivando mostrarEnLanding`)
     }
 
-    return super.create(data)
+    // Verificar si ya existe un pastor con el mismo email (si se proporciona)
+    if (data.email) {
+      const existingPastor = await this.model.findUnique({
+        where: { email: data.email },
+      })
+      
+      if (existingPastor) {
+        throw new ConflictException(`Ya existe un pastor con el correo electrónico ${data.email}`)
+      }
+    }
+
+    try {
+      return await super.create(data)
+    } catch (error: any) {
+      // Si Prisma lanza un error de constraint único, mejorar el mensaje
+      if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+        throw new ConflictException(`Ya existe un pastor con el correo electrónico ${data.email}`)
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Crea un pastor con auditoría
+   */
+  async createWithAudit(data: CreatePastorDto, userId?: string, userEmail?: string): Promise<Pastor> {
+    const created = await this.create(data)
+
+    // Registrar auditoría
+    await this.auditService.log({
+      entityType: 'PASTOR',
+      entityId: created.id,
+      action: 'CREATE',
+      userId,
+      userEmail,
+      metadata: {
+        nombre: created.nombre,
+        apellido: created.apellido,
+        tipo: created.tipo,
+      },
+    })
+
+    return created
   }
 
   /**
@@ -88,6 +296,32 @@ export class PastoresService extends BaseService<
       where: { id },
       data: { activo: false },
     })
+  }
+
+  /**
+   * Elimina/desactiva un pastor con auditoría
+   */
+  async removeWithAudit(id: string, userId?: string, userEmail?: string): Promise<Pastor> {
+    const currentPastor = await this.findOne(id)
+    this.logger.log(`🗑️ Desactivando pastor: ${id}`)
+
+    const updated = await this.remove(id)
+
+    // Registrar auditoría
+    await this.auditService.log({
+      entityType: 'PASTOR',
+      entityId: id,
+      action: 'DESACTIVAR',
+      userId,
+      userEmail,
+      changes: [{
+        field: 'activo',
+        oldValue: currentPastor.activo,
+        newValue: false,
+      }],
+    })
+
+    return updated
   }
 
   /**

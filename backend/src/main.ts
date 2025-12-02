@@ -61,6 +61,7 @@ async function bootstrap() {
   // CORS - Configurado para web y mobile
   const allowedOrigins = [
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
     process.env.FRONTEND_URL,
     // Mobile apps no tienen origin, se permite si no hay origin
   ].filter(Boolean) as string[]
@@ -68,18 +69,26 @@ async function bootstrap() {
   app.enableCors({
     origin: (origin, callback) => {
       // Permitir requests sin origin (mobile apps, Postman, etc.)
-      if (!origin) return callback(null, true)
+      if (!origin) {
+        logger.debug('✅ Request sin origin permitido (mobile app, Postman, etc.)')
+        return callback(null, true)
+      }
+      
+      // En desarrollo, permitir todo localhost
+      if (process.env.NODE_ENV !== 'production') {
+        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+          logger.debug(`✅ Origin permitido (desarrollo): ${origin}`)
+          return callback(null, true)
+        }
+      }
       
       // Permitir origins configurados
       if (allowedOrigins.some(allowed => origin.startsWith(allowed) || allowed.includes(origin))) {
+        logger.debug(`✅ Origin permitido: ${origin}`)
         return callback(null, true)
       }
       
-      // En desarrollo, permitir todo
-      if (process.env.NODE_ENV !== 'production') {
-        return callback(null, true)
-      }
-      
+      logger.warn(`⚠️ Origin bloqueado por CORS: ${origin}`)
       callback(new Error('Not allowed by CORS'))
     },
     credentials: true,

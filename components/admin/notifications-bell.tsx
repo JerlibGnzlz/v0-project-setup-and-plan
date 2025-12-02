@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, Check, CheckCheck, ExternalLink, ArrowRight } from 'lucide-react'
+import { Bell, Check, CheckCheck, ExternalLink, ArrowRight, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -10,12 +10,23 @@ import {
 } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
-import { useNotificationHistory, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from '@/lib/hooks/use-notifications'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useNotificationHistory, useUnreadCount, useMarkAsRead, useMarkAllAsRead, useDeleteNotification, useDeleteNotifications } from '@/lib/hooks/use-notifications'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useWebSocketNotifications } from '@/lib/hooks/use-websocket-notifications'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export function NotificationsBell() {
   const [open, setOpen] = useState(false)
@@ -27,6 +38,13 @@ export function NotificationsBell() {
   const safeUnreadCount = typeof unreadCount === 'number' ? unreadCount : 0
   const markAsRead = useMarkAsRead()
   const markAllAsRead = useMarkAllAsRead()
+  const deleteNotification = useDeleteNotification()
+  const deleteNotifications = useDeleteNotifications()
+  
+  // Estados para diálogos de confirmación
+  const [notificationToDelete, setNotificationToDelete] = useState<string | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showClearDialog, setShowClearDialog] = useState(false)
   
   // Conectar a WebSocket para notificaciones en tiempo real
   useWebSocketNotifications()
@@ -127,17 +145,39 @@ export function NotificationsBell() {
       <PopoverContent className="w-80 sm:w-96 p-0" align="end">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold">Notificaciones</h3>
-          {safeUnreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleMarkAllAsRead}
-              className="h-8 text-xs"
-            >
-              <CheckCheck className="h-3 w-3 mr-1" />
-              Marcar todas
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {history && history.notifications.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  const readNotifications = history.notifications.filter(n => n.read)
+                  if (readNotifications.length > 0) {
+                    setShowClearDialog(true)
+                  } else {
+                    toast.info('No hay notificaciones leídas para eliminar')
+                  }
+                }}
+                className="h-8 text-xs"
+                title="Eliminar todas las leídas"
+                disabled={deleteNotifications.isPending}
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                Limpiar
+              </Button>
+            )}
+            {safeUnreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleMarkAllAsRead}
+                className="h-8 text-xs"
+              >
+                <CheckCheck className="h-3 w-3 mr-1" />
+                Marcar todas
+              </Button>
+            )}
+          </div>
         </div>
         <ScrollArea className="h-[400px]">
           {isLoading ? (
@@ -203,20 +243,35 @@ export function NotificationsBell() {
                         )}
                       </div>
                     </div>
-                    {!notification.read && (
+                    <div className="flex items-center gap-1">
+                      {!notification.read && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 flex-shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleMarkAsRead(notification.id)
+                          }}
+                          title="Marcar como leída"
+                        >
+                          <Check className="h-3 w-3" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 flex-shrink-0"
+                        className="h-6 w-6 flex-shrink-0 text-muted-foreground hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleMarkAsRead(notification.id)
+                          setNotificationToDelete(notification.id)
+                          setShowDeleteDialog(true)
                         }}
-                        title="Marcar como leída"
+                        title="Eliminar notificación"
                       >
-                        <Check className="h-3 w-3" />
+                        <X className="h-3 w-3" />
                       </Button>
-                    )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -231,6 +286,82 @@ export function NotificationsBell() {
           </div>
         )}
       </PopoverContent>
+      
+      {/* Diálogo de confirmación para eliminar una notificación */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <X className="h-5 w-5 text-destructive" />
+              ¿Eliminar esta notificación?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción eliminará permanentemente la notificación. No podrás recuperarla después.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setNotificationToDelete(null)
+              setShowDeleteDialog(false)
+            }}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (notificationToDelete) {
+                  await deleteNotification.mutateAsync(notificationToDelete)
+                  setNotificationToDelete(null)
+                  setShowDeleteDialog(false)
+                }
+              }}
+              disabled={deleteNotification.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteNotification.isPending ? 'Eliminando...' : 'Eliminar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Diálogo de confirmación para limpiar todas las leídas */}
+      <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-destructive" />
+              ¿Eliminar notificaciones leídas?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {history && (() => {
+                const readCount = history.notifications.filter(n => n.read).length
+                return `Se eliminarán ${readCount} notificación(es) leída(s). Esta acción no se puede deshacer.`
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowClearDialog(false)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (history) {
+                  const readNotifications = history.notifications.filter(n => n.read)
+                  if (readNotifications.length > 0) {
+                    await deleteNotifications.mutateAsync({ 
+                      ids: readNotifications.map(n => n.id) 
+                    })
+                  }
+                  setShowClearDialog(false)
+                }
+              }}
+              disabled={deleteNotifications.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteNotifications.isPending ? 'Eliminando...' : 'Eliminar todas'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Popover>
   )
 }

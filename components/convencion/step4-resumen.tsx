@@ -8,7 +8,7 @@ import { es } from 'date-fns/locale'
 import { useCreateInscripcion, useCheckInscripcion } from '@/lib/hooks/use-inscripciones'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { usePastorAuth } from '@/lib/hooks/use-pastor-auth'
+import { useUnifiedAuth } from '@/lib/hooks/use-unified-auth'
 
 interface Step4ResumenProps {
   convencion: {
@@ -47,7 +47,7 @@ export function Step4Resumen({
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const createInscripcionMutation = useCreateInscripcion()
-  const { pastor } = usePastorAuth() // Obtener datos del pastor autenticado
+  const { user } = useUnifiedAuth() // Obtener datos del usuario autenticado (pastor o invitado)
   
   // Verificar si ya está inscrito antes de enviar
   const { data: inscripcionExistente } = useCheckInscripcion(convencion?.id, formData?.email)
@@ -68,13 +68,30 @@ export function Step4Resumen({
     console.log('[Step4Resumen] formData:', formData)
     console.log('[Step4Resumen] convencion:', convencion)
     
-    // Verificar si ya está inscrito
+    // Verificar si ya está inscrito ANTES de enviar
     if (inscripcionExistente) {
       console.log('[Step4Resumen] Ya está inscrito, bloqueando envío')
-      toast.error("Ya estás inscrito", {
-        description: "Este correo electrónico ya está registrado para esta convención. No puedes inscribirte dos veces.",
+      toast.error("❌ Ya estás inscrito", {
+        description: `Este correo electrónico (${formData.email}) ya está registrado para esta convención. No puedes inscribirte dos veces.`,
+        duration: 6000,
       })
       return
+    }
+    
+    // Verificar nuevamente antes de enviar (por si acaso cambió el estado)
+    try {
+      const checkResult = await inscripcionesApi.checkInscripcion(convencion.id, formData.email)
+      if (checkResult) {
+        console.log('[Step4Resumen] Verificación final: Ya está inscrito')
+        toast.error("❌ Ya estás inscrito", {
+          description: `Este correo electrónico (${formData.email}) ya está registrado para esta convención. No puedes inscribirte dos veces.`,
+          duration: 6000,
+        })
+        return
+      }
+    } catch (checkError) {
+      console.warn('[Step4Resumen] Error al verificar inscripción:', checkError)
+      // Continuar con el proceso si hay error en la verificación
     }
 
     console.log('[Step4Resumen] Iniciando envío de inscripción...')
@@ -95,7 +112,7 @@ export function Step4Resumen({
       console.log('[Step4Resumen] sede:', formData.sede, 'válido:', !!formData.sede)
       console.log('[Step4Resumen] telefono:', formData.telefono, 'válido:', !!formData.telefono)
       
-      // Validar campos requeridos (sede puede venir del pastor, así que verificar si está vacío)
+      // Validar campos requeridos (sede puede venir del usuario, así que verificar si está vacío)
       const camposFaltantes = []
       if (!formData.nombre || formData.nombre.trim().length === 0) camposFaltantes.push('nombre')
       if (!formData.apellido || formData.apellido.trim().length === 0) camposFaltantes.push('apellido')
@@ -113,13 +130,13 @@ export function Step4Resumen({
       
       console.log('[Step4Resumen] ✅ Validación de campos pasada')
 
-      // Construir teléfono completo: si el pastor tiene teléfono, usarlo. Si no, usar el del formulario.
+      // Construir teléfono completo: si el usuario tiene teléfono, usarlo. Si no, usar el del formulario.
       let telefonoFinal: string | undefined = undefined
       
-      if (pastor?.telefono && pastor.telefono.trim().length >= 8 && pastor.telefono.trim().length <= 20) {
-        // Usar teléfono del pastor si es válido
-        telefonoFinal = pastor.telefono.trim()
-        console.log('[Step4Resumen] Usando teléfono del pastor:', telefonoFinal)
+      if (user?.telefono && user.telefono.trim().length >= 8 && user.telefono.trim().length <= 20) {
+        // Usar teléfono del usuario si es válido
+        telefonoFinal = user.telefono.trim()
+        console.log('[Step4Resumen] Usando teléfono del usuario:', telefonoFinal)
       } else if (formData.codigoPais && formData.telefono) {
         // Construir teléfono completo desde el formulario
         const telefonoCompleto = `${formData.codigoPais}${formData.telefono.trim()}`
@@ -264,7 +281,13 @@ export function Step4Resumen({
       } else if (error.response.status === 409) {
         // Conflicto (email duplicado)
         const responseData = error.response.data
-        errorMessage = responseData?.error?.message || responseData?.message || 'Este correo electrónico ya está registrado para esta convención.'
+        errorMessage = responseData?.error?.message || responseData?.message || `El correo electrónico ${formData.email} ya está inscrito en esta convención.`
+        
+        // Mostrar toast específico para duplicado (más visible)
+        toast.error("❌ Ya estás inscrito", {
+          description: errorMessage,
+          duration: 6000,
+        })
       } else if (error.response.status === 404) {
         // No encontrado
         const responseData = error.response.data

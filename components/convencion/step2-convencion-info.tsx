@@ -6,7 +6,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Image from 'next/image'
 import { useCheckInscripcion } from '@/lib/hooks/use-inscripciones'
-import { usePastorAuth } from '@/lib/hooks/use-pastor-auth'
+import { useUnifiedAuth } from '@/lib/hooks/use-unified-auth'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -38,13 +38,13 @@ interface Step2ConvencionInfoProps {
 
 export function Step2ConvencionInfo({ convencion, onComplete, onBack, initialNumeroCuotas = 3 }: Step2ConvencionInfoProps) {
   const router = useRouter()
-  const { pastor } = usePastorAuth()
+  const { user } = useUnifiedAuth()
   const [numeroCuotas, setNumeroCuotas] = useState<number>(initialNumeroCuotas)
   
   // Verificar si el usuario ya está inscrito
   const { data: inscripcionExistente, isLoading: checkingInscripcion } = useCheckInscripcion(
     convencion?.id,
-    pastor?.email
+    user?.email
   )
 
   const fechaInicio = new Date(convencion.fechaInicio)

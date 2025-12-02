@@ -20,7 +20,7 @@ export const pastorSchema = z.object({
     .or(z.literal("")),
   
   // Clasificación
-  tipo: TipoPastorEnum.optional().default("PASTOR"),
+  tipo: TipoPastorEnum.optional().default("DIRECTIVA"),
   cargo: z.string().max(100).optional().or(z.literal("")),
   ministerio: z.string().max(200).optional().or(z.literal("")),
   

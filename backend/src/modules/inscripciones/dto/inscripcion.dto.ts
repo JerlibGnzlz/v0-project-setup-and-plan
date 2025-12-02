@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEmail, IsEnum, IsNumber, Min, Max, Length, Matches } from 'class-validator';
+import { IsString, IsOptional, IsEmail, IsEnum, IsNumber, Min, Max, Length, Matches, ValidateIf } from 'class-validator';
 
 export enum EstadoPago {
     PENDIENTE = 'PENDIENTE',
@@ -64,32 +64,36 @@ export class CreateInscripcionDto {
 
 export class UpdateInscripcionDto {
     @IsOptional()
+    @ValidateIf((o) => o.nombre !== null && o.nombre !== undefined)
     @IsString()
     @Length(2, 50, { message: 'El nombre debe tener entre 2 y 50 caracteres' })
     @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/, { message: 'El nombre solo puede contener letras, espacios, guiones y apóstrofes' })
     nombre?: string;
 
     @IsOptional()
+    @ValidateIf((o) => o.apellido !== null && o.apellido !== undefined)
     @IsString()
     @Length(2, 50, { message: 'El apellido debe tener entre 2 y 50 caracteres' })
     @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/, { message: 'El apellido solo puede contener letras, espacios, guiones y apóstrofes' })
     apellido?: string;
 
     @IsOptional()
+    @ValidateIf((o) => o.email !== null && o.email !== undefined)
     @IsEmail({}, { message: 'Correo electrónico inválido' })
     @Length(5, 254, { message: 'El correo electrónico debe tener entre 5 y 254 caracteres' })
     email?: string;
 
     @IsOptional()
+    @ValidateIf((o) => o.telefono !== null && o.telefono !== undefined && o.telefono !== '')
     @IsString()
     @Length(8, 20, { message: 'El teléfono debe tener entre 8 y 20 caracteres' })
     @Matches(/^\+?[\d\s\-()]+$/, { message: 'El teléfono solo puede contener números, espacios, guiones, paréntesis y el símbolo +' })
-    telefono?: string;
+    telefono?: string | null;
 
     @IsOptional()
     @IsString()
     @Length(0, 200, { message: 'La sede no puede exceder 200 caracteres' })
-    sede?: string;
+    sede?: string | null;
 
     @IsOptional()
     @IsString()
@@ -103,7 +107,7 @@ export class UpdateInscripcionDto {
     @IsOptional()
     @IsString()
     @Length(0, 1000, { message: 'Las notas no pueden exceder 1000 caracteres' })
-    notas?: string;
+    notas?: string | null;
 
     @IsOptional()
     @IsNumber()

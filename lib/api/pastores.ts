@@ -81,8 +81,44 @@ export const pastoresApi = {
   // ENDPOINTS GENERALES
   // ==========================================
 
-  getAll: async (): Promise<Pastor[]> => {
-    const response = await apiClient.get<Pastor[]>("/pastores")
+  getAll: async (
+    page: number = 1,
+    limit: number = 20,
+    filters?: {
+      search?: string
+      status?: 'todos' | 'activos' | 'inactivos'
+      tipo?: 'DIRECTIVA' | 'SUPERVISOR' | 'PRESIDENTE' | 'todos'
+      mostrarEnLanding?: boolean
+    }
+  ): Promise<{
+    data: Pastor[]
+    meta: {
+      page: number
+      limit: number
+      total: number
+      totalPages: number
+      hasNextPage: boolean
+      hasPreviousPage: boolean
+    }
+  }> => {
+    const params: any = { page, limit }
+    if (filters?.search) params.search = filters.search
+    // Enviar status siempre, incluso si es "todos", para que el backend sepa que debe mostrar todos
+    if (filters?.status) params.status = filters.status
+    if (filters?.tipo && filters.tipo !== 'todos') params.tipo = filters.tipo
+    if (filters?.mostrarEnLanding !== undefined) params.mostrarEnLanding = filters.mostrarEnLanding
+
+    const response = await apiClient.get<{
+      data: Pastor[]
+      meta: {
+        page: number
+        limit: number
+        total: number
+        totalPages: number
+        hasNextPage: boolean
+        hasPreviousPage: boolean
+      }
+    }>("/pastores", { params })
     return response.data
   },
 
@@ -101,8 +137,28 @@ export const pastoresApi = {
   // ==========================================
 
   create: async (data: CreatePastorData): Promise<Pastor> => {
-    const response = await apiClient.post<Pastor>("/pastores", data)
-    return response.data
+    try {
+      const response = await apiClient.post<Pastor>("/pastores", data)
+      return response.data
+    } catch (error: any) {
+      // Manejar error 409 (ConflictException - email duplicado)
+      if (error.response?.status === 409) {
+        const responseData = error.response.data
+        let errorMessage = 'Ya existe un pastor con este correo electrónico.'
+        
+        if (responseData?.error?.message) {
+          errorMessage = responseData.error.message
+        } else if (responseData?.message) {
+          errorMessage = responseData.message
+        }
+        
+        const conflictError = new Error(errorMessage)
+        ;(conflictError as any).response = error.response
+        throw conflictError
+      }
+      
+      throw error
+    }
   },
 
   update: async (id: string, data: UpdatePastorData): Promise<Pastor> => {
