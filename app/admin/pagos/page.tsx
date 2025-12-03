@@ -141,10 +141,19 @@ export default function PagosPage() {
   }
 
   const toggleSeleccionarTodos = () => {
-    if (pagosSeleccionados.size === filteredPagos.length) {
+    // Solo seleccionar pagos que NO estén completados
+    const pagosSeleccionables = filteredPagos.filter((p: any) => p.estado !== 'COMPLETADO')
+    const todosLosIds = pagosSeleccionables.map((p: any) => p.id)
+    
+    // Verificar si todos los seleccionables ya están seleccionados
+    const todosSeleccionados = todosLosIds.length > 0 && todosLosIds.every((id: string) => pagosSeleccionados.has(id))
+    
+    if (todosSeleccionados) {
+      // Deseleccionar todos
       setPagosSeleccionados(new Set())
     } else {
-      setPagosSeleccionados(new Set(filteredPagos.map((p: any) => p.id)))
+      // Seleccionar solo los seleccionables
+      setPagosSeleccionados(new Set(todosLosIds))
     }
   }
 
@@ -494,7 +503,7 @@ export default function PagosPage() {
                     )}
                   </CardDescription>
                 </div>
-                {pagosSeleccionados.size > 0 && (
+                {pagosSeleccionados.size > 0 && filteredPagos.some((p: any) => pagosSeleccionados.has(p.id) && p.estado !== 'COMPLETADO') && (
                   <Button
                     onClick={validarPagosSeleccionados}
                     disabled={validarMasivosMutation.isPending}
@@ -546,6 +555,7 @@ export default function PagosPage() {
                           onClick={toggleSeleccionarTodos}
                           className="flex items-center justify-center hover:opacity-70 transition-opacity"
                           title={pagosSeleccionados.size === filteredPagos.length && filteredPagos.length > 0 ? 'Deseleccionar todos' : 'Seleccionar todos'}
+                          disabled={filteredPagos.every((p: any) => p.estado === 'COMPLETADO')}
                         >
                           {pagosSeleccionados.size === filteredPagos.length && filteredPagos.length > 0 ? (
                             <CheckSquare className="size-5 text-emerald-600 dark:text-emerald-400" />
@@ -590,26 +600,31 @@ export default function PagosPage() {
                           <tr key={pago.id} className={`border-b last:border-0 hover:bg-muted/50 ${estaSeleccionado ? 'bg-emerald-50/50 dark:bg-emerald-950/20' : ''}`}>
                             <td className="p-3">
                               <button
-                                onClick={() => toggleSeleccionarPago(pago.id)}
-                                className="flex items-center justify-center hover:opacity-70 transition-opacity"
-                                title={estaSeleccionado ? 'Deseleccionar' : 'Seleccionar'}
+                                onClick={() => !estadoEsCompletado && toggleSeleccionarPago(pago.id)}
+                                disabled={estadoEsCompletado}
+                                className={`flex items-center justify-center transition-opacity ${
+                                  estadoEsCompletado 
+                                    ? 'opacity-40 cursor-not-allowed' 
+                                    : 'hover:opacity-70 cursor-pointer'
+                                }`}
+                                title={estadoEsCompletado ? 'Pago confirmado - No se puede seleccionar' : estaSeleccionado ? 'Deseleccionar' : 'Seleccionar'}
                               >
                                 {estaSeleccionado ? (
                                   <CheckSquare className="size-5 text-emerald-600 dark:text-emerald-400" />
                                 ) : (
-                                  <Square className="size-5 text-muted-foreground" />
+                                  <Square className={`size-5 ${estadoEsCompletado ? 'text-muted-foreground/40' : 'text-muted-foreground'}`} />
                                 )}
                               </button>
                             </td>
                             <td className="p-3">
                               <p className="font-medium text-sm">{nombreCompleto}</p>
                               {inscripcion?.codigoReferencia && (
-                                <p className="text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                                <p className="text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400 mt-1">
                                   🔖 {inscripcion.codigoReferencia}
                                 </p>
                               )}
-                              {pago.referencia && (
-                                <p className="text-xs text-muted-foreground">{pago.referencia}</p>
+                              {pago.referencia && pago.referencia !== inscripcion?.codigoReferencia && (
+                                <p className="text-xs text-muted-foreground mt-1">{pago.referencia}</p>
                               )}
                             </td>
                             <td className="p-3">
@@ -723,7 +738,7 @@ export default function PagosPage() {
                               )}
                             </td>
                             <td className="p-3">
-                              {estadoEsPendiente && (
+                              {estadoEsPendiente && !estadoEsCompletado && (
                                 <div className="flex items-center gap-1">
                                   <Tooltip>
                                     <TooltipTrigger asChild>

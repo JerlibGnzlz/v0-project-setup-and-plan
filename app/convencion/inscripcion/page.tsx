@@ -6,9 +6,7 @@ import { useConvencionActiva } from '@/lib/hooks/use-convencion'
 import { useUnifiedAuth } from '@/lib/hooks/use-unified-auth'
 import { useCheckInscripcion } from '@/lib/hooks/use-inscripciones'
 import { Step1Auth } from '@/components/convencion/step1-auth'
-import { Step2ConvencionInfo } from '@/components/convencion/step2-convencion-info'
-import { Step3Formulario } from '@/components/convencion/step3-formulario'
-import { Step4Resumen } from '@/components/convencion/step4-resumen'
+import { UnifiedInscriptionForm } from '@/components/convencion/unified-inscription-form'
 import { InscripcionExistenteCard } from '@/components/convencion/inscripcion-existente-card'
 import Image from 'next/image'
 import { CheckCircle2, Circle } from 'lucide-react'
@@ -31,14 +29,14 @@ function ConvencionInscripcionPageContent() {
   )
   const estaConfirmado = inscripcionExistente?.estado === 'confirmado'
   
-  // Cuando se completa el paso 2 (selección de plan de pago), marcar pasos 1-4 como completados
+  // Marcar pasos completados
   useEffect(() => {
-    if (currentStep >= 2 && formData?.numeroCuotas) {
-      setPasosCompletados([1, 2, 3, 4])
+    if (currentStep >= 2) {
+      setPasosCompletados([1, 2])
     } else if (currentStep >= 1) {
       setPasosCompletados([1])
     }
-  }, [currentStep, formData?.numeroCuotas])
+  }, [currentStep])
 
   // El hook useUnifiedAuth ya verifica la autenticación al montar
   // No necesitamos llamar checkAuth manualmente aquí
@@ -91,21 +89,14 @@ function ConvencionInscripcionPageContent() {
 
   const steps = [
     { number: 1, title: 'Autenticación', description: 'Inicia sesión o crea tu cuenta' },
-    { number: 2, title: 'Información', description: 'Detalles de la convención' },
-    { number: 3, title: 'Inscripción', description: 'Completa tus datos' },
-    { number: 4, title: 'Confirmación', description: 'Revisa y confirma' },
+    { number: 2, title: 'Inscripción', description: 'Completa tus datos y confirma' },
   ]
 
   const handleStepComplete = (step: number, data?: any) => {
-    // Si está confirmado, no permitir avanzar a pasos 3 y 4
-    if (estaConfirmado && (step + 1 === 3 || step + 1 === 4)) {
-      return
-    }
-    
     if (data) {
       setFormData((prev: any) => ({ ...prev, ...data }))
     }
-    if (step < 4) {
+    if (step < 2) {
       setCurrentStep(step + 1)
     }
   }
@@ -149,10 +140,6 @@ function ConvencionInscripcionPageContent() {
                 <div className="flex flex-col items-center flex-1">
                   <button
                     onClick={() => {
-                      // Si está confirmado, no permitir ir a pasos 3 y 4
-                      if (estaConfirmado && (step.number === 3 || step.number === 4)) {
-                        return
-                      }
                       // Solo permitir ir a steps anteriores o al siguiente
                       if (step.number <= currentStep || (step.number === currentStep + 1 && isAuthenticated)) {
                         setCurrentStep(step.number)
@@ -160,15 +147,13 @@ function ConvencionInscripcionPageContent() {
                     }}
                     className={cn(
                       'w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300',
-                      estaConfirmado && (step.number === 3 || step.number === 4)
-                        ? 'bg-white/5 text-white/30 border border-white/10 cursor-not-allowed opacity-50'
-                        : pasosCompletados.includes(step.number)
+                      pasosCompletados.includes(step.number)
                         ? 'bg-emerald-500 text-white'
                         : step.number === currentStep
                         ? 'bg-emerald-500 text-white ring-4 ring-emerald-500/30 scale-110'
                         : 'bg-white/10 text-white/50 border border-white/20'
                     )}
-                    disabled={(step.number > currentStep && !isAuthenticated) || (estaConfirmado && (step.number === 3 || step.number === 4))}
+                    disabled={step.number > currentStep && !isAuthenticated}
                   >
                     {pasosCompletados.includes(step.number) ? (
                       <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -180,9 +165,7 @@ function ConvencionInscripcionPageContent() {
                     <p
                       className={cn(
                         'text-xs font-medium',
-                        estaConfirmado && (step.number === 3 || step.number === 4)
-                          ? 'text-white/30'
-                          : pasosCompletados.includes(step.number) || step.number <= currentStep ? 'text-white' : 'text-white/50'
+                        pasosCompletados.includes(step.number) || step.number <= currentStep ? 'text-white' : 'text-white/50'
                       )}
                     >
                       {step.title}
@@ -222,34 +205,11 @@ function ConvencionInscripcionPageContent() {
           />
         )}
 
-        {/* Si NO está inscrito, mostrar el flujo normal */}
-        {currentStep === 2 && convencion && !inscripcionExistente && (
-          <Step2ConvencionInfo
-            convencion={convencion}
-            onComplete={(data) => handleStepComplete(2, data)}
-            onBack={handleBack}
-            initialNumeroCuotas={formData?.numeroCuotas || 3}
-          />
-        )}
-
-        {currentStep === 3 && convencion && user && !inscripcionExistente && (
-          <Step3Formulario
+        {/* Formulario unificado de inscripción */}
+        {currentStep === 2 && convencion && user && !inscripcionExistente && (
+          <UnifiedInscriptionForm
             convencion={convencion}
             user={user}
-            initialData={formData}
-            onComplete={(data) => handleStepComplete(3, data)}
-            onBack={handleBack}
-            estaConfirmado={estaConfirmado}
-          />
-        )}
-
-        {currentStep === 4 && convencion && formData && !inscripcionExistente && (
-          <Step4Resumen
-            convencion={convencion}
-            formData={formData}
-            onConfirm={() => {
-              // El step4 maneja el envío internamente
-            }}
             onBack={handleBack}
           />
         )}

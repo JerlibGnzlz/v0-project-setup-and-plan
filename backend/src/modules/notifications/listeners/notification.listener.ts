@@ -104,7 +104,7 @@ export class NotificationListener {
         attempts: 3, // Reintentar hasta 3 veces
         backoff: {
           type: 'exponential' as const,
-          delay: 2000, // Empezar con 2 segundos
+          delay: 1000, // Empezar con 1 segundo (reducido de 2)
         },
         removeOnComplete: {
           age: 24 * 3600, // Mantener trabajos completados por 24 horas
@@ -114,6 +114,7 @@ export class NotificationListener {
           age: 7 * 24 * 3600, // Mantener trabajos fallidos por 7 días
         },
         priority: this.getPriority(event.priority),
+        delay: 0, // Sin delay inicial - procesar inmediatamente
       }
 
       await this.notificationsQueue.add(

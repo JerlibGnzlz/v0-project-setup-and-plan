@@ -34,7 +34,6 @@ import { usePagos } from '@/lib/hooks/use-pagos'
 import { usePastores } from '@/lib/hooks/use-pastores'
 import { useInscripciones } from '@/lib/hooks/use-inscripciones'
 import { Skeleton } from '@/components/ui/skeleton'
-import { StatsCharts } from '@/components/admin/stats-charts'
 
 export default function AdminDashboard() {
   const { data: convenciones = [], isLoading: loadingConvencion } = useConvenciones()
@@ -925,14 +924,6 @@ export default function AdminDashboard() {
         </ScrollReveal>
       </div>
 
-      {/* Dashboard de Estadísticas con Gráficos */}
-      <ScrollReveal delay={300}>
-        <StatsCharts 
-          inscripciones={inscripciones}
-          pagos={pagos}
-          pastores={pastores}
-        />
-      </ScrollReveal>
 
       {/* Navigation Cards con colores del mundo */}
       <div className="grid gap-6 md:grid-cols-3">

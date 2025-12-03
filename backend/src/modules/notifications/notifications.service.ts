@@ -13,7 +13,7 @@ export class NotificationsService {
     private prisma: PrismaService,
     private emailService: EmailService,
     @Optional() @Inject(forwardRef(() => NotificationsGateway)) private notificationsGateway?: NotificationsGateway,
-  ) {}
+  ) { }
 
   /**
    * Registra un token de dispositivo para un pastor
@@ -291,7 +291,7 @@ export class NotificationsService {
 
     try {
       const response = await this.sendToExpo(messages)
-      
+
       let successCount = 0
       let failureCount = 0
 

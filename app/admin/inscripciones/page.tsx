@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useQueryClient } from '@tanstack/react-query'
 import { useInscripciones, useCreateInscripcion, useCancelarInscripcion, useReporteIngresos, useEnviarRecordatorios, useUpdateInscripcion } from '@/lib/hooks/use-inscripciones'
 import { useCreatePago, useUpdatePago } from '@/lib/hooks/use-pagos'
 import { useConvenciones } from '@/lib/hooks/use-convencion'
 import { useSmartSync, useSmartPolling } from '@/lib/hooks/use-smart-sync'
+import { inscripcionesApi } from '@/lib/api/inscripciones'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -47,6 +49,9 @@ import { ScrollReveal } from '@/components/scroll-reveal'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
+import { InscripcionWizard } from '@/components/admin/inscripcion-wizard'
+import { PagoWizard } from '@/components/admin/pago-wizard'
+import { InscripcionSuccessModal } from '@/components/admin/inscripcion-success-modal'
 
 export default function InscripcionesPage() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -58,7 +63,7 @@ export default function InscripcionesPage() {
 
     // Debounce para búsqueda
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
-    
+
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearchTerm(searchTerm)
@@ -67,6 +72,7 @@ export default function InscripcionesPage() {
         return () => clearTimeout(timer)
     }, [searchTerm])
     const [selectedInscripcion, setSelectedInscripcion] = useState<any>(null)
+    const [selectedPago, setSelectedPago] = useState<any>(null)
     const [dialogOpen, setDialogOpen] = useState(false)
     const [pagoForm, setPagoForm] = useState({
         metodoPago: 'transferencia',
@@ -75,9 +81,14 @@ export default function InscripcionesPage() {
         notas: '',
     })
     const [isUploadingComprobante, setIsUploadingComprobante] = useState(false)
-    
+
     // Estado para diálogo de nueva inscripción manual
     const [showNuevaInscripcionDialog, setShowNuevaInscripcionDialog] = useState(false)
+    const [showSuccessModal, setShowSuccessModal] = useState(false)
+    const [inscripcionCreada, setInscripcionCreada] = useState<any>(null)
+    const [pagoCreado, setPagoCreado] = useState(false)
+    const [pagoValidado, setPagoValidado] = useState(false)
+    const inscripcionCardRefs = useRef<Record<string, HTMLDivElement | null>>({})
     const [nuevaInscripcionForm, setNuevaInscripcionForm] = useState({
         nombre: '',
         apellido: '',
@@ -95,6 +106,7 @@ export default function InscripcionesPage() {
     // Polling inteligente cada 30 segundos (solo cuando la pestaña está visible)
     useSmartPolling(["inscripciones", currentPage, pageSize], 30000)
 
+    const queryClient = useQueryClient()
     const { data: convenciones = [] } = useConvenciones()
 
     // Obtener convencionId del filtro de convención
@@ -109,12 +121,12 @@ export default function InscripcionesPage() {
 
     const { data: inscripcionesResponse, isLoading } = useInscripciones(currentPage, pageSize, filters)
     // Manejar respuesta paginada o array directo (compatibilidad)
-    const inscripciones = Array.isArray(inscripcionesResponse) 
-      ? inscripcionesResponse 
-      : inscripcionesResponse?.data || []
-    const paginationMeta = Array.isArray(inscripcionesResponse) 
-      ? null 
-      : inscripcionesResponse?.meta
+    const inscripciones = Array.isArray(inscripcionesResponse)
+        ? inscripcionesResponse
+        : inscripcionesResponse?.data || []
+    const paginationMeta = Array.isArray(inscripcionesResponse)
+        ? null
+        : inscripcionesResponse?.meta
     const { data: reporteIngresos } = useReporteIngresos()
     const createPagoMutation = useCreatePago()
     const updatePagoMutation = useUpdatePago()
@@ -122,7 +134,7 @@ export default function InscripcionesPage() {
     const cancelarInscripcionMutation = useCancelarInscripcion()
     const enviarRecordatoriosMutation = useEnviarRecordatorios()
     const updateInscripcionMutation = useUpdateInscripcion()
-    
+
     // Estados para diálogos
     const [showReporteDialog, setShowReporteDialog] = useState(false)
     const [showRecordatoriosDialog, setShowRecordatoriosDialog] = useState(false)
@@ -130,7 +142,7 @@ export default function InscripcionesPage() {
     const [inscripcionACancelar, setInscripcionACancelar] = useState<any>(null)
     const [motivoCancelacion, setMotivoCancelacion] = useState('')
     const [resultadoRecordatorios, setResultadoRecordatorios] = useState<any>(null)
-    
+
     // Estados para editar inscripción
     const [showEditarDialog, setShowEditarDialog] = useState(false)
     const [inscripcionAEditar, setInscripcionAEditar] = useState<any>(null)
@@ -278,88 +290,304 @@ export default function InscripcionesPage() {
         }
     }
 
-    const handleOpenDialog = (inscripcion: any) => {
+    const handleOpenDialog = (inscripcion: any, pago?: any) => {
+        // Validar que no se intente crear un pago si ya existe uno pendiente
+        if (!pago && inscripcion.numeroCuota) {
+            const pagosInfo = getPagosInfo(inscripcion)
+            const cuota = pagosInfo.cuotas.find((c: any) => c.numero === inscripcion.numeroCuota)
+
+            // Si la cuota ya tiene un pago pendiente, no permitir crear otro
+            if (cuota?.pago && cuota.estado === 'PENDIENTE') {
+                toast.warning('Esta cuota ya tiene un pago pendiente', {
+                    description: 'Espera a que se confirme el pago antes de crear uno nuevo',
+                })
+                return
+            }
+        }
+
         setSelectedInscripcion(inscripcion)
+        setSelectedPago(pago)
         setPagoForm({ metodoPago: 'transferencia', referencia: '', comprobanteUrl: '', notas: '' })
         setDialogOpen(true)
     }
 
-    // Función para crear inscripción manual
-    const handleCrearInscripcionManual = async () => {
-        // Validaciones básicas
-        if (!nuevaInscripcionForm.nombre.trim()) {
-            toast.error('El nombre es requerido')
-            return
-        }
-        if (!nuevaInscripcionForm.apellido.trim()) {
-            toast.error('El apellido es requerido')
-            return
-        }
-        if (!nuevaInscripcionForm.email.trim()) {
-            toast.error('El email es requerido')
-            return
-        }
-        
-        // Validar formato de email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(nuevaInscripcionForm.email)) {
-            toast.error('El formato del email no es válido')
-            return
-        }
-
-        // Obtener convención activa
-        const convencionActiva = convenciones.find((c: any) => c.activa)
-        if (!convencionActiva) {
-            toast.error('No hay convención activa para inscribir')
-            return
-        }
+    const handleQuickPagoUpdate = async (data: {
+        metodoPago: string
+        referencia?: string
+        comprobanteUrl?: string
+        notas?: string
+        validarAutomaticamente?: boolean
+    }) => {
+        if (!selectedInscripcion) return
 
         try {
-            await createInscripcionMutation.mutateAsync({
-                convencionId: convencionActiva.id,
-                nombre: nuevaInscripcionForm.nombre.trim(),
-                apellido: nuevaInscripcionForm.apellido.trim(),
-                email: nuevaInscripcionForm.email.trim().toLowerCase(),
-                telefono: nuevaInscripcionForm.telefono.trim() || undefined,
-                sede: nuevaInscripcionForm.sede.trim() || 'Sin sede especificada',
-                tipoInscripcion: nuevaInscripcionForm.tipoInscripcion,
-                numeroCuotas: nuevaInscripcionForm.numeroCuotas,
+            if (selectedPago?.id) {
+                // Actualizar pago existente
+                await updatePagoMutation.mutateAsync({
+                    id: selectedPago.id,
+                    data: {
+                        metodoPago: data.metodoPago,
+                        referencia: data.referencia,
+                        comprobanteUrl: data.comprobanteUrl,
+                        notas: data.notas,
+                        estado: data.validarAutomaticamente ? 'COMPLETADO' : 'PENDIENTE',
+                    },
+                })
+
+                if (data.validarAutomaticamente) {
+                    toast.success('✅ Pago actualizado y validado automáticamente')
+                } else {
+                    toast.success('Pago actualizado exitosamente')
+                }
+            } else {
+                // Validar que no exista ya un pago para esta cuota
+                const pagosInfo = getPagosInfo(selectedInscripcion)
+                const cuota = pagosInfo.cuotas.find((c: any) => c.numero === selectedInscripcion.numeroCuota)
+
+                if (cuota?.pago) {
+                    toast.error('Esta cuota ya tiene un pago asociado', {
+                        description: 'Si necesitas actualizarlo, usa el botón "Editar" cuando esté completado',
+                    })
+                    return
+                }
+
+                // Crear nuevo pago
+                const montoPorCuota = getPagosInfo(selectedInscripcion).montoPorCuota
+                await createPagoMutation.mutateAsync({
+                    inscripcionId: selectedInscripcion.id,
+                    numeroCuota: selectedInscripcion.numeroCuota,
+                    monto: String(montoPorCuota),
+                    metodoPago: data.metodoPago,
+                    referencia: data.referencia,
+                    comprobanteUrl: data.comprobanteUrl,
+                    notas: data.notas,
+                    estado: data.validarAutomaticamente ? 'COMPLETADO' : 'PENDIENTE',
+                })
+
+                if (data.validarAutomaticamente) {
+                    toast.success('✅ Pago creado y validado automáticamente')
+                } else {
+                    toast.success('Pago creado exitosamente')
+                }
+            }
+
+            // Refresh inmediato y forzar recarga
+            await queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+            await queryClient.invalidateQueries({ queryKey: ["pagos"] })
+
+            // Refrescar la query actual para que se actualice inmediatamente
+            await queryClient.refetchQueries({ queryKey: ["inscripciones", currentPage, pageSize, filters] })
+        } catch (error: any) {
+            console.error('Error al actualizar/crear pago:', error)
+            throw error
+        }
+    }
+
+    // Función para crear inscripción desde wizard
+    const handleCrearInscripcionDesdeWizard = async (wizardData: any) => {
+        try {
+            // Crear inscripción
+            const nuevaInscripcion = await createInscripcionMutation.mutateAsync({
+                convencionId: wizardData.convencionId,
+                nombre: wizardData.nombre.trim(),
+                apellido: wizardData.apellido.trim(),
+                email: wizardData.email.trim().toLowerCase(),
+                telefono: wizardData.telefono?.trim() || undefined,
+                sede: wizardData.sede?.trim() || 'Sin sede especificada',
+                tipoInscripcion: wizardData.tipoInscripcion,
+                numeroCuotas: wizardData.numeroCuotas,
                 origenRegistro: 'dashboard',
-                notas: nuevaInscripcionForm.notas.trim() || `Inscripción manual creada desde admin`,
+                notas: wizardData.notas?.trim() || `Inscripción manual creada desde admin`,
             })
 
-            // Limpiar formulario y cerrar diálogo
+            // Si se debe crear pago inmediato, actualizar y validar automáticamente si tiene todos los datos
+            if (wizardData.crearPagoInmediato && nuevaInscripcion?.id) {
+                try {
+                    // Esperar un momento para que la inscripción se actualice con los pagos
+                    await new Promise(resolve => setTimeout(resolve, 500))
+
+                    // Refrescar datos para obtener la inscripción con pagos
+                    await queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+
+                    // Obtener la inscripción actualizada desde la API
+                    let inscripcionCompleta = nuevaInscripcion
+                    try {
+                        inscripcionCompleta = await inscripcionesApi.getById(nuevaInscripcion.id)
+                    } catch (error) {
+                        console.warn('No se pudo obtener la inscripción actualizada, usando datos locales')
+                    }
+
+                    // Buscar el primer pago pendiente (los pagos se crean automáticamente por el backend)
+                    const primerPago = inscripcionCompleta?.pagos?.find((p: any) => p.estado === 'PENDIENTE' && p.numeroCuota === 1)
+                        || inscripcionCompleta?.pagos?.[0]
+
+                    if (primerPago?.id) {
+                        // Verificar si tiene todos los datos requeridos para validación automática
+                        const tieneReferencia = wizardData.referencia?.trim()
+                        const tieneComprobante = wizardData.comprobanteUrl
+                        const requiereComprobante = wizardData.metodoPago === 'transferencia' || wizardData.metodoPago === 'mercadopago'
+                        const puedeValidar = tieneReferencia && (requiereComprobante ? tieneComprobante : true)
+
+                        // Actualizar el pago existente con los datos del wizard
+                        await updatePagoMutation.mutateAsync({
+                            id: primerPago.id,
+                            data: {
+                                metodoPago: wizardData.metodoPago,
+                                referencia: wizardData.referencia?.trim() || undefined,
+                                comprobanteUrl: wizardData.comprobanteUrl || undefined,
+                                notas: wizardData.notasPago?.trim() || undefined,
+                                // Si tiene todos los datos, validar automáticamente
+                                estado: puedeValidar ? 'COMPLETADO' : 'PENDIENTE',
+                            },
+                        })
+
+                        // Si se validó automáticamente, mostrar mensaje especial
+                        if (puedeValidar) {
+                            toast.success('✅ Pago registrado y validado automáticamente', {
+                                description: 'El pago se reflejará inmediatamente en los pagos completados',
+                            })
+                        }
+                    } else {
+                        // Si no hay pagos aún, crear uno nuevo
+                        const puedeValidar = wizardData.referencia?.trim() &&
+                            (wizardData.metodoPago === 'efectivo' || wizardData.comprobanteUrl)
+
+                        await createPagoMutation.mutateAsync({
+                            inscripcionId: nuevaInscripcion.id,
+                            monto: String(wizardData.montoPorCuota || (convencionSeleccionada?.costo ? Number(convencionSeleccionada.costo) / wizardData.numeroCuotas : 0)),
+                            metodoPago: wizardData.metodoPago,
+                            referencia: wizardData.referencia?.trim() || undefined,
+                            comprobanteUrl: wizardData.comprobanteUrl || undefined,
+                            notas: wizardData.notasPago?.trim() || undefined,
+                            estado: puedeValidar ? 'COMPLETADO' : 'PENDIENTE',
+                        })
+
+                        if (puedeValidar) {
+                            toast.success('✅ Pago creado y validado automáticamente', {
+                                description: 'El pago se reflejará inmediatamente en los pagos completados',
+                            })
+                        }
+                    }
+
+                    // Forzar refresh inmediato de la lista
+                    queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+                    queryClient.invalidateQueries({ queryKey: ["pagos"] })
+                } catch (pagoError: any) {
+                    console.error('Error al actualizar pago:', pagoError)
+                    toast.warning('Inscripción creada, pero hubo un error al registrar el pago', {
+                        description: 'Puedes actualizar el pago manualmente desde la lista',
+                    })
+                }
+            }
+
+            // Obtener la inscripción completa con pagos para el modal
+            let inscripcionCompleta = nuevaInscripcion
+            try {
+                // Esperar un momento para que el backend procese todo
+                await new Promise(resolve => setTimeout(resolve, 300))
+                inscripcionCompleta = await inscripcionesApi.getById(nuevaInscripcion.id)
+            } catch (error) {
+                console.warn('No se pudo obtener la inscripción completa para el modal, usando datos básicos')
+                // Usar datos básicos de la respuesta
+                inscripcionCompleta = {
+                    ...nuevaInscripcion,
+                    convencion: convenciones.find((c: any) => c.id === wizardData.convencionId),
+                    pagos: nuevaInscripcion.pagos || [],
+                }
+            }
+
+            // Determinar estado del pago
+            const pagoFueCreado = wizardData.crearPagoInmediato
+            const pagoFueValidado = wizardData.crearPagoInmediato &&
+                wizardData.referencia?.trim() &&
+                (wizardData.metodoPago === 'efectivo' || wizardData.comprobanteUrl)
+
+            // Asegurar que la inscripción tenga todos los campos necesarios
+            const inscripcionParaModal = {
+                id: inscripcionCompleta.id || nuevaInscripcion.id,
+                nombre: inscripcionCompleta.nombre || wizardData.nombre,
+                apellido: inscripcionCompleta.apellido || wizardData.apellido,
+                email: inscripcionCompleta.email || wizardData.email,
+                convencion: inscripcionCompleta.convencion || convenciones.find((c: any) => c.id === wizardData.convencionId),
+                numeroCuotas: inscripcionCompleta.numeroCuotas || wizardData.numeroCuotas,
+                pagos: inscripcionCompleta.pagos || [],
+            }
+
+            // Guardar datos para el modal
+            setInscripcionCreada(inscripcionParaModal)
+            setPagoCreado(pagoFueCreado)
+            setPagoValidado(pagoFueValidado)
+
+            // Cerrar wizard
             setShowNuevaInscripcionDialog(false)
-            setNuevaInscripcionForm({
-                nombre: '',
-                apellido: '',
-                email: '',
-                telefono: '',
-                sede: '',
-                tipoInscripcion: 'invitado',
-                numeroCuotas: 3,
-                notas: '',
-            })
-            
-            toast.success('Inscripción creada exitosamente', {
-                description: `${nuevaInscripcionForm.nombre} ${nuevaInscripcionForm.apellido} ha sido inscrito a la convención`,
-            })
+
+            // Navegación automática después de un breve delay (sin modal)
+            setTimeout(() => {
+                handleNavegarAInscripcion(nuevaInscripcion.id)
+            }, 500)
         } catch (error: any) {
             console.error('Error al crear inscripción:', error)
-            // El hook ya maneja el toast de error
+            throw error // Re-lanzar para que el wizard maneje el error
+        }
+    }
+
+    // Función para navegar automáticamente a la inscripción creada
+    const handleNavegarAInscripcion = (inscripcionId: string) => {
+        // Filtrar por la inscripción creada (buscar por nombre)
+        const inscripcion = inscripciones.find((insc: any) => insc.id === inscripcionId)
+        if (inscripcion) {
+            // Buscar por nombre y apellido para filtrar
+            const nombreCompleto = `${inscripcion.nombre} ${inscripcion.apellido}`
+            setSearchTerm(nombreCompleto)
+
+            // Scroll a la card después de que se actualice la lista
+            setTimeout(() => {
+                const cardElement = inscripcionCardRefs.current[inscripcionId]
+                if (cardElement) {
+                    cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    // Resaltar visualmente
+                    cardElement.classList.add('ring-4', 'ring-emerald-500', 'animate-pulse')
+                    setTimeout(() => {
+                        cardElement.classList.remove('ring-4', 'ring-emerald-500', 'animate-pulse')
+                    }, 3000)
+                }
+            }, 800)
+        }
+    }
+
+    // Función para ver la inscripción (desde el modal)
+    const handleVerInscripcion = () => {
+        if (inscripcionCreada?.id) {
+            handleNavegarAInscripcion(inscripcionCreada.id)
+        }
+    }
+
+    // Función para crear siguiente pago (desde el modal)
+    const handleCrearSiguientePago = () => {
+        if (inscripcionCreada) {
+            const pagosInfo = getPagosInfo(inscripcionCreada)
+            // Solo buscar cuotas que NO tienen pago (no crear duplicados)
+            const siguienteCuota = pagosInfo.cuotas.find((c: any) => !c.pago)
+            if (siguienteCuota) {
+                handleOpenDialog({ ...inscripcionCreada, numeroCuota: siguienteCuota.numero }, null)
+            } else {
+                toast.info('Todas las cuotas ya tienen pagos creados', {
+                    description: 'Revisa los pagos pendientes o completa los existentes',
+                })
+            }
         }
     }
 
     // Función para cancelar inscripción
     const handleCancelarInscripcion = async () => {
         if (!inscripcionACancelar) return
-        
+
         try {
             await cancelarInscripcionMutation.mutateAsync({
                 id: inscripcionACancelar.id,
                 motivo: motivoCancelacion || undefined,
             })
-            
+
             setShowCancelarDialog(false)
             setInscripcionACancelar(null)
             setMotivoCancelacion('')
@@ -400,7 +628,7 @@ export default function InscripcionesPage() {
         try {
             // Filtrar campos vacíos y convertir a undefined para que el validador los ignore
             const dataToUpdate: any = {}
-            
+
             if (editarForm.nombre && editarForm.nombre.trim()) {
                 dataToUpdate.nombre = editarForm.nombre.trim()
             }
@@ -912,6 +1140,9 @@ export default function InscripcionesPage() {
                                     return (
                                         <Card
                                             key={insc.id}
+                                            ref={(el) => {
+                                                if (el) inscripcionCardRefs.current[insc.id] = el
+                                            }}
                                             data-inscripcion-id={insc.id}
                                             className="border-amber-200/50 dark:border-amber-500/20 transition-all"
                                         >
@@ -926,8 +1157,8 @@ export default function InscripcionesPage() {
                                                                 </h3>
                                                                 {/* Badge de origen de inscripción */}
                                                                 {insc.origenRegistro === 'mobile' ? (
-                                                                    <Badge 
-                                                                        variant="outline" 
+                                                                    <Badge
+                                                                        variant="outline"
                                                                         className="bg-purple-50 dark:bg-purple-950/30 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 text-xs"
                                                                         title="Pastor registrado - Inscrito desde la app móvil (requiere cuenta)"
                                                                     >
@@ -935,8 +1166,8 @@ export default function InscripcionesPage() {
                                                                         Pastor App
                                                                     </Badge>
                                                                 ) : insc.origenRegistro === 'dashboard' ? (
-                                                                    <Badge 
-                                                                        variant="outline" 
+                                                                    <Badge
+                                                                        variant="outline"
                                                                         className="bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 text-xs"
                                                                         title="Inscrito manualmente desde el dashboard de administración"
                                                                     >
@@ -944,8 +1175,8 @@ export default function InscripcionesPage() {
                                                                         Admin
                                                                     </Badge>
                                                                 ) : (
-                                                                    <Badge 
-                                                                        variant="outline" 
+                                                                    <Badge
+                                                                        variant="outline"
                                                                         className="bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-xs"
                                                                         title="Inscrito desde el formulario web"
                                                                     >
@@ -955,8 +1186,8 @@ export default function InscripcionesPage() {
                                                                 )}
                                                                 {/* Badge de tipo de inscripción para invitados */}
                                                                 {insc.tipoInscripcion === 'invitado' && (
-                                                                    <Badge 
-                                                                        variant="outline" 
+                                                                    <Badge
+                                                                        variant="outline"
                                                                         className="bg-yellow-50 dark:bg-yellow-950/30 border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-300 text-xs"
                                                                         title="Invitado especial"
                                                                     >
@@ -1185,17 +1416,26 @@ export default function InscripcionesPage() {
                                                                         <div className="flex items-center gap-2">
                                                                             {cuota.pago ? (
                                                                                 <>
+                                                                                    {/* Badge de estado */}
                                                                                     <Badge
                                                                                         variant={cuota.estado === 'COMPLETADO' ? 'default' : 'secondary'}
-                                                                                        className={cuota.estado === 'COMPLETADO' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}
+                                                                                        className={
+                                                                                            cuota.estado === 'COMPLETADO'
+                                                                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                                                                                : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700'
+                                                                                        }
                                                                                     >
-                                                                                        {cuota.estado === 'COMPLETADO' ? 'Pagado' : cuota.estado}
+                                                                                        {cuota.estado === 'COMPLETADO' ? 'Pagado' : 'Pendiente'}
                                                                                     </Badge>
+
+                                                                                    {/* Referencia si existe */}
                                                                                     {cuota.pago.referencia && (
                                                                                         <span className="text-xs text-muted-foreground">
                                                                                             {cuota.pago.referencia}
                                                                                         </span>
                                                                                     )}
+
+                                                                                    {/* Ver comprobante si existe */}
                                                                                     {cuota.pago.comprobanteUrl && (
                                                                                         <Dialog>
                                                                                             <DialogTrigger asChild>
@@ -1227,16 +1467,30 @@ export default function InscripcionesPage() {
                                                                                             </DialogContent>
                                                                                         </Dialog>
                                                                                     )}
+
+                                                                                    {/* Si está PENDIENTE, mostrar mensaje informativo */}
+                                                                                    {cuota.estado === 'PENDIENTE' && (
+                                                                                        <span className="text-xs text-muted-foreground italic">
+                                                                                            En proceso de confirmación
+                                                                                        </span>
+                                                                                    )}
+
+                                                                                    {/* Si está COMPLETADO, no permitir editar (pago ya confirmado) */}
+                                                                                    {cuota.estado === 'COMPLETADO' && (
+                                                                                        <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                                                                                            ✓ Confirmado
+                                                                                        </span>
+                                                                                    )}
                                                                                 </>
                                                                             ) : (
                                                                                 <Button
                                                                                     size="sm"
                                                                                     variant="outline"
-                                                                                    onClick={() => handleOpenDialog({ ...insc, numeroCuota: cuota.numero })}
+                                                                                    onClick={() => handleOpenDialog({ ...insc, numeroCuota: cuota.numero }, cuota.pago)}
                                                                                     className="text-xs"
                                                                                 >
                                                                                     <Plus className="size-3 mr-1" />
-                                                                                    Crear Pago
+                                                                                    Crear
                                                                                 </Button>
                                                                             )}
                                                                         </div>
@@ -1264,295 +1518,38 @@ export default function InscripcionesPage() {
                 </Card>
             </ScrollReveal>
 
-            {/* Dialog para crear pago */}
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Crear Pago</DialogTitle>
-                        <DialogDescription>
-                            Crear un nuevo pago para {selectedInscripcion?.nombre} {selectedInscripcion?.apellido}
-                            {selectedInscripcion?.numeroCuota && ` - Cuota ${selectedInscripcion.numeroCuota}`}
-                        </DialogDescription>
-                    </DialogHeader>
-                    {selectedInscripcion && (
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label>Número de Cuota</Label>
-                                <Input
-                                    value={selectedInscripcion.numeroCuota || ''}
-                                    disabled
-                                    className="bg-muted"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Monto</Label>
-                                <Input
-                                    value={getPagosInfo(selectedInscripcion).montoPorCuota.toFixed(2)}
-                                    disabled
-                                    className="bg-muted"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Método de Pago</Label>
-                                <Select
-                                    value={pagoForm.metodoPago}
-                                    onValueChange={(value) => setPagoForm({ ...pagoForm, metodoPago: value })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="transferencia">Transferencia</SelectItem>
-                                        <SelectItem value="mercadopago">MercadoPago</SelectItem>
-                                        <SelectItem value="efectivo">Efectivo</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>
-                                    Referencia / Número de Comprobante
-                                    {(pagoForm.metodoPago === 'transferencia' || pagoForm.metodoPago === 'mercadopago') && (
-                                        <span className="text-red-400 ml-1">*</span>
-                                    )}
-                                </Label>
-                                <Input
-                                    placeholder={
-                                        pagoForm.metodoPago === 'transferencia'
-                                            ? 'Ej: CBU-1234567890123456789012, CVU-0000123456789012345678, Nro. de operación: 12345678'
-                                            : pagoForm.metodoPago === 'mercadopago'
-                                                ? 'Ej: ID de operación: 1234567890, Nro. de ticket: 1234567890123456'
-                                                : 'Ej: Nro. de recibo: 001-2025, Voucher: 12345, Nro. de comprobante en efectivo'
-                                    }
-                                    value={pagoForm.referencia}
-                                    onChange={(e) => setPagoForm({ ...pagoForm, referencia: e.target.value })}
-                                    required={pagoForm.metodoPago === 'transferencia' || pagoForm.metodoPago === 'mercadopago'}
-                                />
-                                <p className="text-xs text-muted-foreground">
-                                    {pagoForm.metodoPago === 'transferencia'
-                                        ? 'Ingresa el CBU/CVU o número de operación de la transferencia bancaria'
-                                        : pagoForm.metodoPago === 'mercadopago'
-                                            ? 'Ingresa el ID de operación o número de ticket de MercadoPago'
-                                            : 'Ingresa el número de recibo, voucher o comprobante del pago en efectivo'}
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>
-                                    Comprobante / Captura de Transferencia
-                                    {(pagoForm.metodoPago === 'transferencia' || pagoForm.metodoPago === 'mercadopago') && (
-                                        <span className="text-red-400 ml-1">*</span>
-                                    )}
-                                </Label>
-                                <ComprobanteUpload
-                                    value={pagoForm.comprobanteUrl}
-                                    onChange={(url) => setPagoForm({ ...pagoForm, comprobanteUrl: url })}
-                                    onUpload={handleUploadComprobante}
-                                    disabled={
-                                        isUploadingComprobante ||
-                                        createPagoMutation.isPending ||
-                                        pagoForm.metodoPago === 'efectivo'
-                                    }
-                                />
-                                {pagoForm.metodoPago === 'efectivo' ? (
-                                    <p className="text-xs text-amber-600 dark:text-amber-400">
-                                        ℹ️ El comprobante no es necesario para pagos en efectivo
-                                    </p>
-                                ) : (
-                                    <p className="text-xs text-muted-foreground">
-                                        💡 <strong>Requerido:</strong> Sube una captura del comprobante de transferencia o pago de MercadoPago
-                                    </p>
-                                )}
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Notas (Opcional)</Label>
-                                <Textarea
-                                    placeholder="Notas adicionales sobre el pago..."
-                                    rows={3}
-                                    value={pagoForm.notas}
-                                    onChange={(e) => setPagoForm({ ...pagoForm, notas: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                    )}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                            Cancelar
-                        </Button>
-                        <Button
-                            onClick={handleCreatePago}
-                            disabled={createPagoMutation.isPending}
-                        >
-                            {createPagoMutation.isPending ? 'Creando...' : 'Crear Pago'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-            
-            {/* Diálogo para crear inscripción manual */}
-            <Dialog open={showNuevaInscripcionDialog} onOpenChange={setShowNuevaInscripcionDialog}>
-                <DialogContent className="max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
-                                <UserPlus className="size-5 text-emerald-600 dark:text-emerald-400" />
-                            </div>
-                            <span>Agregar Inscripción Manual</span>
-                        </DialogTitle>
-                        <DialogDescription>
-                            Inscribe manualmente a un invitado, pastor o miembro a la convención activa.
-                        </DialogDescription>
-                    </DialogHeader>
-                    
-                    <div className="space-y-4 py-4">
-                        {/* Convención activa info */}
-                        {convenciones.find((c: any) => c.activa) && (
-                            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
-                                <p className="text-xs text-emerald-700 dark:text-emerald-300 font-semibold mb-1">
-                                    📅 Inscribiendo a:
-                                </p>
-                                <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
-                                    {convenciones.find((c: any) => c.activa)?.titulo}
-                                </p>
-                            </div>
-                        )}
-                        
-                        {/* Nombre y Apellido */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="nombre">
-                                    Nombre <span className="text-red-500">*</span>
-                                </Label>
-                                <Input
-                                    id="nombre"
-                                    placeholder="Nombre"
-                                    value={nuevaInscripcionForm.nombre}
-                                    onChange={(e) => setNuevaInscripcionForm({ ...nuevaInscripcionForm, nombre: e.target.value })}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="apellido">
-                                    Apellido <span className="text-red-500">*</span>
-                                </Label>
-                                <Input
-                                    id="apellido"
-                                    placeholder="Apellido"
-                                    value={nuevaInscripcionForm.apellido}
-                                    onChange={(e) => setNuevaInscripcionForm({ ...nuevaInscripcionForm, apellido: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                        
-                        {/* Email */}
-                        <div className="space-y-2">
-                            <Label htmlFor="email">
-                                Correo Electrónico <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="correo@ejemplo.com"
-                                value={nuevaInscripcionForm.email}
-                                onChange={(e) => setNuevaInscripcionForm({ ...nuevaInscripcionForm, email: e.target.value })}
-                            />
-                        </div>
-                        
-                        {/* Teléfono */}
-                        <div className="space-y-2">
-                            <Label htmlFor="telefono">Teléfono (Opcional)</Label>
-                            <Input
-                                id="telefono"
-                                placeholder="+54 11 1234-5678"
-                                value={nuevaInscripcionForm.telefono}
-                                onChange={(e) => setNuevaInscripcionForm({ ...nuevaInscripcionForm, telefono: e.target.value })}
-                            />
-                        </div>
-                        
-                        {/* Sede */}
-                        <div className="space-y-2">
-                            <Label htmlFor="sede">Iglesia / Sede (Opcional)</Label>
-                            <Input
-                                id="sede"
-                                placeholder="Nombre de la iglesia o sede"
-                                value={nuevaInscripcionForm.sede}
-                                onChange={(e) => setNuevaInscripcionForm({ ...nuevaInscripcionForm, sede: e.target.value })}
-                            />
-                        </div>
-                        
-                        {/* Tipo de Inscripción */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Tipo de Inscripción</Label>
-                                <Select
-                                    value={nuevaInscripcionForm.tipoInscripcion}
-                                    onValueChange={(value) => setNuevaInscripcionForm({ ...nuevaInscripcionForm, tipoInscripcion: value })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="invitado">
-                                            <div className="flex items-center gap-2">
-                                                <Star className="size-3 text-yellow-500" />
-                                                Invitado
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="pastor">Pastor</SelectItem>
-                                        <SelectItem value="lider">Líder</SelectItem>
-                                        <SelectItem value="miembro">Miembro</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Número de Cuotas</Label>
-                                <Select
-                                    value={String(nuevaInscripcionForm.numeroCuotas)}
-                                    onValueChange={(value) => setNuevaInscripcionForm({ ...nuevaInscripcionForm, numeroCuotas: parseInt(value) })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="1">1 cuota (pago único)</SelectItem>
-                                        <SelectItem value="2">2 cuotas</SelectItem>
-                                        <SelectItem value="3">3 cuotas</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        
-                        {/* Notas */}
-                        <div className="space-y-2">
-                            <Label htmlFor="notas">Notas (Opcional)</Label>
-                            <Textarea
-                                id="notas"
-                                placeholder="Notas adicionales sobre esta inscripción..."
-                                rows={2}
-                                value={nuevaInscripcionForm.notas}
-                                onChange={(e) => setNuevaInscripcionForm({ ...nuevaInscripcionForm, notas: e.target.value })}
-                            />
-                        </div>
-                        
-                        {/* Info */}
-                        <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
-                            <p className="text-xs text-blue-700 dark:text-blue-300">
-                                ℹ️ Esta inscripción será marcada como <strong>origen: Dashboard</strong> y se le asignará un código de referencia automáticamente.
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowNuevaInscripcionDialog(false)}>
-                            Cancelar
-                        </Button>
-                        <Button
-                            onClick={handleCrearInscripcionManual}
-                            disabled={createInscripcionMutation.isPending}
-                            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
-                        >
-                            {createInscripcionMutation.isPending ? 'Creando...' : 'Crear Inscripción'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* Dialog rápido para crear/actualizar pago */}
+            {selectedInscripcion && (
+                <PagoWizard
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    inscripcion={{
+                        id: selectedInscripcion.id,
+                        nombre: selectedInscripcion.nombre,
+                        apellido: selectedInscripcion.apellido,
+                        numeroCuota: selectedInscripcion.numeroCuota,
+                        codigoReferencia: selectedInscripcion.codigoReferencia,
+                        origenRegistro: selectedInscripcion.origenRegistro,
+                    }}
+                    monto={getPagosInfo(selectedInscripcion).montoPorCuota}
+                    pagoExistente={selectedPago}
+                    onUpdate={handleQuickPagoUpdate}
+                    isUpdating={createPagoMutation.isPending || updatePagoMutation.isPending}
+                />
+            )}
+
+            {/* Wizard para crear inscripción + pago */}
+            <InscripcionWizard
+                open={showNuevaInscripcionDialog}
+                onOpenChange={setShowNuevaInscripcionDialog}
+                convenciones={convenciones}
+                onCreateInscripcion={handleCrearInscripcionDesdeWizard}
+                onCreatePago={async (data) => {
+                    // El pago se crea automáticamente en handleCrearInscripcionDesdeWizard si está marcado
+                }}
+                isCreating={createInscripcionMutation.isPending || createPagoMutation.isPending}
+            />
+
 
             {/* Dialog: Reporte de Ingresos */}
             <Dialog open={showReporteDialog} onOpenChange={setShowReporteDialog}>
@@ -1751,25 +1748,25 @@ export default function InscripcionesPage() {
                                     onChange={(e) => setEditarForm({ ...editarForm, apellido: e.target.value })} />
                             </div>
                         </div>
-                        
+
                         <div className="space-y-2">
                             <Label htmlFor="edit-email">Correo Electrónico</Label>
                             <Input id="edit-email" type="email" value={editarForm.email}
                                 onChange={(e) => setEditarForm({ ...editarForm, email: e.target.value })} />
                         </div>
-                        
+
                         <div className="space-y-2">
                             <Label htmlFor="edit-telefono">Teléfono</Label>
                             <Input id="edit-telefono" value={editarForm.telefono}
                                 onChange={(e) => setEditarForm({ ...editarForm, telefono: e.target.value })} />
                         </div>
-                        
+
                         <div className="space-y-2">
                             <Label htmlFor="edit-sede">Iglesia / Sede</Label>
                             <Input id="edit-sede" value={editarForm.sede}
                                 onChange={(e) => setEditarForm({ ...editarForm, sede: e.target.value })} />
                         </div>
-                        
+
                         <div className="space-y-2">
                             <Label>Tipo de Inscripción</Label>
                             <Select value={editarForm.tipoInscripcion}

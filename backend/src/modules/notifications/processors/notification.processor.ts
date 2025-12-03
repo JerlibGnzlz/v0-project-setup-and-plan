@@ -23,7 +23,7 @@ export class NotificationProcessor {
     private emailService: EmailService,
   ) {}
 
-  @Process({ name: 'send-notification', concurrency: 5 })
+  @Process({ name: 'send-notification', concurrency: 10 })
   async handleNotification(job: Job<NotificationJobData>) {
     const { type, email, data, channels = ['email', 'push', 'web'] } = job.data
 
@@ -36,7 +36,7 @@ export class NotificationProcessor {
       // Enviar notificación según los canales especificados
       const results: { email?: boolean; push?: boolean; web?: boolean } = {}
 
-      // Email
+      // Email - Prioridad: procesar primero
       if (channels.includes('email')) {
         try {
           const emailSent = await this.emailService.sendNotificationEmail(

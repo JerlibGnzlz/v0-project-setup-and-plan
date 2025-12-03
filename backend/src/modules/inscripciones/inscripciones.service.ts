@@ -635,7 +635,43 @@ export class InscripcionesService {
 </div>
             `.trim()
 
-            // Emitir evento de inscripción creada
+            // Enviar email inmediatamente al usuario (sin pasar por cola para reducir latencia)
+            // Esto asegura que el email llegue rápido mientras push/web pueden ser asíncronos
+            if (this.notificationsService) {
+                try {
+                    // Enviar email directamente usando el servicio de notificaciones
+                    // que tiene acceso directo al EmailService
+                    const { getEmailTemplate } = await import('../notifications/templates/email.templates')
+                    const template = getEmailTemplate('inscripcion_creada', {
+                        inscripcionId: inscripcion.id,
+                        convencionTitulo: convencion.titulo,
+                        numeroCuotas: numeroCuotas,
+                        montoTotal: costoTotal,
+                        origenRegistro: origenRegistro,
+                    })
+
+                    // Enviar email directamente (inmediato, sin cola)
+                    await this.notificationsService.sendNotificationToUser(
+                        inscripcion.email,
+                        template.title,
+                        template.body.replace(/<[^>]*>/g, ''), // Texto plano para el método
+                        {
+                            type: 'inscripcion_creada',
+                            inscripcionId: inscripcion.id,
+                            convencionTitulo: convencion.titulo,
+                            numeroCuotas: numeroCuotas,
+                            montoTotal: costoTotal,
+                            origenRegistro: origenRegistro,
+                        }
+                    )
+                    this.logger.log(`📧 Email enviado inmediatamente a ${inscripcion.email}`)
+                } catch (emailError) {
+                    this.logger.error(`Error enviando email inmediato a ${inscripcion.email}:`, emailError)
+                    // Continuar con el evento por si acaso
+                }
+            }
+
+            // Emitir evento de inscripción creada (para push/web notifications asíncronas)
             const event = new InscripcionCreadaEvent({
                 email: inscripcion.email,
                 inscripcionId: inscripcion.id,

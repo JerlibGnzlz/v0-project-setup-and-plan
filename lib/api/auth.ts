@@ -50,9 +50,10 @@ export const authApi = {
       }
       
       // Si es un error de red, proporcionar mensaje más útil
-      if (errorMessage === 'Network Error' || !error.response) {
+      if (errorMessage === 'Network Error' || !error.response || error.isNetworkError) {
         const networkError = new Error('No se pudo conectar con el servidor. Por favor, verifica que el backend esté corriendo.')
         ;(networkError as any).isNetworkError = true
+        ;(networkError as any).code = error.code || 'NETWORK_ERROR'
         throw networkError
       }
       

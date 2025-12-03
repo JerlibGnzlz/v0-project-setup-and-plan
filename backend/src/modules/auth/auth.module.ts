@@ -32,6 +32,14 @@ import { NotificationsModule } from "../notifications/notifications.module"
     InvitadoJwtStrategy,
     UnifiedAuthService,
   ],
-  exports: [AuthService, PastorAuthService, InvitadoAuthService, UnifiedAuthService],
+  exports: [
+    AuthService,
+    PastorAuthService,
+    InvitadoAuthService,
+    UnifiedAuthService,
+    JwtStrategy,
+    PastorJwtStrategy,
+    InvitadoJwtStrategy,
+  ],
 })
 export class AuthModule { }
