@@ -123,6 +123,7 @@ export function PagoWizard({
     const [comprobanteUrl, setComprobanteUrl] = useState(pagoExistente?.comprobanteUrl || '')
     const [notas, setNotas] = useState('')
     const [isUploading, setIsUploading] = useState(false)
+    const [isNavigatingBack, setIsNavigatingBack] = useState(false)
 
     // Determinar métodos disponibles según origen de inscripción
     const esInscripcionManual = inscripcion.origenRegistro === 'dashboard' || !inscripcion.origenRegistro
@@ -134,10 +135,10 @@ export function PagoWizard({
     
     // Si es manual y no hay método seleccionado, seleccionar efectivo por defecto
     useEffect(() => {
-        if (esInscripcionManual && !metodoPago) {
+        if (esInscripcionManual && !metodoPago && !isNavigatingBack) {
             setMetodoPago('efectivo')
         }
-    }, [esInscripcionManual, metodoPago])
+    }, [esInscripcionManual, metodoPago, isNavigatingBack])
 
     // Reset cuando se abre/cierra
     useEffect(() => {
@@ -147,22 +148,43 @@ export function PagoWizard({
             setReferencia(pagoExistente?.referencia || '')
             setComprobanteUrl(pagoExistente?.comprobanteUrl || '')
             setNotas('')
+            setIsNavigatingBack(false)
         }
     }, [open, pagoExistente])
 
-    // Avanzar automáticamente al paso 2 cuando se selecciona método
+    // Establecer automáticamente el código de referencia si existe y es efectivo
     useEffect(() => {
-        if (metodoPago && currentStep === 1) {
+        if (metodoPago === 'efectivo' && inscripcion.codigoReferencia && !pagoExistente?.referencia) {
+            setReferencia(inscripcion.codigoReferencia)
+        }
+    }, [metodoPago, inscripcion.codigoReferencia, pagoExistente?.referencia])
+
+    // Avanzar automáticamente al paso 2 cuando se selecciona método (solo si no está navegando hacia atrás)
+    useEffect(() => {
+        if (metodoPago && currentStep === 1 && !isNavigatingBack) {
             const timer = setTimeout(() => {
                 setCurrentStep(2)
             }, 300)
             return () => clearTimeout(timer)
         }
-    }, [metodoPago, currentStep])
+        // Reset el flag después de un momento
+        if (isNavigatingBack) {
+            const timer = setTimeout(() => {
+                setIsNavigatingBack(false)
+            }, 500)
+            return () => clearTimeout(timer)
+        }
+    }, [metodoPago, currentStep, isNavigatingBack])
 
+    // Para efectivo, la referencia es opcional si no hay código de referencia
+    const referenciaEsOpcional = metodoPago === 'efectivo' && !inscripcion.codigoReferencia
     const puedeContinuarPaso1 = !!metodoPago
-    const puedeContinuarPaso2 = referencia.trim() && (!requiereComprobante || comprobanteUrl)
-    const puedeValidar = referencia.trim() && (requiereComprobante ? comprobanteUrl : true)
+    const puedeContinuarPaso2 = referenciaEsOpcional 
+        ? (!requiereComprobante || comprobanteUrl) // Solo requiere comprobante si aplica
+        : referencia.trim() && (!requiereComprobante || comprobanteUrl) // Requiere referencia y comprobante si aplica
+    const puedeValidar = referenciaEsOpcional
+        ? (requiereComprobante ? comprobanteUrl : true) // Solo requiere comprobante si aplica
+        : referencia.trim() && (requiereComprobante ? comprobanteUrl : true) // Requiere referencia y comprobante si aplica
 
     const handleNext = () => {
         if (currentStep === 1 && puedeContinuarPaso1) {
@@ -178,6 +200,7 @@ export function PagoWizard({
 
     const handleBack = () => {
         if (currentStep > 1) {
+            setIsNavigatingBack(true)
             setCurrentStep(currentStep - 1)
         }
     }
@@ -312,6 +335,16 @@ export function PagoWizard({
                                     </p>
                                 </div>
                             )}
+                            
+                            {/* Mensaje informativo si no hay código de referencia */}
+                            {esInscripcionManual && !inscripcion.codigoReferencia && (
+                                <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                    <p className="text-xs text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                                        <AlertCircle className="size-3" />
+                                        <span>Esta inscripción no tiene código de referencia. Puedes crear el pago sin referencia o agregar un número de recibo opcional.</span>
+                                    </p>
+                                </div>
+                            )}
 
                             <div className="grid grid-cols-1 gap-3">
                                 {metodosDisponibles.map((metodo) => {
@@ -373,15 +406,36 @@ export function PagoWizard({
                             {/* Referencia */}
                             <div className="space-y-2">
                                 <Label>
-                                    Referencia {metodoPago !== 'efectivo' && <span className="text-red-500">*</span>}
+                                    Referencia {!referenciaEsOpcional && <span className="text-red-500">*</span>}
+                                    {referenciaEsOpcional && (
+                                        <span className="text-xs text-muted-foreground ml-2">(Opcional)</span>
+                                    )}
+                                    {metodoPago === 'efectivo' && inscripcion.codigoReferencia && (
+                                        <span className="text-xs text-muted-foreground ml-2">(Automático)</span>
+                                    )}
                                 </Label>
                                 <Input
                                     placeholder={metodoSeleccionado.placeholder}
                                     value={referencia}
                                     onChange={(e) => setReferencia(e.target.value)}
-                                    autoFocus
-                                    className="text-lg"
+                                    readOnly={metodoPago === 'efectivo' && !!inscripcion.codigoReferencia && !pagoExistente?.referencia}
+                                    disabled={metodoPago === 'efectivo' && !!inscripcion.codigoReferencia && !pagoExistente?.referencia}
+                                    autoFocus={metodoPago !== 'efectivo' || !inscripcion.codigoReferencia}
+                                    className={cn(
+                                        "text-lg",
+                                        metodoPago === 'efectivo' && inscripcion.codigoReferencia && !pagoExistente?.referencia && "bg-muted cursor-not-allowed"
+                                    )}
                                 />
+                                {metodoPago === 'efectivo' && inscripcion.codigoReferencia && (
+                                    <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                                        ✓ Código de referencia asignado automáticamente
+                                    </p>
+                                )}
+                                {metodoPago === 'efectivo' && !inscripcion.codigoReferencia && (
+                                    <p className="text-xs text-muted-foreground">
+                                        Puedes dejar este campo vacío si no tienes un número de recibo o voucher
+                                    </p>
+                                )}
                                 {metodoPago === 'transferencia' && (
                                     <p className="text-xs text-muted-foreground">
                                         Ejemplo: CBU-1234567890123456789012 o número de operación bancaria
@@ -480,7 +534,8 @@ export function PagoWizard({
                 {/* Footer con botones */}
                 <DialogFooter className="flex justify-between">
                     <div>
-                        {currentStep > 1 && (
+                        {/* Solo mostrar botón Anterior si hay múltiples métodos disponibles o si es necesario volver */}
+                        {currentStep > 1 && metodosDisponibles.length > 1 && (
                             <Button variant="outline" onClick={handleBack} disabled={isUpdating || isUploading}>
                                 <ChevronLeft className="size-4 mr-2" />
                                 Anterior
