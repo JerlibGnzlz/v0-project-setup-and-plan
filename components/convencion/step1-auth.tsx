@@ -9,8 +9,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Mail, Lock, AlertCircle, Eye, EyeOff, Loader2, CheckCircle2, User } from 'lucide-react'
 import { useUnifiedAuth } from '@/lib/hooks/use-unified-auth'
+import { invitadoAuthApi } from '@/lib/api/invitado-auth'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
 
 interface Step1AuthProps {
   onComplete: (userData?: any) => void
@@ -22,6 +25,66 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const { login, registerInvitado, checkAuth } = useUnifiedAuth()
+  const searchParams = useSearchParams()
+
+  // Manejar callback de Google OAuth
+  useEffect(() => {
+    const token = searchParams?.get('token')
+    const refreshToken = searchParams?.get('refresh_token')
+    const isGoogle = searchParams?.get('google')
+    const error = searchParams?.get('error')
+    
+    if (error) {
+      toast.error('Error en la autenticación', {
+        description: 'No se pudo completar el inicio de sesión con Google',
+      })
+      return
+    }
+    
+    if (token && isGoogle === 'true') {
+      // Guardar tokens
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('invitado_token', token)
+        if (refreshToken) {
+          localStorage.setItem('invitado_refresh_token', refreshToken)
+        }
+        
+        // Obtener información completa del usuario desde el backend (incluyendo foto)
+        const fetchProfile = async () => {
+          try {
+            const profile = await invitadoAuthApi.getProfile()
+            
+            // Guardar perfil completo con foto
+            localStorage.setItem('invitado_user', JSON.stringify({
+              ...profile,
+              tipo: 'INVITADO',
+            }))
+            
+            checkAuth()
+          } catch (error) {
+            console.error('Error obteniendo perfil:', error)
+            // Si falla, usar checkAuth que lee del token
+            checkAuth()
+          }
+        }
+        
+        fetchProfile()
+        
+        toast.success('¡Bienvenido!', {
+          description: 'Has iniciado sesión con Google correctamente',
+        })
+        
+        setTimeout(() => {
+          onComplete()
+        }, 800) // Dar más tiempo para obtener el perfil
+      }
+    }
+  }, [searchParams, checkAuth, onComplete])
+
+  const handleGoogleAuth = () => {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
+    window.location.href = `${backendUrl}/auth/invitado/google`
+  }
 
   const {
     register: registerLogin,
@@ -99,6 +162,45 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
   return (
     <div className="max-w-md mx-auto">
       <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl">
+        {/* Google OAuth Button - Principal */}
+        <div className="mb-6">
+          <Button
+            type="button"
+            onClick={handleGoogleAuth}
+            className="w-full bg-white hover:bg-white/90 text-gray-900 font-semibold py-6 text-base shadow-lg"
+          >
+            <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              />
+              <path
+                fill="currentColor"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              />
+              <path
+                fill="currentColor"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              />
+              <path
+                fill="currentColor"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              />
+            </svg>
+            Continuar con Google
+          </Button>
+        </div>
+
+        {/* Divider */}
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-white/20"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white/5 text-white/60">o</span>
+          </div>
+        </div>
+
         {/* Tabs */}
         <div className="flex gap-2 mb-6 bg-white/5 rounded-lg p-1">
           <button
@@ -208,6 +310,9 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
         {/* Register Form */}
         {activeTab === 'register' && (
           <form onSubmit={handleSubmitRegister(onRegister)} className="space-y-4">
+            <p className="text-xs text-white/50 text-center mb-4">
+              O continúa con tu email para crear una cuenta
+            </p>
             <div>
               <Label htmlFor="nombre-register" className="text-white/90 mb-2 block">
                 Nombre

@@ -10,6 +10,7 @@ import { PastorJwtStrategy } from "./strategies/pastor-jwt.strategy"
 import { InvitadoAuthService } from "./invitado-auth.service"
 import { InvitadoAuthController } from "./invitado-auth.controller"
 import { InvitadoJwtStrategy } from "./strategies/invitado-jwt.strategy"
+import { GoogleOAuthStrategy } from "./strategies/google-oauth.strategy"
 import { UnifiedAuthService } from "./unified-auth.service"
 import { NotificationsModule } from "../notifications/notifications.module"
 
@@ -30,6 +31,7 @@ import { NotificationsModule } from "../notifications/notifications.module"
     PastorJwtStrategy,
     InvitadoAuthService,
     InvitadoJwtStrategy,
+    GoogleOAuthStrategy,
     UnifiedAuthService,
   ],
   exports: [

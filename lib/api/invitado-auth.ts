@@ -30,6 +30,7 @@ export interface Invitado {
   email: string
   telefono?: string
   sede?: string
+  fotoUrl?: string
 }
 
 export interface InvitadoRegisterResponse {
@@ -93,6 +94,16 @@ export const invitadoAuthApi = {
       return response.data
     } catch (error: any) {
       console.error('[invitadoAuthApi] Error en login:', error)
+      throw error
+    }
+  },
+
+  getProfile: async (): Promise<Invitado> => {
+    try {
+      const response = await apiClient.get<Invitado>("/auth/invitado/me")
+      return response.data
+    } catch (error: any) {
+      console.error('[invitadoAuthApi] Error en getProfile:', error)
       throw error
     }
   },

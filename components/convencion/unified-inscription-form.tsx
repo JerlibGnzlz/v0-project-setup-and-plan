@@ -53,6 +53,7 @@ interface UnifiedInscriptionFormProps {
     telefono?: string
     sede?: string
     tipo: 'PASTOR' | 'INVITADO' | 'ADMIN'
+    fotoUrl?: string
   }
   onBack: () => void
 }
@@ -189,10 +190,30 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
 
                 {/* Datos Personales */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                    <User className="size-5 text-emerald-400" />
-                    Datos Personales
-                  </h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                      <User className="size-5 text-emerald-400" />
+                      Datos Personales
+                    </h3>
+                    {/* Mostrar foto del usuario si viene de Google OAuth */}
+                    {user.fotoUrl && (
+                      <div className="relative">
+                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/50 ring-2 ring-emerald-500/20">
+                          <Image
+                            src={user.fotoUrl}
+                            alt={`${user.nombre} ${user.apellido}`}
+                            width={64}
+                            height={64}
+                            className="w-full h-full object-cover"
+                            unoptimized
+                          />
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full p-1">
+                          <CheckCircle2 className="size-3 text-white" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">

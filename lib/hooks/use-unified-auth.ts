@@ -57,6 +57,7 @@ export function useUnifiedAuth() {
           user: {
             ...user,
             tipo: 'INVITADO' as const,
+            fotoUrl: user.fotoUrl,
           },
           token: invitadoToken,
           refreshToken: localStorage.getItem('invitado_refresh_token') || null,
@@ -139,6 +140,7 @@ export function useUnifiedAuth() {
         telefono: response.user.telefono,
         sede: response.user.sede,
         tipo: response.user.tipo,
+        fotoUrl: response.user.fotoUrl,
       }
       
       // Guardar según el tipo de usuario
