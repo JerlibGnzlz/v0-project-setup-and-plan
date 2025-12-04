@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -27,10 +28,10 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import Image from 'next/image'
 import { useCreateInscripcion, useCheckInscripcion } from '@/lib/hooks/use-inscripciones'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { cn } from '@/lib/utils'
 
 interface UnifiedInscriptionFormProps {
@@ -55,13 +56,28 @@ interface UnifiedInscriptionFormProps {
     tipo: 'PASTOR' | 'INVITADO' | 'ADMIN'
     fotoUrl?: string
   }
-  onBack: () => void
+  onBack?: () => void
 }
 
 export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInscriptionFormProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const createInscripcionMutation = useCreateInscripcion()
   const { data: inscripcionExistente } = useCheckInscripcion(convencion?.id, user?.email)
+  const [imageError, setImageError] = useState(false)
+
+  // Función helper para normalizar URLs de Google
+  const normalizeGoogleImageUrl = (url: string | undefined): string | undefined => {
+    if (!url) return undefined
+    // Si es una URL de Google con parámetros de tamaño, intentar obtener una versión más grande
+    if (url.includes('googleusercontent.com')) {
+      // Remover parámetros de tamaño existentes y agregar uno más grande
+      const baseUrl = url.split('=')[0]
+      // Usar tamaño más grande para mejor calidad
+      return `${baseUrl}=s200-c`
+    }
+    return url
+  }
 
   // Convertir costo a número
   const costo = typeof convencion.costo === 'number' 
@@ -139,14 +155,17 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
 
       await createInscripcionMutation.mutateAsync(datosInscripcion)
 
-      toast.success('¡Inscripción exitosa!', {
-        description: 'Tu inscripción ha sido registrada correctamente',
-      })
-
-      // Redirigir después de un breve delay
+      // Invalidar queries para que la página muestre automáticamente el card de inscripción existente
+      // No redirigir, quedarse en la misma página
+      // Esperar un momento para que el backend procese la inscripción
       setTimeout(() => {
-        router.push('/?inscripcion=exito#convenciones')
-      }, 1500)
+        queryClient.invalidateQueries({ queryKey: ['checkInscripcion', convencion.id, user.email] })
+        queryClient.invalidateQueries({ queryKey: ['inscripciones'] })
+        // Forzar refetch inmediato
+        queryClient.refetchQueries({ queryKey: ['checkInscripcion', convencion.id, user.email] })
+      }, 500)
+      
+      // El toast ya se muestra en el hook useCreateInscripcion
     } catch (error: any) {
       console.error('Error al crear inscripción:', error)
       toast.error('Error al crear inscripción', {
@@ -173,19 +192,23 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                 {/* Información de Convención (Resumida) */}
                 <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
                   <div className="flex items-center gap-3 mb-2">
-                    <Calendar className="size-5 text-emerald-400" />
-                    <h3 className="font-semibold text-white">{convencion.titulo}</h3>
+                    <Calendar className="size-5 text-emerald-400 flex-shrink-0" />
+                    <h3 className="font-semibold text-white truncate">
+                      {convencion.titulo || 'Cargando convención...'}
+                    </h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-sm text-white/70">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="size-4" />
-                      <span>{fechaFormateada}</span>
+                  {convencion.titulo && (
+                    <div className="grid grid-cols-2 gap-2 text-sm text-white/70">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="size-4 flex-shrink-0" />
+                        <span className="truncate">{fechaFormateada}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="size-4 flex-shrink-0" />
+                        <span className="truncate">{convencion.ubicacion}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="size-4" />
-                      <span>{convencion.ubicacion}</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Datos Personales */}
@@ -198,15 +221,27 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                     {/* Mostrar foto del usuario si viene de Google OAuth */}
                     {user.fotoUrl && (
                       <div className="relative">
-                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/50 ring-2 ring-emerald-500/20">
-                          <Image
-                            src={user.fotoUrl}
-                            alt={`${user.nombre} ${user.apellido}`}
-                            width={64}
-                            height={64}
-                            className="w-full h-full object-cover"
-                            unoptimized
-                          />
+                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/50 ring-2 ring-emerald-500/20 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
+                          {!imageError ? (
+                            <img
+                              src={normalizeGoogleImageUrl(user.fotoUrl)}
+                              alt={`${user.nombre} ${user.apellido}`}
+                              className="w-full h-full object-cover"
+                              onError={() => {
+                                if (process.env.NODE_ENV === 'development') {
+                                  console.warn('[UnifiedInscriptionForm] Error cargando foto, mostrando iniciales')
+                                }
+                                setImageError(true)
+                              }}
+                              onLoad={() => setImageError(false)}
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-emerald-400 text-sm font-bold">
+                              {user.nombre?.[0]?.toUpperCase() || 'U'}
+                              {user.apellido?.[0]?.toUpperCase() || ''}
+                            </div>
+                          )}
                         </div>
                         <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full p-1">
                           <CheckCircle2 className="size-3 text-white" />
@@ -307,30 +342,21 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                   </div>
                 </div>
 
-                {/* Botones */}
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onBack}
-                    disabled={isSubmitting}
-                    className="flex-1 border-white/20 text-white hover:bg-white/10"
-                  >
-                    Volver
-                  </Button>
+                {/* Botón de Confirmación */}
+                <div className="pt-4">
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-6 text-base font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all duration-300"
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="size-4 mr-2 animate-spin" />
-                        Procesando...
+                        <Loader2 className="size-5 mr-2 animate-spin" />
+                        Procesando inscripción...
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 className="size-4 mr-2" />
+                        <CheckCircle2 className="size-5 mr-2" />
                         Confirmar Inscripción
                       </>
                     )}

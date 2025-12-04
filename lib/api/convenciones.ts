@@ -42,8 +42,15 @@ export const convencionesApi = {
         console.log('📭 No hay convención activa')
         return null
       }
+      // 500 generalmente significa problema de base de datos
+      if (error.response?.status === 500) {
+        console.error('❌ Error de servidor (posible problema de base de datos):', error.response?.data?.message || error.message)
+        // Retornar null en lugar de lanzar error para que el frontend pueda manejar esto
+        return null
+      }
       console.error('❌ Error obteniendo convención activa:', error)
-      throw error
+      // Para otros errores, retornar null en lugar de lanzar
+      return null
     }
   },
 

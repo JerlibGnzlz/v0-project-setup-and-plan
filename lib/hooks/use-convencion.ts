@@ -23,10 +23,21 @@ export function useConvencionActiva() {
     queryKey: ["convencion", "active"],
     queryFn: convencionesApi.getActive,
     refetchOnWindowFocus: true,
-    staleTime: 0,
+    staleTime: 30000, // Los datos son válidos por 30 segundos (reduce refetches innecesarios)
+    gcTime: 5 * 60 * 1000, // Mantener en caché por 5 minutos
     refetchInterval: pollingInterval, // Se pausa automáticamente cuando la pestaña no está visible
     // Mantener los datos anteriores mientras se refetch para evitar parpadeos
     placeholderData: (previousData) => previousData,
+    // No reintentar automáticamente si hay error 500 (problema de base de datos)
+    retry: (failureCount, error: any) => {
+      // Si es un error 500, no reintentar (probablemente problema de base de datos)
+      if (error?.response?.status === 500) {
+        return false
+      }
+      // Para otros errores, reintentar hasta 2 veces
+      return failureCount < 2
+    },
+    retryDelay: 2000, // Esperar 2 segundos entre reintentos
   })
 }
 

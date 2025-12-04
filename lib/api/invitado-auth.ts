@@ -100,10 +100,50 @@ export const invitadoAuthApi = {
 
   getProfile: async (): Promise<Invitado> => {
     try {
-      const response = await apiClient.get<Invitado>("/auth/invitado/me")
+      // Asegurarse de que el token esté disponible antes de hacer la petición
+      const token = typeof window !== 'undefined' 
+        ? (localStorage.getItem('invitado_token') || sessionStorage.getItem('invitado_token'))
+        : null
+      
+      if (!token) {
+        console.error('[invitadoAuthApi] No hay token de invitado disponible')
+        throw new Error('No hay token de invitado disponible')
+      }
+      
+      // Decodificar el token para verificar su contenido (solo para debugging)
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        console.log('[invitadoAuthApi] Token payload:', {
+          sub: payload.sub,
+          email: payload.email,
+          role: payload.role,
+          type: payload.type,
+          exp: payload.exp,
+          expDate: new Date(payload.exp * 1000).toISOString(),
+        })
+      } catch (e) {
+        console.warn('[invitadoAuthApi] No se pudo decodificar el token:', e)
+      }
+      
+      console.log('[invitadoAuthApi] Obteniendo perfil con token:', token.substring(0, 20) + '...')
+      
+      // Hacer la petición con el token explícitamente en los headers
+      // El interceptor también debería agregarlo, pero lo hacemos explícito por seguridad
+      const response = await apiClient.get<Invitado>("/auth/invitado/me", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      
+      console.log('[invitadoAuthApi] Perfil obtenido exitosamente:', response.data)
       return response.data
     } catch (error: any) {
       console.error('[invitadoAuthApi] Error en getProfile:', error)
+      if (error.response?.status === 401) {
+        console.error('[invitadoAuthApi] Token inválido o expirado')
+        console.error('[invitadoAuthApi] Response:', error.response?.data)
+        console.error('[invitadoAuthApi] Headers enviados:', error.config?.headers)
+      }
       throw error
     }
   },

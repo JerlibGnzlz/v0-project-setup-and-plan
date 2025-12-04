@@ -45,12 +45,28 @@ export function useCheckInscripcion(convencionId: string | undefined, email: str
   return useQuery({
     queryKey: ["checkInscripcion", convencionId, email],
     queryFn: () => {
-      if (!convencionId || !email) return null
+      if (!convencionId || !email) {
+        console.log('[useCheckInscripcion] Query deshabilitada - faltan parámetros:', { convencionId, email })
+        return null
+      }
+      console.log('[useCheckInscripcion] Ejecutando query para verificar inscripción:', { convencionId, email })
       return inscripcionesApi.checkInscripcion(convencionId, email)
     },
     enabled: !!convencionId && !!email,
-    retry: false,
-    staleTime: 30000, // Cache por 30 segundos
+    retry: (failureCount, error: any) => {
+      // No reintentar en errores 404 (no hay inscripción) o 500 (problema de BD)
+      if (error?.response?.status === 404 || error?.response?.status === 500) {
+        return false
+      }
+      // Reintentar hasta 2 veces para otros errores
+      return failureCount < 2
+    },
+    retryDelay: 1000, // Esperar 1 segundo entre reintentos
+    staleTime: 0, // No cachear para detectar cambios inmediatamente
+    refetchOnWindowFocus: true,
+    refetchOnMount: true, // Siempre refetch al montar el componente
+    // Mantener datos anteriores mientras se refetch para evitar parpadeos
+    placeholderData: (previousData) => previousData,
   })
 }
 

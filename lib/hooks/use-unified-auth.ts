@@ -50,15 +50,38 @@ export function useUnifiedAuth() {
     const invitadoToken = localStorage.getItem('invitado_token')
     const invitadoUser = localStorage.getItem('invitado_user')
     
-    if (invitadoToken && invitadoUser) {
-      try {
-        const user = JSON.parse(invitadoUser)
+    if (invitadoToken) {
+      if (invitadoUser) {
+        // Si hay usuario guardado, usarlo
+        try {
+          const user = JSON.parse(invitadoUser)
+          setState({
+            user: {
+              ...user,
+              tipo: 'INVITADO' as const,
+              fotoUrl: user.fotoUrl,
+            },
+            token: invitadoToken,
+            refreshToken: localStorage.getItem('invitado_refresh_token') || null,
+            isAuthenticated: true,
+            isHydrated: true,
+            userType: 'INVITADO',
+          })
+          return
+        } catch (e) {
+          console.error('Error parsing invitado user:', e)
+        }
+      }
+      
+      // Si hay token pero no hay usuario, NO intentar obtener el perfil aquí
+      // Esto puede causar problemas de timing y errores 401
+      // En su lugar, el componente Step1Auth manejará la obtención del perfil
+      // después de que el token esté completamente guardado
+      if (invitadoToken && !invitadoUser) {
+        // Simplemente marcar como autenticado con el token
+        // El componente se encargará de obtener el perfil cuando esté listo
         setState({
-          user: {
-            ...user,
-            tipo: 'INVITADO' as const,
-            fotoUrl: user.fotoUrl,
-          },
+          user: null,
           token: invitadoToken,
           refreshToken: localStorage.getItem('invitado_refresh_token') || null,
           isAuthenticated: true,
@@ -66,8 +89,6 @@ export function useUnifiedAuth() {
           userType: 'INVITADO',
         })
         return
-      } catch (e) {
-        console.error('Error parsing invitado user:', e)
       }
     }
 
@@ -210,7 +231,9 @@ export function useUnifiedAuth() {
   }
 
   const logout = () => {
+    // Limpiar todo de forma síncrona y rápida
     if (typeof window !== 'undefined') {
+      // Limpiar localStorage
       localStorage.removeItem('invitado_token')
       localStorage.removeItem('invitado_refresh_token')
       localStorage.removeItem('invitado_user')
@@ -219,8 +242,19 @@ export function useUnifiedAuth() {
       localStorage.removeItem('pastor_auth_user')
       localStorage.removeItem('auth_token')
       localStorage.removeItem('auth_user')
+      
+      // Limpiar sessionStorage también
+      sessionStorage.removeItem('invitado_token')
+      sessionStorage.removeItem('invitado_refresh_token')
+      sessionStorage.removeItem('invitado_user')
+      sessionStorage.removeItem('pastor_auth_token')
+      sessionStorage.removeItem('pastor_refresh_token')
+      sessionStorage.removeItem('pastor_auth_user')
+      sessionStorage.removeItem('auth_token')
+      sessionStorage.removeItem('auth_user')
     }
 
+    // Actualizar estado inmediatamente
     setState({
       user: null,
       token: null,
