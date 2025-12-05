@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useQueryClient } from '@tanstack/react-query'
 import { useInscripciones, useCreateInscripcion, useCancelarInscripcion, useRehabilitarInscripcion, useReporteIngresos, useEnviarRecordatorios, useUpdateInscripcion } from '@/lib/hooks/use-inscripciones'
 import { useCreatePago, useUpdatePago } from '@/lib/hooks/use-pagos'
+import { type Inscripcion } from '@/lib/api/inscripciones'
 import { useConvenciones } from '@/lib/hooks/use-convencion'
 import { useSmartSync, useSmartPolling } from '@/lib/hooks/use-smart-sync'
 import { inscripcionesApi } from '@/lib/api/inscripciones'
@@ -108,7 +109,7 @@ export default function InscripcionesPage() {
     useSmartSync()
 
     // Polling inteligente cada 30 segundos (solo cuando la pestaña está visible)
-    useSmartPolling(["inscripciones", currentPage, pageSize], 30000)
+    useSmartPolling(["inscripciones", String(currentPage), String(pageSize)], 30000)
 
     const queryClient = useQueryClient()
     const { data: convenciones = [] } = useConvenciones()
@@ -117,20 +118,27 @@ export default function InscripcionesPage() {
     const convencionSeleccionada = convenciones.find((c: any) => c.titulo === convencionFilter)
 
     // Construir filtros para el servidor
-    const filters = {
+    const filters: {
+        search?: string
+        estado?: 'todos' | 'pendiente' | 'confirmado' | 'cancelado'
+        origen?: 'todos' | 'web' | 'dashboard' | 'mobile'
+        convencionId?: string
+    } = {
         search: debouncedSearchTerm || undefined,
-        estado: estadoFilter !== 'todos' ? estadoFilter : undefined,
+        estado: estadoFilter !== 'todos' ? (estadoFilter as 'pendiente' | 'confirmado' | 'cancelado') : undefined,
         convencionId: convencionSeleccionada?.id || undefined,
     }
 
     const { data: inscripcionesResponse, isLoading } = useInscripciones(currentPage, pageSize, filters)
     // Manejar respuesta paginada o array directo (compatibilidad)
-    const inscripciones = Array.isArray(inscripcionesResponse)
-        ? inscripcionesResponse
-        : inscripcionesResponse?.data || []
-    const paginationMeta = Array.isArray(inscripcionesResponse)
+    type InscripcionesResponse = Inscripcion[] | { data: Inscripcion[]; meta?: any } | undefined
+    const response = inscripcionesResponse as InscripcionesResponse
+    const inscripciones = Array.isArray(response)
+        ? response
+        : response?.data || []
+    const paginationMeta = Array.isArray(response)
         ? null
-        : inscripcionesResponse?.meta
+        : (response as { data: Inscripcion[]; meta?: any })?.meta
     const { data: reporteIngresos } = useReporteIngresos()
     const createPagoMutation = useCreatePago()
     const updatePagoMutation = useUpdatePago()
@@ -604,7 +612,8 @@ export default function InscripcionesPage() {
     // Función para enviar recordatorios
     const handleEnviarRecordatorios = async () => {
         try {
-            const resultado = await enviarRecordatoriosMutation.mutateAsync()
+            const convencionIdParaRecordatorios = convencionSeleccionada?.id || undefined
+            const resultado = await enviarRecordatoriosMutation.mutateAsync(convencionIdParaRecordatorios)
             setResultadoRecordatorios(resultado)
         } catch (error) {
             console.error('Error al enviar recordatorios:', error)
