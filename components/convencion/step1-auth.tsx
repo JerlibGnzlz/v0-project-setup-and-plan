@@ -49,9 +49,36 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
     const error = searchParams?.get('error')
     
     if (error) {
-      toast.error('Error en la autenticación', {
-        description: 'No se pudo completar el inicio de sesión con Google',
+      // Mensajes de error más específicos según el tipo de error
+      let errorMessage = 'No se pudo completar el inicio de sesión con Google'
+      let errorTitle = 'Error en la autenticación'
+      
+      switch (error) {
+        case 'google_auth_email_error':
+          errorTitle = 'Error con el email'
+          errorMessage = 'No se pudo obtener o validar el email de tu cuenta de Google. Por favor, intenta nuevamente.'
+          break
+        case 'google_auth_token_error':
+          errorTitle = 'Error al generar tokens'
+          errorMessage = 'No se pudieron generar los tokens de autenticación. Por favor, intenta nuevamente.'
+          break
+        case 'google_auth_failed':
+        default:
+          errorTitle = 'Error en la autenticación'
+          errorMessage = 'No se pudo completar el inicio de sesión con Google. Por favor, intenta nuevamente.'
+          break
+      }
+      
+      toast.error(errorTitle, {
+        description: errorMessage,
+        duration: 5000,
       })
+      
+      // Limpiar parámetros de error de la URL
+      setTimeout(() => {
+        router.replace(window.location.pathname)
+      }, 100)
+      
       return
     }
     
@@ -73,8 +100,20 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
             console.log('[Step1Auth] Perfil obtenido exitosamente:', { 
               id: profile.id, 
               email: profile.email,
-              fotoUrl: profile.fotoUrl 
+              fotoUrl: profile.fotoUrl,
+              fotoUrlNormalizada: normalizeGoogleImageUrl(profile.fotoUrl)
             })
+            
+            // Verificar que la fotoUrl esté disponible
+            if (!profile.fotoUrl) {
+              console.warn('[Step1Auth] ⚠️ El perfil no tiene fotoUrl. Esto puede deberse a:')
+              console.warn('  1. El usuario de Google no tiene foto de perfil')
+              console.warn('  2. La fotoUrl no se guardó correctamente en la base de datos')
+              console.warn('  3. El endpoint /auth/invitado/me no está retornando la fotoUrl')
+            } else {
+              console.log('[Step1Auth] ✅ FotoUrl disponible:', profile.fotoUrl)
+              console.log('[Step1Auth] ✅ FotoUrl normalizada:', normalizeGoogleImageUrl(profile.fotoUrl))
+            }
             
             // Guardar perfil completo con foto
             const userData = {
@@ -223,10 +262,44 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
       // Avanzar al siguiente paso
       onComplete()
     } catch (error: any) {
-      console.error('Error en login:', error)
-      const errorMessage = error.response?.data?.message || error.message || 'Credenciales inválidas'
+      // Extraer mensaje de error de forma robusta
+      // El backend usa el formato: { success: false, error: { message: "...", statusCode: 401, error: "Unauthorized" } }
+      let errorMessage = 'No pudimos iniciar sesión. Por favor, verifica tus credenciales.'
+      
+      // Prioridad 1: Si el error ya tiene un mensaje claro (del unified-auth.ts que ya procesó el error), usarlo
+      // El mensaje ya viene procesado desde unified-auth.ts, así que tiene prioridad
+      if (error.message && 
+          error.message !== 'Request failed with status code 401' && 
+          error.message !== 'Network Error' &&
+          !error.message.includes('status code')) {
+        errorMessage = error.message
+      }
+      // Prioridad 2: Extraer del response del backend (fallback)
+      else if (error.response?.data) {
+        const responseData = error.response.data
+        
+        // Formato del GlobalExceptionFilter: { success: false, error: { message: "...", ... } }
+        if (responseData.error?.message) {
+          errorMessage = responseData.error.message
+        }
+        // Formato alternativo: { message: "..." }
+        else if (responseData.message) {
+          errorMessage = typeof responseData.message === 'string' 
+            ? responseData.message 
+            : Array.isArray(responseData.message) 
+              ? responseData.message.join(', ')
+              : errorMessage
+        }
+        // Formato string directo
+        else if (typeof responseData === 'string') {
+          errorMessage = responseData
+        }
+      }
+      
+      // Mostrar el toast con el mensaje
       toast.error('Error de autenticación', {
         description: errorMessage,
+        duration: 5000,
       })
     }
   }
@@ -262,13 +335,30 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
   // Función helper para normalizar URLs de Google
   const normalizeGoogleImageUrl = (url: string | undefined): string | undefined => {
     if (!url) return undefined
-    // Si es una URL de Google con parámetros de tamaño, intentar obtener una versión más grande
+    
+    // Si es una URL de Google, normalizarla para obtener mejor calidad
     if (url.includes('googleusercontent.com')) {
-      // Remover parámetros de tamaño existentes y agregar uno más grande
-      const baseUrl = url.split('=')[0]
-      // Usar tamaño más grande para mejor calidad
-      return `${baseUrl}=s200-c`
+      try {
+        const urlObj = new URL(url)
+        
+        // Remover todos los parámetros de tamaño existentes
+        urlObj.searchParams.delete('sz')
+        urlObj.searchParams.delete('s')
+        
+        // Agregar parámetro para tamaño más grande (200px) sin recorte
+        // s200 = tamaño 200px, sin -c para mantener proporción
+        urlObj.searchParams.set('s', '200')
+        
+        return urlObj.toString()
+      } catch (e) {
+        // Si falla el parsing, intentar método simple
+        // Remover parámetros existentes después del último =
+        const baseUrl = url.split('?')[0] || url.split('=')[0]
+        // Agregar parámetro de tamaño
+        return `${baseUrl}?sz=200`
+      }
     }
+    
     return url
   }
 
@@ -329,20 +419,24 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
                   <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-emerald-500/60 ring-4 ring-emerald-500/20 shadow-lg shadow-emerald-500/30 group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
                     {user.fotoUrl && !imageError ? (
                       <img
-                        src={normalizeGoogleImageUrl(user.fotoUrl)}
+                        src={normalizeGoogleImageUrl(user.fotoUrl) || user.fotoUrl}
                         alt={`${user.nombre} ${user.apellido}`}
                         className="w-full h-full object-cover"
+                        crossOrigin="anonymous"
+                        referrerPolicy="no-referrer"
                         onError={(e) => {
-                          // Solo log en desarrollo, no mostrar error al usuario
-                          if (process.env.NODE_ENV === 'development') {
-                            console.warn('[Step1Auth] Error cargando foto, mostrando iniciales:', user.fotoUrl)
-                          }
+                          console.error('[Step1Auth] ❌ Error cargando foto:', {
+                            originalUrl: user.fotoUrl,
+                            normalizedUrl: normalizeGoogleImageUrl(user.fotoUrl),
+                            error: e,
+                          })
                           setImageError(true)
                         }}
                         onLoad={() => {
-                          if (process.env.NODE_ENV === 'development') {
-                            console.log('[Step1Auth] Foto cargada exitosamente')
-                          }
+                          console.log('[Step1Auth] ✅ Foto cargada exitosamente:', {
+                            originalUrl: user.fotoUrl,
+                            normalizedUrl: normalizeGoogleImageUrl(user.fotoUrl),
+                          })
                           setImageError(false)
                         }}
                         loading="lazy"

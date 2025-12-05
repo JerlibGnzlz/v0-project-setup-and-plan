@@ -10,6 +10,7 @@ import {
   PastorCompleteRegisterDto,
 } from './dto/pastor-auth.dto'
 import { NotificationsService } from '../notifications/notifications.service'
+import { TokenBlacklistService } from './services/token-blacklist.service'
 
 @Injectable()
 export class PastorAuthService {
@@ -20,6 +21,7 @@ export class PastorAuthService {
     private jwtService: JwtService,
     @Inject(forwardRef(() => NotificationsService))
     private notificationsService: NotificationsService,
+    private tokenBlacklist: TokenBlacklistService,
   ) { }
 
   /**
@@ -240,6 +242,11 @@ export class PastorAuthService {
    */
   async login(dto: PastorLoginDto) {
     try {
+      this.logger.log(`🔐 Intentando login de pastor: ${dto.email}`, {
+        email: dto.email,
+        timestamp: new Date().toISOString(),
+      })
+
       // 1. Buscar autenticación
       const pastorAuth = await this.prisma.pastorAuth.findUnique({
         where: { email: dto.email },
@@ -249,11 +256,20 @@ export class PastorAuthService {
       })
 
       if (!pastorAuth) {
+        this.logger.warn(`❌ Login fallido: pastor no encontrado`, {
+          email: dto.email,
+          timestamp: new Date().toISOString(),
+        })
         throw new UnauthorizedException('Credenciales inválidas')
       }
 
       // 2. Verificar que el pastor está activo
       if (!pastorAuth.pastor.activo) {
+        this.logger.warn(`❌ Login fallido: cuenta inactiva`, {
+          email: dto.email,
+          pastorId: pastorAuth.pastor.id,
+          timestamp: new Date().toISOString(),
+        })
         throw new UnauthorizedException(
           'Tu cuenta de pastor está inactiva. Por favor, contacta a la administración.'
         )
@@ -266,6 +282,11 @@ export class PastorAuthService {
       )
 
       if (!isPasswordValid) {
+        this.logger.warn(`❌ Login fallido: contraseña inválida`, {
+          email: dto.email,
+          pastorId: pastorAuth.pastor.id,
+          timestamp: new Date().toISOString(),
+        })
         throw new UnauthorizedException('Credenciales inválidas')
       }
 
@@ -282,7 +303,11 @@ export class PastorAuthService {
         'PASTOR'
       )
 
-      this.logger.log(`✅ Pastor logueado: ${pastorAuth.email}`)
+      this.logger.log(`✅ Pastor logueado exitosamente`, {
+        pastorId: pastorAuth.pastor.id,
+        email: pastorAuth.email,
+        timestamp: new Date().toISOString(),
+      })
 
       return {
         access_token: accessToken,
@@ -324,10 +349,19 @@ export class PastorAuthService {
   }
 
   /**
-   * Refrescar access token
+   * Refrescar access token (con rotación)
    */
   async refreshAccessToken(refreshToken: string) {
     try {
+      // Verificar si el refresh token está en blacklist
+      const isBlacklisted = await this.tokenBlacklist.isBlacklisted(refreshToken)
+      if (isBlacklisted) {
+        this.logger.warn(`❌ Refresh token revocado intentado usar`, {
+          timestamp: new Date().toISOString(),
+        })
+        throw new UnauthorizedException('Refresh token revocado')
+      }
+
       const payload = this.jwtService.verify(refreshToken)
 
       if (payload.type !== 'refresh') {
@@ -351,11 +385,21 @@ export class PastorAuthService {
         throw new UnauthorizedException('Autenticación no encontrada')
       }
 
+      // Invalidar el refresh token anterior (rotación)
+      await this.tokenBlacklist.addToBlacklist(refreshToken, 30 * 24 * 60 * 60) // 30 días
+
+      // Generar nuevos tokens
       const { accessToken, refreshToken: newRefreshToken } = this.generateTokenPair(
         pastor.id,
         pastor.email || '',
         'PASTOR'
       )
+
+      this.logger.log(`✅ Tokens refrescados para pastor`, {
+        pastorId: pastor.id,
+        email: pastor.email,
+        timestamp: new Date().toISOString(),
+      })
 
       return {
         access_token: accessToken,
@@ -365,7 +409,48 @@ export class PastorAuthService {
       if (error instanceof UnauthorizedException) {
         throw error
       }
+      this.logger.error(`❌ Error al refrescar token:`, {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      })
       throw new UnauthorizedException('Refresh token inválido o expirado')
+    }
+  }
+
+  /**
+   * Logout: invalidar access token y refresh token
+   */
+  async logout(accessToken: string, refreshToken?: string): Promise<void> {
+    try {
+      // Decodificar token para obtener expiración
+      let expiresIn = 900 // 15 minutos por defecto
+      try {
+        const payload = this.jwtService.decode(accessToken) as any
+        if (payload && payload.exp) {
+          const now = Math.floor(Date.now() / 1000)
+          expiresIn = Math.max(payload.exp - now, 0)
+        }
+      } catch (e) {
+        // Si no se puede decodificar, usar valor por defecto
+      }
+
+      // Agregar access token a blacklist
+      await this.tokenBlacklist.addToBlacklist(accessToken, expiresIn)
+
+      // Si hay refresh token, también invalidarlo
+      if (refreshToken) {
+        await this.tokenBlacklist.addToBlacklist(refreshToken, 30 * 24 * 60 * 60) // 30 días
+      }
+
+      this.logger.log(`✅ Logout exitoso de pastor`, {
+        timestamp: new Date().toISOString(),
+      })
+    } catch (error) {
+      this.logger.error(`❌ Error en logout de pastor:`, {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      })
+      // No lanzar error, logout debe siempre tener éxito
     }
   }
 

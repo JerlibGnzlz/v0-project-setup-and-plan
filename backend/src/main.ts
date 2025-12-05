@@ -26,12 +26,67 @@ async function bootstrap() {
 
   // Validar JWT Secret en producción
   const jwtSecret = process.env.JWT_SECRET
-  if (process.env.NODE_ENV === 'production' && (!jwtSecret || jwtSecret === 'your-secret-key')) {
-    logger.error('⛔ JWT_SECRET no está configurado correctamente para producción!')
-    process.exit(1)
+  if (process.env.NODE_ENV === 'production') {
+    if (!jwtSecret || jwtSecret === 'your-secret-key') {
+      logger.error('⛔ JWT_SECRET no está configurado correctamente para producción!')
+      process.exit(1)
+    }
+    // Validar que el JWT_SECRET tenga al menos 32 caracteres para mayor seguridad
+    if (jwtSecret.length < 32) {
+      logger.error('⛔ JWT_SECRET debe tener al menos 32 caracteres para producción!')
+      logger.error(`   Longitud actual: ${jwtSecret.length} caracteres`)
+      process.exit(1)
+    }
+    logger.log('✅ JWT_SECRET validado correctamente (mínimo 32 caracteres)')
+  }
+
+  // Validar configuración de Google OAuth (solo si está habilitado)
+  const googleClientId = process.env.GOOGLE_CLIENT_ID
+  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET
+  
+  if (googleClientId && googleClientSecret) {
+    // Validar que no sean valores de ejemplo
+    if (
+      googleClientId.includes('tu-client-id') ||
+      googleClientId.includes('example') ||
+      googleClientSecret.includes('tu-client-secret') ||
+      googleClientSecret.includes('example')
+    ) {
+      logger.warn('⚠️  Google OAuth configurado con valores de ejemplo. Verifica GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET')
+    } else {
+      logger.log('✅ Google OAuth configurado correctamente')
+    }
+  } else {
+    logger.warn('⚠️  Google OAuth no está configurado. La autenticación con Google no estará disponible.')
   }
 
   app.setGlobalPrefix("api")
+
+  // ============================================
+  // 🔒 HTTPS ENFORCEMENT (Producción)
+  // ============================================
+  if (process.env.NODE_ENV === 'production') {
+    app.use((req, res, next) => {
+      // Verificar si la request viene a través de un proxy (Railway, Vercel, etc.)
+      const forwardedProto = req.headers['x-forwarded-proto']
+      const host = req.headers.host
+      
+      // Si no es HTTPS y estamos en producción, redirigir
+      if (forwardedProto && forwardedProto !== 'https' && host) {
+        logger.warn(`⚠️  Redirigiendo HTTP a HTTPS: ${host}${req.url}`)
+        return res.redirect(301, `https://${host}${req.url}`)
+      }
+      
+      // También verificar el protocolo directo (si no hay proxy)
+      if (!forwardedProto && req.protocol !== 'https' && host) {
+        logger.warn(`⚠️  Redirigiendo HTTP a HTTPS: ${host}${req.url}`)
+        return res.redirect(301, `https://${host}${req.url}`)
+      }
+      
+      next()
+    })
+    logger.log('✅ HTTPS enforcement habilitado para producción')
+  }
 
   // Servir archivos estáticos desde la carpeta uploads
   app.useStaticAssets(join(__dirname, "..", "uploads"), {

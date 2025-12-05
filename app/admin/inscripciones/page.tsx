@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useQueryClient } from '@tanstack/react-query'
-import { useInscripciones, useCreateInscripcion, useCancelarInscripcion, useReporteIngresos, useEnviarRecordatorios, useUpdateInscripcion } from '@/lib/hooks/use-inscripciones'
+import { useInscripciones, useCreateInscripcion, useCancelarInscripcion, useRehabilitarInscripcion, useReporteIngresos, useEnviarRecordatorios, useUpdateInscripcion } from '@/lib/hooks/use-inscripciones'
 import { useCreatePago, useUpdatePago } from '@/lib/hooks/use-pagos'
 import { useConvenciones } from '@/lib/hooks/use-convencion'
 import { useSmartSync, useSmartPolling } from '@/lib/hooks/use-smart-sync'
@@ -41,7 +41,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Textarea } from '@/components/ui/textarea'
-import { Search, UserCheck, ChevronLeft, Mail, Phone, MapPin, Calendar, FileText, CreditCard, Plus, DollarSign, CheckCircle2, Image as ImageIcon, X, Printer, Download, Sparkles, Smartphone, Globe, User, UserPlus, Star, Bell, TrendingUp, XCircle, BarChart3, AlertTriangle, Loader2, Pencil, Save } from 'lucide-react'
+import { Search, UserCheck, ChevronLeft, Mail, Phone, MapPin, Calendar, FileText, CreditCard, Plus, DollarSign, CheckCircle2, Image as ImageIcon, X, Printer, Download, Sparkles, Smartphone, Globe, User, UserPlus, Star, Bell, TrendingUp, XCircle, BarChart3, AlertTriangle, Loader2, Pencil, Save, RefreshCw } from 'lucide-react'
 import Image from 'next/image'
 import { ComprobanteUpload } from '@/components/ui/comprobante-upload'
 import { uploadApi } from '@/lib/api/upload'
@@ -50,6 +50,8 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { InscripcionWizard } from '@/components/admin/inscripcion-wizard'
+import { InscripcionPagoWizard } from '@/components/admin/inscripcion-pago-wizard'
+import { EditarInscripcionDialog } from '@/components/admin/editar-inscripcion-dialog'
 import { PagoWizard } from '@/components/admin/pago-wizard'
 import { InscripcionSuccessModal } from '@/components/admin/inscripcion-success-modal'
 
@@ -74,6 +76,7 @@ export default function InscripcionesPage() {
     const [selectedInscripcion, setSelectedInscripcion] = useState<any>(null)
     const [selectedPago, setSelectedPago] = useState<any>(null)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [inscripcionParaEditar, setInscripcionParaEditar] = useState<any>(null)
     const [pagoForm, setPagoForm] = useState({
         metodoPago: 'transferencia',
         referencia: '',
@@ -84,6 +87,7 @@ export default function InscripcionesPage() {
 
     // Estado para diálogo de nueva inscripción manual
     const [showNuevaInscripcionDialog, setShowNuevaInscripcionDialog] = useState(false)
+    const [showEditarInscripcionDialog, setShowEditarInscripcionDialog] = useState(false)
     const [showSuccessModal, setShowSuccessModal] = useState(false)
     const [inscripcionCreada, setInscripcionCreada] = useState<any>(null)
     const [pagoCreado, setPagoCreado] = useState(false)
@@ -132,6 +136,7 @@ export default function InscripcionesPage() {
     const updatePagoMutation = useUpdatePago()
     const createInscripcionMutation = useCreateInscripcion()
     const cancelarInscripcionMutation = useCancelarInscripcion()
+    const rehabilitarInscripcionMutation = useRehabilitarInscripcion()
     const enviarRecordatoriosMutation = useEnviarRecordatorios()
     const updateInscripcionMutation = useUpdateInscripcion()
 
@@ -606,19 +611,17 @@ export default function InscripcionesPage() {
         }
     }
 
-    // Función para abrir editar inscripción
-    const abrirEditarInscripcion = (insc: any) => {
-        setInscripcionAEditar(insc)
-        setEditarForm({
-            nombre: insc.nombre || '',
-            apellido: insc.apellido || '',
-            email: insc.email || '',
-            telefono: insc.telefono || '',
-            sede: insc.sede || '',
-            tipoInscripcion: insc.tipoInscripcion || 'pastor',
-            notas: insc.notas || '',
-        })
-        setShowEditarDialog(true)
+    // Función para abrir editar inscripción (solo datos del invitado, no pagos)
+    const abrirEditarInscripcion = async (insc: any) => {
+        // Cargar la inscripción completa
+        try {
+            const inscripcionCompleta = await inscripcionesApi.getById(insc.id)
+            setInscripcionParaEditar(inscripcionCompleta)
+            setShowEditarInscripcionDialog(true)
+        } catch (error) {
+            console.error('Error al cargar inscripción:', error)
+            toast.error('Error al cargar los datos de la inscripción')
+        }
     }
 
     // Función para guardar cambios de inscripción
@@ -793,6 +796,7 @@ export default function InscripcionesPage() {
                 <th>Teléfono</th>
                 <th>Sede</th>
                 <th>País</th>
+                <th>Provincia</th>
                 <th>Código Referencia</th>
                 <th>Cuotas</th>
                 <th>Estado Pago</th>
@@ -804,22 +808,11 @@ export default function InscripcionesPage() {
             const pagosInfo = getPagosInfo(insc)
             const pagoCompleto = pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
 
-            // Extraer país y provincia de la sede
-            let pais = '-'
-            let sedeNombre = insc.sede || '-'
-
-            if (insc.sede && insc.sede.includes(' - ')) {
-                const partes = insc.sede.split(' - ')
-                sedeNombre = partes[0] || '-'
-                const ubicacion = partes[partes.length - 1] || ''
-
-                // Extraer país (antes de la coma si hay provincia)
-                if (ubicacion.includes(',')) {
-                    pais = ubicacion.split(',')[0].trim()
-                } else {
-                    pais = ubicacion.trim() || '-'
-                }
-            }
+            // Usar campos directos de país y provincia
+            const pais = insc.pais || '-'
+            const provincia = insc.provincia || ''
+            const paisCompleto = provincia ? `${pais}, ${provincia}` : pais
+            const sedeNombre = insc.sede || '-'
 
             return `
                   <tr>
@@ -829,6 +822,7 @@ export default function InscripcionesPage() {
                     <td>${insc.telefono || '-'}</td>
                     <td>${sedeNombre}</td>
                     <td>${pais}</td>
+                    <td>${provincia || '-'}</td>
                     <td><strong style="font-family: monospace;">${insc.codigoReferencia || '-'}</strong></td>
                     <td>${pagosInfo.cuotasPagadas}/${pagosInfo.numeroCuotas}</td>
                     <td>
@@ -883,22 +877,11 @@ export default function InscripcionesPage() {
             const pagosInfo = getPagosInfo(insc)
             const pagoCompleto = pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
 
-            // Extraer país de la sede
-            let pais = ''
-            let sedeNombre = insc.sede || ''
-
-            if (insc.sede && insc.sede.includes(' - ')) {
-                const partes = insc.sede.split(' - ')
-                sedeNombre = partes[0] || ''
-                const ubicacion = partes[partes.length - 1] || ''
-
-                // Extraer país (antes de la coma si hay provincia)
-                if (ubicacion.includes(',')) {
-                    pais = ubicacion.split(',')[0].trim()
-                } else {
-                    pais = ubicacion.trim()
-                }
-            }
+            // Usar campos directos de país y provincia
+            const pais = insc.pais || ''
+            const provincia = insc.provincia || ''
+            const paisCompleto = provincia ? `${pais}, ${provincia}` : pais
+            const sedeNombre = insc.sede || ''
 
             return [
                 insc.nombre,
@@ -906,7 +889,8 @@ export default function InscripcionesPage() {
                 insc.email,
                 insc.telefono || '',
                 sedeNombre,
-                pais,
+                insc.pais || '',
+                insc.provincia || '',
                 insc.convencion?.titulo || '',
                 insc.codigoReferencia || '',
                 pagosInfo.cuotasPagadas,
@@ -1227,45 +1211,19 @@ export default function InscripcionesPage() {
                                                                 </div>
                                                             )}
                                                             {insc.sede && (
-                                                                <>
-                                                                    {/* Mostrar sede (iglesia) si existe y no contiene " - " */}
-                                                                    {!insc.sede.includes(' - ') && (
-                                                                        <div className="flex items-center gap-2">
-                                                                            <MapPin className="size-4 text-muted-foreground" />
-                                                                            <span>{insc.sede}</span>
-                                                                        </div>
-                                                                    )}
-                                                                    {/* Si sede contiene " - ", separar sede, país y provincia */}
-                                                                    {insc.sede.includes(' - ') && (
-                                                                        <>
-                                                                            {insc.sede.split(' - ')[0] && (
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <MapPin className="size-4 text-muted-foreground" />
-                                                                                    <span className="text-sm">{insc.sede.split(' - ')[0]}</span>
-                                                                                </div>
-                                                                            )}
-                                                                            <div className="flex items-center gap-2">
-                                                                                <MapPin className="size-4 text-muted-foreground" />
-                                                                                <span className="text-sm font-medium">
-                                                                                    {(() => {
-                                                                                        const ubicacion = insc.sede.split(' - ').slice(-1)[0]
-                                                                                        if (ubicacion.includes(',')) {
-                                                                                            // Si tiene coma, separar país y provincia
-                                                                                            const [pais, provincia] = ubicacion.split(',').map((s: string) => s.trim())
-                                                                                            return (
-                                                                                                <span>
-                                                                                                    <span className="text-amber-600 dark:text-amber-400">{pais}</span>
-                                                                                                    {provincia && <span className="text-muted-foreground">, {provincia}</span>}
-                                                                                                </span>
-                                                                                            )
-                                                                                        }
-                                                                                        return <span className="text-amber-600 dark:text-amber-400">{ubicacion}</span>
-                                                                                    })()}
-                                                                                </span>
-                                                                            </div>
-                                                                        </>
-                                                                    )}
-                                                                </>
+                                                                <div className="flex items-center gap-2">
+                                                                    <MapPin className="size-4 text-muted-foreground" />
+                                                                    <span>{insc.sede}</span>
+                                                                </div>
+                                                            )}
+                                                            {(insc.pais || insc.provincia) && (
+                                                                <div className="flex items-center gap-2">
+                                                                    <Globe className="size-4 text-muted-foreground" />
+                                                                    <span className="text-sm font-medium">
+                                                                        <span className="text-amber-600 dark:text-amber-400">{insc.pais || ''}</span>
+                                                                        {insc.provincia && <span className="text-muted-foreground">, {insc.provincia}</span>}
+                                                                    </span>
+                                                                </div>
                                                             )}
                                                             <div className="flex items-center gap-2">
                                                                 <Calendar className="size-4 text-muted-foreground" />
@@ -1298,12 +1256,18 @@ export default function InscripcionesPage() {
                                                                     Pago Completo
                                                                 </Badge>
                                                             )}
-                                                            {/* Botón editar */}
+                                                            {/* Botón editar - Deshabilitado si todos los pagos están completados */}
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 onClick={() => abrirEditarInscripcion(insc)}
-                                                                className="h-6 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                                                disabled={pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas}
+                                                                className="h-6 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                title={
+                                                                    pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
+                                                                        ? 'No se puede editar una inscripción con todos los pagos completados'
+                                                                        : 'Editar información de la inscripción'
+                                                                }
                                                             >
                                                                 <Pencil className="size-3 mr-1" />
                                                                 Editar
@@ -1322,6 +1286,34 @@ export default function InscripcionesPage() {
                                                                 >
                                                                     <XCircle className="size-3 mr-1" />
                                                                     Cancelar
+                                                                </Button>
+                                                            )}
+                                                            {/* Botón rehabilitar (solo si está cancelada) */}
+                                                            {insc.estado === 'cancelado' && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={async () => {
+                                                                        try {
+                                                                            await rehabilitarInscripcionMutation.mutateAsync(insc.id)
+                                                                            toast.success('Inscripción rehabilitada exitosamente', {
+                                                                                description: 'La inscripción ha vuelto al estado pendiente',
+                                                                            })
+                                                                        } catch (error: any) {
+                                                                            toast.error('Error al rehabilitar inscripción', {
+                                                                                description: error.response?.data?.message || error.message || 'Error desconocido',
+                                                                            })
+                                                                        }
+                                                                    }}
+                                                                    disabled={rehabilitarInscripcionMutation.isPending}
+                                                                    className="h-6 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                                                                >
+                                                                    {rehabilitarInscripcionMutation.isPending ? (
+                                                                        <Loader2 className="size-3 mr-1 animate-spin" />
+                                                                    ) : (
+                                                                        <RefreshCw className="size-3 mr-1" />
+                                                                    )}
+                                                                    Rehabilitar
                                                                 </Button>
                                                             )}
                                                         </div>
@@ -1499,7 +1491,7 @@ export default function InscripcionesPage() {
                                                             </div>
 
                                                             {/* Botón para ver en pagos */}
-                                                            <Link href="/admin/pagos">
+                                                            <Link href={`/admin/pagos?inscripcionId=${insc.id}`}>
                                                                 <Button variant="outline" size="sm" className="w-full">
                                                                     <CreditCard className="size-4 mr-2" />
                                                                     Ver todos los pagos
@@ -1538,14 +1530,75 @@ export default function InscripcionesPage() {
                 />
             )}
 
-            {/* Wizard para crear inscripción + pago */}
-            <InscripcionWizard
+            {/* Diálogo para editar solo información de inscripción (sin pagos) */}
+            {inscripcionParaEditar && (
+                <EditarInscripcionDialog
+                    open={showEditarInscripcionDialog}
+                    onOpenChange={(open) => {
+                        setShowEditarInscripcionDialog(open)
+                        if (!open) {
+                            setInscripcionParaEditar(null)
+                        }
+                    }}
+                    inscripcion={inscripcionParaEditar}
+                    onUpdate={async (id, data) => {
+                        const actualizada = await updateInscripcionMutation.mutateAsync({ id, data })
+                        await queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+                        const inscripcionCompleta = await inscripcionesApi.getById(id)
+                        setInscripcionParaEditar(inscripcionCompleta)
+                        return inscripcionCompleta
+                    }}
+                    isUpdating={updateInscripcionMutation.isPending}
+                />
+            )}
+
+            {/* Wizard unificado para crear inscripción + pagos */}
+            <InscripcionPagoWizard
                 open={showNuevaInscripcionDialog}
-                onOpenChange={setShowNuevaInscripcionDialog}
+                onOpenChange={(open) => {
+                    setShowNuevaInscripcionDialog(open)
+                    if (!open) {
+                        setInscripcionParaEditar(null)
+                    }
+                }}
                 convenciones={convenciones}
-                onCreateInscripcion={handleCrearInscripcionDesdeWizard}
+                inscripcionExistente={inscripcionParaEditar}
+                onCreateInscripcion={async (data) => {
+                    const nuevaInscripcion = await createInscripcionMutation.mutateAsync(data)
+                    // Recargar la inscripción con pagos
+                    await queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+                    const inscripcionCompleta = await inscripcionesApi.getById(nuevaInscripcion.id)
+                    return inscripcionCompleta
+                }}
+                onUpdateInscripcion={async (id, data) => {
+                    const actualizada = await updateInscripcionMutation.mutateAsync({ id, data })
+                    await queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+                    const inscripcionCompleta = await inscripcionesApi.getById(id)
+                    return inscripcionCompleta
+                }}
                 onCreatePago={async (data) => {
-                    // El pago se crea automáticamente en handleCrearInscripcionDesdeWizard si está marcado
+                    const nuevoPago = await createPagoMutation.mutateAsync(data)
+                    await queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+                    await queryClient.invalidateQueries({ queryKey: ["pagos"] })
+                    // Recargar la inscripción para obtener los pagos actualizados
+                    if (inscripcionParaEditar?.id) {
+                        await new Promise(resolve => setTimeout(resolve, 300))
+                        const inscripcionCompleta = await inscripcionesApi.getById(inscripcionParaEditar.id)
+                        setInscripcionParaEditar(inscripcionCompleta)
+                    }
+                    return nuevoPago
+                }}
+                onUpdatePago={async (id, data) => {
+                    const actualizado = await updatePagoMutation.mutateAsync({ id, data })
+                    await queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+                    await queryClient.invalidateQueries({ queryKey: ["pagos"] })
+                    // Recargar la inscripción para obtener los pagos actualizados
+                    if (inscripcionParaEditar?.id) {
+                        await new Promise(resolve => setTimeout(resolve, 300))
+                        const inscripcionCompleta = await inscripcionesApi.getById(inscripcionParaEditar.id)
+                        setInscripcionParaEditar(inscripcionCompleta)
+                    }
+                    return actualizado
                 }}
                 isCreating={createInscripcionMutation.isPending || createPagoMutation.isPending}
             />

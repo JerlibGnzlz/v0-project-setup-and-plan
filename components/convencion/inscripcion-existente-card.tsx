@@ -60,15 +60,29 @@ export function InscripcionExistenteCard({
     
     // Función helper para normalizar URLs de Google
     const normalizeGoogleImageUrl = (url: string | undefined): string | undefined => {
-        if (!url) return undefined
-        // Si es una URL de Google con parámetros de tamaño, intentar obtener una versión más grande
-        if (url.includes('googleusercontent.com')) {
-            // Remover parámetros de tamaño existentes y agregar uno más grande
-            const baseUrl = url.split('=')[0]
-            // Usar tamaño más grande para mejor calidad
-            return `${baseUrl}=s200-c`
+      if (!url) return undefined
+      
+      // Si es una URL de Google, normalizarla para obtener mejor calidad
+      if (url.includes('googleusercontent.com')) {
+        try {
+          const urlObj = new URL(url)
+          
+          // Remover todos los parámetros de tamaño existentes
+          urlObj.searchParams.delete('sz')
+          urlObj.searchParams.delete('s')
+          
+          // Agregar parámetro para tamaño más grande (200px) sin recorte
+          urlObj.searchParams.set('s', '200')
+          
+          return urlObj.toString()
+        } catch (e) {
+          // Si falla el parsing, intentar método simple
+          const baseUrl = url.split('?')[0] || url.split('=')[0]
+          return `${baseUrl}?sz=200`
         }
-        return url
+      }
+      
+      return url
     }
 
     // Resetear el estado de error de imagen cuando cambia el usuario o la foto

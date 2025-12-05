@@ -39,7 +39,12 @@ export class UnifiedAuthService {
       // Verificar contraseña
       const isPasswordValid = await bcrypt.compare(password, pastorAuth.password)
       if (!isPasswordValid) {
-        throw new UnauthorizedException('Credenciales inválidas')
+        this.logger.warn(`❌ Login fallido: contraseña inválida para pastor`, {
+          email,
+          pastorId: pastorAuth.pastor.id,
+          timestamp: new Date().toISOString(),
+        })
+        throw new UnauthorizedException('La contraseña es incorrecta. Por favor, verifica tus credenciales.')
       }
 
       // Actualizar último login
@@ -85,7 +90,12 @@ export class UnifiedAuthService {
       // Verificar contraseña
       const isPasswordValid = await bcrypt.compare(password, invitadoAuth.password)
       if (!isPasswordValid) {
-        throw new UnauthorizedException('Credenciales inválidas')
+        this.logger.warn(`❌ Login fallido: contraseña inválida para invitado`, {
+          email,
+          invitadoId: invitadoAuth.invitado.id,
+          timestamp: new Date().toISOString(),
+        })
+        throw new UnauthorizedException('La contraseña es incorrecta. Por favor, verifica tus credenciales.')
       }
 
       // Actualizar último login
@@ -120,7 +130,11 @@ export class UnifiedAuthService {
     }
 
     // 3. Si no se encuentra en ninguna tabla
-    throw new UnauthorizedException('Credenciales inválidas')
+    this.logger.warn(`❌ Login fallido: usuario no encontrado`, {
+      email,
+      timestamp: new Date().toISOString(),
+    })
+    throw new UnauthorizedException('No encontramos una cuenta con este correo electrónico. Por favor, regístrate primero.')
   }
 
   /**

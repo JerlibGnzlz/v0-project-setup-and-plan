@@ -13,13 +13,14 @@ import { InvitadoJwtStrategy } from "./strategies/invitado-jwt.strategy"
 import { GoogleOAuthStrategy } from "./strategies/google-oauth.strategy"
 import { UnifiedAuthService } from "./unified-auth.service"
 import { NotificationsModule } from "../notifications/notifications.module"
+import { TokenBlacklistService } from "./services/token-blacklist.service"
 
 @Module({
   imports: [
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || "your-secret-key",
-      signOptions: { expiresIn: process.env.JWT_EXPIRATION || "7d" },
+      signOptions: { expiresIn: process.env.JWT_EXPIRATION || "15m" }, // Cambiado de 7d a 15m para seguridad
     }),
     forwardRef(() => NotificationsModule),
   ],
@@ -33,6 +34,7 @@ import { NotificationsModule } from "../notifications/notifications.module"
     InvitadoJwtStrategy,
     GoogleOAuthStrategy,
     UnifiedAuthService,
+    TokenBlacklistService,
   ],
   exports: [
     AuthService,
@@ -42,6 +44,7 @@ import { NotificationsModule } from "../notifications/notifications.module"
     JwtStrategy,
     PastorJwtStrategy,
     InvitadoJwtStrategy,
+    TokenBlacklistService,
   ],
 })
 export class AuthModule { }

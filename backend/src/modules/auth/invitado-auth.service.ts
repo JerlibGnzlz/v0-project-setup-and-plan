@@ -8,6 +8,7 @@ import {
   InvitadoCompleteRegisterDto,
 } from './dto/invitado-auth.dto'
 import { NotificationsService } from '../notifications/notifications.service'
+import { TokenBlacklistService } from './services/token-blacklist.service'
 
 @Injectable()
 export class InvitadoAuthService {
@@ -18,6 +19,7 @@ export class InvitadoAuthService {
     private jwtService: JwtService,
     @Inject(forwardRef(() => NotificationsService))
     private notificationsService: NotificationsService,
+    private tokenBlacklist: TokenBlacklistService,
   ) {}
 
   /**
@@ -263,8 +265,43 @@ export class InvitadoAuthService {
 
   /**
    * Autenticación con Google OAuth
+   * 
+   * @param googleId - ID único de Google del usuario
+   * @param email - Email del usuario (debe estar verificado por Google)
+   * @param nombre - Nombre del usuario
+   * @param apellido - Apellido del usuario
+   * @param fotoUrl - URL de la foto de perfil de Google (opcional)
+   * @returns Tokens de acceso y datos del invitado
+   * @throws BadRequestException si los datos son inválidos
    */
-  async googleAuth(googleId: string, email: string, nombre: string, apellido: string, fotoUrl?: string) {
+  async googleAuth(
+    googleId: string,
+    email: string,
+    nombre: string,
+    apellido: string,
+    fotoUrl?: string
+  ) {
+    // Validar parámetros requeridos
+    if (!googleId || !email) {
+      this.logger.error('❌ Google Auth: googleId o email faltantes')
+      throw new BadRequestException('Datos de Google OAuth incompletos')
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      this.logger.error(`❌ Google Auth: Email inválido: ${email}`)
+      throw new BadRequestException('Email inválido')
+    }
+
+    this.logger.log(`🔐 Iniciando autenticación Google OAuth para: ${email}`, {
+      googleId,
+      email,
+      nombre,
+      apellido,
+      tieneFoto: !!fotoUrl,
+    })
+
     // 1. Buscar si ya existe un invitado con este googleId
     let invitadoAuth = await this.prisma.invitadoAuth.findUnique({
       where: { googleId },
@@ -314,6 +351,8 @@ export class InvitadoAuthService {
       const randomPassword = await bcrypt.hash(Math.random().toString(36) + Date.now().toString(), 10)
       
       // Crear invitado
+      this.logger.log(`📸 Guardando fotoUrl de Google: ${fotoUrl || 'NO HAY FOTO'}`)
+      
       const invitado = await this.prisma.invitado.create({
         data: {
           nombre,
@@ -342,7 +381,12 @@ export class InvitadoAuthService {
         },
       })
 
-      this.logger.log(`✅ Invitado creado con Google OAuth: ${email}`)
+      this.logger.log(`✅ Invitado creado con Google OAuth: ${email}`, {
+        invitadoId: invitadoAuth.invitado.id,
+        email,
+        googleId,
+        fotoUrlGuardada: invitadoAuth.invitado.fotoUrl,
+      })
     } else {
       // Actualizar último login
       await this.prisma.invitadoAuth.update({
@@ -350,7 +394,30 @@ export class InvitadoAuthService {
         data: { ultimoLogin: new Date() },
       })
 
-      this.logger.log(`✅ Invitado logueado con Google OAuth: ${email}`)
+      // Actualizar foto si Google proporciona una nueva o si no hay foto actual
+      if (fotoUrl && (!invitadoAuth.invitado.fotoUrl || invitadoAuth.invitado.fotoUrl !== fotoUrl)) {
+        await this.prisma.invitado.update({
+          where: { id: invitadoAuth.invitado.id },
+          data: { fotoUrl },
+        })
+        this.logger.log(`✅ Foto de perfil actualizada para invitado: ${email}`)
+        
+        // Obtener datos actualizados
+        invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+          where: { id: invitadoAuth.id },
+          include: {
+            invitado: true,
+          },
+        })
+      }
+
+      this.logger.log(`✅ Invitado logueado con Google OAuth: ${email}`, {
+        invitadoId: invitadoAuth.invitado.id,
+        email,
+        googleId,
+        tieneFoto: !!invitadoAuth.invitado.fotoUrl,
+        ultimoLogin: new Date().toISOString(),
+      })
     }
 
     // 4. Generar tokens
@@ -372,6 +439,43 @@ export class InvitadoAuthService {
         sede: invitadoAuth.invitado.sede,
         fotoUrl: invitadoAuth.invitado.fotoUrl,
       },
+    }
+  }
+
+  /**
+   * Logout: invalidar access token y refresh token
+   */
+  async logout(accessToken: string, refreshToken?: string): Promise<void> {
+    try {
+      // Decodificar token para obtener expiración
+      let expiresIn = 900 // 15 minutos por defecto
+      try {
+        const payload = this.jwtService.decode(accessToken) as any
+        if (payload && payload.exp) {
+          const now = Math.floor(Date.now() / 1000)
+          expiresIn = Math.max(payload.exp - now, 0)
+        }
+      } catch (e) {
+        // Si no se puede decodificar, usar valor por defecto
+      }
+
+      // Agregar access token a blacklist
+      await this.tokenBlacklist.addToBlacklist(accessToken, expiresIn)
+
+      // Si hay refresh token, también invalidarlo
+      if (refreshToken) {
+        await this.tokenBlacklist.addToBlacklist(refreshToken, 30 * 24 * 60 * 60) // 30 días
+      }
+
+      this.logger.log(`✅ Logout exitoso de invitado`, {
+        timestamp: new Date().toISOString(),
+      })
+    } catch (error) {
+      this.logger.error(`❌ Error en logout de invitado:`, {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      })
+      // No lanzar error, logout debe siempre tener éxito
     }
   }
 }

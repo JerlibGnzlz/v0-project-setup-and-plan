@@ -1,11 +1,11 @@
-import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator'
+import { IsEmail, IsString, MinLength, IsOptional, Matches } from 'class-validator'
 
 export class LoginDto {
   @IsEmail({}, { message: 'El correo electrónico debe ser válido' })
   email: string
 
   @IsString()
-  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  @MinLength(1, { message: 'La contraseña es requerida' })
   password: string
 }
 
@@ -14,7 +14,10 @@ export class RegisterDto {
   email: string
 
   @IsString()
-  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    message: 'La contraseña debe contener al menos una mayúscula, una minúscula y un número',
+  })
   password: string
 
   @IsString()

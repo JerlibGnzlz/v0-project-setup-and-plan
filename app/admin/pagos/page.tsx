@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { usePagos, useUpdatePago, useRechazarPago, useRehabilitarPago, useValidarPagosMasivos } from '@/lib/hooks/use-pagos'
+import { inscripcionesApi } from '@/lib/api/inscripciones'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Tooltip,
@@ -48,12 +50,16 @@ import Image from 'next/image'
 import { ScrollReveal } from '@/components/scroll-reveal'
 
 export default function PagosPage() {
+  const searchParams = useSearchParams()
+  const inscripcionIdFromUrl = searchParams.get('inscripcionId')
+  
   const [searchTerm, setSearchTerm] = useState('')
   const [estadoFilter, setEstadoFilter] = useState('todos')
   const [metodoPagoFilter, setMetodoPagoFilter] = useState('todos')
   const [origenFilter, setOrigenFilter] = useState('todos')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize] = useState(20)
+  const [inscripcionFiltrada, setInscripcionFiltrada] = useState<any>(null)
 
   // Debounce para búsqueda
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
@@ -71,12 +77,29 @@ export default function PagosPage() {
     setCurrentPage(1)
   }, [estadoFilter, metodoPagoFilter, origenFilter, debouncedSearchTerm])
 
+  // Cargar datos de la inscripción cuando se filtra por inscripciónId
+  useEffect(() => {
+    if (inscripcionIdFromUrl) {
+      inscripcionesApi.getById(inscripcionIdFromUrl)
+        .then((inscripcion) => {
+          setInscripcionFiltrada(inscripcion)
+        })
+        .catch((error) => {
+          console.error('Error cargando inscripción:', error)
+          setInscripcionFiltrada(null)
+        })
+    } else {
+      setInscripcionFiltrada(null)
+    }
+  }, [inscripcionIdFromUrl])
+
   // Construir filtros para el servidor
   const filters = {
     search: debouncedSearchTerm || undefined,
     estado: estadoFilter !== 'todos' ? estadoFilter as any : undefined,
     metodoPago: metodoPagoFilter !== 'todos' ? metodoPagoFilter as any : undefined,
     origen: origenFilter !== 'todos' ? origenFilter as any : undefined,
+    inscripcionId: inscripcionIdFromUrl || undefined, // Filtrar por inscripción si viene de la URL
   }
 
   const { data: pagosResponse, isLoading, error } = usePagos(currentPage, pageSize, filters)
@@ -130,7 +153,19 @@ export default function PagosPage() {
   const filteredPagos = pagos
 
   // Funciones para selección masiva
-  const toggleSeleccionarPago = (pagoId: string) => {
+  const toggleSeleccionarPago = (pagoId: string, pago: any) => {
+    // Solo permitir seleccionar pagos en estado PENDIENTE
+    if (pago.estado !== 'PENDIENTE') {
+      if (pago.estado === 'CANCELADO') {
+        toast.warning('Este pago está cancelado y no se puede validar')
+      } else if (pago.estado === 'REEMBOLSADO') {
+        toast.warning('Este pago está reembolsado y no se puede validar')
+      } else if (pago.estado === 'COMPLETADO') {
+        toast.info('Este pago ya está completado')
+      }
+      return
+    }
+
     const nuevosSeleccionados = new Set(pagosSeleccionados)
     if (nuevosSeleccionados.has(pagoId)) {
       nuevosSeleccionados.delete(pagoId)
@@ -141,8 +176,8 @@ export default function PagosPage() {
   }
 
   const toggleSeleccionarTodos = () => {
-    // Solo seleccionar pagos que NO estén completados
-    const pagosSeleccionables = filteredPagos.filter((p: any) => p.estado !== 'COMPLETADO')
+    // Solo seleccionar pagos en estado PENDIENTE
+    const pagosSeleccionables = filteredPagos.filter((p: any) => p.estado === 'PENDIENTE')
     const todosLosIds = pagosSeleccionables.map((p: any) => p.id)
     
     // Verificar si todos los seleccionables ya están seleccionados
@@ -165,6 +200,27 @@ export default function PagosPage() {
 
     const ids = Array.from(pagosSeleccionados)
     const pagosAValidar = filteredPagos.filter((p: any) => ids.includes(p.id))
+    
+    // Verificar si hay pagos rechazados
+    const pagosRechazados = pagosAValidar.filter((p: any) => p.estado === 'CANCELADO')
+    if (pagosRechazados.length > 0) {
+      toast.error(
+        `⚠️ No puedes validar pagos rechazados`,
+        {
+          description: `Tienes ${pagosRechazados.length} pago(s) rechazado(s) seleccionado(s). Debes rehabilitarlos primero usando el botón "Rehabilitar" antes de poder validarlos.`,
+          duration: 10000,
+        }
+      )
+      return
+    }
+
+    // Verificar si hay pagos que no estén pendientes
+    const pagosNoPendientes = pagosAValidar.filter((p: any) => p.estado !== 'PENDIENTE')
+    if (pagosNoPendientes.length > 0) {
+      const estados = pagosNoPendientes.map((p: any) => p.estado).join(', ')
+      toast.warning(`Solo se pueden validar pagos pendientes. Hay ${pagosNoPendientes.length} pago(s) con estado: ${estados}`)
+      return
+    }
     
     // Verificar que todos tengan comprobante si es requerido
     const pagosSinComprobante = pagosAValidar.filter((p: any) => {
@@ -391,6 +447,20 @@ export default function PagosPage() {
               </p>
             </div>
           </div>
+          {/* Indicador de filtro por inscripción */}
+          {inscripcionIdFromUrl && inscripcionFiltrada && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <span className="text-sm text-blue-700 dark:text-blue-300">
+                Filtrando pagos de: <strong>{inscripcionFiltrada.nombre} {inscripcionFiltrada.apellido}</strong>
+              </span>
+              <Link href="/admin/pagos">
+                <Button variant="ghost" size="sm" className="h-6 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">
+                  <XCircle className="size-3 mr-1" />
+                  Limpiar filtro
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         <ScrollReveal>
@@ -422,8 +492,8 @@ export default function PagosPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos los estados</SelectItem>
-                    <SelectItem value="confirmado">Confirmado</SelectItem>
-                    <SelectItem value="pendiente">Pendiente</SelectItem>
+                    <SelectItem value="COMPLETADO">Completado</SelectItem>
+                    <SelectItem value="PENDIENTE">Pendiente</SelectItem>
                     <SelectItem value="CANCELADO">Cancelado</SelectItem>
                     <SelectItem value="REEMBOLSADO">Reembolsado</SelectItem>
                   </SelectContent>
@@ -554,10 +624,11 @@ export default function PagosPage() {
                         <button
                           onClick={toggleSeleccionarTodos}
                           className="flex items-center justify-center hover:opacity-70 transition-opacity"
-                          title={pagosSeleccionados.size === filteredPagos.length && filteredPagos.length > 0 ? 'Deseleccionar todos' : 'Seleccionar todos'}
-                          disabled={filteredPagos.every((p: any) => p.estado === 'COMPLETADO')}
+                          title="Seleccionar todos los pagos pendientes"
+                          disabled={filteredPagos.filter((p: any) => p.estado === 'PENDIENTE').length === 0}
                         >
-                          {pagosSeleccionados.size === filteredPagos.length && filteredPagos.length > 0 ? (
+                          {filteredPagos.filter((p: any) => p.estado === 'PENDIENTE').length > 0 &&
+                            filteredPagos.filter((p: any) => p.estado === 'PENDIENTE').every((p: any) => pagosSeleccionados.has(p.id)) ? (
                             <CheckSquare className="size-5 text-emerald-600 dark:text-emerald-400" />
                           ) : (
                             <Square className="size-5 text-muted-foreground" />
@@ -600,19 +671,29 @@ export default function PagosPage() {
                           <tr key={pago.id} className={`border-b last:border-0 hover:bg-muted/50 ${estaSeleccionado ? 'bg-emerald-50/50 dark:bg-emerald-950/20' : ''}`}>
                             <td className="p-3">
                               <button
-                                onClick={() => !estadoEsCompletado && toggleSeleccionarPago(pago.id)}
-                                disabled={estadoEsCompletado}
+                                onClick={() => toggleSeleccionarPago(pago.id, pago)}
+                                disabled={pago.estado !== 'PENDIENTE'}
                                 className={`flex items-center justify-center transition-opacity ${
-                                  estadoEsCompletado 
+                                  pago.estado !== 'PENDIENTE'
                                     ? 'opacity-40 cursor-not-allowed' 
                                     : 'hover:opacity-70 cursor-pointer'
                                 }`}
-                                title={estadoEsCompletado ? 'Pago confirmado - No se puede seleccionar' : estaSeleccionado ? 'Deseleccionar' : 'Seleccionar'}
+                                title={
+                                  pago.estado !== 'PENDIENTE'
+                                    ? pago.estado === 'CANCELADO'
+                                      ? 'Pago rechazado - Debes rehabilitarlo primero'
+                                      : pago.estado === 'COMPLETADO'
+                                        ? 'Pago completado - No se puede seleccionar'
+                                        : `Pago ${pago.estado.toLowerCase()} - Solo se pueden validar pagos pendientes`
+                                    : estaSeleccionado 
+                                      ? 'Deseleccionar' 
+                                      : 'Seleccionar para validar'
+                                }
                               >
                                 {estaSeleccionado ? (
                                   <CheckSquare className="size-5 text-emerald-600 dark:text-emerald-400" />
                                 ) : (
-                                  <Square className={`size-5 ${estadoEsCompletado ? 'text-muted-foreground/40' : 'text-muted-foreground'}`} />
+                                  <Square className={`size-5 ${pago.estado !== 'PENDIENTE' ? 'text-muted-foreground/40' : 'text-muted-foreground'}`} />
                                 )}
                               </button>
                             </td>

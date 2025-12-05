@@ -38,6 +38,14 @@ export class InvitadoAuthController {
   async getProfile(@Request() req) {
     // Obtener invitado completo con fotoUrl
     const invitado = await this.invitadoAuthService.validateInvitado(req.user.id)
+    
+    console.log('[InvitadoAuthController] Perfil solicitado:', {
+      invitadoId: invitado.id,
+      email: invitado.email,
+      fotoUrl: invitado.fotoUrl,
+      tieneFotoUrl: !!invitado.fotoUrl,
+    })
+    
     return {
       id: invitado.id,
       nombre: invitado.nombre,
@@ -47,6 +55,23 @@ export class InvitadoAuthController {
       sede: invitado.sede,
       fotoUrl: invitado.fotoUrl,
       tipo: 'INVITADO',
+    }
+  }
+
+  /**
+   * Logout: invalidar tokens actuales
+   */
+  @UseGuards(InvitadoJwtAuthGuard)
+  @Post('logout')
+  async logout(@Request() req, @Body() body?: { refreshToken?: string }) {
+    const authHeader = req.headers.authorization
+    const accessToken = authHeader?.replace('Bearer ', '') || ''
+
+    await this.invitadoAuthService.logout(accessToken, body?.refreshToken)
+
+    return {
+      message: "Logout exitoso",
+      success: true,
     }
   }
 
@@ -66,18 +91,60 @@ export class InvitadoAuthController {
   @UseGuards(AuthGuard('google'))
   @UseInterceptors(ClassSerializerInterceptor)
   async googleAuthCallback(@Request() req, @Res() res: Response) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
+    
     try {
-      const { googleId, email, nombre, apellido, fotoUrl } = req.user
-      const result = await this.invitadoAuthService.googleAuth(googleId, email, nombre, apellido, fotoUrl)
-      
+      // Validar que req.user existe y tiene los datos necesarios
+      if (!req.user) {
+        throw new Error('No se recibió información del usuario de Google')
+      }
+
+      const user = req.user as {
+        googleId: string
+        email: string
+        nombre: string
+        apellido: string
+        fotoUrl?: string | null
+      }
+
+      // Validar campos requeridos
+      if (!user.googleId || !user.email) {
+        throw new Error('Datos incompletos del perfil de Google')
+      }
+
+      // Llamar al servicio de autenticación
+      const result = await this.invitadoAuthService.googleAuth(
+        user.googleId,
+        user.email,
+        user.nombre || '',
+        user.apellido || '',
+        user.fotoUrl || undefined
+      )
+
+      // Validar que el resultado tenga los tokens necesarios
+      if (!result.access_token || !result.refresh_token) {
+        throw new Error('No se generaron los tokens de autenticación')
+      }
+
       // Redirigir al frontend con el token
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
       const redirectUrl = `${frontendUrl}/convencion/inscripcion?token=${result.access_token}&google=true&refresh_token=${result.refresh_token}`
       
       return res.redirect(redirectUrl)
     } catch (error) {
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-      const errorUrl = `${frontendUrl}/convencion/inscripcion?error=google_auth_failed`
+      // Log del error para debugging
+      console.error('[InvitadoAuthController] Error en callback de Google OAuth:', error)
+      
+      // Determinar el tipo de error para un mensaje más específico
+      let errorMessage = 'google_auth_failed'
+      if (error instanceof Error) {
+        if (error.message.includes('email')) {
+          errorMessage = 'google_auth_email_error'
+        } else if (error.message.includes('token')) {
+          errorMessage = 'google_auth_token_error'
+        }
+      }
+
+      const errorUrl = `${frontendUrl}/convencion/inscripcion?error=${errorMessage}`
       
       return res.redirect(errorUrl)
     }

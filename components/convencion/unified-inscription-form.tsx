@@ -69,13 +69,27 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
   // Función helper para normalizar URLs de Google
   const normalizeGoogleImageUrl = (url: string | undefined): string | undefined => {
     if (!url) return undefined
-    // Si es una URL de Google con parámetros de tamaño, intentar obtener una versión más grande
+    
+    // Si es una URL de Google, normalizarla para obtener mejor calidad
     if (url.includes('googleusercontent.com')) {
-      // Remover parámetros de tamaño existentes y agregar uno más grande
-      const baseUrl = url.split('=')[0]
-      // Usar tamaño más grande para mejor calidad
-      return `${baseUrl}=s200-c`
+      try {
+        const urlObj = new URL(url)
+        
+        // Remover todos los parámetros de tamaño existentes
+        urlObj.searchParams.delete('sz')
+        urlObj.searchParams.delete('s')
+        
+        // Agregar parámetro para tamaño más grande (200px) sin recorte
+        urlObj.searchParams.set('s', '200')
+        
+        return urlObj.toString()
+      } catch (e) {
+        // Si falla el parsing, intentar método simple
+        const baseUrl = url.split('?')[0] || url.split('=')[0]
+        return `${baseUrl}?sz=200`
+      }
     }
+    
     return url
   }
 
@@ -96,10 +110,34 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
     email: user.email || '',
     telefono: user.telefono || '',
     sede: user.sede || '',
+    pais: 'Argentina',
+    provincia: '',
     tipoInscripcion: user.tipo === 'INVITADO' ? 'invitado' : 'pastor',
     numeroCuotas: 3,
     notas: '',
   })
+
+  // Lista de países
+  const paises = [
+    'Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba',
+    'Ecuador', 'El Salvador', 'España', 'Estados Unidos', 'Guatemala', 'Honduras',
+    'México', 'Nicaragua', 'Panamá', 'Paraguay', 'Perú', 'República Dominicana',
+    'Uruguay', 'Venezuela', 'Otro'
+  ]
+
+  // Provincias de Argentina
+  const provinciasArgentina = [
+    'Buenos Aires', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba', 'Corrientes',
+    'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza',
+    'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis',
+    'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego',
+    'Tucumán', 'Ciudad Autónoma de Buenos Aires'
+  ]
+
+  const [paisSearch, setPaisSearch] = useState('')
+  const [provinciaSearch, setProvinciaSearch] = useState('')
+  const [showPaisDropdown, setShowPaisDropdown] = useState(false)
+  const [showProvinciaDropdown, setShowProvinciaDropdown] = useState(false)
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -117,10 +155,22 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
     if (!formData.apellido.trim()) newErrors.apellido = 'El apellido es requerido'
     if (!formData.email.trim()) newErrors.email = 'El email es requerido'
     if (!formData.sede.trim()) newErrors.sede = 'La sede es requerida'
+    if (!formData.pais.trim()) newErrors.pais = 'El país es requerido'
+    if (formData.pais === 'Argentina' && !formData.provincia.trim()) {
+      newErrors.provincia = 'La provincia es requerida para Argentina'
+    }
     
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
+
+  const filteredPaises = paises.filter(pais =>
+    pais.toLowerCase().includes(paisSearch.toLowerCase())
+  )
+
+  const filteredProvincias = provinciasArgentina.filter(provincia =>
+    provincia.toLowerCase().includes(provinciaSearch.toLowerCase())
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -147,6 +197,8 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
         email: formData.email.trim().toLowerCase(),
         telefono: formData.telefono?.trim() || undefined,
         sede: formData.sede.trim(),
+        pais: formData.pais.trim() || undefined,
+        provincia: formData.provincia.trim() || undefined,
         tipoInscripcion: formData.tipoInscripcion,
         numeroCuotas: formData.numeroCuotas,
         notas: formData.notas?.trim() || undefined,
@@ -288,28 +340,110 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                     <p className="text-xs text-white/50">Este campo no se puede modificar</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-white/90">Teléfono</Label>
+                  <div className="space-y-2">
+                    <Label className="text-white/90">Teléfono</Label>
+                    <Input
+                      value={formData.telefono}
+                      onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                      className="bg-white/5 border-white/20 text-white"
+                      placeholder="+54 11 1234-5678"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white/90">
+                      País <span className="text-red-400">*</span>
+                    </Label>
+                    <div className="relative">
                       <Input
-                        value={formData.telefono}
-                        onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                        className="bg-white/5 border-white/20 text-white"
-                        placeholder="+54 11 1234-5678"
+                        value={paisSearch || formData.pais}
+                        onChange={(e) => {
+                          setPaisSearch(e.target.value)
+                          setShowPaisDropdown(true)
+                        }}
+                        onFocus={() => setShowPaisDropdown(true)}
+                        onBlur={() => setTimeout(() => setShowPaisDropdown(false), 200)}
+                        className="bg-white/5 border-white/20 text-white placeholder:text-white/40"
+                        placeholder="Buscar país..."
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-white/90">Sede *</Label>
-                      <Input
-                        value={formData.sede}
-                        onChange={(e) => setFormData({ ...formData, sede: e.target.value })}
-                        className="bg-white/5 border-white/20 text-white"
-                        placeholder="Nombre de tu iglesia"
-                      />
-                      {errors.sede && (
-                        <p className="text-xs text-red-400">{errors.sede}</p>
+                      {showPaisDropdown && filteredPaises.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-[#0a1628] border border-white/20 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          {filteredPaises.map((pais) => (
+                            <button
+                              key={pais}
+                              type="button"
+                              onClick={() => {
+                                setFormData({ ...formData, pais, provincia: pais !== 'Argentina' ? '' : formData.provincia })
+                                setPaisSearch('')
+                                setShowPaisDropdown(false)
+                              }}
+                              className="w-full px-4 py-2 text-left text-white hover:bg-white/10 transition-colors"
+                            >
+                              {pais}
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
+                    {errors.pais && (
+                      <p className="text-xs text-red-400">{errors.pais}</p>
+                    )}
+                  </div>
+
+                  {/* Provincia (solo para Argentina) */}
+                  {formData.pais === 'Argentina' && (
+                    <div className="space-y-2">
+                      <Label className="text-white/90">
+                        Provincia <span className="text-red-400">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          value={provinciaSearch || formData.provincia}
+                          onChange={(e) => {
+                            setProvinciaSearch(e.target.value)
+                            setShowProvinciaDropdown(true)
+                          }}
+                          onFocus={() => setShowProvinciaDropdown(true)}
+                          onBlur={() => setTimeout(() => setShowProvinciaDropdown(false), 200)}
+                          className="bg-white/5 border-white/20 text-white placeholder:text-white/40"
+                          placeholder="Buscar provincia..."
+                        />
+                        {showProvinciaDropdown && filteredProvincias.length > 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-[#0a1628] border border-white/20 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                            {filteredProvincias.map((provincia) => (
+                              <button
+                                key={provincia}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({ ...formData, provincia })
+                                  setProvinciaSearch('')
+                                  setShowProvinciaDropdown(false)
+                                }}
+                                className="w-full px-4 py-2 text-left text-white hover:bg-white/10 transition-colors"
+                              >
+                                {provincia}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {errors.provincia && (
+                        <p className="text-xs text-red-400">{errors.provincia}</p>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label className="text-white/90">Sede *</Label>
+                    <Input
+                      value={formData.sede}
+                      onChange={(e) => setFormData({ ...formData, sede: e.target.value })}
+                      className="bg-white/5 border-white/20 text-white"
+                      placeholder="Nombre de tu iglesia"
+                    />
+                    {errors.sede && (
+                      <p className="text-xs text-red-400">{errors.sede}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">

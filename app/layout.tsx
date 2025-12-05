@@ -5,6 +5,7 @@ import './globals.css'
 import { ScrollProgress } from '@/components/scroll-progress'
 import { BackToTop } from '@/components/back-to-top'
 import { ThemeProvider } from '@/components/theme-provider'
+import { Toaster } from '@/components/ui/sonner'
 
 const _inter = Inter({ subsets: ["latin"] });
 const _montserrat = Montserrat({ subsets: ["latin"] });
@@ -118,6 +119,7 @@ export default function RootLayout({
           <ScrollProgress />
           {children}
           <BackToTop />
+          <Toaster position="top-right" richColors closeButton />
         </ThemeProvider>
         <Analytics />
       </body>

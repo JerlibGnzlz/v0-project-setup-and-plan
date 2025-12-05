@@ -129,6 +129,21 @@ export function useCancelarInscripcion() {
       queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
       queryClient.invalidateQueries({ queryKey: ["pagos"] })
       notifyChange("inscripciones")
+    },
+  })
+}
+
+export function useRehabilitarInscripcion() {
+  const queryClient = useQueryClient()
+  const { notifyChange } = useSmartSync()
+
+  return useMutation({
+    mutationFn: (id: string) => 
+      inscripcionesApi.rehabilitarInscripcion(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+      queryClient.invalidateQueries({ queryKey: ["pagos"] })
+      notifyChange("inscripciones")
       toast.success("❌ Inscripción cancelada", {
         description: "Se ha enviado un email al usuario notificando la cancelación",
       })

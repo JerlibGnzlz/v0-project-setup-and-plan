@@ -379,36 +379,35 @@ export class InscripcionesService {
                 this.logger.error(`⚠️ Email: ${dto.email}, Pastor ID: ${pastorCreadoPorError.id}`)
             }
 
-            // Si el origen es 'web' o 'mobile', crear automáticamente los pagos dentro de la transacción
-            if (origenRegistro === 'web' || origenRegistro === 'mobile') {
-                this.logger.log(`💰 Creando ${numeroCuotas} pago(s) automático(s) para inscripción ${nuevaInscripcion.id}`)
+            // Crear automáticamente los pagos para TODOS los orígenes (web, mobile, dashboard)
+            // Esto asegura que siempre haya pagos asociados a la inscripción
+            this.logger.log(`💰 Creando ${numeroCuotas} pago(s) automático(s) para inscripción ${nuevaInscripcion.id} (origen: ${origenRegistro})`)
 
-                // Si hay un documentoUrl en la inscripción, asignarlo al primer pago como comprobanteUrl
-                const comprobanteUrl = dto.documentoUrl || null
+            // Si hay un documentoUrl en la inscripción, asignarlo al primer pago como comprobanteUrl
+            const comprobanteUrl = dto.documentoUrl || null
 
-                // Crear los pagos según el número de cuotas
-                const pagos = []
-                for (let i = 1; i <= numeroCuotas; i++) {
-                    const pago = await tx.pago.create({
-                        data: {
-                            inscripcionId: nuevaInscripcion.id,
-                            monto: montoPorCuota, // Prisma maneja la conversión a Decimal automáticamente
-                            metodoPago: 'pendiente', // Se actualizará cuando se registre el pago
-                            numeroCuota: i,
-                            estado: EstadoPago.PENDIENTE,
-                            // Asignar el comprobante solo al primer pago si existe
-                            comprobanteUrl: i === 1 && comprobanteUrl ? comprobanteUrl : null,
-                        },
-                    })
-                    pagos.push(pago)
-                }
-
-                if (comprobanteUrl) {
-                    this.logger.log(`📎 Comprobante asignado al primer pago: ${comprobanteUrl}`)
-                }
-
-                this.logger.log(`✅ ${pagos.length} pago(s) creado(s) exitosamente`)
+            // Crear los pagos según el número de cuotas
+            const pagos = []
+            for (let i = 1; i <= numeroCuotas; i++) {
+                const pago = await tx.pago.create({
+                    data: {
+                        inscripcionId: nuevaInscripcion.id,
+                        monto: montoPorCuota, // Prisma maneja la conversión a Decimal automáticamente
+                        metodoPago: 'pendiente', // Se actualizará cuando se registre el pago
+                        numeroCuota: i,
+                        estado: EstadoPago.PENDIENTE,
+                        // Asignar el comprobante solo al primer pago si existe
+                        comprobanteUrl: i === 1 && comprobanteUrl ? comprobanteUrl : null,
+                    },
+                })
+                pagos.push(pago)
             }
+
+            if (comprobanteUrl) {
+                this.logger.log(`📎 Comprobante asignado al primer pago: ${comprobanteUrl}`)
+            }
+
+            this.logger.log(`✅ ${pagos.length} pago(s) creado(s) exitosamente`)
 
             // Recargar la inscripción con los pagos incluidos
             return await tx.inscripcion.findUnique({
@@ -696,56 +695,66 @@ export class InscripcionesService {
      * Actualiza una inscripción
      */
     async updateInscripcion(id: string, dto: UpdateInscripcionDto, userId?: string, userEmail?: string): Promise<Inscripcion> {
-        const inscripcionExistente = await this.findOneInscripcion(id) // Verifica existencia
+        try {
+            const inscripcionExistente = await this.findOneInscripcion(id) // Verifica existencia
 
-        // Si se está actualizando el email, validar que no esté duplicado en la misma convención
-        if (dto.email && dto.email.toLowerCase() !== inscripcionExistente.email.toLowerCase()) {
-            const emailDuplicado = await this.checkInscripcionByEmail(dto.email, inscripcionExistente.convencionId)
-            if (emailDuplicado && emailDuplicado.id !== id) {
-                throw new ConflictException(`El correo ${dto.email} ya está inscrito en esta convención`)
+            // Si se está actualizando el email, validar que no esté duplicado en la misma convención
+            if (dto.email && dto.email.toLowerCase() !== inscripcionExistente.email.toLowerCase()) {
+                const emailDuplicado = await this.checkInscripcionByEmail(dto.email, inscripcionExistente.convencionId)
+                if (emailDuplicado && emailDuplicado.id !== id) {
+                    throw new ConflictException(`El correo ${dto.email} ya está inscrito en esta convención`)
+                }
             }
+
+            // Preparar datos para actualizar (filtrar undefined y null innecesarios)
+            const dataToUpdate: any = {}
+            if (dto.nombre !== undefined) dataToUpdate.nombre = dto.nombre
+            if (dto.apellido !== undefined) dataToUpdate.apellido = dto.apellido
+            if (dto.email !== undefined) dataToUpdate.email = dto.email.toLowerCase()
+            if (dto.telefono !== undefined) {
+                // Si telefono es null o string vacío, establecer null
+                dataToUpdate.telefono = dto.telefono && dto.telefono.trim() ? dto.telefono.trim() : null
+            }
+            if (dto.sede !== undefined) {
+                dataToUpdate.sede = dto.sede && dto.sede.trim() ? dto.sede.trim() : null
+            }
+            if (dto.tipoInscripcion !== undefined) dataToUpdate.tipoInscripcion = dto.tipoInscripcion
+            if (dto.estado !== undefined) dataToUpdate.estado = dto.estado
+            if (dto.notas !== undefined) {
+                dataToUpdate.notas = dto.notas && dto.notas.trim() ? dto.notas.trim() : null
+            }
+            if (dto.numeroCuotas !== undefined) dataToUpdate.numeroCuotas = dto.numeroCuotas
+
+            this.logger.log(`✏️ Actualizando inscripción ${id} con datos:`, dataToUpdate)
+
+            const updated = await this.prisma.inscripcion.update({
+                where: { id },
+                data: dataToUpdate,
+                include: this.inscripcionIncludes,
+            })
+
+            // Registrar auditoría
+            try {
+                const auditData = this.auditService.createAuditDataFromChanges(
+                    'INSCRIPCION',
+                    id,
+                    'UPDATE',
+                    inscripcionExistente,
+                    dataToUpdate,
+                    userId,
+                    userEmail
+                )
+                await this.auditService.log(auditData)
+            } catch (auditError) {
+                this.logger.warn(`⚠️ Error registrando auditoría para inscripción ${id}:`, auditError)
+                // No fallar la actualización si la auditoría falla
+            }
+
+            return updated
+        } catch (error) {
+            this.logger.error(`❌ Error actualizando inscripción ${id}:`, error)
+            throw error
         }
-
-        // Preparar datos para actualizar (filtrar undefined y null innecesarios)
-        const dataToUpdate: any = {}
-        if (dto.nombre !== undefined) dataToUpdate.nombre = dto.nombre
-        if (dto.apellido !== undefined) dataToUpdate.apellido = dto.apellido
-        if (dto.email !== undefined) dataToUpdate.email = dto.email.toLowerCase()
-        if (dto.telefono !== undefined) {
-            // Si telefono es null o string vacío, establecer null
-            dataToUpdate.telefono = dto.telefono && dto.telefono.trim() ? dto.telefono.trim() : null
-        }
-        if (dto.sede !== undefined) {
-            dataToUpdate.sede = dto.sede && dto.sede.trim() ? dto.sede.trim() : null
-        }
-        if (dto.tipoInscripcion !== undefined) dataToUpdate.tipoInscripcion = dto.tipoInscripcion
-        if (dto.estado !== undefined) dataToUpdate.estado = dto.estado
-        if (dto.notas !== undefined) {
-            dataToUpdate.notas = dto.notas && dto.notas.trim() ? dto.notas.trim() : null
-        }
-        if (dto.numeroCuotas !== undefined) dataToUpdate.numeroCuotas = dto.numeroCuotas
-
-        this.logger.log(`✏️ Actualizando inscripción ${id} con datos:`, dataToUpdate)
-
-        const updated = await this.prisma.inscripcion.update({
-            where: { id },
-            data: dataToUpdate,
-            include: this.inscripcionIncludes,
-        })
-
-        // Registrar auditoría
-        const auditData = this.auditService.createAuditDataFromChanges(
-            'INSCRIPCION',
-            id,
-            'UPDATE',
-            inscripcionExistente,
-            dataToUpdate,
-            userId,
-            userEmail
-        )
-        await this.auditService.log(auditData)
-
-        return updated
     }
 
     /**
@@ -822,31 +831,38 @@ export class InscripcionesService {
             where.metodoPago = filters.metodoPago
         }
 
-        // Aplicar filtro de inscripción
+        // Aplicar filtro de inscripción (debe ir ANTES de otros filtros de inscripción)
         if (filters?.inscripcionId) {
             where.inscripcionId = filters.inscripcionId
         }
 
         // Construir filtro de inscripción (puede incluir convencionId y origenRegistro)
-        const inscripcionFilter: any = {}
+        // NOTA: Si ya hay inscripcionId, no agregar filtros adicionales de inscripción
+        // para evitar conflictos
+        if (!filters?.inscripcionId) {
+            const inscripcionFilter: any = {}
 
-        if (filters?.convencionId) {
-            inscripcionFilter.convencionId = filters.convencionId
-        }
+            if (filters?.convencionId) {
+                inscripcionFilter.convencionId = filters.convencionId
+            }
 
-        if (filters?.origen && filters.origen !== 'todos') {
-            inscripcionFilter.origenRegistro = filters.origen
-        }
+            if (filters?.origen && filters.origen !== 'todos') {
+                inscripcionFilter.origenRegistro = filters.origen
+            }
 
-        // Solo agregar el filtro de inscripción si tiene al menos una condición
-        if (Object.keys(inscripcionFilter).length > 0) {
-            where.inscripcion = inscripcionFilter
+            // Solo agregar el filtro de inscripción si tiene al menos una condición
+            if (Object.keys(inscripcionFilter).length > 0) {
+                where.inscripcion = inscripcionFilter
+            }
         }
 
         // Aplicar búsqueda (busca en referencia, notas, y datos de la inscripción relacionada)
         if (filters?.search || filters?.q) {
             const searchTerm = (filters.search || filters.q || '').trim()
             if (searchTerm) {
+                // Si hay inscripcionId, preservarlo en el filtro
+                const inscripcionIdPreservado = where.inscripcionId
+
                 // Guardar el filtro de inscripción existente si existe
                 const inscripcionFilter = where.inscripcion
 
@@ -870,6 +886,15 @@ export class InscripcionesService {
                     inscripcionSearch.AND = [inscripcionFilter]
                 }
 
+                // Si hay inscripcionId, también agregarlo al filtro de inscripción
+                if (inscripcionIdPreservado) {
+                    if (inscripcionSearch.AND) {
+                        inscripcionSearch.AND.push({ id: inscripcionIdPreservado })
+                    } else {
+                        inscripcionSearch.AND = [{ id: inscripcionIdPreservado }]
+                    }
+                }
+
                 searchOR.push({ inscripcion: inscripcionSearch })
 
                 // Si ya hay un OR, combinarlo con AND
@@ -885,6 +910,10 @@ export class InscripcionesService {
 
                 // Eliminar el filtro de inscripción del where principal ya que está en OR
                 delete where.inscripcion
+                // Preservar inscripcionId si existe (aunque también esté en el OR)
+                if (inscripcionIdPreservado) {
+                    where.inscripcionId = inscripcionIdPreservado
+                }
             }
         }
 
@@ -905,8 +934,13 @@ export class InscripcionesService {
         }
 
         this.logger.log(`📋 Buscando pagos - página: ${pageNum}, límite: ${limitNum}`)
-        this.logger.log(`📋 Filtros recibidos: ${JSON.stringify(filters, null, 2)}`)
-        this.logger.log(`📋 WHERE clause: ${JSON.stringify(whereClause, null, 2)}`)
+        this.logger.log(`📋 Filtros recibidos: ${JSON.stringify(filters || {}, null, 2)}`)
+        try {
+            this.logger.log(`📋 WHERE clause: ${JSON.stringify(whereClause, null, 2)}`)
+        } catch (e) {
+            this.logger.log(`📋 WHERE clause (no serializable): ${Object.keys(whereClause).join(', ')}`)
+        }
+        this.logger.log(`📋 FindManyOptions - skip: ${findManyOptions.skip}, take: ${findManyOptions.take}`)
 
         try {
             const [data, total] = await Promise.all([
@@ -915,6 +949,26 @@ export class InscripcionesService {
             ])
 
             this.logger.log(`✅ Encontrados ${data.length} pagos de ${total} totales`)
+            if (data.length > 0) {
+                this.logger.log(`📋 Primer pago encontrado - id: ${data[0].id}, inscripcionId: ${data[0].inscripcionId}, estado: ${data[0].estado}`)
+            } else if (filters?.inscripcionId) {
+                // Si no se encontraron pagos pero hay filtro de inscripción, verificar si la inscripción existe
+                try {
+                    const inscripcionExiste = await this.prisma.inscripcion.findUnique({
+                        where: { id: filters.inscripcionId },
+                        select: { id: true, nombre: true, apellido: true }
+                    })
+                    this.logger.log(`🔍 Inscripción ${filters.inscripcionId} existe: ${inscripcionExiste ? `${inscripcionExiste.nombre} ${inscripcionExiste.apellido}` : 'NO'}`)
+
+                    // Verificar si hay pagos para esa inscripción sin filtros
+                    const pagosSinFiltros = await this.prisma.pago.count({
+                        where: { inscripcionId: filters.inscripcionId }
+                    })
+                    this.logger.log(`🔍 Pagos sin filtros para inscripción ${filters.inscripcionId}: ${pagosSinFiltros}`)
+                } catch (debugError) {
+                    this.logger.error(`❌ Error en debug de inscripción:`, debugError)
+                }
+            }
 
             const totalPages = Math.ceil(total / limitNum)
 
@@ -964,15 +1018,158 @@ export class InscripcionesService {
      * Crea un nuevo pago
      */
     async createPago(dto: CreatePagoDto): Promise<Pago> {
-        this.logger.log(`💰 Creando pago: ${dto.metodoPago} - ${dto.monto}`)
+        try {
+            this.logger.log(`💰 Creando pago: ${dto.metodoPago} - ${dto.monto}`)
 
-        return this.prisma.pago.create({
-            data: {
-                ...dto,
-                monto: parseFloat(dto.monto),
-            },
-            include: this.pagoIncludes,
-        })
+            // Validar que la inscripción exista
+            if (!dto.inscripcionId) {
+                throw new BadRequestException('El ID de inscripción es requerido')
+            }
+
+            const inscripcion = await this.prisma.inscripcion.findUnique({
+                where: { id: dto.inscripcionId },
+                include: { convencion: true },
+            })
+
+            if (!inscripcion) {
+                throw new NotFoundException(`Inscripción con ID "${dto.inscripcionId}" no encontrada`)
+            }
+
+            // Validar y sanitizar monto
+            let monto: number
+            if (typeof dto.monto === 'string') {
+                monto = parseFloat(dto.monto)
+                if (isNaN(monto) || monto <= 0) {
+                    throw new BadRequestException(`Monto inválido: ${dto.monto}. Debe ser un número positivo.`)
+                }
+            } else if (typeof dto.monto === 'number') {
+                monto = dto.monto
+                if (monto <= 0 || !isFinite(monto)) {
+                    throw new BadRequestException(`Monto inválido: ${dto.monto}. Debe ser un número positivo.`)
+                }
+            } else {
+                throw new BadRequestException('El monto es requerido y debe ser un número válido')
+            }
+
+            // Validar método de pago
+            const metodosValidos = ['transferencia', 'mercadopago', 'efectivo', 'otro']
+            if (!dto.metodoPago || !metodosValidos.includes(dto.metodoPago)) {
+                throw new BadRequestException(`Método de pago inválido: ${dto.metodoPago}. Debe ser uno de: ${metodosValidos.join(', ')}`)
+            }
+
+            // Validar número de cuota si se proporciona
+            if (dto.numeroCuota !== undefined) {
+                if (!Number.isInteger(dto.numeroCuota) || dto.numeroCuota < 1 || dto.numeroCuota > 3) {
+                    throw new BadRequestException(`Número de cuota inválido: ${dto.numeroCuota}. Debe ser un entero entre 1 y 3.`)
+                }
+            }
+
+            // Sanitizar referencia (eliminar espacios y caracteres especiales peligrosos)
+            let referencia: string | undefined = undefined
+            if (dto.referencia) {
+                referencia = dto.referencia.trim()
+                if (referencia.length > 100) {
+                    referencia = referencia.substring(0, 100)
+                }
+                // Permitir solo caracteres alfanuméricos, guiones, espacios y algunos caracteres especiales
+                referencia = referencia.replace(/[<>\"'&]/g, '')
+            }
+
+            // Sanitizar notas
+            let notas: string | undefined = undefined
+            if (dto.notas) {
+                notas = dto.notas.trim()
+                if (notas.length > 500) {
+                    notas = notas.substring(0, 500)
+                }
+                // Eliminar caracteres peligrosos pero permitir saltos de línea
+                notas = notas.replace(/[<>\"'&]/g, '')
+            }
+
+            // Validar URL del comprobante si se proporciona
+            let comprobanteUrl: string | undefined = undefined
+            if (dto.comprobanteUrl) {
+                comprobanteUrl = dto.comprobanteUrl.trim()
+                try {
+                    new URL(comprobanteUrl)
+                } catch {
+                    throw new BadRequestException('URL del comprobante inválida')
+                }
+            }
+
+            // Preparar datos del pago
+            const pagoData: any = {
+                inscripcionId: dto.inscripcionId,
+                monto: monto,
+                metodoPago: dto.metodoPago,
+                estado: dto.estado || EstadoPago.PENDIENTE, // Por defecto PENDIENTE
+                referencia: referencia,
+                comprobanteUrl: comprobanteUrl,
+                notas: notas,
+            }
+
+            // Agregar número de cuota si se proporciona
+            if (dto.numeroCuota !== undefined) {
+                pagoData.numeroCuota = dto.numeroCuota
+            }
+
+            // Si el estado es COMPLETADO, establecer fechaPago
+            if (pagoData.estado === EstadoPago.COMPLETADO) {
+                pagoData.fechaPago = new Date()
+            }
+
+            this.logger.log(`📝 Datos del pago a crear: ${JSON.stringify({ ...pagoData, monto: monto }, null, 2)}`)
+
+            const pagoCreado = await this.prisma.pago.create({
+                data: pagoData,
+                include: this.pagoIncludes,
+            })
+
+            this.logger.log(`✅ Pago creado exitosamente: ${pagoCreado.id}`)
+
+            // Si el pago se creó como COMPLETADO, verificar si se debe confirmar la inscripción
+            if (pagoData.estado === EstadoPago.COMPLETADO) {
+                // Verificar si todas las cuotas están completadas
+                const inscripcionCompleta = await this.prisma.inscripcion.findUnique({
+                    where: { id: inscripcion.id },
+                    include: {
+                        pagos: true,
+                        convencion: true,
+                    },
+                })
+
+                if (inscripcionCompleta) {
+                    const numeroCuotas = inscripcionCompleta.numeroCuotas || 3
+                    const pagosCompletados = inscripcionCompleta.pagos.filter(
+                        (p: any) => p.estado === EstadoPago.COMPLETADO
+                    ).length
+
+                    // Si todas las cuotas están completadas, confirmar la inscripción
+                    if (pagosCompletados >= numeroCuotas && inscripcionCompleta.estado !== 'confirmado') {
+                        await this.prisma.inscripcion.update({
+                            where: { id: inscripcion.id },
+                            data: { estado: 'confirmado' },
+                        })
+                        this.logger.log(`✅ Inscripción ${inscripcion.id} confirmada automáticamente (todas las cuotas pagadas)`)
+                    }
+                }
+            }
+
+            return pagoCreado
+        } catch (error: any) {
+            this.logger.error(`❌ Error creando pago:`, {
+                message: error.message,
+                code: error.code,
+                stack: error.stack?.substring(0, 500),
+                dto: {
+                    inscripcionId: dto.inscripcionId,
+                    monto: dto.monto,
+                    metodoPago: dto.metodoPago,
+                    numeroCuota: dto.numeroCuota,
+                }
+            })
+            throw error
+        }
     }
 
     /**
@@ -1704,141 +1901,302 @@ export class InscripcionesService {
         fallidos: number
         detalles: { email: string; nombre: string; cuotasPendientes: number; exito: boolean }[]
     }> {
-        this.logger.log('📧 Iniciando envío de recordatorios de pago...')
+        try {
+            this.logger.log('📧 Iniciando envío de recordatorios de pago...', { convencionId })
 
-        const whereConvencion = convencionId ? { convencionId } : {}
+            // Verificar que el eventEmitter esté disponible
+            if (!this.eventEmitter) {
+                this.logger.error('❌ EventEmitter2 no está disponible')
+                throw new Error('EventEmitter2 no está disponible. Verifica la configuración del módulo.')
+            }
 
-        // Obtener inscripciones con pagos pendientes
-        const inscripciones = await this.prisma.inscripcion.findMany({
-            where: {
-                ...whereConvencion,
-                estado: 'pendiente',
-                pagos: {
-                    some: {
-                        estado: EstadoPago.PENDIENTE,
-                    },
-                },
-            },
-            include: {
-                pagos: true,
-                convencion: true,
-            },
-        })
+            const whereConvencion = convencionId ? { convencionId } : {}
 
-        let enviados = 0
-        let fallidos = 0
-        const detalles: { email: string; nombre: string; cuotasPendientes: number; exito: boolean }[] = []
-
-        for (const inscripcion of inscripciones) {
-            const pagosPendientes = inscripcion.pagos.filter(p => p.estado === EstadoPago.PENDIENTE)
-            const cuotasPendientes = pagosPendientes.length
-            const convencion = inscripcion.convencion
-            const codigoReferencia = (inscripcion as any)?.codigoReferencia || 'N/A'
-
-            // Calcular monto pendiente
-            const montoPendiente = pagosPendientes.reduce((sum, p) => {
-                const monto = typeof p.monto === 'number' ? p.monto : parseFloat(String(p.monto || 0))
-                return sum + monto
-            }, 0)
-            const montoPendienteFormateado = new Intl.NumberFormat('es-AR', {
-                style: 'currency',
-                currency: 'ARS',
-            }).format(montoPendiente)
-
-            const titulo = `⏰ Recordatorio de Pago - ${convencion?.titulo || 'Convención'}`
-            const mensaje = `
-<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
-    <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px;">⏰ Recordatorio de Pago</h1>
-    </div>
-    
-    <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
-        <p style="font-size: 16px; margin-bottom: 20px;">Hola <strong>${inscripcion.nombre}</strong>,</p>
-        
-        <p style="font-size: 16px; margin-bottom: 20px;">
-            Te recordamos que tienes <strong>${cuotasPendientes} cuota(s) pendiente(s)</strong> de pago 
-            para la convención <strong>"${convencion?.titulo}"</strong>.
-        </p>
-        
-        <div style="background: #fef3c7; border: 2px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 5px; text-align: center;">
-            <h3 style="color: #92400e; margin: 0 0 10px 0; font-size: 16px;">💰 Monto Pendiente</h3>
-            <p style="font-size: 28px; font-weight: bold; color: #d97706; margin: 0;">
-                ${montoPendienteFormateado}
-            </p>
-            <p style="font-size: 14px; color: #92400e; margin: 10px 0 0 0;">
-                (${cuotasPendientes} cuota${cuotasPendientes > 1 ? 's' : ''})
-            </p>
-        </div>
-        
-        <div style="background: #fef3c7; border: 2px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 5px; text-align: center;">
-            <h3 style="color: #92400e; margin: 0 0 10px 0; font-size: 16px;">🔖 Tu Código de Referencia</h3>
-            <p style="font-size: 24px; font-weight: bold; color: #d97706; margin: 0; letter-spacing: 2px; font-family: monospace;">
-                ${codigoReferencia}
-            </p>
-            <p style="font-size: 12px; color: #78350f; margin: 10px 0 0 0;">
-                Incluye este código en el concepto de tu transferencia
-            </p>
-        </div>
-        
-        <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; margin: 25px 0; border-radius: 5px;">
-            <h2 style="color: #059669; margin-top: 0; margin-bottom: 15px; font-size: 18px;">💳 Métodos de Pago</h2>
-            <ul style="margin: 0; padding-left: 20px; color: #1f2937;">
-                <li style="margin-bottom: 8px;"><strong>Transferencia Bancaria:</strong> Contacta a la administración</li>
-                <li style="margin-bottom: 8px;"><strong>Mercado Pago:</strong> Solicita el link de pago</li>
-                <li style="margin-bottom: 8px;"><strong>Efectivo:</strong> Acércate a tu sede más cercana</li>
-            </ul>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 2px solid #e5e7eb;">
-            <p style="font-size: 14px; color: #6b7280; margin: 0;">
-                Si ya realizaste el pago, por favor ignora este mensaje.
-            </p>
-        </div>
-    </div>
-    
-    <div style="background: #f9fafb; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
-        <p style="font-size: 12px; color: #6b7280; margin: 0;">
-            Asociación Misionera Vida Abundante - AMVA Digital
-        </p>
-    </div>
-</div>
-            `.trim()
-
+            // Obtener inscripciones pendientes (con o sin pagos)
+            // Luego verificaremos y crearemos pagos si no existen
+            let inscripciones
             try {
-                // Emitir evento de recordatorio de pago
-                const event = new PagoRecordatorioEvent({
-                    email: inscripcion.email,
+                inscripciones = await this.prisma.inscripcion.findMany({
+                    where: {
+                        ...whereConvencion,
+                        estado: 'pendiente',
+                    },
+                    include: {
+                        pagos: true,
+                        convencion: true,
+                    },
+                })
+            } catch (dbError) {
+                this.logger.error('❌ Error consultando inscripciones:', dbError)
+                throw new Error(`Error al consultar inscripciones: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`)
+            }
+
+            this.logger.log(`📋 Encontradas ${inscripciones.length} inscripciones pendientes`)
+
+            // Filtrar y crear pagos si no existen
+            const inscripcionesConPagosPendientes = []
+            for (const inscripcion of inscripciones) {
+                // Si no tiene pagos, crearlos automáticamente
+                if (!inscripcion.pagos || inscripcion.pagos.length === 0) {
+                    this.logger.warn(`⚠️ Inscripción ${inscripcion.id} no tiene pagos, creándolos automáticamente...`)
+                    try {
+                        const numeroCuotas = inscripcion.numeroCuotas || 3
+                        const costoTotal = typeof inscripcion.convencion?.costo === 'number'
+                            ? inscripcion.convencion.costo
+                            : parseFloat(String(inscripcion.convencion?.costo || 0))
+                        const montoPorCuota = costoTotal / numeroCuotas
+
+                        const pagosCreados = []
+                        for (let i = 1; i <= numeroCuotas; i++) {
+                            const pago = await this.prisma.pago.create({
+                                data: {
+                                    inscripcionId: inscripcion.id,
+                                    monto: montoPorCuota,
+                                    metodoPago: 'pendiente',
+                                    numeroCuota: i,
+                                    estado: EstadoPago.PENDIENTE,
+                                },
+                            })
+                            pagosCreados.push(pago)
+                        }
+                        inscripcion.pagos = pagosCreados
+                        this.logger.log(`✅ Creados ${pagosCreados.length} pagos para inscripción ${inscripcion.id}`)
+                    } catch (error) {
+                        this.logger.error(`❌ Error creando pagos para inscripción ${inscripcion.id}:`, error)
+                        continue // Saltar esta inscripción
+                    }
+                }
+
+                // Verificar si tiene pagos pendientes
+                const pagosPendientes = inscripcion.pagos.filter(p => p.estado === EstadoPago.PENDIENTE)
+                if (pagosPendientes.length > 0) {
+                    inscripcionesConPagosPendientes.push(inscripcion)
+                }
+            }
+
+            this.logger.log(`📋 ${inscripcionesConPagosPendientes.length} inscripciones con pagos pendientes listas para recordatorio`)
+            inscripciones = inscripcionesConPagosPendientes
+
+            let enviados = 0
+            let fallidos = 0
+            const detalles: { email: string; nombre: string; cuotasPendientes: number; exito: boolean }[] = []
+
+            // Procesar cada inscripción de forma secuencial para evitar saturar la cola
+            for (let i = 0; i < inscripciones.length; i++) {
+                const inscripcion = inscripciones[i]
+                this.logger.log(`📧 [${i + 1}/${inscripciones.length}] Procesando recordatorio para ${inscripcion.email} (ID: ${inscripcion.id})...`)
+
+                try {
+                    // Función helper para detectar si una nota indica explícitamente que no asistirán
+                    // Solo excluimos si la nota es muy clara sobre no asistir (no solo contiene palabras sueltas)
+                    const notaIndicaNoAsistencia = (nota: string | null | undefined): boolean => {
+                        if (!nota) return false
+                        const notaLower = nota.toLowerCase().trim()
+
+                        // Patrones más específicos que indican claramente que no asistirán
+                        const patronesExcluyentes = [
+                            /no\s+vendr[áa]/i,           // "no vendrá" o "no vendra"
+                            /no\s+asistir[áa]/i,        // "no asistirá" o "no asistira"
+                            /no\s+asistir\b/i,          // "no asistir" (palabra completa)
+                            /no\s+viene\b/i,            // "no viene" (palabra completa)
+                            /no\s+participar[áa]/i,     // "no participará" o "no participara"
+                            /no\s+participa\b/i,        // "no participa" (palabra completa)
+                            /no\s+ir[áa]\b/i,           // "no irá" o "no ira" (palabra completa)
+                            /no\s+va\b/i,               // "no va" (palabra completa)
+                            /no\s+asistencia\b/i,       // "no asistencia" (palabra completa)
+                            /^cancelado\s*$/i,          // Solo "cancelado" (exacto)
+                            /^cancelada\s*$/i,          // Solo "cancelada" (exacto)
+                            /no\s+vendr[áa]\s+al/i,     // "no vendrá al" o "no vendra al"
+                            /no\s+asistir[áa]\s+al/i,   // "no asistirá al" o "no asistira al"
+                        ]
+
+                        // Verificar si alguno de los patrones coincide
+                        return patronesExcluyentes.some(patron => patron.test(notaLower))
+                    }
+
+                    // Verificar si la inscripción tiene notas que indiquen explícitamente que no asistirán
+                    // Solo excluimos si es muy claro, de lo contrario enviamos el recordatorio
+                    if (notaIndicaNoAsistencia(inscripcion.notas)) {
+                        this.logger.warn(`⚠️ Inscripción ${inscripcion.id} tiene nota indicando que no asistirá: "${inscripcion.notas}", saltando...`)
+                        continue
+                    }
+
+                    // Filtrar SOLO pagos en estado PENDIENTE
+                    // Solo excluimos pagos con notas muy claras sobre no asistir
+                    const pagosPendientes = inscripcion.pagos.filter(p => {
+                        // Solo procesar pagos pendientes
+                        if (p.estado !== EstadoPago.PENDIENTE) {
+                            return false
+                        }
+
+                        // Excluir solo si la nota es muy clara sobre no asistir
+                        if (notaIndicaNoAsistencia(p.notas)) {
+                            this.logger.warn(`⚠️ Pago ${p.id} tiene nota indicando que no asistirá: "${p.notas}", excluyendo del recordatorio`)
+                            return false
+                        }
+
+                        return true
+                    })
+
+                    // Si no hay pagos pendientes válidos (después de filtrar), saltar esta inscripción
+                    if (pagosPendientes.length === 0) {
+                        this.logger.warn(`⚠️ Inscripción ${inscripcion.id} no tiene pagos pendientes válidos para recordatorio, saltando...`)
+                        continue
+                    }
+
+                    const cuotasPendientes = pagosPendientes.length
+                    const convencion = inscripcion.convencion
+
+                    // Calcular monto pendiente
+                    const montoPendiente = pagosPendientes.reduce((sum, p) => {
+                        const monto = typeof p.monto === 'number' ? p.monto : parseFloat(String(p.monto || 0))
+                        return sum + monto
+                    }, 0)
+
+                    this.logger.log(`💰 Inscripción ${inscripcion.email}: ${cuotasPendientes} cuota(s) pendiente(s), monto: $${montoPendiente}`)
+
+                    this.logger.log(`💰 Inscripción ${inscripcion.email}: ${cuotasPendientes} cuota(s) pendiente(s), monto: $${montoPendiente}`)
+
+                    // Emitir evento de recordatorio de pago
+                    // Si el eventEmitter está disponible, usarlo (con cola)
+                    // Si no, enviar directamente por email (fallback)
+                    let emailEnviado = false
+
+                    if (this.eventEmitter) {
+                        try {
+                            const event = new PagoRecordatorioEvent({
+                                email: inscripcion.email,
+                                inscripcionId: inscripcion.id,
+                                cuotasPendientes,
+                                montoPendiente,
+                                convencionTitulo: convencion?.titulo || 'Convención',
+                            })
+
+                            // Usar emitAsync para esperar a que el listener procese el evento
+                            // Esto asegura que cada evento se procese antes de continuar
+                            await this.eventEmitter.emitAsync(NotificationEventType.PAGO_RECORDATORIO, event)
+                            this.logger.log(`📬 Evento PAGO_RECORDATORIO emitido y procesado para ${inscripcion.email}`)
+                            // Asumimos éxito si el evento se emitió correctamente (el listener se encargará)
+                            emailEnviado = true
+
+                            // Pequeño delay para evitar saturar la cola de emails
+                            await new Promise(resolve => setTimeout(resolve, 100))
+                        } catch (eventError) {
+                            this.logger.error(`❌ Error emitiendo evento para ${inscripcion.email}:`, eventError)
+                            // Fallback a envío directo
+                            this.logger.warn(`⚠️ Intentando envío directo como fallback para ${inscripcion.email}`)
+                            emailEnviado = await this.enviarEmailRecordatorioDirecto(inscripcion, cuotasPendientes, montoPendiente, convencion)
+                        }
+                    } else {
+                        // Fallback: enviar directamente por email si no hay eventEmitter
+                        this.logger.warn(`⚠️ EventEmitter no disponible, enviando email directamente a ${inscripcion.email}`)
+                        emailEnviado = await this.enviarEmailRecordatorioDirecto(inscripcion, cuotasPendientes, montoPendiente, convencion)
+                    }
+
+                    if (emailEnviado) {
+                        enviados++
+                        detalles.push({
+                            email: inscripcion.email,
+                            nombre: `${inscripcion.nombre} ${inscripcion.apellido}`,
+                            cuotasPendientes,
+                            exito: true,
+                        })
+                        this.logger.log(`✅ Recordatorio procesado exitosamente para ${inscripcion.email}`)
+                    } else {
+                        fallidos++
+                        detalles.push({
+                            email: inscripcion.email,
+                            nombre: `${inscripcion.nombre} ${inscripcion.apellido}`,
+                            cuotasPendientes,
+                            exito: false,
+                        })
+                        this.logger.error(`❌ No se pudo enviar recordatorio a ${inscripcion.email}`)
+                    }
+                } catch (error) {
+                    fallidos++
+                    const nombreCompleto = inscripcion ? `${inscripcion.nombre} ${inscripcion.apellido}` : 'Desconocido'
+                    const email = inscripcion?.email || 'desconocido'
+                    detalles.push({
+                        email,
+                        nombre: nombreCompleto,
+                        cuotasPendientes: 0,
+                        exito: false,
+                    })
+                    this.logger.error(`❌ Error procesando recordatorio para ${email}:`, {
+                        error: error instanceof Error ? error.message : 'Unknown error',
+                        stack: error instanceof Error ? error.stack : undefined,
+                    })
+                }
+            }
+
+            this.logger.log(`📊 Recordatorios: ${enviados} enviados, ${fallidos} fallidos`)
+
+            return { enviados, fallidos, detalles }
+        } catch (error) {
+            this.logger.error('❌ Error en enviarRecordatoriosPago:', error)
+            throw error
+        }
+    }
+
+    /**
+     * Envía email de recordatorio directamente (fallback cuando no hay eventEmitter/cola)
+     */
+    private async enviarEmailRecordatorioDirecto(
+        inscripcion: any,
+        cuotasPendientes: number,
+        montoPendiente: number,
+        convencion: any,
+    ): Promise<boolean> {
+        try {
+            this.logger.log(`📧 Enviando email directo a ${inscripcion.email}...`)
+
+            // Importar EmailService dinámicamente
+            const { EmailService } = await import('../notifications/email.service')
+            const { getEmailTemplate } = await import('../notifications/templates/email.templates')
+
+            const emailService = new EmailService()
+
+            // Verificar que el servicio esté configurado
+            if (!emailService['transporter']) {
+                this.logger.error(`❌ EmailService no está configurado. Verifica SMTP_USER y SMTP_PASSWORD en .env`)
+                return false
+            }
+
+            const template = getEmailTemplate('pago_recordatorio', {
+                inscripcionId: inscripcion.id,
+                cuotasPendientes,
+                montoPendiente,
+                convencionTitulo: convencion?.titulo || 'Convención',
+            })
+
+            this.logger.log(`📧 Template obtenido: ${template.title}`)
+
+            const resultado = await emailService.sendNotificationEmail(
+                inscripcion.email,
+                template.title,
+                template.body,
+                {
                     inscripcionId: inscripcion.id,
                     cuotasPendientes,
                     montoPendiente,
                     convencionTitulo: convencion?.titulo || 'Convención',
-                })
+                },
+            )
 
-                this.eventEmitter.emit(NotificationEventType.PAGO_RECORDATORIO, event)
-
-                enviados++
-                detalles.push({
-                    email: inscripcion.email,
-                    nombre: `${inscripcion.nombre} ${inscripcion.apellido}`,
-                    cuotasPendientes,
-                    exito: true,
-                })
-                this.logger.log(`📬 Evento PAGO_RECORDATORIO emitido para ${inscripcion.email}`)
-            } catch (error) {
-                fallidos++
-                detalles.push({
-                    email: inscripcion.email,
-                    nombre: `${inscripcion.nombre} ${inscripcion.apellido}`,
-                    cuotasPendientes,
-                    exito: false,
-                })
-                this.logger.error(`Error emitiendo evento de recordatorio a ${inscripcion.email}:`, error)
+            if (resultado) {
+                this.logger.log(`✅ Email enviado exitosamente a ${inscripcion.email}`)
+            } else {
+                this.logger.error(`❌ EmailService retornó false para ${inscripcion.email}`)
             }
+
+            return resultado
+        } catch (error) {
+            this.logger.error(`❌ Error enviando email directo a ${inscripcion.email}:`, {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : undefined,
+            })
+            return false
         }
-
-        this.logger.log(`📊 Recordatorios: ${enviados} enviados, ${fallidos} fallidos`)
-
-        return { enviados, fallidos, detalles }
     }
 
     /**
@@ -1904,6 +2262,91 @@ export class InscripcionesService {
         await this.enviarNotificacionCancelacion(inscripcionCancelada, motivo)
 
         return inscripcionCancelada
+    }
+
+    /**
+     * Rehabilita una inscripción cancelada, restaurándola al estado pendiente
+     */
+    async rehabilitarInscripcion(id: string, userId?: string, userEmail?: string): Promise<Inscripcion> {
+        this.logger.log(`🔄 Rehabilitando inscripción: ${id}`)
+
+        const inscripcion = await this.findOneInscripcion(id)
+
+        if (inscripcion.estado !== 'cancelado') {
+            throw new BadRequestException('Solo se pueden rehabilitar inscripciones canceladas')
+        }
+
+        const estadoAnterior = inscripcion.estado
+
+        // Rehabilitar la inscripción y sus pagos cancelados
+        const inscripcionRehabilitada = await this.prisma.$transaction(async (tx) => {
+            // Obtener pagos cancelados para rehabilitarlos
+            const pagosCancelados = await tx.pago.findMany({
+                where: {
+                    inscripcionId: id,
+                    estado: EstadoPago.CANCELADO,
+                },
+            })
+
+            // Rehabilitar cada pago cancelado
+            for (const pago of pagosCancelados) {
+                const notas = pago.notas || ''
+                const notasSinCancelacion = notas
+                    .replace(/CANCELACIÓN:.*?(\||$)/g, '')
+                    .replace(/Pago cancelado por cancelación de inscripción/g, '')
+                    .trim()
+                const nuevasNotas = notasSinCancelacion
+                    ? `${notasSinCancelacion}\nRehabilitado: ${new Date().toLocaleString()}`
+                    : `Rehabilitado: ${new Date().toLocaleString()}`
+
+                await tx.pago.update({
+                    where: { id: pago.id },
+                    data: {
+                        estado: EstadoPago.PENDIENTE,
+                        notas: nuevasNotas,
+                    },
+                })
+            }
+
+            // Limpiar la nota de cancelación y agregar nota de rehabilitación
+            const notas = inscripcion.notas || ''
+            const notasSinCancelacion = notas.replace(/CANCELACIÓN:.*?(\||$)/g, '').trim()
+            const nuevasNotasInscripcion = notasSinCancelacion
+                ? `${notasSinCancelacion} | REHABILITADO: ${new Date().toLocaleString()}`
+                : `REHABILITADO: ${new Date().toLocaleString()}`
+
+            // Actualizar inscripción a estado pendiente
+            return tx.inscripcion.update({
+                where: { id },
+                data: {
+                    estado: 'pendiente',
+                    notas: nuevasNotasInscripcion,
+                },
+                include: this.inscripcionIncludes,
+            })
+        })
+
+        // Registrar auditoría
+        await this.auditService.log({
+            entityType: 'INSCRIPCION',
+            entityId: id,
+            action: 'REHABILITAR',
+            userId,
+            userEmail,
+            changes: [{
+                field: 'estado',
+                oldValue: estadoAnterior,
+                newValue: 'pendiente',
+            }],
+            metadata: {
+                inscripcionId: id,
+            },
+        })
+
+        // Log de rehabilitación
+        this.logger.log(`✅ Inscripción ${id} rehabilitada exitosamente, estado restaurado a 'pendiente'`)
+
+        return inscripcionRehabilitada
     }
 
     /**

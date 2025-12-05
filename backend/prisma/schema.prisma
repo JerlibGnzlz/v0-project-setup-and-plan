@@ -187,6 +187,8 @@ model Inscripcion {
   fechaInscripcion DateTime   @default(now()) @map("fecha_inscripcion")
   notas            String?
   sede             String?
+  pais             String?
+  provincia        String?
   tipoInscripcion  String     @default("pastor") @map("tipo_inscripcion")
   updatedAt        DateTime   @updatedAt @map("updated_at")
   numeroCuotas     Int        @default(3) @map("numero_cuotas")

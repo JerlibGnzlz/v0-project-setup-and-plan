@@ -47,14 +47,25 @@ export class InscripcionesController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(":id")
-  update(@Param('id') id: string, @Body() dto: UpdateInscripcionDto) {
-    return this.inscripcionesService.updateInscripcion(id, dto)
+  async update(@Param('id') id: string, @Body() dto: UpdateInscripcionDto, @Request() req) {
+    try {
+      return await this.inscripcionesService.updateInscripcion(id, dto, req.user?.id, req.user?.email)
+    } catch (error) {
+      console.error('[InscripcionesController] Error en update:', error)
+      throw error
+    }
   }
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/cancelar')
   cancelar(@Request() req, @Param('id') id: string, @Body() body: { motivo?: string }) {
     return this.inscripcionesService.cancelarInscripcion(id, body.motivo, req.user?.id, req.user?.email)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/rehabilitar')
+  rehabilitar(@Request() req, @Param('id') id: string) {
+    return this.inscripcionesService.rehabilitarInscripcion(id, req.user?.id, req.user?.email)
   }
 
   @UseGuards(JwtAuthGuard)
@@ -103,8 +114,26 @@ export class InscripcionesController {
 
   @UseGuards(JwtAuthGuard)
   @Post('acciones/enviar-recordatorios')
-  enviarRecordatorios(@Body() body: { convencionId?: string }) {
-    return this.inscripcionesService.enviarRecordatoriosPago(body.convencionId)
+  async enviarRecordatorios(@Body() body: { convencionId?: string }) {
+    try {
+      const resultado = await this.inscripcionesService.enviarRecordatoriosPago(body.convencionId)
+      
+      // Log detallado del resultado
+      console.log('📊 Resultado de recordatorios:', {
+        enviados: resultado.enviados,
+        fallidos: resultado.fallidos,
+        total: resultado.detalles.length,
+      })
+      
+      if (resultado.fallidos > 0) {
+        console.warn('⚠️ Algunos recordatorios fallaron. Revisa los logs del backend para más detalles.')
+      }
+      
+      return resultado
+    } catch (error) {
+      console.error('[InscripcionesController] Error en enviarRecordatorios:', error)
+      throw error
+    }
   }
 
   @UseGuards(JwtAuthGuard)

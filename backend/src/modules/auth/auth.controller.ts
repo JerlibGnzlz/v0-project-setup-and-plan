@@ -70,4 +70,22 @@ export class AuthController {
       avatar: req.user.avatar,
     }
   }
+
+  /**
+   * Logout: invalidar tokens actuales
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post("logout")
+  async logout(@Request() req, @Body() body?: { refreshToken?: string }) {
+    // Extraer token del header
+    const authHeader = req.headers.authorization
+    const accessToken = authHeader?.replace('Bearer ', '') || ''
+
+    await this.authService.logout(accessToken, body?.refreshToken)
+
+    return {
+      message: "Logout exitoso",
+      success: true,
+    }
+  }
 }

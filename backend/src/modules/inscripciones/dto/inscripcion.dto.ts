@@ -38,6 +38,16 @@ export class CreateInscripcionDto {
 
     @IsOptional()
     @IsString()
+    @Length(0, 100, { message: 'El país no puede exceder 100 caracteres' })
+    pais?: string;
+
+    @IsOptional()
+    @IsString()
+    @Length(0, 100, { message: 'La provincia no puede exceder 100 caracteres' })
+    provincia?: string;
+
+    @IsOptional()
+    @IsString()
     @Length(0, 50, { message: 'El tipo de inscripción no puede exceder 50 caracteres' })
     tipoInscripcion?: string;
 

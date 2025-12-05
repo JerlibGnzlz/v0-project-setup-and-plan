@@ -52,11 +52,20 @@ export class EmailService {
     data?: any,
   ): Promise<boolean> {
     if (!this.transporter) {
-      this.logger.warn('No se puede enviar email: servicio no configurado')
+      this.logger.error('❌ No se puede enviar email: servicio no configurado')
+      this.logger.error('   Verifica que SMTP_USER y SMTP_PASSWORD estén configurados en .env')
+      return false
+    }
+
+    // Validar que el email de destino sea válido
+    if (!to || !to.includes('@')) {
+      this.logger.error(`❌ Email de destino inválido: ${to}`)
       return false
     }
 
     try {
+      this.logger.log(`📧 Preparando email para ${to}...`)
+      
       // Si el body ya es HTML completo (de templates centralizados), usarlo directamente
       // Si no, construir usando el método legacy para compatibilidad
       const htmlContent = body.trim().startsWith('<!DOCTYPE') 
@@ -74,17 +83,31 @@ export class EmailService {
         text: textContent,
       }
 
+      this.logger.log(`📧 Enviando email a ${to} desde ${process.env.SMTP_USER}...`)
       const info = await this.transporter.sendMail(mailOptions)
-      this.logger.log(`✅ Email enviado a ${to}: ${info.messageId}`)
+      this.logger.log(`✅ Email enviado exitosamente a ${to}`)
+      this.logger.log(`   Message ID: ${info.messageId}`)
+      this.logger.log(`   Response: ${info.response || 'N/A'}`)
       return true
     } catch (error: any) {
-      this.logger.error(`Error enviando email a ${to}:`, error)
-      if (error.code) {
-        this.logger.error(`Error code: ${error.code}`)
+      this.logger.error(`❌ Error enviando email a ${to}:`, {
+        message: error.message,
+        code: error.code,
+        command: error.command,
+        response: error.response,
+        responseCode: error.responseCode,
+        stack: error.stack,
+      })
+      
+      // Mensajes de error más específicos
+      if (error.code === 'EAUTH') {
+        this.logger.error('   ⚠️ Error de autenticación SMTP. Verifica SMTP_USER y SMTP_PASSWORD')
+      } else if (error.code === 'ECONNECTION') {
+        this.logger.error('   ⚠️ Error de conexión SMTP. Verifica SMTP_HOST y SMTP_PORT')
+      } else if (error.code === 'ETIMEDOUT') {
+        this.logger.error('   ⚠️ Timeout de conexión SMTP. Verifica tu conexión a internet')
       }
-      if (error.response) {
-        this.logger.error(`SMTP Error: ${error.response}`)
-      }
+      
       return false
     }
   }

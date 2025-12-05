@@ -1,14 +1,18 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common"
+import { Injectable, UnauthorizedException, Logger } from "@nestjs/common"
 import { JwtService } from "@nestjs/jwt"
 import { PrismaService } from "../../prisma/prisma.service"
 import * as bcrypt from "bcrypt"
 import { LoginDto, RegisterDto, RegisterDeviceDto } from "./dto/auth.dto"
+import { TokenBlacklistService } from "./services/token-blacklist.service"
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name)
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private tokenBlacklist: TokenBlacklistService,
   ) { }
 
   async register(dto: RegisterDto) {
@@ -43,36 +47,54 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     try {
-      console.log(`[AuthService] Intentando login para: ${dto.email}`)
+      this.logger.log(`🔐 Intentando login para: ${dto.email}`, {
+        email: dto.email,
+        timestamp: new Date().toISOString(),
+      })
 
       const user = await this.prisma.user.findUnique({
         where: { email: dto.email },
       })
 
       if (!user) {
-        console.log(`[AuthService] Usuario no encontrado: ${dto.email}`)
+        this.logger.warn(`❌ Login fallido: usuario no encontrado`, {
+          email: dto.email,
+          timestamp: new Date().toISOString(),
+        })
         throw new UnauthorizedException("Credenciales inválidas")
       }
 
-      console.log(`[AuthService] Usuario encontrado: ${user.email}, rol: ${user.rol}`)
+      this.logger.debug(`✅ Usuario encontrado: ${user.email}`, {
+        userId: user.id,
+        rol: user.rol,
+      })
 
-      // Verificar que bcrypt esté funcionando
+      // Verificar contraseña
       let isPasswordValid = false
       try {
         isPasswordValid = await bcrypt.compare(dto.password, user.password)
-        console.log(`[AuthService] Comparación de contraseña: ${isPasswordValid ? 'válida' : 'inválida'}`)
       } catch (bcryptError) {
-        console.error(`[AuthService] Error al comparar contraseña:`, bcryptError)
+        this.logger.error(`❌ Error al comparar contraseña:`, bcryptError)
         throw new UnauthorizedException("Error al procesar la autenticación")
       }
 
       if (!isPasswordValid) {
-        console.log(`[AuthService] Contraseña inválida para: ${dto.email}`)
+        this.logger.warn(`❌ Login fallido: contraseña inválida`, {
+          email: dto.email,
+          userId: user.id,
+          timestamp: new Date().toISOString(),
+        })
         throw new UnauthorizedException("Credenciales inválidas")
       }
 
       const token = this.generateToken(user.id, user.email, user.rol)
-      console.log(`[AuthService] Login exitoso para: ${dto.email}`)
+      
+      this.logger.log(`✅ Login exitoso`, {
+        userId: user.id,
+        email: user.email,
+        rol: user.rol,
+        timestamp: new Date().toISOString(),
+      })
 
       return {
         access_token: token,
@@ -85,12 +107,14 @@ export class AuthService {
         },
       }
     } catch (error) {
-      // Si ya es una excepción de NestJS, la relanzamos
       if (error instanceof UnauthorizedException) {
         throw error
       }
-      // Para otros errores, los logueamos y lanzamos una excepción genérica
-      console.error("[AuthService] Error en login:", error)
+      this.logger.error(`❌ Error en login:`, {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        email: dto.email,
+        timestamp: new Date().toISOString(),
+      })
       throw new UnauthorizedException("Error al procesar el login")
     }
   }
@@ -138,9 +162,18 @@ export class AuthService {
     }
   }
 
-  // Refrescar access token usando refresh token
+  // Refrescar access token usando refresh token (con rotación)
   async refreshAccessToken(refreshToken: string) {
     try {
+      // Verificar si el refresh token está en blacklist
+      const isBlacklisted = await this.tokenBlacklist.isBlacklisted(refreshToken)
+      if (isBlacklisted) {
+        this.logger.warn(`❌ Refresh token revocado intentado usar`, {
+          timestamp: new Date().toISOString(),
+        })
+        throw new UnauthorizedException("Refresh token revocado")
+      }
+
       const payload = await this.validateRefreshToken(refreshToken)
       const user = await this.validateUser(payload.sub)
 
@@ -148,11 +181,21 @@ export class AuthService {
         throw new UnauthorizedException("Usuario no encontrado")
       }
 
+      // Invalidar el refresh token anterior (rotación)
+      await this.tokenBlacklist.addToBlacklist(refreshToken, 30 * 24 * 60 * 60) // 30 días
+
+      // Generar nuevos tokens
       const { accessToken, refreshToken: newRefreshToken } = this.generateTokenPair(
         user.id,
         user.email,
         user.rol
       )
+
+      this.logger.log(`✅ Tokens refrescados`, {
+        userId: user.id,
+        email: user.email,
+        timestamp: new Date().toISOString(),
+      })
 
       return {
         access_token: accessToken,
@@ -162,7 +205,48 @@ export class AuthService {
       if (error instanceof UnauthorizedException) {
         throw error
       }
+      this.logger.error(`❌ Error al refrescar token:`, {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      })
       throw new UnauthorizedException("Error al refrescar token")
+    }
+  }
+
+  /**
+   * Logout: invalidar access token y refresh token
+   */
+  async logout(accessToken: string, refreshToken?: string): Promise<void> {
+    try {
+      // Decodificar token para obtener expiración
+      let expiresIn = 900 // 15 minutos por defecto
+      try {
+        const payload = this.jwtService.decode(accessToken) as any
+        if (payload && payload.exp) {
+          const now = Math.floor(Date.now() / 1000)
+          expiresIn = Math.max(payload.exp - now, 0)
+        }
+      } catch (e) {
+        // Si no se puede decodificar, usar valor por defecto
+      }
+
+      // Agregar access token a blacklist
+      await this.tokenBlacklist.addToBlacklist(accessToken, expiresIn)
+
+      // Si hay refresh token, también invalidarlo
+      if (refreshToken) {
+        await this.tokenBlacklist.addToBlacklist(refreshToken, 30 * 24 * 60 * 60) // 30 días
+      }
+
+      this.logger.log(`✅ Logout exitoso`, {
+        timestamp: new Date().toISOString(),
+      })
+    } catch (error) {
+      this.logger.error(`❌ Error en logout:`, {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      })
+      // No lanzar error, logout debe siempre tener éxito
     }
   }
 
@@ -178,7 +262,8 @@ export class AuthService {
 
   private generateToken(userId: string, email: string, role: string) {
     const payload = { sub: userId, email, role }
-    return this.jwtService.sign(payload)
+    // Access token con expiración corta (15 minutos) para mayor seguridad
+    return this.jwtService.sign(payload, { expiresIn: '15m' })
   }
 
   // Generar refresh token (preparado para mobile)

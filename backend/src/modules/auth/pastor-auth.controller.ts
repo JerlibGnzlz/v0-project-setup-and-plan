@@ -68,5 +68,22 @@ export class PastorAuthController {
       fotoUrl: req.user.fotoUrl,
     }
   }
+
+  /**
+   * Logout: invalidar tokens actuales
+   */
+  @UseGuards(PastorJwtAuthGuard)
+  @Post('logout')
+  async logout(@Request() req, @Body() body?: { refreshToken?: string }) {
+    const authHeader = req.headers.authorization
+    const accessToken = authHeader?.replace('Bearer ', '') || ''
+
+    await this.pastorAuthService.logout(accessToken, body?.refreshToken)
+
+    return {
+      message: "Logout exitoso",
+      success: true,
+    }
+  }
 }
 

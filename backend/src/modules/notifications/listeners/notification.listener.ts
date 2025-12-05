@@ -55,8 +55,14 @@ export class NotificationListener {
    */
   @OnEvent(NotificationEventType.PAGO_RECORDATORIO)
   async handlePagoRecordatorio(event: PagoRecordatorioEvent) {
-    this.logger.log(`📬 Evento recibido: PAGO_RECORDATORIO para ${event.email}`)
-    await this.queueNotification(event)
+    this.logger.log(`📬 Evento recibido: PAGO_RECORDATORIO para ${event.email} (inscripcionId: ${event.data.inscripcionId})`)
+    try {
+      await this.queueNotification(event)
+      this.logger.log(`✅ Recordatorio encolado exitosamente para ${event.email}`)
+    } catch (error) {
+      this.logger.error(`❌ Error procesando recordatorio para ${event.email}:`, error)
+      // No lanzar el error para que no detenga el procesamiento de otros eventos
+    }
   }
 
   /**
@@ -97,14 +103,23 @@ export class NotificationListener {
 
   /**
    * Agrega la notificación a la cola de procesamiento
+   * Si la cola no está disponible, procesa directamente
    */
   private async queueNotification(event: BaseNotificationEvent) {
     try {
+      // Verificar que la cola esté disponible
+      if (!this.notificationsQueue) {
+        this.logger.warn('⚠️ Cola de notificaciones no disponible, procesando directamente')
+        // Fallback: procesar directamente sin cola
+        await this.processDirectly(event)
+        return
+      }
+
       const jobOptions = {
         attempts: 3, // Reintentar hasta 3 veces
         backoff: {
           type: 'exponential' as const,
-          delay: 1000, // Empezar con 1 segundo (reducido de 2)
+          delay: 1000, // Empezar con 1 segundo
         },
         removeOnComplete: {
           age: 24 * 3600, // Mantener trabajos completados por 24 horas
@@ -125,15 +140,56 @@ export class NotificationListener {
           userId: event.userId,
           data: event.data,
           priority: event.priority || 'normal',
-          channels: event.channels || ['email', 'push', 'web'],
+          channels: event.channels || ['email'], // Solo email para recordatorios masivos
         },
         jobOptions,
       )
 
       this.logger.log(`✅ Notificación encolada para ${event.email} (tipo: ${event.type})`)
     } catch (error) {
-      this.logger.error(`❌ Error encolando notificación para ${event.email}:`, error)
-      // No lanzar error para no interrumpir el flujo principal
+      this.logger.error(`❌ Error encolando notificación para ${event.email}, procesando directamente:`, error)
+      // Fallback: procesar directamente si la cola falla
+      try {
+        await this.processDirectly(event)
+      } catch (fallbackError) {
+        this.logger.error(`❌ Error en fallback directo para ${event.email}:`, fallbackError)
+        // No lanzar error para no interrumpir el flujo principal
+      }
+    }
+  }
+
+  /**
+   * Procesa la notificación directamente sin cola (fallback)
+   */
+  private async processDirectly(event: BaseNotificationEvent): Promise<boolean> {
+    try {
+      // Importar dinámicamente para evitar dependencias circulares
+      const emailServiceModule = await import('../email.service')
+      const templatesModule = await import('../templates/email.templates')
+      
+      const EmailService = emailServiceModule.EmailService
+      const getEmailTemplate = templatesModule.getEmailTemplate
+      
+      const emailService = new EmailService()
+      const template = getEmailTemplate(this.getEventType(event.type), event.data)
+      
+      const emailSent = await emailService.sendNotificationEmail(
+        event.email,
+        template.title,
+        template.body,
+        { ...event.data, type: this.getEventType(event.type) },
+      )
+      
+      if (emailSent) {
+        this.logger.log(`✅ Email enviado directamente a ${event.email} (sin cola)`)
+        return true
+      } else {
+        this.logger.warn(`⚠️ No se pudo enviar email directamente a ${event.email}`)
+        return false
+      }
+    } catch (error) {
+      this.logger.error(`❌ Error en processDirectly para ${event.email}:`, error)
+      return false
     }
   }
 

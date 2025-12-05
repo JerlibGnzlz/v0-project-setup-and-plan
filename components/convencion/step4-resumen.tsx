@@ -194,6 +194,15 @@ export function Step4Resumen({
         datosInscripcion.sede = sedeLimpia.trim()
       }
       
+      // Agregar país y provincia
+      if (formData.pais && formData.pais.trim().length > 0) {
+        datosInscripcion.pais = formData.pais.trim()
+      }
+      
+      if (formData.provincia && formData.provincia.trim().length > 0) {
+        datosInscripcion.provincia = formData.provincia.trim()
+      }
+      
       if (formData.documentoUrl && formData.documentoUrl.trim().length > 0) {
         datosInscripcion.documentoUrl = formData.documentoUrl.trim()
       }
@@ -212,6 +221,8 @@ export function Step4Resumen({
         numeroCuotas: typeof datosInscripcion.numeroCuotas,
         telefono: typeof datosInscripcion.telefono,
         sede: typeof datosInscripcion.sede,
+        pais: typeof datosInscripcion.pais,
+        provincia: typeof datosInscripcion.provincia,
       })
       
       // Validación previa de campos críticos
