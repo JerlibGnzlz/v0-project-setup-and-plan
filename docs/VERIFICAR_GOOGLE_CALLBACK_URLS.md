@@ -197,3 +197,4 @@ Si necesitas cambiar las URLs:
 **Última actualización**: $(date)
 **Script de verificación**: `backend/scripts/verificar-callback-urls.sh`
 
+

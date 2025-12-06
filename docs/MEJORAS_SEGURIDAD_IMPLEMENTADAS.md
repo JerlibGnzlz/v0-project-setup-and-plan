@@ -317,3 +317,4 @@ El sistema de autenticación ahora tiene:
 **Fecha de Implementación**: $(date)
 **Versión**: 2.0.0
 
+

@@ -310,3 +310,4 @@ async enviarRecordatoriosPago(convencionId?: string) {
 **Recomendación:**
 Para producción con emails masivos, reactivar Bull + Redis o usar servicio externo como SendGrid.
 
+

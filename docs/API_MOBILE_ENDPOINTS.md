@@ -275,3 +275,4 @@ Obtener historial de notificaciones.
 4. **CORS:** El backend ya está configurado para aceptar requests de mobile
 5. **Rate Limiting:** Implementar retry con exponential backoff
 
+

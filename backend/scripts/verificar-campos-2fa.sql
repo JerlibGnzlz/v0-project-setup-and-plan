@@ -18,3 +18,4 @@ AND column_name IN ('two_factor_enabled', 'two_factor_secret');
 -- ADD COLUMN IF NOT EXISTS two_factor_secret TEXT;
 
 
+

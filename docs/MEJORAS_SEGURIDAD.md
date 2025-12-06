@@ -80,3 +80,4 @@ Si en el futuro quieres más seguridad, puedes agregar:
 
 **Todas estas mejoras son sencillas de implementar y mantener, pero muy efectivas para proteger tu aplicación.**
 
+

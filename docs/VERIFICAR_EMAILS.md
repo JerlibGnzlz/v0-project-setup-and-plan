@@ -101,3 +101,4 @@ Cuando envíes recordatorios, busca estos logs en el backend:
 
 Si ves `❌` en los logs, revisa el mensaje de error específico.
 
+

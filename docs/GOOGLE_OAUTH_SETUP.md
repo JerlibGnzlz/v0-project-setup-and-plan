@@ -79,3 +79,4 @@ En producción, actualiza `FRONTEND_URL` con tu dominio real.
 - Si un usuario ya tiene cuenta con email y luego usa Google OAuth, se vinculará automáticamente
 - El email se marca como verificado automáticamente cuando se usa Google OAuth
 
+

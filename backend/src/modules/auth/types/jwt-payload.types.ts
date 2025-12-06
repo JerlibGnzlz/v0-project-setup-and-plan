@@ -43,3 +43,4 @@ export interface InvitadoJwtPayload extends BaseJwtPayload {
 export type JwtPayload = AdminJwtPayload | PastorJwtPayload | InvitadoJwtPayload
 
 
+
