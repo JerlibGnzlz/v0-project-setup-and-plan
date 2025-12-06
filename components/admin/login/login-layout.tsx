@@ -36,3 +36,4 @@ export function LoginLayout({ children }: LoginLayoutProps) {
     </div>
   )
 }
+

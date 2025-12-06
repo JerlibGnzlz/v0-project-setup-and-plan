@@ -138,3 +138,4 @@ FRONTEND_URL="https://tu-dominio.com"
 
 - [Google OAuth 2.0 Documentation](https://developers.google.com/identity/protocols/oauth2)
 - [Passport Google Strategy](http://www.passportjs.org/packages/passport-google-oauth20/)
+

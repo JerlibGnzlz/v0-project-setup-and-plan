@@ -103,3 +103,4 @@ ALTER TABLE convenciones ADD COLUMN fecha_archivado TIMESTAMP;
 - **Exportación**: Ofrecer opción de exportar datos antes de archivar
 - **Notificaciones**: Notificar a administradores cuando se archive una convención
 - **Reportes**: Mantener capacidad de generar reportes de convenciones archivadas
+

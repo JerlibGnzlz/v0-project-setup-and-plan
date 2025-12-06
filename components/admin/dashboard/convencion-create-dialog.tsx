@@ -8,15 +8,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { convencionSchema, type ConvencionFormData } from '@/lib/validations/convencion'
-import { Calendar } from 'lucide-react'
-import type { UseMutationResult } from '@tanstack/react-query'
 
 interface ConvencionCreateDialogProps {
   open: boolean
@@ -163,4 +160,5 @@ export function ConvencionCreateDialog({
     </Dialog>
   )
 }
+
 

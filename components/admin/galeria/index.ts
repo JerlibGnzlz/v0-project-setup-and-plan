@@ -8,3 +8,4 @@ export * from './galeria-upload-video-dialog'
 export * from './galeria-edit-video-dialog'
 export * from './galeria-delete-dialog'
 
+

@@ -42,3 +42,4 @@ export enum GoogleOAuthErrorType {
   AUTH_FAILED = 'AUTH_FAILED',
   TOKEN_GENERATION_FAILED = 'TOKEN_GENERATION_FAILED',
 }
+

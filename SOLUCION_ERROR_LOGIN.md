@@ -82,3 +82,4 @@ El código ahora es **compatible** con bases de datos que no tienen los campos 2
 ---
 
 **El login debería funcionar ahora.** Si aún hay problemas, comparte el error completo y te ayudo a resolverlo.
+

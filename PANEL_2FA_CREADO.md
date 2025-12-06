@@ -193,3 +193,4 @@ He creado un panel completo de configuración de seguridad para gestionar 2FA de
 **¡Todo listo para usar!** 🎉
 
 Si tienes algún problema o quieres agregar más funcionalidades, solo avísame.
+

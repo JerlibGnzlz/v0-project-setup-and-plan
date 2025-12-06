@@ -204,3 +204,4 @@ Usa la **Opción 2** (SQL directo) - es más simple y funciona igual.
 ---
 
 **¿Necesitas ayuda con algún paso?** Solo dime cuál y te ayudo.
+

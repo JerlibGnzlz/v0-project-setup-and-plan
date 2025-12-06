@@ -264,3 +264,4 @@ echo $REDIS_PORT
 - [NestJS Bull Module](https://docs.nestjs.com/techniques/queues)
 - [Gmail SMTP Setup](https://support.google.com/mail/answer/7126229)
 - [Redis Documentation](https://redis.io/docs/)
+

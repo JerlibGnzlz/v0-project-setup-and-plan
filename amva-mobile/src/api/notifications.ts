@@ -48,3 +48,4 @@ export const notificationsApi = {
     await apiClient.patch('/notifications/mark-all-read')
   },
 }
+

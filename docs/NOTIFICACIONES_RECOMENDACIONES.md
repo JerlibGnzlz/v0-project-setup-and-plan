@@ -213,3 +213,4 @@ Considera trackear:
 3. ✅ Mejorar UI de notificaciones con acciones rápidas
 4. ⏳ Agregar preferencias de notificaciones
 5. ⏳ Implementar notificaciones programadas
+

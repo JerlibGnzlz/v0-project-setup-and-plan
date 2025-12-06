@@ -111,3 +111,4 @@ npm run start:dev
 ---
 
 **Última actualización:** Diciembre 2024
+

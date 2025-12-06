@@ -169,3 +169,4 @@ npx prisma generate
 4. **Logs de Seguridad**: Registrar todos los intentos de login con 2FA
 
 ¿Quieres que implemente alguno de estos?
+

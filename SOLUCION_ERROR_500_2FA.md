@@ -122,3 +122,4 @@ Una vez que agregues los campos a la BD:
 ---
 
 **¿Necesitas ayuda para ejecutar el SQL?** Puedo guiarte paso a paso.
+

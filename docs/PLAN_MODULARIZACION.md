@@ -151,3 +151,4 @@ Habilitar gradualmente opciones estrictas en `backend/tsconfig.json`
 
 **Última actualización:** Diciembre 2024
 
+

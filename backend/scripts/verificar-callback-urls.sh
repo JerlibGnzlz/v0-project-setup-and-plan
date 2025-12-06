@@ -149,3 +149,4 @@ fi
 echo -e "${GREEN}✅ Verificación completada${NC}"
 echo ""
 
+

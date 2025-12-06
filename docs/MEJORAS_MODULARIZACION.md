@@ -147,3 +147,4 @@ npm run format:check
 ---
 
 **Última actualización:** Diciembre 2024
+

@@ -273,3 +273,4 @@ const refreshToken = async () => {
 - [ ] Implementar Google OAuth (opcional)
 - [ ] Agregar rate limiting
 - [ ] Agregar logging de intentos de login
+

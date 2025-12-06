@@ -248,3 +248,4 @@ Google OAuth es **excelente** para:
 
 **Última actualización:** Diciembre 2024
 **Recomendación:** Mantener sistema actual + implementar 2FA
+

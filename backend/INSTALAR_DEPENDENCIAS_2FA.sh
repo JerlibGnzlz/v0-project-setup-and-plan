@@ -34,3 +34,4 @@ npx prisma generate
 echo ""
 echo "✅ ¡Listo! Ahora puedes reiniciar el backend"
 
+

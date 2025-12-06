@@ -177,3 +177,4 @@ cd backend && grep -r ": any" src --include="*.ts" | wc -l
 
 **Última actualización:** Diciembre 2024
 
+

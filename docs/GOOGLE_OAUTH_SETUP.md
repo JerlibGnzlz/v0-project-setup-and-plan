@@ -78,3 +78,4 @@ En producción, actualiza `FRONTEND_URL` con tu dominio real.
 - El `googleId` se almacena en la tabla `invitado_auth`
 - Si un usuario ya tiene cuenta con email y luego usa Google OAuth, se vinculará automáticamente
 - El email se marca como verificado automáticamente cuando se usa Google OAuth
+

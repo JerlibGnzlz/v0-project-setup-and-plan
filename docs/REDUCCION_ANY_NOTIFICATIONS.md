@@ -191,3 +191,4 @@ cd backend && npx tsc --noEmit
 
 **Última actualización:** Diciembre 2024
 
+

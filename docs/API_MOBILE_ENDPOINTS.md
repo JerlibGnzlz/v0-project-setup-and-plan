@@ -274,3 +274,4 @@ Obtener historial de notificaciones.
 3. **Refresh:** El access token expira en 15-30 min, usar refresh token para renovar
 4. **CORS:** El backend ya está configurado para aceptar requests de mobile
 5. **Rate Limiting:** Implementar retry con exponential backoff
+

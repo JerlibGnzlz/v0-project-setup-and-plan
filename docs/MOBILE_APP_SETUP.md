@@ -414,3 +414,4 @@ El dashboard automáticamente mostrará:
 5. **Integrar con backend:** Usar APIs existentes
 6. **Testing:** Probar en dispositivos reales
 7. **Distribución:** Beta testing con TestFlight/Play Console
+

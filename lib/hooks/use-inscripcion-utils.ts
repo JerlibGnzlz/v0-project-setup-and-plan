@@ -65,3 +65,4 @@ export function esNueva(inscripcion: Inscripcion): boolean {
   return fechaInsc >= hace24Horas
 }
 
+
