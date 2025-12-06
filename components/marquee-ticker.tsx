@@ -4,7 +4,7 @@ import { Globe } from 'lucide-react'
 
 const words = [
   'MISIONES',
-  'CONVENCIONES', 
+  'CONVENCIONES',
   'FORMACIÓN',
   'LIDERAZGO',
   'FE',
@@ -21,7 +21,7 @@ export function MarqueeTicker() {
       {/* Gradient overlays for fade effect */}
       <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0a1628] to-transparent z-10" />
       <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0a1628] to-transparent z-10" />
-      
+
       {/* Top border glow - colores del mundo: azul y verde */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
       {/* Bottom border glow */}
@@ -40,7 +40,7 @@ export function MarqueeTicker() {
             </div>
           ))}
         </div>
-        
+
         {/* Duplicate for seamless loop */}
         <div className="flex items-center gap-8 pr-8">
           {words.map((word, index) => (
@@ -64,11 +64,11 @@ export function MarqueeTicker() {
             transform: translateX(-50%);
           }
         }
-        
+
         .animate-marquee {
           animation: marquee 30s linear infinite;
         }
-        
+
         .animate-marquee:hover {
           animation-play-state: paused;
         }

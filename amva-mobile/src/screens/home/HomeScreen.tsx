@@ -1,5 +1,13 @@
 import React, { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, Dimensions } from 'react-native'
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Animated,
+  Dimensions,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Calendar, Newspaper, User, Sparkles, ArrowRight, Globe, Bell } from 'lucide-react-native'
@@ -160,11 +168,7 @@ export function HomeScreen({ navigation }: Props) {
                   },
                 ]}
               >
-                <TouchableOpacity
-                  style={styles.card}
-                  onPress={card.onPress}
-                  activeOpacity={0.8}
-                >
+                <TouchableOpacity style={styles.card} onPress={card.onPress} activeOpacity={0.8}>
                   <LinearGradient
                     colors={[card.gradient[0], card.gradient[1], 'rgba(15, 23, 42, 0.8)']}
                     start={{ x: 0, y: 0 }}
@@ -201,9 +205,7 @@ export function HomeScreen({ navigation }: Props) {
         >
           <View style={styles.footerContent}>
             <Globe size={20} color="rgba(255, 255, 255, 0.5)" />
-            <Text style={styles.footerText}>
-              Transformando vidas desde 1995
-            </Text>
+            <Text style={styles.footerText}>Transformando vidas desde 1995</Text>
           </View>
         </Animated.View>
       </ScrollView>
@@ -377,5 +379,3 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 })
-
-

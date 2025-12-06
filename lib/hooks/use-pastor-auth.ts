@@ -1,10 +1,14 @@
-"use client"
+'use client'
 
-import { create } from "zustand"
-import { pastorAuthApi, type PastorLoginRequest, type PastorLoginResponse } from "@/lib/api/pastor-auth"
+import { create } from 'zustand'
+import {
+  pastorAuthApi,
+  type PastorLoginRequest,
+  type PastorLoginResponse,
+} from '@/lib/api/pastor-auth'
 
 interface PastorAuthState {
-  pastor: PastorLoginResponse["pastor"] | null
+  pastor: PastorLoginResponse['pastor'] | null
   token: string | null
   refreshToken: string | null
   isAuthenticated: boolean
@@ -17,20 +21,23 @@ interface PastorAuthState {
 
 // Función para obtener el token del storage
 const getStoredToken = () => {
-  if (typeof window === "undefined") return null
-  return localStorage.getItem("pastor_auth_token") || sessionStorage.getItem("pastor_auth_token")
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('pastor_auth_token') || sessionStorage.getItem('pastor_auth_token')
 }
 
 // Función para obtener el refresh token
 const getStoredRefreshToken = () => {
-  if (typeof window === "undefined") return null
-  return localStorage.getItem("pastor_refresh_token") || sessionStorage.getItem("pastor_refresh_token")
+  if (typeof window === 'undefined') return null
+  return (
+    localStorage.getItem('pastor_refresh_token') || sessionStorage.getItem('pastor_refresh_token')
+  )
 }
 
 // Función para obtener el pastor guardado
 const getStoredPastor = () => {
-  if (typeof window === "undefined") return null
-  const pastorData = localStorage.getItem("pastor_auth_user") || sessionStorage.getItem("pastor_auth_user")
+  if (typeof window === 'undefined') return null
+  const pastorData =
+    localStorage.getItem('pastor_auth_user') || sessionStorage.getItem('pastor_auth_user')
   if (pastorData) {
     try {
       return JSON.parse(pastorData)
@@ -41,7 +48,7 @@ const getStoredPastor = () => {
   return null
 }
 
-export const usePastorAuth = create<PastorAuthState>()((set) => ({
+export const usePastorAuth = create<PastorAuthState>()(set => ({
   pastor: null,
   token: null,
   refreshToken: null,
@@ -52,17 +59,17 @@ export const usePastorAuth = create<PastorAuthState>()((set) => ({
     const response = await pastorAuthApi.login(data)
 
     // Limpiar ambos storages primero
-    localStorage.removeItem("pastor_auth_token")
-    localStorage.removeItem("pastor_refresh_token")
-    localStorage.removeItem("pastor_auth_user")
-    sessionStorage.removeItem("pastor_auth_token")
-    sessionStorage.removeItem("pastor_refresh_token")
-    sessionStorage.removeItem("pastor_auth_user")
+    localStorage.removeItem('pastor_auth_token')
+    localStorage.removeItem('pastor_refresh_token')
+    localStorage.removeItem('pastor_auth_user')
+    sessionStorage.removeItem('pastor_auth_token')
+    sessionStorage.removeItem('pastor_refresh_token')
+    sessionStorage.removeItem('pastor_auth_user')
 
     // Usar localStorage para persistencia
-    localStorage.setItem("pastor_auth_token", response.access_token)
-    localStorage.setItem("pastor_refresh_token", response.refresh_token)
-    localStorage.setItem("pastor_auth_user", JSON.stringify(response.pastor))
+    localStorage.setItem('pastor_auth_token', response.access_token)
+    localStorage.setItem('pastor_refresh_token', response.refresh_token)
+    localStorage.setItem('pastor_auth_user', JSON.stringify(response.pastor))
 
     set({
       pastor: response.pastor,
@@ -74,12 +81,12 @@ export const usePastorAuth = create<PastorAuthState>()((set) => ({
 
   logout: () => {
     // Limpiar ambos storages
-    localStorage.removeItem("pastor_auth_token")
-    localStorage.removeItem("pastor_refresh_token")
-    localStorage.removeItem("pastor_auth_user")
-    sessionStorage.removeItem("pastor_auth_token")
-    sessionStorage.removeItem("pastor_refresh_token")
-    sessionStorage.removeItem("pastor_auth_user")
+    localStorage.removeItem('pastor_auth_token')
+    localStorage.removeItem('pastor_refresh_token')
+    localStorage.removeItem('pastor_auth_user')
+    sessionStorage.removeItem('pastor_auth_token')
+    sessionStorage.removeItem('pastor_refresh_token')
+    sessionStorage.removeItem('pastor_auth_user')
 
     set({
       pastor: null,
@@ -120,15 +127,8 @@ export const usePastorAuth = create<PastorAuthState>()((set) => ({
 }))
 
 // Inicializar al cargar (solo en cliente)
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   setTimeout(() => {
     usePastorAuth.getState().checkAuth()
   }, 0)
 }
-
-
-
-
-
-
-

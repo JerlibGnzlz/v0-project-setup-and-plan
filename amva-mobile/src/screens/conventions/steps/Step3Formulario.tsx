@@ -1,5 +1,18 @@
 import React, { useState, useRef } from 'react'
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform, Keyboard } from 'react-native'
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+} from 'react-native'
 import { Picker } from '@react-native-picker/picker'
 import { type Convencion } from '@api/convenciones'
 import { type Pastor } from '@api/auth'
@@ -14,10 +27,16 @@ interface Step3FormularioProps {
   onBack: () => void
 }
 
-export function Step3Formulario({ convencion, pastor, initialData, onComplete, onBack }: Step3FormularioProps) {
+export function Step3Formulario({
+  convencion,
+  pastor,
+  initialData,
+  onComplete,
+  onBack,
+}: Step3FormularioProps) {
   const scrollViewRef = useRef<ScrollView>(null)
   const inputRefs = useRef<{ [key: string]: TextInput | null }>({})
-  
+
   // Pre-llenar con datos del pastor
   const nombreCompleto = pastor.nombre?.split(' ') || []
   const nombreDefault = nombreCompleto[0] || ''
@@ -30,7 +49,12 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
     telefono: initialData?.telefono || (pastor as any).telefono || '',
     sede: initialData?.sede || pastor.sede || '',
     tipoInscripcion: initialData?.tipoInscripcion || 'pastor',
-    numeroCuotas: typeof initialData?.numeroCuotas === 'number' ? initialData.numeroCuotas : (initialData?.numeroCuotas ? parseInt(String(initialData.numeroCuotas), 10) : 3),
+    numeroCuotas:
+      typeof initialData?.numeroCuotas === 'number'
+        ? initialData.numeroCuotas
+        : initialData?.numeroCuotas
+          ? parseInt(String(initialData.numeroCuotas), 10)
+          : 3,
     documentoUrl: initialData?.documentoUrl || '',
     notas: initialData?.notas || '',
   })
@@ -61,7 +85,7 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
   const handleInputBlur = (field: string, value: string) => {
     // Validar y cerrar teclado si el campo está completo
     const trimmedValue = value?.trim() || ''
-    
+
     // Si el campo está completo y válido, cerrar el teclado
     if (trimmedValue.length > 0) {
       // Validaciones específicas por campo
@@ -165,7 +189,10 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      Alert.alert('Campos requeridos', 'Por favor completa todos los campos requeridos correctamente.')
+      Alert.alert(
+        'Campos requeridos',
+        'Por favor completa todos los campos requeridos correctamente.'
+      )
       return
     }
 
@@ -180,7 +207,10 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
         telefono: formData.telefono.trim() || undefined,
         sede: formData.sede.trim(),
         tipoInscripcion: formData.tipoInscripcion,
-        numeroCuotas: typeof formData.numeroCuotas === 'number' ? formData.numeroCuotas : parseInt(String(formData.numeroCuotas || 3), 10),
+        numeroCuotas:
+          typeof formData.numeroCuotas === 'number'
+            ? formData.numeroCuotas
+            : parseInt(String(formData.numeroCuotas || 3), 10),
         origenRegistro: 'mobile',
         documentoUrl: formData.documentoUrl || undefined,
         notas: formData.notas.trim() || undefined,
@@ -199,15 +229,17 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
     }
   }
 
-  const costo = typeof convencion.costo === 'number' 
-    ? convencion.costo 
-    : parseFloat(String(convencion.costo || 0))
-  
+  const costo =
+    typeof convencion.costo === 'number'
+      ? convencion.costo
+      : parseFloat(String(convencion.costo || 0))
+
   // Asegurar que numeroCuotas sea un número
-  const numeroCuotasNum = typeof formData.numeroCuotas === 'number' 
-    ? formData.numeroCuotas 
-    : parseInt(String(formData.numeroCuotas || 3), 10)
-  
+  const numeroCuotasNum =
+    typeof formData.numeroCuotas === 'number'
+      ? formData.numeroCuotas
+      : parseInt(String(formData.numeroCuotas || 3), 10)
+
   const montoPorCuota = costo / numeroCuotasNum
 
   const requiredFields = ['nombre', 'apellido', 'email', 'sede']
@@ -232,262 +264,278 @@ export function Step3Formulario({ convencion, pastor, initialData, onComplete, o
         keyboardDismissMode="on-drag"
       >
         <View style={styles.card}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Completa tu Inscripción</Text>
-          <Text style={styles.subtitle}>
-            Por favor, completa los siguientes datos para finalizar tu inscripción
-          </Text>
-        </View>
-
-        {/* Progress Bar */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressText}>
-              {requiredCompleted}/{requiredFields.length} campos requeridos completados
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Completa tu Inscripción</Text>
+            <Text style={styles.subtitle}>
+              Por favor, completa los siguientes datos para finalizar tu inscripción
             </Text>
-            <Text style={styles.progressPercent}>{Math.round(progress)}%</Text>
           </View>
-          <View style={styles.progressBar}>
-            <View
-              style={[styles.progressFill, { width: `${progress}%` }]}
-            />
-          </View>
-        </View>
 
-        {/* Form Fields */}
-        <View style={styles.form}>
-          {/* Nombre y Apellido */}
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>
-                Nombre <Text style={styles.required}>*</Text>
+          {/* Progress Bar */}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressHeader}>
+              <Text style={styles.progressText}>
+                {requiredCompleted}/{requiredFields.length} campos requeridos completados
               </Text>
-              <TextInput
-                ref={(ref) => { inputRefs.current['nombre'] = ref }}
-                style={[styles.input, errors.nombre && styles.inputError]}
-                value={formData.nombre}
-                onChangeText={(value) => handleChange('nombre', value)}
-                placeholder="Tu nombre"
-                placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                autoCapitalize="words"
-                returnKeyType="next"
-                onFocus={() => handleInputFocus('nombre')}
-                onBlur={() => handleInputBlur('nombre', formData.nombre)}
-                onLayout={(e) => handleInputLayout('nombre', e)}
-                onSubmitEditing={() => inputRefs.current['apellido']?.focus()}
-              />
-              {errors.nombre && <Text style={styles.errorText}>{errors.nombre}</Text>}
+              <Text style={styles.progressPercent}>{Math.round(progress)}%</Text>
             </View>
-
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>
-                Apellido <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                ref={(ref) => { inputRefs.current['apellido'] = ref }}
-                style={[styles.input, errors.apellido && styles.inputError]}
-                value={formData.apellido}
-                onChangeText={(value) => handleChange('apellido', value)}
-                placeholder="Tu apellido"
-                placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                autoCapitalize="words"
-                returnKeyType="next"
-                onFocus={() => handleInputFocus('apellido')}
-                onBlur={() => handleInputBlur('apellido', formData.apellido)}
-                onLayout={(e) => handleInputLayout('apellido', e)}
-                onSubmitEditing={() => inputRefs.current['email']?.focus()}
-              />
-              {errors.apellido && <Text style={styles.errorText}>{errors.apellido}</Text>}
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${progress}%` }]} />
             </View>
           </View>
 
-          {/* Email */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Correo electrónico <Text style={styles.required}>*</Text>
-            </Text>
-            <TextInput
-              ref={(ref) => { inputRefs.current['email'] = ref }}
-              style={[styles.input, errors.email && styles.inputError]}
-              value={formData.email}
-              onChangeText={(value) => handleChange('email', value)}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholder="tu@email.com"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              returnKeyType="next"
-              onFocus={() => handleInputFocus('email')}
-              onBlur={() => handleInputBlur('email', formData.email)}
-              onLayout={(e) => handleInputLayout('email', e)}
-              onSubmitEditing={() => inputRefs.current['telefono']?.focus()}
-            />
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-          </View>
-
-          {/* Teléfono */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Teléfono</Text>
-            <TextInput
-              ref={(ref) => { inputRefs.current['telefono'] = ref }}
-              style={styles.input}
-              value={formData.telefono}
-              onChangeText={(value) => handleChange('telefono', value)}
-              keyboardType="phone-pad"
-              placeholder="+54 11 1234-5678"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              returnKeyType="next"
-              onFocus={() => handleInputFocus('telefono')}
-              onBlur={() => handleInputBlur('telefono', formData.telefono)}
-              onLayout={(e) => handleInputLayout('telefono', e)}
-              onSubmitEditing={() => inputRefs.current['sede']?.focus()}
-            />
-          </View>
-
-          {/* Sede */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Iglesia / Sede <Text style={styles.required}>*</Text>
-            </Text>
-            <TextInput
-              ref={(ref) => { inputRefs.current['sede'] = ref }}
-              style={[styles.input, errors.sede && styles.inputError]}
-              value={formData.sede}
-              onChangeText={(value) => handleChange('sede', value)}
-              placeholder="Nombre de tu iglesia o sede"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              autoCapitalize="words"
-              returnKeyType="done"
-              onFocus={() => handleInputFocus('sede')}
-              onBlur={() => handleInputBlur('sede', formData.sede)}
-              onLayout={(e) => handleInputLayout('sede', e)}
-              onSubmitEditing={() => Keyboard.dismiss()}
-            />
-            {errors.sede && <Text style={styles.errorText}>{errors.sede}</Text>}
-          </View>
-
-          {/* Tipo de Inscripción y Número de Cuotas */}
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>Tipo de Inscripción</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={formData.tipoInscripcion}
-                  onValueChange={(value) => handleChange('tipoInscripcion', value)}
-                  style={styles.picker}
-                  dropdownIconColor="#fff"
-                >
-                  <Picker.Item label="Pastor" value="pastor" color="#fff" />
-                  <Picker.Item label="Líder" value="lider" color="#fff" />
-                  <Picker.Item label="Miembro" value="miembro" color="#fff" />
-                </Picker>
-              </View>
-            </View>
-
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>
-                Número de Cuotas <Text style={styles.required}>*</Text>
-              </Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={formData.numeroCuotas}
-                  onValueChange={(value) => handleChange('numeroCuotas', value)}
-                  style={styles.picker}
-                  dropdownIconColor="#fff"
-                >
-                  <Picker.Item label={`1 Cuota ($${Number(costo).toFixed(2)})`} value={1} color="#fff" />
-                  <Picker.Item label={`2 Cuotas ($${Number(costo / 2).toFixed(2)} c/u)`} value={2} color="#fff" />
-                  <Picker.Item label={`3 Cuotas ($${Number(costo / 3).toFixed(2)} c/u)`} value={3} color="#fff" />
-                </Picker>
-              </View>
-            </View>
-          </View>
-
-          {/* Documento/Comprobante (Opcional) */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Documento o Comprobante (Opcional)</Text>
-            <Text style={styles.helperText}>
-              Puedes subir un documento o comprobante relacionado con tu inscripción
-            </Text>
-            
-            {formData.documentoUrl || selectedImageUri ? (
-              <View style={styles.documentPreview}>
-                <Image
-                  source={{ uri: selectedImageUri || formData.documentoUrl }}
-                  style={styles.documentImage}
-                  resizeMode="contain"
+          {/* Form Fields */}
+          <View style={styles.form}>
+            {/* Nombre y Apellido */}
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>
+                  Nombre <Text style={styles.required}>*</Text>
+                </Text>
+                <TextInput
+                  ref={ref => {
+                    inputRefs.current['nombre'] = ref
+                  }}
+                  style={[styles.input, errors.nombre && styles.inputError]}
+                  value={formData.nombre}
+                  onChangeText={value => handleChange('nombre', value)}
+                  placeholder="Tu nombre"
+                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                  onFocus={() => handleInputFocus('nombre')}
+                  onBlur={() => handleInputBlur('nombre', formData.nombre)}
+                  onLayout={e => handleInputLayout('nombre', e)}
+                  onSubmitEditing={() => inputRefs.current['apellido']?.focus()}
                 />
+                {errors.nombre && <Text style={styles.errorText}>{errors.nombre}</Text>}
+              </View>
+
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>
+                  Apellido <Text style={styles.required}>*</Text>
+                </Text>
+                <TextInput
+                  ref={ref => {
+                    inputRefs.current['apellido'] = ref
+                  }}
+                  style={[styles.input, errors.apellido && styles.inputError]}
+                  value={formData.apellido}
+                  onChangeText={value => handleChange('apellido', value)}
+                  placeholder="Tu apellido"
+                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                  onFocus={() => handleInputFocus('apellido')}
+                  onBlur={() => handleInputBlur('apellido', formData.apellido)}
+                  onLayout={e => handleInputLayout('apellido', e)}
+                  onSubmitEditing={() => inputRefs.current['email']?.focus()}
+                />
+                {errors.apellido && <Text style={styles.errorText}>{errors.apellido}</Text>}
+              </View>
+            </View>
+
+            {/* Email */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Correo electrónico <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                ref={ref => {
+                  inputRefs.current['email'] = ref
+                }}
+                style={[styles.input, errors.email && styles.inputError]}
+                value={formData.email}
+                onChangeText={value => handleChange('email', value)}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="tu@email.com"
+                placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                returnKeyType="next"
+                onFocus={() => handleInputFocus('email')}
+                onBlur={() => handleInputBlur('email', formData.email)}
+                onLayout={e => handleInputLayout('email', e)}
+                onSubmitEditing={() => inputRefs.current['telefono']?.focus()}
+              />
+              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            </View>
+
+            {/* Teléfono */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Teléfono</Text>
+              <TextInput
+                ref={ref => {
+                  inputRefs.current['telefono'] = ref
+                }}
+                style={styles.input}
+                value={formData.telefono}
+                onChangeText={value => handleChange('telefono', value)}
+                keyboardType="phone-pad"
+                placeholder="+54 11 1234-5678"
+                placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                returnKeyType="next"
+                onFocus={() => handleInputFocus('telefono')}
+                onBlur={() => handleInputBlur('telefono', formData.telefono)}
+                onLayout={e => handleInputLayout('telefono', e)}
+                onSubmitEditing={() => inputRefs.current['sede']?.focus()}
+              />
+            </View>
+
+            {/* Sede */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Iglesia / Sede <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                ref={ref => {
+                  inputRefs.current['sede'] = ref
+                }}
+                style={[styles.input, errors.sede && styles.inputError]}
+                value={formData.sede}
+                onChangeText={value => handleChange('sede', value)}
+                placeholder="Nombre de tu iglesia o sede"
+                placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                autoCapitalize="words"
+                returnKeyType="done"
+                onFocus={() => handleInputFocus('sede')}
+                onBlur={() => handleInputBlur('sede', formData.sede)}
+                onLayout={e => handleInputLayout('sede', e)}
+                onSubmitEditing={() => Keyboard.dismiss()}
+              />
+              {errors.sede && <Text style={styles.errorText}>{errors.sede}</Text>}
+            </View>
+
+            {/* Tipo de Inscripción y Número de Cuotas */}
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>Tipo de Inscripción</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={formData.tipoInscripcion}
+                    onValueChange={value => handleChange('tipoInscripcion', value)}
+                    style={styles.picker}
+                    dropdownIconColor="#fff"
+                  >
+                    <Picker.Item label="Pastor" value="pastor" color="#fff" />
+                    <Picker.Item label="Líder" value="lider" color="#fff" />
+                    <Picker.Item label="Miembro" value="miembro" color="#fff" />
+                  </Picker>
+                </View>
+              </View>
+
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>
+                  Número de Cuotas <Text style={styles.required}>*</Text>
+                </Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={formData.numeroCuotas}
+                    onValueChange={value => handleChange('numeroCuotas', value)}
+                    style={styles.picker}
+                    dropdownIconColor="#fff"
+                  >
+                    <Picker.Item
+                      label={`1 Cuota ($${Number(costo).toFixed(2)})`}
+                      value={1}
+                      color="#fff"
+                    />
+                    <Picker.Item
+                      label={`2 Cuotas ($${Number(costo / 2).toFixed(2)} c/u)`}
+                      value={2}
+                      color="#fff"
+                    />
+                    <Picker.Item
+                      label={`3 Cuotas ($${Number(costo / 3).toFixed(2)} c/u)`}
+                      value={3}
+                      color="#fff"
+                    />
+                  </Picker>
+                </View>
+              </View>
+            </View>
+
+            {/* Documento/Comprobante (Opcional) */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Documento o Comprobante (Opcional)</Text>
+              <Text style={styles.helperText}>
+                Puedes subir un documento o comprobante relacionado con tu inscripción
+              </Text>
+
+              {formData.documentoUrl || selectedImageUri ? (
+                <View style={styles.documentPreview}>
+                  <Image
+                    source={{ uri: selectedImageUri || formData.documentoUrl }}
+                    style={styles.documentImage}
+                    resizeMode="contain"
+                  />
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={handleRemoveDocument}
+                    disabled={uploadingDocument}
+                  >
+                    <Text style={styles.removeButtonText}>✕ Eliminar</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
                 <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={handleRemoveDocument}
+                  style={[styles.uploadButton, uploadingDocument && styles.uploadButtonDisabled]}
+                  onPress={handleSelectDocument}
                   disabled={uploadingDocument}
                 >
-                  <Text style={styles.removeButtonText}>✕ Eliminar</Text>
+                  {uploadingDocument ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <>
+                      <Text style={styles.uploadButtonText}>📎 Seleccionar Documento</Text>
+                      <Text style={styles.uploadButtonSubtext}>Desde galería o cámara</Text>
+                    </>
+                  )}
                 </TouchableOpacity>
-              </View>
-            ) : (
+              )}
+            </View>
+
+            {/* Notas */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Notas adicionales (opcional)</Text>
+              <TextInput
+                ref={ref => {
+                  inputRefs.current['notas'] = ref
+                }}
+                style={[styles.input, styles.textArea]}
+                value={formData.notas}
+                onChangeText={value => handleChange('notas', value)}
+                multiline
+                numberOfLines={4}
+                placeholder="Información adicional que quieras compartir..."
+                placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                textAlignVertical="top"
+                onFocus={() => handleInputFocus('notas')}
+                onLayout={e => handleInputLayout('notas', e)}
+                returnKeyType="done"
+              />
+            </View>
+
+            {/* Actions */}
+            <View style={styles.actions}>
+              <TouchableOpacity style={styles.backButton} onPress={onBack} disabled={loading}>
+                <Text style={styles.backButtonText}>← Atrás</Text>
+              </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.uploadButton, uploadingDocument && styles.uploadButtonDisabled]}
-                onPress={handleSelectDocument}
-                disabled={uploadingDocument}
+                style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+                onPress={handleSubmit}
+                disabled={loading}
               >
-                {uploadingDocument ? (
+                {loading ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <>
-                    <Text style={styles.uploadButtonText}>📎 Seleccionar Documento</Text>
-                    <Text style={styles.uploadButtonSubtext}>
-                      Desde galería o cámara
-                    </Text>
-                  </>
+                  <Text style={styles.submitButtonText}>✓ Confirmar Inscripción</Text>
                 )}
               </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Notas */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Notas adicionales (opcional)</Text>
-            <TextInput
-              ref={(ref) => { inputRefs.current['notas'] = ref }}
-              style={[styles.input, styles.textArea]}
-              value={formData.notas}
-              onChangeText={(value) => handleChange('notas', value)}
-              multiline
-              numberOfLines={4}
-              placeholder="Información adicional que quieras compartir..."
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              textAlignVertical="top"
-              onFocus={() => handleInputFocus('notas')}
-              onLayout={(e) => handleInputLayout('notas', e)}
-              returnKeyType="done"
-            />
-          </View>
-
-          {/* Actions */}
-          <View style={styles.actions}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={onBack}
-              disabled={loading}
-            >
-              <Text style={styles.backButtonText}>← Atrás</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-              onPress={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.submitButtonText}>✓ Confirmar Inscripción</Text>
-              )}
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
       </ScrollView>
     </KeyboardAvoidingView>
   )
@@ -707,4 +755,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 })
-

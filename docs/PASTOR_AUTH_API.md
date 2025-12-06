@@ -7,16 +7,18 @@
 Registrar un nuevo pastor en el sistema. **IMPORTANTE:** El email debe existir previamente en la tabla `Pastores`.
 
 **Request:**
+
 ```json
 {
   "email": "pastor@example.com",
   "password": "Password123",
-  "nombre": "Juan",  // Opcional
-  "apellido": "Pérez"  // Opcional
+  "nombre": "Juan", // Opcional
+  "apellido": "Pérez" // Opcional
 }
 ```
 
 **Validaciones:**
+
 - Email debe ser válido
 - Password mínimo 8 caracteres
 - Password debe contener: mayúscula, minúscula y número
@@ -24,6 +26,7 @@ Registrar un nuevo pastor en el sistema. **IMPORTANTE:** El email debe existir p
 - Pastor debe estar activo
 
 **Response (Éxito):**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -45,6 +48,7 @@ Registrar un nuevo pastor en el sistema. **IMPORTANTE:** El email debe existir p
 ```
 
 **Errores:**
+
 - `400`: Email no existe en Pastores
 - `400`: Pastor inactivo
 - `400`: Ya existe una cuenta con este email
@@ -57,6 +61,7 @@ Registrar un nuevo pastor en el sistema. **IMPORTANTE:** El email debe existir p
 Iniciar sesión como pastor.
 
 **Request:**
+
 ```json
 {
   "email": "pastor@example.com",
@@ -65,6 +70,7 @@ Iniciar sesión como pastor.
 ```
 
 **Response (Éxito):**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -86,6 +92,7 @@ Iniciar sesión como pastor.
 ```
 
 **Errores:**
+
 - `401`: Credenciales inválidas
 - `401`: Pastor inactivo
 
@@ -96,6 +103,7 @@ Iniciar sesión como pastor.
 Refrescar access token usando refresh token.
 
 **Request:**
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -103,6 +111,7 @@ Refrescar access token usando refresh token.
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": "nuevo_token...",
@@ -111,6 +120,7 @@ Refrescar access token usando refresh token.
 ```
 
 **Errores:**
+
 - `401`: Refresh token inválido o expirado
 - `401`: Pastor no encontrado o inactivo
 
@@ -121,11 +131,13 @@ Refrescar access token usando refresh token.
 Obtener perfil del pastor autenticado (requiere autenticación).
 
 **Headers:**
+
 ```
 Authorization: Bearer {access_token}
 ```
 
 **Response:**
+
 ```json
 {
   "id": "uuid",
@@ -143,6 +155,7 @@ Authorization: Bearer {access_token}
 ```
 
 **Errores:**
+
 - `401`: No autenticado
 - `401`: Token inválido o expirado
 
@@ -153,6 +166,7 @@ Authorization: Bearer {access_token}
 Solicitar recuperación de contraseña (en desarrollo).
 
 **Request:**
+
 ```json
 {
   "email": "pastor@example.com"
@@ -160,6 +174,7 @@ Solicitar recuperación de contraseña (en desarrollo).
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Si el email existe, recibirás instrucciones para recuperar tu contraseña."
@@ -173,6 +188,7 @@ Solicitar recuperación de contraseña (en desarrollo).
 Resetear contraseña con token (en desarrollo).
 
 **Request:**
+
 ```json
 {
   "token": "reset_token",
@@ -185,11 +201,13 @@ Resetear contraseña con token (en desarrollo).
 ## 🔒 Seguridad
 
 ### Tokens:
+
 - **Access Token:** Expira en 15 minutos
 - **Refresh Token:** Expira en 30 días
 - Tokens incluyen: `sub` (pastor ID), `email`, `role`, `type`
 
 ### Validaciones:
+
 1. Email debe existir en tabla `Pastores`
 2. Pastor debe estar activo (`activo: true`)
 3. Password mínimo 8 caracteres con mayúscula, minúscula y número
@@ -209,13 +227,13 @@ const login = async (email: string, password: string) => {
     email,
     password,
   })
-  
+
   const { access_token, refresh_token, pastor } = response.data
-  
+
   // Guardar tokens de forma segura
   await SecureStore.setItemAsync('access_token', access_token)
   await SecureStore.setItemAsync('refresh_token', refresh_token)
-  
+
   return pastor
 }
 ```
@@ -225,13 +243,13 @@ const login = async (email: string, password: string) => {
 ```typescript
 const refreshToken = async () => {
   const refreshToken = await SecureStore.getItemAsync('refresh_token')
-  
+
   const response = await axios.post('https://api.vidaabundante.org/api/auth/pastor/refresh', {
     refreshToken,
   })
-  
+
   const { access_token, refresh_token: newRefreshToken } = response.data
-  
+
   await SecureStore.setItemAsync('access_token', access_token)
   await SecureStore.setItemAsync('refresh_token', newRefreshToken)
 }
@@ -255,10 +273,3 @@ const refreshToken = async () => {
 - [ ] Implementar Google OAuth (opcional)
 - [ ] Agregar rate limiting
 - [ ] Agregar logging de intentos de login
-
-
-
-
-
-
-

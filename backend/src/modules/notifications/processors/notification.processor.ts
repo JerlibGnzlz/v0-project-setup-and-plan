@@ -20,7 +20,7 @@ export class NotificationProcessor {
 
   constructor(
     private notificationsService: NotificationsService,
-    private emailService: EmailService,
+    private emailService: EmailService
   ) {}
 
   @Process({ name: 'send-notification', concurrency: 10 })
@@ -43,7 +43,7 @@ export class NotificationProcessor {
             email,
             template.title,
             template.body,
-            { ...data, type },
+            { ...data, type }
           )
           results.email = emailSent
           this.logger.log(`📧 Email ${emailSent ? 'enviado' : 'falló'} para ${email}`)
@@ -60,7 +60,7 @@ export class NotificationProcessor {
             email,
             template.title,
             template.body.replace(/<[^>]*>/g, ''), // Texto plano para push
-            { ...data, type },
+            { ...data, type }
           )
           results.push = pushResult.pushSuccess
           this.logger.log(`📱 Push ${pushResult.pushSuccess ? 'enviado' : 'falló'} para ${email}`)
@@ -77,7 +77,7 @@ export class NotificationProcessor {
             email,
             template.title,
             template.body.replace(/<[^>]*>/g, ''), // Texto plano para web
-            { ...data, type },
+            { ...data, type }
           )
           results.web = true
           this.logger.log(`🌐 Notificación web enviada para ${email}`)
@@ -87,7 +87,7 @@ export class NotificationProcessor {
         }
       }
 
-      const success = Object.values(results).some((r) => r === true)
+      const success = Object.values(results).some(r => r === true)
 
       if (success) {
         this.logger.log(`✅ Notificación ${type} procesada exitosamente para ${email}`)
@@ -102,6 +102,3 @@ export class NotificationProcessor {
     }
   }
 }
-
-
-

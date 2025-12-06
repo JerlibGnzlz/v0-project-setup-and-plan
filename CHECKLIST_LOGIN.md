@@ -16,6 +16,7 @@ pnpm start:dev
 ```
 
 **Deberías ver:**
+
 - ✅ Database connected successfully
 - 🚀 Backend running on http://localhost:4000/api
 
@@ -26,6 +27,7 @@ pnpm dev
 ```
 
 **Deberías ver:**
+
 - ✅ Ready in XXXms
 - Local: http://localhost:3000
 
@@ -42,6 +44,7 @@ pnpm dev
 ## Si no funciona
 
 ### Verificar archivo .env.local
+
 ```bash
 cat .env.local
 # Debe mostrar: NEXT_PUBLIC_API_URL=http://localhost:4000/api
@@ -49,12 +52,14 @@ cat .env.local
 ```
 
 ### Verificar usuario admin
+
 ```bash
 cd backend
 pnpm ts-node scripts/create-admin-user.ts
 ```
 
 ### Verificar que backend responde
+
 ```bash
 curl http://localhost:4000/api/auth/login -X POST \
   -H "Content-Type: application/json" \
@@ -62,6 +67,6 @@ curl http://localhost:4000/api/auth/login -X POST \
 ```
 
 ### Limpiar cache del navegador
+
 - Presiona Ctrl+Shift+R (hard refresh)
 - O limpia localStorage: `localStorage.clear()` en consola
-

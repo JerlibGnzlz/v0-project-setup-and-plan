@@ -44,7 +44,7 @@ export function useNotifications() {
     }
 
     // Registrar para obtener el token de push
-    registerForPushNotificationsAsync().then((token) => {
+    registerForPushNotificationsAsync().then(token => {
       if (token) {
         setExpoPushToken(token)
         // Registrar token en el backend si hay un pastor autenticado
@@ -56,14 +56,14 @@ export function useNotifications() {
 
     // Listener para notificaciones recibidas mientras la app está en primer plano
     if (Notifications.addNotificationReceivedListener) {
-      notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
+      notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
         console.log('📬 Notificación recibida:', notification)
       })
     }
 
     // Listener para cuando el usuario toca una notificación
     if (Notifications.addNotificationResponseReceivedListener) {
-      responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
+      responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
         console.log('👆 Usuario tocó la notificación:', response)
       })
     }
@@ -171,4 +171,3 @@ async function registerTokenInBackend(token: string, email: string) {
     console.error('❌ Error registrando token en el backend:', error)
   }
 }
-

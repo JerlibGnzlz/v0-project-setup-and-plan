@@ -3,7 +3,9 @@
 ## 🎯 Arquitectura Recomendada
 
 ### Opción 1: React Native (Recomendada)
+
 **Ventajas:**
+
 - ✅ Código compartido entre iOS y Android
 - ✅ Acceso a APIs nativas
 - ✅ Excelente rendimiento
@@ -11,6 +13,7 @@
 - ✅ Fácil integración con el backend existente
 
 **Stack Tecnológico:**
+
 - **Framework:** React Native (Expo o CLI)
 - **Navegación:** React Navigation
 - **Estado:** Zustand o Redux Toolkit
@@ -20,21 +23,27 @@
 - **Deep Linking:** React Navigation + Expo Linking
 
 ### Opción 2: Flutter
+
 **Ventajas:**
+
 - ✅ Excelente rendimiento
 - ✅ UI nativa en ambas plataformas
 - ✅ Lenguaje único (Dart)
 
 **Desventajas:**
+
 - ❌ Requiere aprender Dart
 - ❌ Menos código compartido con el frontend web
 
 ### Opción 3: Ionic / Capacitor
+
 **Ventajas:**
+
 - ✅ Usa tecnologías web (React/Vue/Angular)
 - ✅ Código compartido con web
 
 **Desventajas:**
+
 - ❌ Menor rendimiento que nativo
 - ❌ Limitaciones en acceso a APIs nativas
 
@@ -78,6 +87,7 @@ amva-mobile/
 El backend actual usa JWT con expiración de 7 días. Para mobile, es mejor implementar refresh tokens:
 
 **Ventajas:**
+
 - ✅ Tokens de acceso cortos (15-30 min) = más seguro
 - ✅ Refresh tokens largos (7-30 días) = mejor UX
 - ✅ Puede revocarse si el dispositivo se pierde
@@ -85,10 +95,12 @@ El backend actual usa JWT con expiración de 7 días. Para mobile, es mejor impl
 ### 2. Almacenamiento Seguro
 
 **React Native:**
+
 - `@react-native-async-storage/async-storage` para datos simples
 - `react-native-keychain` o `expo-secure-store` para tokens
 
 **Ejemplo:**
+
 ```typescript
 import * as SecureStore from 'expo-secure-store'
 
@@ -125,12 +137,12 @@ El backend ya está preparado para deep linking. Solo necesitas:
 import * as Linking from 'expo-linking'
 
 // Escuchar deep links
-Linking.addEventListener('url', (event) => {
+Linking.addEventListener('url', event => {
   const { path, queryParams } = Linking.parse(event.url)
-  
+
   if (path === 'convencion' && queryParams?.id) {
-    navigation.navigate('ConvencionInscripcion', { 
-      convencionId: queryParams.id 
+    navigation.navigate('ConvencionInscripcion', {
+      convencionId: queryParams.id,
     })
   }
 })
@@ -160,7 +172,7 @@ export const apiClient = axios.create({
 })
 
 // Interceptor para agregar token
-apiClient.interceptors.request.use(async (config) => {
+apiClient.interceptors.request.use(async config => {
   const token = await SecureStore.getItemAsync('auth_token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -170,8 +182,8 @@ apiClient.interceptors.request.use(async (config) => {
 
 // Interceptor para manejar errores
 apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
+  response => response,
+  async error => {
     if (error.response?.status === 401) {
       // Token expirado - intentar refresh o logout
       await SecureStore.deleteItemAsync('auth_token')
@@ -191,6 +203,7 @@ apiClient.interceptors.response.use(
 **Backend:** Agregar endpoint para registrar tokens de dispositivo
 
 **Frontend Mobile:**
+
 ```typescript
 import * as Notifications from 'expo-notifications'
 
@@ -215,7 +228,7 @@ const pickImage = async () => {
     allowsEditing: true,
     quality: 0.8,
   })
-  
+
   if (!result.canceled) {
     return result.assets[0]
   }
@@ -227,6 +240,7 @@ const pickImage = async () => {
 ## 🚀 Pasos de Implementación
 
 ### Fase 1: Preparación del Backend
+
 1. ✅ Agregar refresh tokens
 2. ✅ Endpoint para notificaciones push
 3. ✅ Mejorar CORS para mobile
@@ -234,6 +248,7 @@ const pickImage = async () => {
 5. ✅ Documentación API (Swagger)
 
 ### Fase 2: Setup de React Native
+
 1. ✅ Crear proyecto con Expo
 2. ✅ Configurar navegación
 3. ✅ Setup de API client
@@ -241,6 +256,7 @@ const pickImage = async () => {
 5. ✅ Deep linking básico
 
 ### Fase 3: Pantallas Principales
+
 1. ✅ Login/Registro
 2. ✅ Home/Dashboard
 3. ✅ Noticias
@@ -249,6 +265,7 @@ const pickImage = async () => {
 6. ✅ Equipo Pastoral
 
 ### Fase 4: Funcionalidades Avanzadas
+
 1. ✅ Notificaciones push
 2. ✅ Modo offline
 3. ✅ Sincronización de datos
@@ -260,6 +277,7 @@ const pickImage = async () => {
 ## 🔒 Seguridad para Mobile
 
 ### 1. Certificate Pinning (Producción)
+
 Prevenir ataques man-in-the-middle:
 
 ```typescript
@@ -275,10 +293,12 @@ const response = await fetch(url, {
 ```
 
 ### 2. Obfuscación de Código
+
 - Usar ProGuard (Android)
 - Usar obfuscación de JavaScript (React Native)
 
 ### 3. Detección de Root/Jailbreak
+
 ```typescript
 import * as Device from 'expo-device'
 
@@ -292,6 +312,7 @@ if (Device.isRootedExperimentalAsync()) {
 ## 📊 Analytics y Monitoreo
 
 ### Recomendaciones:
+
 - **Sentry:** Para tracking de errores
 - **Firebase Analytics:** Para métricas de uso
 - **Mixpanel:** Para análisis de comportamiento
@@ -301,6 +322,7 @@ if (Device.isRootedExperimentalAsync()) {
 ## 🧪 Testing
 
 ### Estrategia:
+
 1. **Unit Tests:** Jest + React Native Testing Library
 2. **Integration Tests:** Detox (E2E)
 3. **Manual Testing:** TestFlight (iOS) + Internal Testing (Android)
@@ -310,10 +332,12 @@ if (Device.isRootedExperimentalAsync()) {
 ## 📦 Distribución
 
 ### iOS:
+
 - **TestFlight:** Para beta testing
 - **App Store:** Para producción
 
 ### Android:
+
 - **Google Play Internal Testing:** Para beta
 - **Google Play:** Para producción
 
@@ -327,11 +351,12 @@ if (Device.isRootedExperimentalAsync()) {
 // Al crear inscripción desde mobile
 await apiClient.post('/inscripciones', {
   ...datosInscripcion,
-  origenRegistro: 'mobile' // ✅ Ya implementado
+  origenRegistro: 'mobile', // ✅ Ya implementado
 })
 ```
 
 El dashboard automáticamente mostrará:
+
 - **Web/Dashboard:** Inscripciones desde web o dashboard
 - **App Móvil:** Inscripciones desde la app
 
@@ -340,6 +365,7 @@ El dashboard automáticamente mostrará:
 ## 📝 Checklist de Implementación
 
 ### Backend
+
 - [ ] Agregar refresh tokens
 - [ ] Endpoint para notificaciones push
 - [ ] Mejorar CORS para mobile
@@ -348,6 +374,7 @@ El dashboard automáticamente mostrará:
 - [ ] Health check endpoint
 
 ### Mobile App
+
 - [ ] Setup proyecto React Native
 - [ ] Configurar navegación
 - [ ] Implementar autenticación
@@ -364,12 +391,14 @@ El dashboard automáticamente mostrará:
 ## 🆘 Soporte y Recursos
 
 ### Documentación Útil:
+
 - [React Native Docs](https://reactnative.dev/)
 - [Expo Docs](https://docs.expo.dev/)
 - [React Navigation](https://reactnavigation.org/)
 - [TanStack Query](https://tanstack.com/query/latest)
 
 ### Comunidad:
+
 - React Native Community
 - Expo Forums
 - Stack Overflow
@@ -385,10 +414,3 @@ El dashboard automáticamente mostrará:
 5. **Integrar con backend:** Usar APIs existentes
 6. **Testing:** Probar en dispositivos reales
 7. **Distribución:** Beta testing con TestFlight/Play Console
-
-
-
-
-
-
-

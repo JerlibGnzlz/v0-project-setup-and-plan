@@ -3,7 +3,7 @@ import type { Express } from 'express'
 
 /**
  * Servicio para validación avanzada de archivos
- * 
+ *
  * Valida:
  * - Tipo de archivo por extensión
  * - Tipo MIME
@@ -18,26 +18,38 @@ export class FileValidatorService {
 
   // Magic bytes para diferentes tipos de archivo
   private readonly magicBytes: Record<string, number[][]> = {
-    'image/jpeg': [[0xFF, 0xD8, 0xFF]],
-    'image/png': [[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]],
-    'image/webp': [[0x52, 0x49, 0x46, 0x46], [0x57, 0x45, 0x42, 0x50]], // RIFF...WEBP
-    'image/gif': [[0x47, 0x49, 0x46, 0x38, 0x37, 0x61], [0x47, 0x49, 0x46, 0x38, 0x39, 0x61]], // GIF87a o GIF89a
-    'video/mp4': [[0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70], [0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70]], // ftyp box
-    'video/webm': [[0x1A, 0x45, 0xDF, 0xA3]],
+    'image/jpeg': [[0xff, 0xd8, 0xff]],
+    'image/png': [[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]],
+    'image/webp': [
+      [0x52, 0x49, 0x46, 0x46],
+      [0x57, 0x45, 0x42, 0x50],
+    ], // RIFF...WEBP
+    'image/gif': [
+      [0x47, 0x49, 0x46, 0x38, 0x37, 0x61],
+      [0x47, 0x49, 0x46, 0x38, 0x39, 0x61],
+    ], // GIF87a o GIF89a
+    'video/mp4': [
+      [0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70],
+      [0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70],
+    ], // ftyp box
+    'video/webm': [[0x1a, 0x45, 0xdf, 0xa3]],
     'application/pdf': [[0x25, 0x50, 0x44, 0x46]], // %PDF
   }
 
   /**
    * Valida una imagen
    */
-  async validateImage(file: Express.Multer.File, options?: {
-    maxSize?: number // en bytes
-    allowedMimes?: string[]
-    minWidth?: number
-    maxWidth?: number
-    minHeight?: number
-    maxHeight?: number
-  }): Promise<void> {
+  async validateImage(
+    file: Express.Multer.File,
+    options?: {
+      maxSize?: number // en bytes
+      allowedMimes?: string[]
+      minWidth?: number
+      maxWidth?: number
+      minHeight?: number
+      maxHeight?: number
+    }
+  ): Promise<void> {
     const {
       maxSize = 5 * 1024 * 1024, // 5MB por defecto
       allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
@@ -55,9 +67,7 @@ export class FileValidatorService {
     // Validar tamaño
     if (file.size > maxSize) {
       const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(2)
-      throw new BadRequestException(
-        `El archivo excede el tamaño máximo de ${maxSizeMB}MB`
-      )
+      throw new BadRequestException(`El archivo excede el tamaño máximo de ${maxSizeMB}MB`)
     }
 
     if (file.size === 0) {
@@ -96,17 +106,22 @@ export class FileValidatorService {
     // Sanitizar nombre de archivo
     this.sanitizeFileName(file.originalname)
 
-    this.logger.log(`✅ Imagen validada: ${file.originalname} (${file.size} bytes, ${file.mimetype})`)
+    this.logger.log(
+      `✅ Imagen validada: ${file.originalname} (${file.size} bytes, ${file.mimetype})`
+    )
   }
 
   /**
    * Valida un video
    */
-  async validateVideo(file: Express.Multer.File, options?: {
-    maxSize?: number // en bytes
-    allowedMimes?: string[]
-    maxDuration?: number // en segundos
-  }): Promise<void> {
+  async validateVideo(
+    file: Express.Multer.File,
+    options?: {
+      maxSize?: number // en bytes
+      allowedMimes?: string[]
+      maxDuration?: number // en segundos
+    }
+  ): Promise<void> {
     const {
       maxSize = 100 * 1024 * 1024, // 100MB por defecto
       allowedMimes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'],
@@ -120,9 +135,7 @@ export class FileValidatorService {
     // Validar tamaño
     if (file.size > maxSize) {
       const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(0)
-      throw new BadRequestException(
-        `El archivo excede el tamaño máximo de ${maxSizeMB}MB`
-      )
+      throw new BadRequestException(`El archivo excede el tamaño máximo de ${maxSizeMB}MB`)
     }
 
     if (file.size === 0) {
@@ -151,16 +164,21 @@ export class FileValidatorService {
     // Sanitizar nombre de archivo
     this.sanitizeFileName(file.originalname)
 
-    this.logger.log(`✅ Video validado: ${file.originalname} (${file.size} bytes, ${file.mimetype})`)
+    this.logger.log(
+      `✅ Video validado: ${file.originalname} (${file.size} bytes, ${file.mimetype})`
+    )
   }
 
   /**
    * Valida un documento (PDF, etc.)
    */
-  async validateDocument(file: Express.Multer.File, options?: {
-    maxSize?: number
-    allowedMimes?: string[]
-  }): Promise<void> {
+  async validateDocument(
+    file: Express.Multer.File,
+    options?: {
+      maxSize?: number
+      allowedMimes?: string[]
+    }
+  ): Promise<void> {
     const {
       maxSize = 5 * 1024 * 1024, // 5MB por defecto
       allowedMimes = ['application/pdf'],
@@ -172,9 +190,7 @@ export class FileValidatorService {
 
     if (file.size > maxSize) {
       const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(2)
-      throw new BadRequestException(
-        `El archivo excede el tamaño máximo de ${maxSizeMB}MB`
-      )
+      throw new BadRequestException(`El archivo excede el tamaño máximo de ${maxSizeMB}MB`)
     }
 
     if (file.size === 0) {
@@ -192,13 +208,18 @@ export class FileValidatorService {
       await this.validateMagicBytes(file, ['application/pdf'])
     }
 
-    this.logger.log(`✅ Documento validado: ${file.originalname} (${file.size} bytes, ${file.mimetype})`)
+    this.logger.log(
+      `✅ Documento validado: ${file.originalname} (${file.size} bytes, ${file.mimetype})`
+    )
   }
 
   /**
    * Valida los magic bytes del archivo (firma del archivo)
    */
-  private async validateMagicBytes(file: Express.Multer.File, allowedMimes: string[]): Promise<void> {
+  private async validateMagicBytes(
+    file: Express.Multer.File,
+    allowedMimes: string[]
+  ): Promise<void> {
     if (!file.buffer || file.buffer.length < 8) {
       throw new BadRequestException('El archivo es demasiado pequeño para ser válido')
     }
@@ -336,7 +357,30 @@ export class FileValidatorService {
     }
 
     // Prevenir nombres de archivo reservados (Windows)
-    const reservedNames = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9']
+    const reservedNames = [
+      'CON',
+      'PRN',
+      'AUX',
+      'NUL',
+      'COM1',
+      'COM2',
+      'COM3',
+      'COM4',
+      'COM5',
+      'COM6',
+      'COM7',
+      'COM8',
+      'COM9',
+      'LPT1',
+      'LPT2',
+      'LPT3',
+      'LPT4',
+      'LPT5',
+      'LPT6',
+      'LPT7',
+      'LPT8',
+      'LPT9',
+    ]
     const nameWithoutExt = filename.split('.')[0].toUpperCase()
     if (reservedNames.includes(nameWithoutExt)) {
       throw new BadRequestException('El nombre de archivo es un nombre reservado del sistema')
@@ -344,8 +388,9 @@ export class FileValidatorService {
 
     // Limitar longitud
     if (filename.length > 255) {
-      throw new BadRequestException('El nombre de archivo es demasiado largo (máximo 255 caracteres)')
+      throw new BadRequestException(
+        'El nombre de archivo es demasiado largo (máximo 255 caracteres)'
+      )
     }
   }
 }
-

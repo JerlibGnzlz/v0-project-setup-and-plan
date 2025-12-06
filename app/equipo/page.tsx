@@ -22,53 +22,56 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { 
-  Users, 
-  Crown, 
-  Globe, 
-  MapPin, 
-  ChevronLeft, 
+import {
+  Users,
+  Crown,
+  Globe,
+  MapPin,
+  ChevronLeft,
   Briefcase,
   Eye,
   ChevronRight,
   Loader2,
   Search,
-  Filter
+  Filter,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { QueryProvider } from '@/lib/providers/query-provider'
 import { getReturnUrl } from '@/lib/utils/scroll-restore'
 
 // Configuración de tipos
-const tipoConfig: Record<TipoPastor, { 
-  icon: any
-  label: string
-  gradient: string
-  bgColor: string
-}> = {
-  DIRECTIVA: { 
-    icon: Crown, 
+const tipoConfig: Record<
+  TipoPastor,
+  {
+    icon: any
+    label: string
+    gradient: string
+    bgColor: string
+  }
+> = {
+  DIRECTIVA: {
+    icon: Crown,
     label: 'Directiva Pastoral',
     gradient: 'from-amber-400 to-orange-500',
-    bgColor: 'bg-amber-500/10'
+    bgColor: 'bg-amber-500/10',
   },
-  PRESIDENTE: { 
-    icon: Globe, 
+  PRESIDENTE: {
+    icon: Globe,
     label: 'Presidentes de País',
     gradient: 'from-purple-400 to-pink-500',
-    bgColor: 'bg-purple-500/10'
+    bgColor: 'bg-purple-500/10',
   },
-  SUPERVISOR: { 
-    icon: MapPin, 
+  SUPERVISOR: {
+    icon: MapPin,
     label: 'Supervisores Regionales',
     gradient: 'from-sky-400 to-blue-500',
-    bgColor: 'bg-sky-500/10'
+    bgColor: 'bg-sky-500/10',
   },
-  PASTOR: { 
-    icon: Users, 
+  PASTOR: {
+    icon: Users,
     label: 'Pastores',
     gradient: 'from-emerald-400 to-teal-500',
-    bgColor: 'bg-emerald-500/10'
+    bgColor: 'bg-emerald-500/10',
   },
 }
 
@@ -117,15 +120,16 @@ function EquipoContent() {
     return pastores.filter((pastor: Pastor) => {
       // Excluir pastores de tipo PASTOR
       if (pastor.tipo === 'PASTOR') return false
-      
+
       const matchTipo = selectedTipo === 'todos' || pastor.tipo === selectedTipo
       const matchPais = selectedPais === 'todos' || pastor.pais === selectedPais
       const matchRegion = selectedRegion === 'todos' || pastor.region === selectedRegion
-      const matchSearch = searchTerm === '' || 
+      const matchSearch =
+        searchTerm === '' ||
         `${pastor.nombre} ${pastor.apellido}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pastor.cargo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pastor.sede?.toLowerCase().includes(searchTerm.toLowerCase())
-      
+
       return matchTipo && matchPais && matchRegion && matchSearch
     })
   }, [pastores, selectedTipo, selectedPais, selectedRegion, searchTerm])
@@ -138,13 +142,13 @@ function EquipoContent() {
       SUPERVISOR: [],
       PASTOR: [],
     }
-    
+
     filteredPastores.forEach((pastor: Pastor) => {
       if (groups[pastor.tipo]) {
         groups[pastor.tipo].push(pastor)
       }
     })
-    
+
     return groups
   }, [filteredPastores])
 
@@ -167,11 +171,11 @@ function EquipoContent() {
       </div>
 
       {/* Grid pattern */}
-      <div 
+      <div
         className="fixed inset-0 opacity-[0.02] pointer-events-none"
         style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px'
+          backgroundSize: '60px 60px',
         }}
       />
 
@@ -191,7 +195,8 @@ function EquipoContent() {
                     Nuestro Equipo
                   </h1>
                   <p className="text-sm text-white/50">
-                    {filteredPastores.length} de {pastores.filter(p => p.tipo !== 'PASTOR').length} miembros
+                    {filteredPastores.length} de {pastores.filter(p => p.tipo !== 'PASTOR').length}{' '}
+                    miembros
                   </p>
                 </div>
               </div>
@@ -213,29 +218,31 @@ function EquipoContent() {
           <div className="container mx-auto px-4 py-4">
             {/* Type badges */}
             <div className="flex flex-wrap gap-2">
-              <Badge 
+              <Badge
                 variant={selectedTipo === 'todos' ? 'default' : 'outline'}
                 className={`cursor-pointer transition-all ${selectedTipo === 'todos' ? 'bg-white/20 text-white' : 'bg-transparent text-white/60 border-white/20 hover:border-white/40'}`}
                 onClick={() => setSelectedTipo('todos')}
               >
                 Todos
               </Badge>
-              {(Object.keys(tipoConfig) as TipoPastor[]).filter(tipo => tipo !== 'PASTOR').map((tipo) => {
-                const config = tipoConfig[tipo]
-                const Icon = config.icon
-                const isActive = selectedTipo === tipo
-                return (
-                  <Badge 
-                    key={tipo}
-                    variant={isActive ? 'default' : 'outline'}
-                    className={`cursor-pointer transition-all gap-1 ${isActive ? `bg-gradient-to-r ${config.gradient} text-white border-0` : 'bg-transparent text-white/60 border-white/20 hover:border-white/40'}`}
-                    onClick={() => setSelectedTipo(tipo)}
-                  >
-                    <Icon className="size-3" />
-                    {config.label.split(' ')[0]}
-                  </Badge>
-                )
-              })}
+              {(Object.keys(tipoConfig) as TipoPastor[])
+                .filter(tipo => tipo !== 'PASTOR')
+                .map(tipo => {
+                  const config = tipoConfig[tipo]
+                  const Icon = config.icon
+                  const isActive = selectedTipo === tipo
+                  return (
+                    <Badge
+                      key={tipo}
+                      variant={isActive ? 'default' : 'outline'}
+                      className={`cursor-pointer transition-all gap-1 ${isActive ? `bg-gradient-to-r ${config.gradient} text-white border-0` : 'bg-transparent text-white/60 border-white/20 hover:border-white/40'}`}
+                      onClick={() => setSelectedTipo(tipo)}
+                    >
+                      <Icon className="size-3" />
+                      {config.label.split(' ')[0]}
+                    </Badge>
+                  )
+                })}
             </div>
           </div>
         </div>
@@ -255,45 +262,54 @@ function EquipoContent() {
           ) : (
             <div className="space-y-12">
               {/* Render by type sections */}
-              {(Object.keys(tipoConfig) as TipoPastor[]).filter(tipo => tipo !== 'PASTOR').map((tipo) => {
-                const pastoresDelTipo = groupedPastores[tipo]
-                if (pastoresDelTipo.length === 0) return null
-                
-                const config = tipoConfig[tipo]
-                const Icon = config.icon
+              {(Object.keys(tipoConfig) as TipoPastor[])
+                .filter(tipo => tipo !== 'PASTOR')
+                .map(tipo => {
+                  const pastoresDelTipo = groupedPastores[tipo]
+                  if (pastoresDelTipo.length === 0) return null
 
-                return (
-                  <section key={tipo}>
-                    {/* Section header */}
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className={`p-2.5 rounded-xl bg-gradient-to-r ${config.gradient}`}>
-                        <Icon className="size-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-bold text-white">{config.label}</h2>
-                        <p className="text-sm text-white/50">{pastoresDelTipo.length} miembros</p>
-                      </div>
-                      <div className={`flex-1 h-px bg-gradient-to-r ${config.gradient} opacity-30 ml-4`} />
-                    </div>
+                  const config = tipoConfig[tipo]
+                  const Icon = config.icon
 
-                    {/* Cards grid - Tamaño uniforme y compacto */}
-                    <div className={`grid gap-4 ${
-                      pastoresDelTipo.length === 1 ? 'grid-cols-1 max-w-sm' :
-                      pastoresDelTipo.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl' :
-                      pastoresDelTipo.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl' :
-                      'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                    }`}>
-                      {pastoresDelTipo.map((pastor: Pastor, index: number) => (
-                        <PastorCard 
-                          key={pastor.id} 
-                          pastor={pastor} 
-                          gradient={cardGradients[index % cardGradients.length]}
+                  return (
+                    <section key={tipo}>
+                      {/* Section header */}
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className={`p-2.5 rounded-xl bg-gradient-to-r ${config.gradient}`}>
+                          <Icon className="size-5 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold text-white">{config.label}</h2>
+                          <p className="text-sm text-white/50">{pastoresDelTipo.length} miembros</p>
+                        </div>
+                        <div
+                          className={`flex-1 h-px bg-gradient-to-r ${config.gradient} opacity-30 ml-4`}
                         />
-                      ))}
-                    </div>
-                  </section>
-                )
-              })}
+                      </div>
+
+                      {/* Cards grid - Tamaño uniforme y compacto */}
+                      <div
+                        className={`grid gap-4 ${
+                          pastoresDelTipo.length === 1
+                            ? 'grid-cols-1 max-w-sm'
+                            : pastoresDelTipo.length === 2
+                              ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl'
+                              : pastoresDelTipo.length === 3
+                                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl'
+                                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                        }`}
+                      >
+                        {pastoresDelTipo.map((pastor: Pastor, index: number) => (
+                          <PastorCard
+                            key={pastor.id}
+                            pastor={pastor}
+                            gradient={cardGradients[index % cardGradients.length]}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  )
+                })}
             </div>
           )}
         </main>
@@ -320,8 +336,10 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
     <div className="group h-full">
       <div className="relative h-full flex flex-col">
         {/* Glow effect */}
-        <div className={`absolute -inset-1 bg-gradient-to-r ${gradient} rounded-2xl blur opacity-0 group-hover:opacity-40 transition-opacity duration-500`} />
-        
+        <div
+          className={`absolute -inset-1 bg-gradient-to-r ${gradient} rounded-2xl blur opacity-0 group-hover:opacity-40 transition-opacity duration-500`}
+        />
+
         {/* Card - Altura fija y compacta */}
         <div className="relative rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300 h-full flex flex-col">
           {/* Image - Altura fija con fondo según tipo */}
@@ -342,15 +360,20 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/10 to-white/5">
                 <span className="text-3xl font-bold text-white/30">
-                  {pastor.nombre?.[0]}{pastor.apellido?.[0]}
+                  {pastor.nombre?.[0]}
+                  {pastor.apellido?.[0]}
                 </span>
               </div>
             )}
-            <div className={`absolute inset-0 bg-gradient-to-t ${gradient} opacity-0 group-hover:opacity-30 transition-opacity duration-500 z-20 pointer-events-none`} />
-            
+            <div
+              className={`absolute inset-0 bg-gradient-to-t ${gradient} opacity-0 group-hover:opacity-30 transition-opacity duration-500 z-20 pointer-events-none`}
+            />
+
             {/* Type badge */}
             <div className="absolute top-2 left-2">
-              <Badge className={`bg-gradient-to-r ${gradient} text-white border-0 text-[10px] px-1.5 py-0.5`}>
+              <Badge
+                className={`bg-gradient-to-r ${gradient} text-white border-0 text-[10px] px-1.5 py-0.5`}
+              >
                 {tipoConfig[pastor.tipo]?.label.split(' ')[0] || pastor.tipo}
               </Badge>
             </div>
@@ -359,7 +382,9 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
           {/* Content - Altura fija y compacta */}
           <div className="p-3 flex flex-col flex-1 min-h-0">
             <h3 className="text-sm font-bold text-white mb-0.5 truncate">{fullName}</h3>
-            <p className={`text-xs font-medium bg-gradient-to-r ${gradient} bg-clip-text text-transparent mb-1.5 truncate`}>
+            <p
+              className={`text-xs font-medium bg-gradient-to-r ${gradient} bg-clip-text text-transparent mb-1.5 truncate`}
+            >
               {pastor.cargo || pastor.ministerio || 'Pastor'}
             </p>
             {location && (
@@ -371,8 +396,8 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
 
             <Dialog>
               <DialogTrigger asChild>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="w-full bg-white/5 hover:bg-white/10 text-white border border-white/10 gap-1.5 text-[10px] h-7 mt-auto"
                 >
                   <Eye className="h-3 w-3" />
@@ -383,7 +408,9 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
               <DialogContent className="max-w-2xl bg-[#0d1f35] border-white/10 text-white">
                 <DialogHeader>
                   <DialogTitle className="text-2xl text-white">{fullName}</DialogTitle>
-                  <DialogDescription className={`text-base bg-gradient-to-r ${gradient} bg-clip-text text-transparent font-medium`}>
+                  <DialogDescription
+                    className={`text-base bg-gradient-to-r ${gradient} bg-clip-text text-transparent font-medium`}
+                  >
                     {pastor.cargo || pastor.ministerio || tipoConfig[pastor.tipo]?.label}
                   </DialogDescription>
                 </DialogHeader>
@@ -403,7 +430,7 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Biografía */}
                   {pastor.biografia && (
                     <div>
@@ -417,7 +444,9 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
                     <div>
                       <h4 className="font-bold text-lg mb-3 text-white">Trayectoria Ministerial</h4>
                       <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                        <p className="text-white/70 leading-relaxed whitespace-pre-line">{pastor.trayectoria}</p>
+                        <p className="text-white/70 leading-relaxed whitespace-pre-line">
+                          {pastor.trayectoria}
+                        </p>
                       </div>
                     </div>
                   )}

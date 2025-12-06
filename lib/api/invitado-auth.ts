@@ -1,4 +1,4 @@
-import { apiClient } from "./client"
+import { apiClient } from './client'
 
 export interface InvitadoRegisterRequest {
   nombre: string
@@ -61,7 +61,10 @@ export const invitadoAuthApi = {
         telefono: data.telefono,
         sede: data.sede,
       })
-      const response = await apiClient.post<InvitadoRegisterResponse>("/auth/invitado/register", data)
+      const response = await apiClient.post<InvitadoRegisterResponse>(
+        '/auth/invitado/register',
+        data
+      )
       console.log('[invitadoAuthApi] Respuesta exitosa:', response.data)
       return response.data
     } catch (error: any) {
@@ -70,7 +73,9 @@ export const invitadoAuthApi = {
     }
   },
 
-  registerComplete: async (data: InvitadoRegisterCompleteRequest): Promise<InvitadoRegisterCompleteResponse> => {
+  registerComplete: async (
+    data: InvitadoRegisterCompleteRequest
+  ): Promise<InvitadoRegisterCompleteResponse> => {
     try {
       console.log('[invitadoAuthApi] Enviando datos a /auth/invitado/register-complete:', {
         nombre: data.nombre,
@@ -79,7 +84,10 @@ export const invitadoAuthApi = {
         telefono: data.telefono,
         sede: data.sede,
       })
-      const response = await apiClient.post<InvitadoRegisterCompleteResponse>("/auth/invitado/register-complete", data)
+      const response = await apiClient.post<InvitadoRegisterCompleteResponse>(
+        '/auth/invitado/register-complete',
+        data
+      )
       console.log('[invitadoAuthApi] Respuesta exitosa:', response.data)
       return response.data
     } catch (error: any) {
@@ -90,7 +98,7 @@ export const invitadoAuthApi = {
 
   login: async (data: InvitadoLoginRequest): Promise<InvitadoLoginResponse> => {
     try {
-      const response = await apiClient.post<InvitadoLoginResponse>("/auth/invitado/login", data)
+      const response = await apiClient.post<InvitadoLoginResponse>('/auth/invitado/login', data)
       return response.data
     } catch (error: any) {
       console.error('[invitadoAuthApi] Error en login:', error)
@@ -101,15 +109,16 @@ export const invitadoAuthApi = {
   getProfile: async (): Promise<Invitado> => {
     try {
       // Asegurarse de que el token esté disponible antes de hacer la petición
-      const token = typeof window !== 'undefined' 
-        ? (localStorage.getItem('invitado_token') || sessionStorage.getItem('invitado_token'))
-        : null
-      
+      const token =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('invitado_token') || sessionStorage.getItem('invitado_token')
+          : null
+
       if (!token) {
         console.error('[invitadoAuthApi] No hay token de invitado disponible')
         throw new Error('No hay token de invitado disponible')
       }
-      
+
       // Decodificar el token para verificar su contenido (solo para debugging)
       try {
         const payload = JSON.parse(atob(token.split('.')[1]))
@@ -124,17 +133,17 @@ export const invitadoAuthApi = {
       } catch (e) {
         console.warn('[invitadoAuthApi] No se pudo decodificar el token:', e)
       }
-      
+
       console.log('[invitadoAuthApi] Obteniendo perfil con token:', token.substring(0, 20) + '...')
-      
+
       // Hacer la petición con el token explícitamente en los headers
       // El interceptor también debería agregarlo, pero lo hacemos explícito por seguridad
-      const response = await apiClient.get<Invitado>("/auth/invitado/me", {
+      const response = await apiClient.get<Invitado>('/auth/invitado/me', {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       })
-      
+
       console.log('[invitadoAuthApi] Perfil obtenido exitosamente:', response.data)
       return response.data
     } catch (error: any) {
@@ -148,6 +157,3 @@ export const invitadoAuthApi = {
     }
   },
 }
-
-
-

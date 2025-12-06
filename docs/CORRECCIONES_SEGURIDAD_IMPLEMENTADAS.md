@@ -7,15 +7,18 @@
 **Problema**: Los access tokens de admin tenían una expiración de 7 días, lo cual es un riesgo de seguridad significativo.
 
 **Solución Implementada**:
+
 - Cambiado de `7d` a `15m` (15 minutos) en `auth.module.ts`
 - Actualizado `generateToken()` en `auth.service.ts` para especificar explícitamente `expiresIn: '15m'`
 - Ahora todos los tipos de usuarios (admin, pastor, invitado) usan el mismo tiempo de expiración: **15 minutos**
 
 **Archivos Modificados**:
+
 - `backend/src/modules/auth/auth.module.ts`
 - `backend/src/modules/auth/auth.service.ts`
 
 **Impacto**:
+
 - ✅ Reduce significativamente el riesgo si un token es comprometido
 - ✅ Consistencia en tiempos de expiración entre todos los tipos de usuarios
 - ⚠️ Los usuarios necesitarán refrescar sus tokens más frecuentemente (cada 15 minutos)
@@ -25,34 +28,38 @@
 **Problema**: No había verificación explícita de HTTPS en producción, permitiendo que tokens fueran transmitidos sobre HTTP.
 
 **Solución Implementada**:
+
 - Middleware que redirige automáticamente HTTP a HTTPS en producción
 - Verifica tanto `x-forwarded-proto` (para proxies como Railway, Vercel) como el protocolo directo
 - Solo se activa cuando `NODE_ENV === 'production'`
 
 **Archivos Modificados**:
+
 - `backend/src/main.ts`
 
 **Código Implementado**:
+
 ```typescript
 if (process.env.NODE_ENV === 'production') {
   app.use((req, res, next) => {
     const forwardedProto = req.headers['x-forwarded-proto']
     const host = req.headers.host
-    
+
     if (forwardedProto && forwardedProto !== 'https' && host) {
       return res.redirect(301, `https://${host}${req.url}`)
     }
-    
+
     if (!forwardedProto && req.protocol !== 'https' && host) {
       return res.redirect(301, `https://${host}${req.url}`)
     }
-    
+
     next()
   })
 }
 ```
 
 **Impacto**:
+
 - ✅ Fuerza todas las conexiones a usar HTTPS en producción
 - ✅ Protege tokens y datos sensibles en tránsito
 - ✅ Compatible con proxies reversos (Railway, Vercel, etc.)
@@ -62,14 +69,17 @@ if (process.env.NODE_ENV === 'production') {
 **Problema**: No se validaba que el JWT_SECRET tuviera suficiente complejidad.
 
 **Solución Implementada**:
+
 - Validación que requiere mínimo 32 caracteres para producción
 - El servidor no inicia si el JWT_SECRET es demasiado corto
 - Mensaje de error claro indicando la longitud requerida
 
 **Archivos Modificados**:
+
 - `backend/src/main.ts`
 
 **Código Implementado**:
+
 ```typescript
 if (process.env.NODE_ENV === 'production') {
   if (!jwtSecret || jwtSecret === 'your-secret-key') {
@@ -85,6 +95,7 @@ if (process.env.NODE_ENV === 'production') {
 ```
 
 **Impacto**:
+
 - ✅ Previene uso de secrets débiles en producción
 - ✅ Fuerza mejores prácticas de seguridad
 - ✅ El servidor no inicia con configuración insegura
@@ -121,11 +132,13 @@ Estas mejoras pueden implementarse después, pero no son críticas:
 ### Para Producción
 
 1. **Generar JWT_SECRET seguro**:
+
    ```bash
    openssl rand -base64 32
    ```
 
 2. **Configurar en `.env`**:
+
    ```env
    JWT_SECRET="tu-secret-generado-de-32-o-mas-caracteres"
    NODE_ENV="production"
@@ -161,6 +174,7 @@ NODE_ENV=production JWT_SECRET="$(openssl rand -base64 32)" npm run start:prod
 **⚠️ IMPORTANTE**: Los usuarios que ya tienen tokens de 7 días seguirán funcionando hasta que expiren, pero los nuevos tokens tendrán expiración de 15 minutos.
 
 **Recomendación**: Si tienes usuarios activos, considera:
+
 1. Notificarles del cambio
 2. Implementar refresh automático de tokens en el frontend
 3. O forzar re-login después de un período de gracia
@@ -176,4 +190,3 @@ NODE_ENV=production JWT_SECRET="$(openssl rand -base64 32)" npm run start:prod
 **Fecha de Implementación**: $(date)
 **Versión**: 1.0.0
 **Estado**: ✅ Listo para Producción
-

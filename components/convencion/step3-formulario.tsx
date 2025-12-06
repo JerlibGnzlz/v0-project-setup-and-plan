@@ -40,11 +40,18 @@ interface Step3FormularioProps {
   estaConfirmado?: boolean
 }
 
-export function Step3Formulario({ convencion, user, initialData, onComplete, onBack, estaConfirmado = false }: Step3FormularioProps) {
+export function Step3Formulario({
+  convencion,
+  user,
+  initialData,
+  onComplete,
+  onBack,
+  estaConfirmado = false,
+}: Step3FormularioProps) {
   // Pre-llenar con datos del usuario (pastor o invitado)
   const nombreDefault = user.nombre || ''
   const apellidoDefault = user.apellido || ''
-  
+
   // Campos que vienen del usuario y no se pueden modificar
   const camposDelUsuario = {
     nombre: nombreDefault,
@@ -53,14 +60,15 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
   }
 
   // Convertir costo a número de forma segura (puede venir como Decimal de Prisma)
-  const costo = typeof convencion.costo === 'number' 
-    ? convencion.costo 
-    : parseFloat(String(convencion.costo || 0))
+  const costo =
+    typeof convencion.costo === 'number'
+      ? convencion.costo
+      : parseFloat(String(convencion.costo || 0))
 
   // Obtener teléfono y sede del usuario (pastor o invitado) o initialData
   const telefonoDelUsuario = user.telefono || initialData?.telefono || ''
   const sedeDelUsuario = user.sede || initialData?.sede || ''
-  
+
   // Extraer código de país del teléfono si viene completo
   const extraerCodigoPais = (telefono: string): string => {
     if (telefono.startsWith('+')) {
@@ -69,11 +77,13 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
     }
     return '+54'
   }
-  
-  const codigoPaisDefault = initialData?.codigoPais || (telefonoDelUsuario ? extraerCodigoPais(telefonoDelUsuario) : '+54')
-  const telefonoSinCodigo = telefonoDelUsuario && telefonoDelUsuario.startsWith('+') 
-    ? telefonoDelUsuario.replace(/^\+\d{1,3}\s*/, '') 
-    : telefonoDelUsuario
+
+  const codigoPaisDefault =
+    initialData?.codigoPais || (telefonoDelUsuario ? extraerCodigoPais(telefonoDelUsuario) : '+54')
+  const telefonoSinCodigo =
+    telefonoDelUsuario && telefonoDelUsuario.startsWith('+')
+      ? telefonoDelUsuario.replace(/^\+\d{1,3}\s*/, '')
+      : telefonoDelUsuario
 
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || nombreDefault,
@@ -84,12 +94,13 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
     pais: initialData?.pais || 'Argentina',
     provincia: initialData?.provincia || '',
     sede: initialData?.sede || sedeDelUsuario || '', // Asegurar que siempre tenga un valor
-    tipoInscripcion: initialData?.tipoInscripcion || (user.tipo === 'INVITADO' ? 'invitado' : 'pastor'),
+    tipoInscripcion:
+      initialData?.tipoInscripcion || (user.tipo === 'INVITADO' ? 'invitado' : 'pastor'),
     numeroCuotas: initialData?.numeroCuotas || 3,
     documentoUrl: initialData?.documentoUrl || '',
     notas: initialData?.notas || '',
   })
-  
+
   // Determinar qué campos ya están llenados y deben ser solo lectura
   const camposLlenados = {
     nombre: !!(initialData?.nombre || nombreDefault),
@@ -105,19 +116,56 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
 
   // Lista de países
   const paises = [
-    'Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba',
-    'Ecuador', 'El Salvador', 'España', 'Estados Unidos', 'Guatemala', 'Honduras',
-    'México', 'Nicaragua', 'Panamá', 'Paraguay', 'Perú', 'República Dominicana',
-    'Uruguay', 'Venezuela', 'Otro'
+    'Argentina',
+    'Bolivia',
+    'Brasil',
+    'Chile',
+    'Colombia',
+    'Costa Rica',
+    'Cuba',
+    'Ecuador',
+    'El Salvador',
+    'España',
+    'Estados Unidos',
+    'Guatemala',
+    'Honduras',
+    'México',
+    'Nicaragua',
+    'Panamá',
+    'Paraguay',
+    'Perú',
+    'República Dominicana',
+    'Uruguay',
+    'Venezuela',
+    'Otro',
   ]
 
   // Provincias de Argentina
   const provinciasArgentina = [
-    'Buenos Aires', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba', 'Corrientes',
-    'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza',
-    'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis',
-    'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego',
-    'Tucumán', 'Ciudad Autónoma de Buenos Aires'
+    'Buenos Aires',
+    'Catamarca',
+    'Chaco',
+    'Chubut',
+    'Córdoba',
+    'Corrientes',
+    'Entre Ríos',
+    'Formosa',
+    'Jujuy',
+    'La Pampa',
+    'La Rioja',
+    'Mendoza',
+    'Misiones',
+    'Neuquén',
+    'Río Negro',
+    'Salta',
+    'San Juan',
+    'San Luis',
+    'Santa Cruz',
+    'Santa Fe',
+    'Santiago del Estero',
+    'Tierra del Fuego',
+    'Tucumán',
+    'Ciudad Autónoma de Buenos Aires',
   ]
 
   const [paisSearch, setPaisSearch] = useState('')
@@ -130,7 +178,7 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const createInscripcionMutation = useCreateInscripcion()
-  
+
   // Verificar si ya está inscrito antes de enviar
   const { data: inscripcionExistente } = useCheckInscripcion(convencion?.id, user?.email)
 
@@ -171,7 +219,7 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
 
   const validateField = (field: string, value: any) => {
     const newErrors = { ...errors }
-    
+
     switch (field) {
       case 'nombre':
         if (!value || value.trim().length < 2) {
@@ -203,7 +251,7 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
         }
         break
     }
-    
+
     setErrors(newErrors)
   }
 
@@ -214,11 +262,11 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
 
   const validateForm = () => {
     // Si no hay sede del usuario, agregar sede a los campos requeridos
-    const requiredFields = sedeDelUsuario 
+    const requiredFields = sedeDelUsuario
       ? ['nombre', 'apellido', 'email', 'pais']
       : ['nombre', 'apellido', 'email', 'pais', 'sede']
     const newErrors: Record<string, string> = {}
-    
+
     requiredFields.forEach(field => {
       const value = formData[field as keyof typeof formData]
       if (!value || (typeof value === 'string' && value.trim().length === 0)) {
@@ -236,7 +284,7 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
     if (formData.pais === 'Argentina' && !formData.provincia) {
       newErrors.provincia = 'La provincia es requerida para Argentina'
     }
-    
+
     // Validar sede si no viene del usuario
     if (!sedeDelUsuario && (!formData.sede || formData.sede.trim().length < 2)) {
       newErrors.sede = 'La sede debe tener al menos 2 caracteres'
@@ -248,11 +296,12 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Verificar si ya está inscrito antes de continuar
     if (inscripcionExistente) {
-      toast.error("Ya estás inscrito", {
-        description: "Este correo electrónico ya está registrado para esta convención. No puedes inscribirte dos veces.",
+      toast.error('Ya estás inscrito', {
+        description:
+          'Este correo electrónico ya está registrado para esta convención. No puedes inscribirte dos veces.',
       })
       return
     }
@@ -273,20 +322,21 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
 
     // Construir telefono completo (usar del usuario o formData)
     const telefonoCompleto = telefonoDelUsuario || `${formData.codigoPais}${formData.telefono}`
-    
+
     // Construir sede completa (usar del usuario o formData)
     // Prioridad: formData.sede > sedeDelUsuario > valor por defecto
     let sedeCompleta = formData.sede || sedeDelUsuario
-    
+
     // Validar que sede no esté vacía antes de continuar
     if (!sedeCompleta || sedeCompleta.trim().length === 0) {
       toast.error('Sede requerida', {
-        description: 'Por favor, proporciona tu iglesia o sede. Puedes agregarla en tu perfil o contactar a la administración.',
+        description:
+          'Por favor, proporciona tu iglesia o sede. Puedes agregarla en tu perfil o contactar a la administración.',
       })
       setIsSubmitting(false)
       return
     }
-    
+
     // Agregar país y provincia a la sede
     if (sedeCompleta && formData.pais === 'Argentina' && formData.provincia) {
       sedeCompleta = `${sedeCompleta.trim()} - ${formData.pais}, ${formData.provincia}`
@@ -295,7 +345,7 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
     } else {
       sedeCompleta = sedeCompleta.trim()
     }
-    
+
     // Validar nuevamente después de construir la sede completa
     if (!sedeCompleta || sedeCompleta.length === 0) {
       toast.error('Sede requerida', {
@@ -333,7 +383,7 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
   )
 
   // Si no hay sede del usuario, agregar sede a los campos requeridos
-  const requiredFields = sedeDelUsuario 
+  const requiredFields = sedeDelUsuario
     ? ['nombre', 'apellido', 'email', 'pais']
     : ['nombre', 'apellido', 'email', 'pais', 'sede']
   const requiredCompleted = requiredFields.filter(field => {
@@ -342,16 +392,17 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
     }
     return formData[field as keyof typeof formData]
   }).length
-  
+
   // Agregar provincia si es Argentina
-  const totalRequired = formData.pais === 'Argentina' 
-    ? requiredFields.length + 1 // +1 para provincia
-    : requiredFields.length
-  
+  const totalRequired =
+    formData.pais === 'Argentina'
+      ? requiredFields.length + 1 // +1 para provincia
+      : requiredFields.length
+
   // Contar provincia si es Argentina y está completa
   const provinciaCompleta = formData.pais === 'Argentina' ? !!formData.provincia : true
   const completed = requiredCompleted + (formData.pais === 'Argentina' && provinciaCompleta ? 1 : 0)
-  
+
   const progress = totalRequired > 0 ? (completed / totalRequired) * 100 : 0
 
   return (
@@ -359,7 +410,9 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
       <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl">
         {/* Header */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Completa tu Inscripción</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+            Completa tu Inscripción
+          </h2>
           <p className="text-white/70 text-sm sm:text-base">
             Por favor, completa los siguientes datos para finalizar tu inscripción
           </p>
@@ -394,14 +447,15 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
               <Input
                 id="nombre"
                 value={formData.nombre}
-                onChange={(e) => handleChange('nombre', e.target.value)}
+                onChange={e => handleChange('nombre', e.target.value)}
                 onBlur={() => handleBlur('nombre')}
                 disabled={!!camposDelUsuario.nombre || estaConfirmado}
                 readOnly={!!camposDelUsuario.nombre}
                 className={cn(
                   'bg-white/5 border-white/20 text-white placeholder:text-white/40',
                   errors.nombre && 'border-red-500',
-                  (camposDelUsuario.nombre || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
+                  (camposDelUsuario.nombre || estaConfirmado) &&
+                    'opacity-60 cursor-not-allowed bg-white/3'
                 )}
                 placeholder="Tu nombre"
               />
@@ -429,14 +483,15 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
               <Input
                 id="apellido"
                 value={formData.apellido}
-                onChange={(e) => handleChange('apellido', e.target.value)}
+                onChange={e => handleChange('apellido', e.target.value)}
                 onBlur={() => handleBlur('apellido')}
                 disabled={!!camposDelUsuario.apellido || estaConfirmado}
                 readOnly={!!camposDelUsuario.apellido}
                 className={cn(
                   'bg-white/5 border-white/20 text-white placeholder:text-white/40',
                   errors.apellido && 'border-red-500',
-                  (camposDelUsuario.apellido || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
+                  (camposDelUsuario.apellido || estaConfirmado) &&
+                    'opacity-60 cursor-not-allowed bg-white/3'
                 )}
                 placeholder="Tu apellido"
               />
@@ -467,14 +522,15 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) => handleChange('email', e.target.value)}
+              onChange={e => handleChange('email', e.target.value)}
               onBlur={() => handleBlur('email')}
               disabled={!!camposDelUsuario.email || estaConfirmado}
               readOnly={!!camposDelUsuario.email}
               className={cn(
                 'bg-white/5 border-white/20 text-white placeholder:text-white/40',
                 errors.email && 'border-red-500',
-                (camposDelUsuario.email || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
+                (camposDelUsuario.email || estaConfirmado) &&
+                  'opacity-60 cursor-not-allowed bg-white/3'
               )}
               placeholder="tu@email.com"
             />
@@ -511,7 +567,7 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
               <Input
                 id="pais"
                 value={paisSearch || formData.pais}
-                onChange={(e) => {
+                onChange={e => {
                   setPaisSearch(e.target.value)
                   setShowPaisDropdown(true)
                 }}
@@ -521,13 +577,14 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
                 readOnly={camposLlenados.pais}
                 className={cn(
                   'bg-white/5 border-white/20 text-white placeholder:text-white/40',
-                  (camposLlenados.pais || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
+                  (camposLlenados.pais || estaConfirmado) &&
+                    'opacity-60 cursor-not-allowed bg-white/3'
                 )}
                 placeholder="Buscar país..."
               />
               {showPaisDropdown && filteredPaises.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-[#0a1628] border border-white/20 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                  {filteredPaises.map((pais) => (
+                  {filteredPaises.map(pais => (
                     <button
                       key={pais}
                       type="button"
@@ -556,24 +613,27 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
                 <Input
                   id="provincia"
                   value={provinciaSearch || formData.provincia}
-                  onChange={(e) => {
+                  onChange={e => {
                     setProvinciaSearch(e.target.value)
                     setShowProvinciaDropdown(true)
                   }}
-                  onFocus={() => !camposLlenados.provincia && !estaConfirmado && setShowProvinciaDropdown(true)}
+                  onFocus={() =>
+                    !camposLlenados.provincia && !estaConfirmado && setShowProvinciaDropdown(true)
+                  }
                   onBlur={() => setTimeout(() => setShowProvinciaDropdown(false), 200)}
                   disabled={camposLlenados.provincia || estaConfirmado}
                   readOnly={camposLlenados.provincia}
                   className={cn(
                     'bg-white/5 border-white/20 text-white placeholder:text-white/40',
                     errors.provincia && 'border-red-500',
-                    (camposLlenados.provincia || estaConfirmado) && 'opacity-60 cursor-not-allowed bg-white/3'
+                    (camposLlenados.provincia || estaConfirmado) &&
+                      'opacity-60 cursor-not-allowed bg-white/3'
                   )}
                   placeholder="Buscar provincia..."
                 />
                 {showProvinciaDropdown && filteredProvincias.length > 0 && (
                   <div className="absolute z-10 w-full mt-1 bg-[#0a1628] border border-white/20 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                    {filteredProvincias.map((provincia) => (
+                    {filteredProvincias.map(provincia => (
                       <button
                         key={provincia}
                         type="button"
@@ -615,7 +675,7 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
               <Input
                 id="sede"
                 value={formData.sede}
-                onChange={(e) => handleChange('sede', e.target.value)}
+                onChange={e => handleChange('sede', e.target.value)}
                 onBlur={() => handleBlur('sede')}
                 disabled={estaConfirmado}
                 readOnly={estaConfirmado}
@@ -649,16 +709,22 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
             </Label>
             <Select
               value={formData.tipoInscripcion}
-              onValueChange={(value) => handleChange('tipoInscripcion', value)}
+              onValueChange={value => handleChange('tipoInscripcion', value)}
               disabled={camposLlenados.tipoInscripcion || estaConfirmado}
             >
               <SelectTrigger className="bg-white/5 border-white/20 text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[#0a1628] border-white/20">
-                <SelectItem value="pastor" className="text-white">Pastor</SelectItem>
-                <SelectItem value="lider" className="text-white">Líder</SelectItem>
-                <SelectItem value="miembro" className="text-white">Miembro</SelectItem>
+                <SelectItem value="pastor" className="text-white">
+                  Pastor
+                </SelectItem>
+                <SelectItem value="lider" className="text-white">
+                  Líder
+                </SelectItem>
+                <SelectItem value="miembro" className="text-white">
+                  Miembro
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -671,26 +737,24 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
                 <p className="text-sm font-semibold text-emerald-300">Plan de pago seleccionado</p>
               </div>
               <p className="text-sm text-white/70">
-                {formData.numeroCuotas} cuota{formData.numeroCuotas > 1 ? 's' : ''} de ${(costo / formData.numeroCuotas).toFixed(2)} cada una
+                {formData.numeroCuotas} cuota{formData.numeroCuotas > 1 ? 's' : ''} de $
+                {(costo / formData.numeroCuotas).toFixed(2)} cada una
               </p>
-              <p className="text-xs text-white/50 mt-1">
-                Total: ${costo.toFixed(2)}
-              </p>
+              <p className="text-xs text-white/50 mt-1">Total: ${costo.toFixed(2)}</p>
             </div>
           )}
 
           {/* Documento/Comprobante (Opcional) */}
           <div>
-            <Label className="text-white/90 mb-2 block">
-              Documento o Comprobante (Opcional)
-            </Label>
+            <Label className="text-white/90 mb-2 block">Documento o Comprobante (Opcional)</Label>
             <p className="text-sm text-white/60 mb-3">
-              Puedes subir un documento o comprobante relacionado con tu inscripción. Esto será enviado directamente a Sede Digital.
+              Puedes subir un documento o comprobante relacionado con tu inscripción. Esto será
+              enviado directamente a Sede Digital.
             </p>
             <ComprobanteUpload
               value={formData.documentoUrl}
-              onChange={(url) => handleChange('documentoUrl', url)}
-              onUpload={async (file) => {
+              onChange={url => handleChange('documentoUrl', url)}
+              onUpload={async file => {
                 const response = await uploadApi.uploadInscripcionDocumento(file)
                 return response.url
               }}
@@ -706,7 +770,7 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
             <Textarea
               id="notas"
               value={formData.notas}
-              onChange={(e) => handleChange('notas', e.target.value)}
+              onChange={e => handleChange('notas', e.target.value)}
               className="bg-white/5 border-white/20 text-white placeholder:text-white/40 min-h-[100px]"
               placeholder="Información adicional que quieras compartir..."
             />
@@ -734,7 +798,9 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || createInscripcionMutation.isPending || !!inscripcionExistente}
+              disabled={
+                isSubmitting || createInscripcionMutation.isPending || !!inscripcionExistente
+              }
               className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting || createInscripcionMutation.isPending ? (
@@ -760,4 +826,3 @@ export function Step3Formulario({ convencion, user, initialData, onComplete, onB
     </div>
   )
 }
-

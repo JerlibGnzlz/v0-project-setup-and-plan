@@ -19,9 +19,7 @@ import {
 export class NotificationListener {
   private readonly logger = new Logger(NotificationListener.name)
 
-  constructor(
-    @InjectQueue('notifications') private notificationsQueue: Queue,
-  ) {}
+  constructor(@InjectQueue('notifications') private notificationsQueue: Queue) {}
 
   /**
    * Escucha eventos de pago validado
@@ -55,7 +53,9 @@ export class NotificationListener {
    */
   @OnEvent(NotificationEventType.PAGO_RECORDATORIO)
   async handlePagoRecordatorio(event: PagoRecordatorioEvent) {
-    this.logger.log(`📬 Evento recibido: PAGO_RECORDATORIO para ${event.email} (inscripcionId: ${event.data.inscripcionId})`)
+    this.logger.log(
+      `📬 Evento recibido: PAGO_RECORDATORIO para ${event.email} (inscripcionId: ${event.data.inscripcionId})`
+    )
     try {
       await this.queueNotification(event)
       this.logger.log(`✅ Recordatorio encolado exitosamente para ${event.email}`)
@@ -142,12 +142,15 @@ export class NotificationListener {
           priority: event.priority || 'normal',
           channels: event.channels || ['email'], // Solo email para recordatorios masivos
         },
-        jobOptions,
+        jobOptions
       )
 
       this.logger.log(`✅ Notificación encolada para ${event.email} (tipo: ${event.type})`)
     } catch (error) {
-      this.logger.error(`❌ Error encolando notificación para ${event.email}, procesando directamente:`, error)
+      this.logger.error(
+        `❌ Error encolando notificación para ${event.email}, procesando directamente:`,
+        error
+      )
       // Fallback: procesar directamente si la cola falla
       try {
         await this.processDirectly(event)
@@ -166,20 +169,20 @@ export class NotificationListener {
       // Importar dinámicamente para evitar dependencias circulares
       const emailServiceModule = await import('../email.service')
       const templatesModule = await import('../templates/email.templates')
-      
+
       const EmailService = emailServiceModule.EmailService
       const getEmailTemplate = templatesModule.getEmailTemplate
-      
+
       const emailService = new EmailService()
       const template = getEmailTemplate(this.getEventType(event.type), event.data)
-      
+
       const emailSent = await emailService.sendNotificationEmail(
         event.email,
         template.title,
         template.body,
-        { ...event.data, type: this.getEventType(event.type) },
+        { ...event.data, type: this.getEventType(event.type) }
       )
-      
+
       if (emailSent) {
         this.logger.log(`✅ Email enviado directamente a ${event.email} (sin cola)`)
         return true
@@ -226,6 +229,3 @@ export class NotificationListener {
     }
   }
 }
-
-
-

@@ -13,7 +13,7 @@ export class UnifiedAuthService {
 
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService,
+    private jwtService: JwtService
   ) {}
 
   /**
@@ -44,7 +44,9 @@ export class UnifiedAuthService {
           pastorId: pastorAuth.pastor.id,
           timestamp: new Date().toISOString(),
         })
-        throw new UnauthorizedException('La contraseña es incorrecta. Por favor, verifica tus credenciales.')
+        throw new UnauthorizedException(
+          'La contraseña es incorrecta. Por favor, verifica tus credenciales.'
+        )
       }
 
       // Actualizar último login
@@ -95,7 +97,9 @@ export class UnifiedAuthService {
           invitadoId: invitadoAuth.invitado.id,
           timestamp: new Date().toISOString(),
         })
-        throw new UnauthorizedException('La contraseña es incorrecta. Por favor, verifica tus credenciales.')
+        throw new UnauthorizedException(
+          'La contraseña es incorrecta. Por favor, verifica tus credenciales.'
+        )
       }
 
       // Actualizar último login
@@ -134,7 +138,9 @@ export class UnifiedAuthService {
       email,
       timestamp: new Date().toISOString(),
     })
-    throw new UnauthorizedException('No encontramos una cuenta con este correo electrónico. Por favor, regístrate primero.')
+    throw new UnauthorizedException(
+      'No encontramos una cuenta con este correo electrónico. Por favor, regístrate primero.'
+    )
   }
 
   /**
@@ -150,4 +156,3 @@ export class UnifiedAuthService {
     }
   }
 }
-

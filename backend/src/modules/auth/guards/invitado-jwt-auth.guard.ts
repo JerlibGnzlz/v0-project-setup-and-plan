@@ -10,8 +10,8 @@ export class InvitadoJwtAuthGuard extends AuthGuard('invitado-jwt') {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Primero ejecutar la validación estándar de JWT
-    const canActivate = await super.canActivate(context) as boolean
-    
+    const canActivate = (await super.canActivate(context)) as boolean
+
     if (!canActivate) {
       return false
     }
@@ -24,13 +24,10 @@ export class InvitadoJwtAuthGuard extends AuthGuard('invitado-jwt') {
     if (token) {
       const isBlacklisted = await this.tokenBlacklist.isBlacklisted(token)
       if (isBlacklisted) {
-        throw new UnauthorizedException("Token revocado")
+        throw new UnauthorizedException('Token revocado')
       }
     }
 
     return true
   }
 }
-
-
-

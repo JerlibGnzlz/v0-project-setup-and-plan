@@ -5,16 +5,19 @@
 Ejecuta estos scripts en el siguiente orden en tu consola de Neon:
 
 ### 1. Crear Tablas
+
 \`\`\`bash
 scripts/001_create_tables.sql
 \`\`\`
 Este script crea todas las tablas necesarias, índices y triggers.
 
 ### 2. Datos de Prueba (Opcional)
+
 \`\`\`bash
 scripts/002_seed_data.sql
 \`\`\`
 Este script inserta datos de prueba incluyendo:
+
 - Usuario admin (email: admin@ministerio-amva.org, password: admin123)
 - Una convención de ejemplo
 - Tres pastores de ejemplo
@@ -34,17 +37,17 @@ Ejecuta estas consultas para verificar:
 
 \`\`\`sql
 -- Ver todas las tablas
-SELECT table_name FROM information_schema.tables 
+SELECT table_name FROM information_schema.tables
 WHERE table_schema = 'public';
 
 -- Contar registros
-SELECT 'users' as tabla, COUNT(*) FROM users
+SELECT 'users' as tabla, COUNT(_) FROM users
 UNION ALL
-SELECT 'convenciones', COUNT(*) FROM convenciones
+SELECT 'convenciones', COUNT(_) FROM convenciones
 UNION ALL
-SELECT 'pastores', COUNT(*) FROM pastores
+SELECT 'pastores', COUNT(_) FROM pastores
 UNION ALL
-SELECT 'galeria', COUNT(*) FROM galeria;
+SELECT 'galeria', COUNT(_) FROM galeria;
 \`\`\`
 
 ## Credenciales del Admin

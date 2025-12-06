@@ -1,5 +1,17 @@
 import React, { useState, useRef } from 'react'
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, ScrollView, KeyboardAvoidingView, Platform, Keyboard } from 'react-native'
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { apiClient } from '@api/client'
 
@@ -11,7 +23,7 @@ interface RegisterScreenProps {
 export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
   const scrollViewRef = useRef<ScrollView>(null)
   const inputRefs = useRef<{ [key: string]: TextInput | null }>({})
-  
+
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -55,7 +67,8 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
     if (!formData.password || formData.password.length < 8) {
       newErrors.password = 'La contraseña debe tener al menos 8 caracteres'
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'La contraseña debe contener al menos una mayúscula, una minúscula y un número'
+      newErrors.password =
+        'La contraseña debe contener al menos una mayúscula, una minúscula y un número'
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -89,7 +102,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
   const handleInputBlur = (field: string, value: string) => {
     // Validar y cerrar teclado si el campo está completo
     const trimmedValue = value?.trim() || ''
-    
+
     // Si el campo está completo y válido, cerrar el teclado
     if (trimmedValue.length > 0) {
       // Validaciones específicas por campo
@@ -126,7 +139,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
 
     try {
       setLoading(true)
-      
+
       // Llamar al endpoint de registro completo
       const response = await apiClient.post('/auth/pastor/register-complete', {
         nombre: formData.nombre.trim(),
@@ -153,15 +166,17 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
     } catch (error: any) {
       console.error('Error en registro:', error)
       let errorMessage = 'No se pudo crear la cuenta. Intenta nuevamente.'
-      
+
       if (error?.response?.status === 400) {
-        errorMessage = error?.response?.data?.message || 'El correo ya está registrado o los datos son inválidos.'
+        errorMessage =
+          error?.response?.data?.message ||
+          'El correo ya está registrado o los datos son inválidos.'
       } else if (error?.response?.data?.message) {
         errorMessage = Array.isArray(error.response.data.message)
           ? error.response.data.message.join('\n')
           : error.response.data.message
       }
-      
+
       Alert.alert('Error de registro', errorMessage)
     } finally {
       setLoading(false)
@@ -183,195 +198,211 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <View style={styles.logoGlow} />
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>🌍</Text>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <View style={styles.logoGlow} />
+              <View style={styles.logoCircle}>
+                <Text style={styles.logoText}>🌍</Text>
+              </View>
             </View>
+            <Text style={styles.title}>AMVA Go</Text>
+            <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
           </View>
-          <Text style={styles.title}>AMVA Go</Text>
-          <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
-        </View>
 
-        {/* Form Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Crear Cuenta</Text>
-          <Text style={styles.cardSubtitle}>Registro para pastores</Text>
+          {/* Form Card */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Crear Cuenta</Text>
+            <Text style={styles.cardSubtitle}>Registro para pastores</Text>
 
-          {/* Nombre y Apellido */}
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
+            {/* Nombre y Apellido */}
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>
+                  Nombre <Text style={styles.required}>*</Text>
+                </Text>
+                <TextInput
+                  ref={ref => {
+                    inputRefs.current['nombre'] = ref
+                  }}
+                  style={[styles.input, errors.nombre && styles.inputError]}
+                  value={formData.nombre}
+                  onChangeText={value => handleChange('nombre', value)}
+                  placeholder="Tu nombre"
+                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                  onFocus={() => handleInputFocus('nombre')}
+                  onBlur={() => handleInputBlur('nombre', formData.nombre)}
+                  onLayout={e => handleInputLayout('nombre', e)}
+                  onSubmitEditing={() => inputRefs.current['apellido']?.focus()}
+                />
+                {errors.nombre && <Text style={styles.errorText}>{errors.nombre}</Text>}
+              </View>
+
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>
+                  Apellido <Text style={styles.required}>*</Text>
+                </Text>
+                <TextInput
+                  ref={ref => {
+                    inputRefs.current['apellido'] = ref
+                  }}
+                  style={[styles.input, errors.apellido && styles.inputError]}
+                  value={formData.apellido}
+                  onChangeText={value => handleChange('apellido', value)}
+                  placeholder="Tu apellido"
+                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                  onFocus={() => handleInputFocus('apellido')}
+                  onBlur={() => handleInputBlur('apellido', formData.apellido)}
+                  onLayout={e => handleInputLayout('apellido', e)}
+                  onSubmitEditing={() => inputRefs.current['email']?.focus()}
+                />
+                {errors.apellido && <Text style={styles.errorText}>{errors.apellido}</Text>}
+              </View>
+            </View>
+
+            {/* Email */}
+            <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                Nombre <Text style={styles.required}>*</Text>
+                📧 Correo electrónico <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
-                ref={(ref) => { inputRefs.current['nombre'] = ref }}
-                style={[styles.input, errors.nombre && styles.inputError]}
-                value={formData.nombre}
-                onChangeText={(value) => handleChange('nombre', value)}
-                placeholder="Tu nombre"
+                ref={ref => {
+                  inputRefs.current['email'] = ref
+                }}
+                style={[styles.input, errors.email && styles.inputError]}
+                value={formData.email}
+                onChangeText={value => handleChange('email', value)}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="pastor@iglesia.org"
+                placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                returnKeyType="next"
+                onFocus={() => handleInputFocus('email')}
+                onBlur={() => handleInputBlur('email', formData.email)}
+                onLayout={e => handleInputLayout('email', e)}
+                onSubmitEditing={() => inputRefs.current['telefono']?.focus()}
+              />
+              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            </View>
+
+            {/* Teléfono */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>📱 Teléfono</Text>
+              <TextInput
+                ref={ref => {
+                  inputRefs.current['telefono'] = ref
+                }}
+                style={styles.input}
+                value={formData.telefono}
+                onChangeText={value => handleChange('telefono', value)}
+                keyboardType="phone-pad"
+                placeholder="+54 11 1234-5678"
+                placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                returnKeyType="next"
+                onFocus={() => handleInputFocus('telefono')}
+                onBlur={() => handleInputBlur('telefono', formData.telefono)}
+                onLayout={e => handleInputLayout('telefono', e)}
+                onSubmitEditing={() => inputRefs.current['sede']?.focus()}
+              />
+            </View>
+
+            {/* Sede */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>⛪ Iglesia / Sede</Text>
+              <TextInput
+                ref={ref => {
+                  inputRefs.current['sede'] = ref
+                }}
+                style={styles.input}
+                value={formData.sede}
+                onChangeText={value => handleChange('sede', value)}
+                placeholder="Nombre de tu iglesia o sede"
                 placeholderTextColor="rgba(255, 255, 255, 0.4)"
                 autoCapitalize="words"
                 returnKeyType="next"
-                onFocus={() => handleInputFocus('nombre')}
-                onBlur={() => handleInputBlur('nombre', formData.nombre)}
-                onLayout={(e) => handleInputLayout('nombre', e)}
-                onSubmitEditing={() => inputRefs.current['apellido']?.focus()}
+                onFocus={() => handleInputFocus('sede')}
+                onBlur={() => handleInputBlur('sede', formData.sede)}
+                onLayout={e => handleInputLayout('sede', e)}
+                onSubmitEditing={() => inputRefs.current['password']?.focus()}
               />
-              {errors.nombre && <Text style={styles.errorText}>{errors.nombre}</Text>}
             </View>
 
-            <View style={styles.halfInput}>
+            {/* Contraseña */}
+            <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                Apellido <Text style={styles.required}>*</Text>
+                🔒 Contraseña <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
-                ref={(ref) => { inputRefs.current['apellido'] = ref }}
-                style={[styles.input, errors.apellido && styles.inputError]}
-                value={formData.apellido}
-                onChangeText={(value) => handleChange('apellido', value)}
-                placeholder="Tu apellido"
+                ref={ref => {
+                  inputRefs.current['password'] = ref
+                }}
+                style={[styles.input, errors.password && styles.inputError]}
+                value={formData.password}
+                onChangeText={value => handleChange('password', value)}
+                secureTextEntry
+                placeholder="Mínimo 8 caracteres"
                 placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                autoCapitalize="words"
                 returnKeyType="next"
-                onFocus={() => handleInputFocus('apellido')}
-                onBlur={() => handleInputBlur('apellido', formData.apellido)}
-                onLayout={(e) => handleInputLayout('apellido', e)}
-                onSubmitEditing={() => inputRefs.current['email']?.focus()}
+                onFocus={() => handleInputFocus('password')}
+                onBlur={() => handleInputBlur('password', formData.password)}
+                onLayout={e => handleInputLayout('password', e)}
+                onSubmitEditing={() => inputRefs.current['confirmPassword']?.focus()}
               />
-              {errors.apellido && <Text style={styles.errorText}>{errors.apellido}</Text>}
+              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+              <Text style={styles.helperText}>
+                Debe contener al menos una mayúscula, una minúscula y un número
+              </Text>
             </View>
+
+            {/* Confirmar Contraseña */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                🔒 Confirmar Contraseña <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                ref={ref => {
+                  inputRefs.current['confirmPassword'] = ref
+                }}
+                style={[styles.input, errors.confirmPassword && styles.inputError]}
+                value={formData.confirmPassword}
+                onChangeText={value => handleChange('confirmPassword', value)}
+                secureTextEntry
+                placeholder="Repite tu contraseña"
+                placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                returnKeyType="done"
+                onFocus={() => handleInputFocus('confirmPassword')}
+                onBlur={() => handleInputBlur('confirmPassword', formData.confirmPassword)}
+                onLayout={e => handleInputLayout('confirmPassword', e)}
+                onSubmitEditing={() => Keyboard.dismiss()}
+              />
+              {errors.confirmPassword && (
+                <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+              )}
+            </View>
+
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>✓ Crear Cuenta</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.backButton} onPress={onBack}>
+              <Text style={styles.backButtonText}>← Volver al Login</Text>
+            </TouchableOpacity>
           </View>
-
-          {/* Email */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              📧 Correo electrónico <Text style={styles.required}>*</Text>
-            </Text>
-            <TextInput
-              ref={(ref) => { inputRefs.current['email'] = ref }}
-              style={[styles.input, errors.email && styles.inputError]}
-              value={formData.email}
-              onChangeText={(value) => handleChange('email', value)}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholder="pastor@iglesia.org"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              returnKeyType="next"
-              onFocus={() => handleInputFocus('email')}
-              onBlur={() => handleInputBlur('email', formData.email)}
-              onLayout={(e) => handleInputLayout('email', e)}
-              onSubmitEditing={() => inputRefs.current['telefono']?.focus()}
-            />
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-          </View>
-
-          {/* Teléfono */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>📱 Teléfono</Text>
-            <TextInput
-              ref={(ref) => { inputRefs.current['telefono'] = ref }}
-              style={styles.input}
-              value={formData.telefono}
-              onChangeText={(value) => handleChange('telefono', value)}
-              keyboardType="phone-pad"
-              placeholder="+54 11 1234-5678"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              returnKeyType="next"
-              onFocus={() => handleInputFocus('telefono')}
-              onBlur={() => handleInputBlur('telefono', formData.telefono)}
-              onLayout={(e) => handleInputLayout('telefono', e)}
-              onSubmitEditing={() => inputRefs.current['sede']?.focus()}
-            />
-          </View>
-
-          {/* Sede */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>⛪ Iglesia / Sede</Text>
-            <TextInput
-              ref={(ref) => { inputRefs.current['sede'] = ref }}
-              style={styles.input}
-              value={formData.sede}
-              onChangeText={(value) => handleChange('sede', value)}
-              placeholder="Nombre de tu iglesia o sede"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              autoCapitalize="words"
-              returnKeyType="next"
-              onFocus={() => handleInputFocus('sede')}
-              onBlur={() => handleInputBlur('sede', formData.sede)}
-              onLayout={(e) => handleInputLayout('sede', e)}
-              onSubmitEditing={() => inputRefs.current['password']?.focus()}
-            />
-          </View>
-
-          {/* Contraseña */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              🔒 Contraseña <Text style={styles.required}>*</Text>
-            </Text>
-            <TextInput
-              ref={(ref) => { inputRefs.current['password'] = ref }}
-              style={[styles.input, errors.password && styles.inputError]}
-              value={formData.password}
-              onChangeText={(value) => handleChange('password', value)}
-              secureTextEntry
-              placeholder="Mínimo 8 caracteres"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              returnKeyType="next"
-              onFocus={() => handleInputFocus('password')}
-              onBlur={() => handleInputBlur('password', formData.password)}
-              onLayout={(e) => handleInputLayout('password', e)}
-              onSubmitEditing={() => inputRefs.current['confirmPassword']?.focus()}
-            />
-            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-            <Text style={styles.helperText}>
-              Debe contener al menos una mayúscula, una minúscula y un número
-            </Text>
-          </View>
-
-          {/* Confirmar Contraseña */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              🔒 Confirmar Contraseña <Text style={styles.required}>*</Text>
-            </Text>
-            <TextInput
-              ref={(ref) => { inputRefs.current['confirmPassword'] = ref }}
-              style={[styles.input, errors.confirmPassword && styles.inputError]}
-              value={formData.confirmPassword}
-              onChangeText={(value) => handleChange('confirmPassword', value)}
-              secureTextEntry
-              placeholder="Repite tu contraseña"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              returnKeyType="done"
-              onFocus={() => handleInputFocus('confirmPassword')}
-              onBlur={() => handleInputBlur('confirmPassword', formData.confirmPassword)}
-              onLayout={(e) => handleInputLayout('confirmPassword', e)}
-              onSubmitEditing={() => Keyboard.dismiss()}
-            />
-            {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
-          </View>
-
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>✓ Crear Cuenta</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
-            <Text style={styles.backButtonText}>← Volver al Login</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }
@@ -535,4 +566,3 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 })
-

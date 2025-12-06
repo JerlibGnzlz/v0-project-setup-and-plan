@@ -21,7 +21,6 @@ Gmail **NO acepta tu contraseña normal**. Necesitas generar una **App Password*
 
 1. Ve a: https://myaccount.google.com/apppasswords
    - Si no ves esta opción, primero activa la verificación en 2 pasos
-   
 2. Selecciona:
    - **Aplicación**: "Correo"
    - **Dispositivo**: "Otro (nombre personalizado)"
@@ -45,6 +44,7 @@ SMTP_PASSWORD=tu-app-password-de-16-caracteres-sin-espacios
 ```
 
 **Ejemplo:**
+
 ```env
 SMTP_USER=jerlibgnzlz@gmail.com
 SMTP_PASSWORD=abcdefghijklmnop
@@ -62,6 +62,7 @@ node test-email-simple.js
 ## ✅ Verificación
 
 Si todo está bien, deberías ver:
+
 ```
 ✅ Conexión SMTP verificada correctamente
 ✅ Email enviado exitosamente!
@@ -72,14 +73,17 @@ Si todo está bien, deberías ver:
 ## ❌ Errores Comunes
 
 ### Error: "Username and Password not accepted"
+
 - **Causa**: No estás usando una App Password
 - **Solución**: Genera una App Password nueva
 
 ### Error: "Verification in 2 steps is not enabled"
+
 - **Causa**: No tienes verificación en 2 pasos activada
 - **Solución**: Actívala primero en https://myaccount.google.com/security
 
 ### Error: "Less secure app access"
+
 - **Causa**: Gmail bloqueó el acceso
 - **Solución**: Usa App Password (no "less secure apps")
 
@@ -97,9 +101,8 @@ Si todo está bien, deberías ver:
 ## 📞 Soporte
 
 Si tienes problemas:
+
 1. Verifica que la verificación en 2 pasos esté activada
 2. Genera una App Password nueva
 3. Asegúrate de copiarla SIN espacios
 4. Reinicia el backend después de actualizar el `.env`
-
-

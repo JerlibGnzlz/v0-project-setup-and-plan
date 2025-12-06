@@ -1,7 +1,12 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { noticiasApi, CreateNoticiaData, UpdateNoticiaData, CategoriaNoticia } from '@/lib/api/noticias'
+import {
+  noticiasApi,
+  CreateNoticiaData,
+  UpdateNoticiaData,
+  CategoriaNoticia,
+} from '@/lib/api/noticias'
 import { toast } from 'sonner'
 import { useSmartSync, useSmartPolling } from './use-smart-sync'
 
@@ -9,7 +14,7 @@ import { useSmartSync, useSmartPolling } from './use-smart-sync'
 export function useNoticias() {
   // Sincronización inteligente
   useSmartSync()
-  
+
   // Polling que se pausa cuando la pestaña no está visible
   const pollingInterval = useSmartPolling(['noticias'], 60000) // 60 segundos
 
@@ -25,7 +30,7 @@ export function useNoticias() {
 export function useNoticiasPublicadas(limit?: number) {
   // Sincronización inteligente para la landing
   useSmartSync()
-  
+
   const pollingInterval = useSmartPolling(['noticias', 'publicadas'], 30000) // 30 segundos
 
   return useQuery({
@@ -39,7 +44,7 @@ export function useNoticiasPublicadas(limit?: number) {
 // Hook para obtener noticias destacadas
 export function useNoticiasDestacadas(limit: number = 3) {
   useSmartSync()
-  
+
   const pollingInterval = useSmartPolling(['noticias', 'destacadas'], 30000)
 
   return useQuery({
@@ -130,7 +135,7 @@ export function useTogglePublicado() {
 
   return useMutation({
     mutationFn: (id: string) => noticiasApi.togglePublicado(id),
-    onSuccess: (data) => {
+    onSuccess: data => {
       queryClient.invalidateQueries({ queryKey: ['noticias'] })
       notifyChange('all')
       toast.success(data.publicado ? 'Noticia publicada' : 'Noticia despublicada')
@@ -148,7 +153,7 @@ export function useToggleDestacado() {
 
   return useMutation({
     mutationFn: (id: string) => noticiasApi.toggleDestacado(id),
-    onSuccess: (data) => {
+    onSuccess: data => {
       queryClient.invalidateQueries({ queryKey: ['noticias'] })
       notifyChange('all')
       toast.success(data.destacado ? 'Noticia destacada' : 'Noticia quitada de destacados')

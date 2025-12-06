@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { InvitadoAuthService } from '../invitado-auth.service'
+import { InvitadoJwtPayload } from '../types/jwt-payload.types'
 
 @Injectable()
 export class InvitadoJwtStrategy extends PassportStrategy(Strategy, 'invitado-jwt') {
@@ -12,7 +13,7 @@ export class InvitadoJwtStrategy extends PassportStrategy(Strategy, 'invitado-jw
     })
   }
 
-  async validate(payload: any) {
+  async validate(payload: InvitadoJwtPayload) {
     if (payload.role !== 'INVITADO') {
       throw new UnauthorizedException('Token inválido para invitado')
     }
@@ -24,6 +25,3 @@ export class InvitadoJwtStrategy extends PassportStrategy(Strategy, 'invitado-jw
     return invitado
   }
 }
-
-
-

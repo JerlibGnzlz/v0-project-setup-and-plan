@@ -9,7 +9,7 @@ export class CsvExportUtil {
   /**
    * Convierte un array de objetos a formato CSV
    */
-  static toCSV<T extends Record<string, any>>(
+  static toCSV<T extends Record<string, unknown>>(
     data: T[],
     headers?: { key: keyof T; label: string }[],
     options?: {
@@ -25,10 +25,12 @@ export class CsvExportUtil {
     const includeHeaders = options?.includeHeaders !== false
 
     // Si no se proporcionan headers, generarlos desde las claves del primer objeto
-    const csvHeaders = headers || Object.keys(data[0] || {}).map(key => ({
-      key: key as keyof T,
-      label: String(key),
-    }))
+    const csvHeaders =
+      headers ||
+      Object.keys(data[0] || {}).map(key => ({
+        key: key as keyof T,
+        label: String(key),
+      }))
 
     const rows: string[] = []
 
@@ -40,10 +42,12 @@ export class CsvExportUtil {
 
     // Agregar datos
     for (const item of data) {
-      const row = csvHeaders.map(header => {
-        const value = item[header.key]
-        return this.escapeCSVValue(this.formatValue(value))
-      }).join(delimiter)
+      const row = csvHeaders
+        .map(header => {
+          const value = item[header.key]
+          return this.escapeCSVValue(this.formatValue(value))
+        })
+        .join(delimiter)
       rows.push(row)
     }
 
@@ -53,7 +57,7 @@ export class CsvExportUtil {
   /**
    * Escapa valores para CSV
    */
-  private static escapeCSVValue(value: any): string {
+  private static escapeCSVValue(value: unknown): string {
     if (value === null || value === undefined) {
       return ''
     }
@@ -71,7 +75,7 @@ export class CsvExportUtil {
   /**
    * Formatea valores para CSV
    */
-  private static formatValue(value: any): string {
+  private static formatValue(value: unknown): string {
     if (value === null || value === undefined) {
       return ''
     }
@@ -97,6 +101,3 @@ export class CsvExportUtil {
     return `${prefix}_${timestamp}.${extension}`
   }
 }
-
-
-

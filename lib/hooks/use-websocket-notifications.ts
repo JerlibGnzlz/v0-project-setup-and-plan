@@ -52,10 +52,10 @@ export function useWebSocketNotifications() {
 
     socket.on('notification', (notification: any) => {
       console.log('📬 Nueva notificación recibida:', notification)
-      
+
       // Invalidar queries para refrescar datos
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
-      
+
       // Mostrar toast solo si el usuario está en el dashboard
       if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
         toast.info(notification.title, {
@@ -72,7 +72,7 @@ export function useWebSocketNotifications() {
       queryClient.setQueryData(['notifications', 'unread-count'], count)
     })
 
-    socket.on('connect_error', (error) => {
+    socket.on('connect_error', error => {
       console.error('❌ Error conectando a WebSocket:', error)
     })
 
@@ -87,4 +87,3 @@ export function useWebSocketNotifications() {
     socket: socketRef.current,
   }
 }
-

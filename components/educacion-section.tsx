@@ -10,7 +10,8 @@ const programs = [
     icon: GraduationCap,
     gradient: 'from-sky-400 to-blue-500',
     image: '/biblico.png',
-    description: 'El Instituto Bíblico AMVA ofrece una formación teológica sólida y práctica, diseñada para equipar a pastores, líderes y obreros cristianos con las herramientas necesarias para un ministerio efectivo y transformador.',
+    description:
+      'El Instituto Bíblico AMVA ofrece una formación teológica sólida y práctica, diseñada para equipar a pastores, líderes y obreros cristianos con las herramientas necesarias para un ministerio efectivo y transformador.',
     areas: [
       'Teología Sistemática y Bíblica',
       'Homilética y Hermenéutica',
@@ -30,7 +31,8 @@ const programs = [
     icon: Users,
     gradient: 'from-emerald-500 to-teal-500',
     image: '/capellania.png',
-    description: 'La Escuela de Capellanía prepara a líderes cristianos para ejercer el ministerio de capellanía en diversos contextos: hospitales, cárceles, fuerzas armadas, empresas, instituciones educativas y comunidades en situación de crisis.',
+    description:
+      'La Escuela de Capellanía prepara a líderes cristianos para ejercer el ministerio de capellanía en diversos contextos: hospitales, cárceles, fuerzas armadas, empresas, instituciones educativas y comunidades en situación de crisis.',
     areas: [
       'Capellanía Hospitalaria y de Salud',
       'Capellanía Penitenciaria',
@@ -82,7 +84,8 @@ export function EducacionSection() {
             </span>
           </h2>
           <p className="text-lg text-white/60 max-w-3xl mx-auto">
-            Formando líderes comprometidos con la excelencia y el servicio a través de programas educativos de calidad
+            Formando líderes comprometidos con la excelencia y el servicio a través de programas
+            educativos de calidad
           </p>
         </div>
 
@@ -93,8 +96,10 @@ export function EducacionSection() {
             return (
               <div key={index} className="relative group">
                 {/* Glow */}
-                <div className={`absolute -inset-1 bg-gradient-to-r ${program.gradient} rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500`} />
-                
+                <div
+                  className={`absolute -inset-1 bg-gradient-to-r ${program.gradient} rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500`}
+                />
+
                 <div className="relative h-full rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300">
                   {/* Program Image */}
                   <div className="relative h-48 sm:h-56 overflow-hidden bg-white/5 flex items-center justify-center p-4">
@@ -103,13 +108,17 @@ export function EducacionSection() {
                       alt={program.title}
                       className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700"
                     />
-                    <div className={`absolute inset-0 bg-gradient-to-t from-[#0d1f35] via-transparent to-transparent opacity-70`} />
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-t from-[#0d1f35] via-transparent to-transparent opacity-70`}
+                    />
                     {/* Icon badge */}
-                    <div className={`absolute bottom-4 left-6 p-3 rounded-xl bg-gradient-to-r ${program.gradient} shadow-lg`}>
+                    <div
+                      className={`absolute bottom-4 left-6 p-3 rounded-xl bg-gradient-to-r ${program.gradient} shadow-lg`}
+                    >
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                   </div>
-                  
+
                   <div className="p-6 sm:p-8">
                     {/* Title */}
                     <div className="mb-6">
@@ -118,9 +127,7 @@ export function EducacionSection() {
                     </div>
 
                     {/* Description */}
-                    <p className="text-white/70 leading-relaxed mb-6">
-                      {program.description}
-                    </p>
+                    <p className="text-white/70 leading-relaxed mb-6">{program.description}</p>
 
                     {/* Areas */}
                     <div className="mb-6">
@@ -131,7 +138,9 @@ export function EducacionSection() {
                       <ul className="space-y-2">
                         {program.areas.map((area, idx) => (
                           <li key={idx} className="flex items-start gap-3 text-white/70 text-sm">
-                            <ChevronRight className={`w-4 h-4 flex-shrink-0 mt-0.5 bg-gradient-to-r ${program.gradient} bg-clip-text text-transparent`} />
+                            <ChevronRight
+                              className={`w-4 h-4 flex-shrink-0 mt-0.5 bg-gradient-to-r ${program.gradient} bg-clip-text text-transparent`}
+                            />
                             <span>{area}</span>
                           </li>
                         ))}
@@ -163,7 +172,8 @@ export function EducacionSection() {
                 Información e Inscripciones
               </h3>
               <p className="text-white/60 mb-6 max-w-xl mx-auto">
-                Para más información sobre nuestros programas educativos, requisitos de admisión y proceso de inscripción, contáctanos:
+                Para más información sobre nuestros programas educativos, requisitos de admisión y
+                proceso de inscripción, contáctanos:
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <a

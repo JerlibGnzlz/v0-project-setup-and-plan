@@ -1,16 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, BadRequestException, Query, Res } from "@nestjs/common"
-import { Response } from "express"
-import { InscripcionesService } from "./inscripciones.service"
-import { CreateInscripcionDto, UpdateInscripcionDto, CreatePagoDto, UpdatePagoDto } from "./dto/inscripcion.dto"
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
-import { Throttle } from "@nestjs/throttler"
-import { PaginationDto } from "../../common/dto/pagination.dto"
-import { InscripcionFilterDto, PagoFilterDto } from "../../common/dto/search-filter.dto"
-import { CsvExportUtil } from "../../common/utils/csv-export.util"
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  BadRequestException,
+  Query,
+  Res,
+} from '@nestjs/common'
+import { Response } from 'express'
+import { InscripcionesService } from './inscripciones.service'
+import {
+  CreateInscripcionDto,
+  UpdateInscripcionDto,
+  CreatePagoDto,
+  UpdatePagoDto,
+} from './dto/inscripcion.dto'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { Throttle } from '@nestjs/throttler'
+import { PaginationDto } from '../../common/dto/pagination.dto'
+import { InscripcionFilterDto, PagoFilterDto } from '../../common/dto/search-filter.dto'
+import { CsvExportUtil } from '../../common/utils/csv-export.util'
 
-@Controller("inscripciones")
+@Controller('inscripciones')
 export class InscripcionesController {
-  constructor(private inscripcionesService: InscripcionesService) { }
+  constructor(private inscripcionesService: InscripcionesService) {}
 
   @Get()
   findAll(@Query() query: PaginationDto & InscripcionFilterDto) {
@@ -46,10 +64,15 @@ export class InscripcionesController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(":id")
+  @Patch(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateInscripcionDto, @Request() req) {
     try {
-      return await this.inscripcionesService.updateInscripcion(id, dto, req.user?.id, req.user?.email)
+      return await this.inscripcionesService.updateInscripcion(
+        id,
+        dto,
+        req.user?.id,
+        req.user?.email
+      )
     } catch (error) {
       console.error('[InscripcionesController] Error en update:', error)
       throw error
@@ -59,7 +82,12 @@ export class InscripcionesController {
   @UseGuards(JwtAuthGuard)
   @Post(':id/cancelar')
   cancelar(@Request() req, @Param('id') id: string, @Body() body: { motivo?: string }) {
-    return this.inscripcionesService.cancelarInscripcion(id, body.motivo, req.user?.id, req.user?.email)
+    return this.inscripcionesService.cancelarInscripcion(
+      id,
+      body.motivo,
+      req.user?.id,
+      req.user?.email
+    )
   }
 
   @UseGuards(JwtAuthGuard)
@@ -85,23 +113,23 @@ export class InscripcionesController {
   async exportToCSV(@Query() query: InscripcionFilterDto, @Res() res: Response) {
     // Obtener todas las inscripciones (sin paginación para exportación completa)
     const inscripciones = await this.inscripcionesService.findAllInscripciones(1, 10000, query)
-    
+
     // Preparar datos para CSV
     const csvData = inscripciones.data.map(insc => ({
-      'ID': insc.id,
-      'Nombre': insc.nombre,
-      'Apellido': insc.apellido,
-      'Email': insc.email,
-      'Teléfono': insc.telefono || '',
-      'Sede': insc.sede || '',
-      'Estado': insc.estado,
+      ID: insc.id,
+      Nombre: insc.nombre,
+      Apellido: insc.apellido,
+      Email: insc.email,
+      Teléfono: insc.telefono || '',
+      Sede: insc.sede || '',
+      Estado: insc.estado,
       'Tipo Inscripción': insc.tipoInscripcion || '',
       'Número Cuotas': insc.numeroCuotas || 0,
       'Origen Registro': insc.origenRegistro || '',
       'Fecha Inscripción': insc.fechaInscripcion,
       'Código Referencia': insc.codigoReferencia || '',
-      'Convención': insc.convencion?.titulo || '',
-      'Notas': insc.notas || '',
+      Convención: insc.convencion?.titulo || '',
+      Notas: insc.notas || '',
     }))
 
     const csv = CsvExportUtil.toCSV(csvData)
@@ -117,18 +145,20 @@ export class InscripcionesController {
   async enviarRecordatorios(@Body() body: { convencionId?: string }) {
     try {
       const resultado = await this.inscripcionesService.enviarRecordatoriosPago(body.convencionId)
-      
+
       // Log detallado del resultado
       console.log('📊 Resultado de recordatorios:', {
         enviados: resultado.enviados,
         fallidos: resultado.fallidos,
         total: resultado.detalles.length,
       })
-      
+
       if (resultado.fallidos > 0) {
-        console.warn('⚠️ Algunos recordatorios fallaron. Revisa los logs del backend para más detalles.')
+        console.warn(
+          '⚠️ Algunos recordatorios fallaron. Revisa los logs del backend para más detalles.'
+        )
       }
-      
+
       return resultado
     } catch (error) {
       console.error('[InscripcionesController] Error en enviarRecordatorios:', error)
@@ -143,9 +173,9 @@ export class InscripcionesController {
   }
 }
 
-@Controller("pagos")
+@Controller('pagos')
 export class PagosController {
-  constructor(private inscripcionesService: InscripcionesService) { }
+  constructor(private inscripcionesService: InscripcionesService) {}
 
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -154,18 +184,19 @@ export class PagosController {
       // Siempre usar paginación por defecto
       const page = query.page ? Number(query.page) : 1
       const limit = query.limit ? Number(query.limit) : 20
-      
+
       // Construir filtros, filtrando valores undefined/null y 'todos'
       const filters: PagoFilterDto = {}
-      
+
       if (query.search) filters.search = query.search
       if (query.q) filters.q = query.q
       if (query.estado && query.estado !== 'todos') filters.estado = query.estado as any
-      if (query.metodoPago && query.metodoPago !== 'todos') filters.metodoPago = query.metodoPago as any
+      if (query.metodoPago && query.metodoPago !== 'todos')
+        filters.metodoPago = query.metodoPago as any
       if (query.origen && query.origen !== 'todos') filters.origen = query.origen as any
       if (query.inscripcionId) filters.inscripcionId = query.inscripcionId
       if (query.convencionId) filters.convencionId = query.convencionId
-      
+
       return this.inscripcionesService.findAllPagos(page, limit, filters)
     } catch (error: any) {
       // Log del error para depuración
@@ -179,23 +210,23 @@ export class PagosController {
   async exportPagosToCSV(@Query() query: PagoFilterDto, @Res() res: Response) {
     // Obtener todos los pagos (sin paginación para exportación completa)
     const pagos = await this.inscripcionesService.findAllPagos(1, 10000, query)
-    
+
     // Preparar datos para CSV
     const csvData = pagos.data.map(pago => ({
-      'ID': pago.id,
+      ID: pago.id,
       'Inscripción ID': pago.inscripcionId,
-      'Nombre': pago.inscripcion?.nombre || '',
-      'Apellido': pago.inscripcion?.apellido || '',
-      'Email': pago.inscripcion?.email || '',
-      'Monto': typeof pago.monto === 'number' ? pago.monto : parseFloat(String(pago.monto || '0')),
+      Nombre: pago.inscripcion?.nombre || '',
+      Apellido: pago.inscripcion?.apellido || '',
+      Email: pago.inscripcion?.email || '',
+      Monto: typeof pago.monto === 'number' ? pago.monto : parseFloat(String(pago.monto || '0')),
       'Método Pago': pago.metodoPago || '',
       'Número Cuota': pago.numeroCuota || '',
-      'Estado': pago.estado,
-      'Referencia': pago.referencia || '',
+      Estado: pago.estado,
+      Referencia: pago.referencia || '',
       'Fecha Pago': pago.fechaPago || '',
       'Fecha Creación': pago.createdAt,
-      'Notas': pago.notas || '',
-      'Convención': pago.inscripcion?.convencion?.titulo || '',
+      Notas: pago.notas || '',
+      Convención: pago.inscripcion?.convencion?.titulo || '',
     }))
 
     const csv = CsvExportUtil.toCSV(csvData)
@@ -229,7 +260,7 @@ export class PagosController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(":id")
+  @Patch(':id')
   update(@Request() req, @Param('id') id: string, @Body() dto: UpdatePagoDto) {
     return this.inscripcionesService.updatePago(id, dto, req.user?.id)
   }
@@ -258,4 +289,3 @@ export class PagosController {
     return this.inscripcionesService.removePago(id)
   }
 }
-

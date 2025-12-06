@@ -1,44 +1,40 @@
-import { Injectable, Logger, NotFoundException, ConflictException } from "@nestjs/common"
-import { PrismaService } from "../../prisma/prisma.service"
-import { CreatePastorDto, UpdatePastorDto } from "./dto/pastor.dto"
-import { BaseService } from "../../common/base.service"
-import { Pastor } from "@prisma/client"
-import { AuditService } from "../../common/services/audit.service"
-import { PastorFilterDto } from "../../common/dto/search-filter.dto"
-import { Prisma } from "@prisma/client"
+import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common'
+import { PrismaService } from '../../prisma/prisma.service'
+import { CreatePastorDto, UpdatePastorDto } from './dto/pastor.dto'
+import { BaseService } from '../../common/base.service'
+import { Pastor, TipoPastor } from '@prisma/client'
+import { AuditService } from '../../common/services/audit.service'
+import { PastorFilterDto } from '../../common/dto/search-filter.dto'
+import { Prisma } from '@prisma/client'
 
 /**
  * Servicio para gestión de Pastores (Estructura Organizacional)
- * 
+ *
  * IMPORTANTE: Este servicio gestiona SOLO la estructura organizacional del ministerio.
  * NO gestiona inscripciones a convenciones (ver InscripcionesService).
- * 
+ *
  * Separación de conceptos:
  * - Pastores: Estructura organizacional (directiva, equipo pastoral)
  * - Inscripciones: Participantes de convenciones (tabla separada)
- * 
+ *
  * Los pastores se crean SOLO desde:
  * - app/admin/pastores (gestión de estructura organizacional)
- * 
+ *
  * Las inscripciones se crean desde:
  * - Landing page (origenRegistro: 'web')
  * - Admin dashboard (origenRegistro: 'dashboard')
  * - App móvil (origenRegistro: 'mobile')
- * 
+ *
  * Extiende BaseService para heredar operaciones CRUD básicas
  * y añade lógica de negocio específica para pastores
  */
 @Injectable()
-export class PastoresService extends BaseService<
-  Pastor,
-  CreatePastorDto,
-  UpdatePastorDto
-> {
+export class PastoresService extends BaseService<Pastor, CreatePastorDto, UpdatePastorDto> {
   private readonly logger = new Logger(PastoresService.name)
 
   constructor(
     private prisma: PrismaService,
-    private auditService: AuditService,
+    private auditService: AuditService
   ) {
     super(prisma.pastor, { entityName: 'Pastor' })
   }
@@ -51,7 +47,7 @@ export class PastoresService extends BaseService<
   override async findAll(): Promise<Pastor[]> {
     return this.model.findMany({
       where: { activo: true }, // Solo pastores organizacionales
-      orderBy: { nombre: "asc" },
+      orderBy: { nombre: 'asc' },
     })
   }
 
@@ -76,7 +72,9 @@ export class PastoresService extends BaseService<
     const skip = (page - 1) * limit
     const take = limit
 
-    this.logger.log(`🔍 Buscando pastores - página: ${page}, límite: ${limit}, filtros: ${JSON.stringify(filters)}`)
+    this.logger.log(
+      `🔍 Buscando pastores - página: ${page}, límite: ${limit}, filtros: ${JSON.stringify(filters)}`
+    )
 
     // Construir condiciones WHERE
     const where: Prisma.PastorWhereInput = {}
@@ -119,17 +117,17 @@ export class PastoresService extends BaseService<
 
     // Construir opciones de consulta
     const hasFilters = Object.keys(where).length > 0
-    const findManyOptions: any = {
-      orderBy: { nombre: "asc" },
+    const findManyOptions: Prisma.PastorFindManyArgs = {
+      orderBy: { nombre: 'asc' },
       skip,
       take,
     }
-    
+
     if (hasFilters) {
       findManyOptions.where = where
     }
 
-    const countOptions: any = hasFilters ? { where } : {}
+    const countOptions: Prisma.PastorCountArgs = hasFilters ? { where } : {}
 
     this.logger.log(`📋 FindMany options: ${JSON.stringify(findManyOptions, null, 2)}`)
     this.logger.log(`📋 Count options: ${JSON.stringify(countOptions, null, 2)}`)
@@ -155,15 +153,26 @@ export class PastoresService extends BaseService<
           hasPreviousPage: page > 1,
         },
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorCode = this.getErrorCode(error)
+      const errorMeta = this.getErrorProperty(error, 'meta')
+      const errorStack = error instanceof Error ? error.stack?.substring(0, 500) : undefined
+
       this.logger.error(`❌ Error al buscar pastores:`, error)
-      this.logger.error(`FindMany options que causaron el error:`, JSON.stringify(findManyOptions, null, 2))
-      this.logger.error(`Count options que causaron el error:`, JSON.stringify(countOptions, null, 2))
+      this.logger.error(
+        `FindMany options que causaron el error:`,
+        JSON.stringify(findManyOptions, null, 2)
+      )
+      this.logger.error(
+        `Count options que causaron el error:`,
+        JSON.stringify(countOptions, null, 2)
+      )
       this.logger.error(`Error completo:`, {
-        message: error.message,
-        code: error.code,
-        meta: error.meta,
-        stack: error.stack?.substring(0, 500), // Limitar stack trace
+        message: errorMessage,
+        code: errorCode,
+        meta: errorMeta,
+        stack: errorStack,
       })
       throw error
     }
@@ -175,7 +184,7 @@ export class PastoresService extends BaseService<
   async findActive(): Promise<Pastor[]> {
     return this.model.findMany({
       where: { activo: true },
-      orderBy: { nombre: "asc" },
+      orderBy: { nombre: 'asc' },
     })
   }
 
@@ -185,7 +194,7 @@ export class PastoresService extends BaseService<
   override async update(id: string, data: UpdatePastorDto): Promise<Pastor> {
     // Si se está actualizando el tipo o mostrarEnLanding, validar la lógica
     const currentPastor = await this.findOneOrNull(id)
-    
+
     if (!currentPastor) {
       throw new NotFoundException('Pastor no encontrado')
     }
@@ -205,9 +214,14 @@ export class PastoresService extends BaseService<
   /**
    * Actualiza un pastor con auditoría
    */
-  async updateWithAudit(id: string, data: UpdatePastorDto, userId?: string, userEmail?: string): Promise<Pastor> {
+  async updateWithAudit(
+    id: string,
+    data: UpdatePastorDto,
+    userId?: string,
+    userEmail?: string
+  ): Promise<Pastor> {
     const currentPastor = await this.findOneOrNull(id)
-    
+
     if (!currentPastor) {
       throw new NotFoundException('Pastor no encontrado')
     }
@@ -245,7 +259,7 @@ export class PastoresService extends BaseService<
       const existingPastor = await this.model.findUnique({
         where: { email: data.email },
       })
-      
+
       if (existingPastor) {
         throw new ConflictException(`Ya existe un pastor con el correo electrónico ${data.email}`)
       }
@@ -253,9 +267,12 @@ export class PastoresService extends BaseService<
 
     try {
       return await super.create(data)
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Si Prisma lanza un error de constraint único, mejorar el mensaje
-      if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+      const errorCode = this.getErrorCode(error)
+      const errorMeta = this.getErrorProperty(error, 'meta') as { target?: string[] } | undefined
+
+      if (errorCode === 'P2002' && errorMeta?.target?.includes('email')) {
         throw new ConflictException(`Ya existe un pastor con el correo electrónico ${data.email}`)
       }
       throw error
@@ -265,7 +282,11 @@ export class PastoresService extends BaseService<
   /**
    * Crea un pastor con auditoría
    */
-  async createWithAudit(data: CreatePastorDto, userId?: string, userEmail?: string): Promise<Pastor> {
+  async createWithAudit(
+    data: CreatePastorDto,
+    userId?: string,
+    userEmail?: string
+  ): Promise<Pastor> {
     const created = await this.create(data)
 
     // Registrar auditoría
@@ -314,11 +335,13 @@ export class PastoresService extends BaseService<
       action: 'DESACTIVAR',
       userId,
       userEmail,
-      changes: [{
-        field: 'activo',
-        oldValue: currentPastor.activo,
-        newValue: false,
-      }],
+      changes: [
+        {
+          field: 'activo',
+          oldValue: currentPastor.activo,
+          newValue: false,
+        },
+      ],
     })
 
     return updated
@@ -355,9 +378,9 @@ export class PastoresService extends BaseService<
     return this.model.findMany({
       where: {
         region,
-        activo: true
+        activo: true,
       },
-      orderBy: { nombre: "asc" },
+      orderBy: { nombre: 'asc' },
     })
   }
 
@@ -368,9 +391,9 @@ export class PastoresService extends BaseService<
     return this.model.findMany({
       where: {
         pais,
-        activo: true
+        activo: true,
       },
-      orderBy: { nombre: "asc" },
+      orderBy: { nombre: 'asc' },
     })
   }
 
@@ -389,10 +412,7 @@ export class PastoresService extends BaseService<
     activos: number
     inactivos: number
   }> {
-    const [total, activos] = await Promise.all([
-      this.count(),
-      this.count({ activo: true }),
-    ])
+    const [total, activos] = await Promise.all([this.count(), this.count({ activo: true })])
 
     return {
       total,
@@ -408,16 +428,13 @@ export class PastoresService extends BaseService<
    */
   async findForLanding(): Promise<Pastor[]> {
     this.logger.log('📋 Obteniendo pastores para landing page')
-    
+
     return this.model.findMany({
       where: {
         activo: true,
         mostrarEnLanding: true,
       },
-      orderBy: [
-        { orden: 'asc' },
-        { nombre: 'asc' },
-      ],
+      orderBy: [{ orden: 'asc' }, { nombre: 'asc' }],
     })
   }
 
@@ -427,13 +444,10 @@ export class PastoresService extends BaseService<
   async findByTipo(tipo: string): Promise<Pastor[]> {
     return this.model.findMany({
       where: {
-        tipo: tipo as any,
+        tipo: tipo as TipoPastor,
         activo: true,
       },
-      orderBy: [
-        { orden: 'asc' },
-        { nombre: 'asc' },
-      ],
+      orderBy: [{ orden: 'asc' }, { nombre: 'asc' }],
     })
   }
 
@@ -446,10 +460,7 @@ export class PastoresService extends BaseService<
         tipo: 'DIRECTIVA',
         activo: true,
       },
-      orderBy: [
-        { orden: 'asc' },
-        { nombre: 'asc' },
-      ],
+      orderBy: [{ orden: 'asc' }, { nombre: 'asc' }],
     })
   }
 
@@ -463,11 +474,27 @@ export class PastoresService extends BaseService<
         activo: true,
         ...(region && { region }),
       },
-      orderBy: [
-        { region: 'asc' },
-        { orden: 'asc' },
-        { nombre: 'asc' },
-      ],
+      orderBy: [{ region: 'asc' }, { orden: 'asc' }, { nombre: 'asc' }],
     })
+  }
+
+  /**
+   * Helper para obtener el código de error de forma segura
+   */
+  private getErrorCode(error: unknown): string | undefined {
+    if (error && typeof error === 'object' && 'code' in error) {
+      return typeof error.code === 'string' ? error.code : undefined
+    }
+    return undefined
+  }
+
+  /**
+   * Helper para obtener propiedades de error de forma segura
+   */
+  private getErrorProperty(error: unknown, property: string): unknown {
+    if (error && typeof error === 'object' && property in error) {
+      return (error as Record<string, unknown>)[property]
+    }
+    return undefined
   }
 }

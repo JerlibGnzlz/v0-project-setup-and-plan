@@ -13,7 +13,10 @@ envContent.split('\n').forEach(line => {
     const key = match[1].trim()
     let value = match[2].trim()
     // Remover comillas si las tiene
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
       value = value.slice(1, -1)
     }
     envVars[key] = value
@@ -74,15 +77,13 @@ sgMail
     console.log('')
     console.log('📬 Revisa el correo mariacarrillocastro81@gmail.com')
   })
-  .catch((error) => {
+  .catch(error => {
     console.error('❌ Error enviando email:')
     console.error(error.response?.body || error.message)
     if (error.response?.body?.errors) {
-      error.response.body.errors.forEach((err) => {
+      error.response.body.errors.forEach(err => {
         console.error(`   - ${err.message}`)
       })
     }
     process.exit(1)
   })
-
-

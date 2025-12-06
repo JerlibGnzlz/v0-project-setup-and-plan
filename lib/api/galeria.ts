@@ -1,4 +1,4 @@
-import { apiClient } from "./client"
+import { apiClient } from './client'
 
 export type TipoGaleria = 'IMAGEN' | 'VIDEO'
 
@@ -15,15 +15,15 @@ export interface GaleriaImagen {
   createdAt: string
   updatedAt: string
   // Campos para videos
-  videoOriginalUrl?: string  // URL sin transformaciones de Cloudinary
-  videoStartTime?: number    // Segundo de inicio del recorte
-  videoEndTime?: number      // Segundo de fin del recorte
-  thumbnailTime?: number     // Segundo para el thumbnail personalizado
+  videoOriginalUrl?: string // URL sin transformaciones de Cloudinary
+  videoStartTime?: number // Segundo de inicio del recorte
+  videoEndTime?: number // Segundo de fin del recorte
+  thumbnailTime?: number // Segundo para el thumbnail personalizado
 }
 
 export const galeriaApi = {
   getAll: async (): Promise<GaleriaImagen[]> => {
-    const response = await apiClient.get<GaleriaImagen[]>("/galeria")
+    const response = await apiClient.get<GaleriaImagen[]>('/galeria')
     return response.data
   },
 
@@ -32,8 +32,10 @@ export const galeriaApi = {
     return response.data
   },
 
-  create: async (data: Omit<GaleriaImagen, "id" | "createdAt" | "updatedAt">): Promise<GaleriaImagen> => {
-    const response = await apiClient.post<GaleriaImagen>("/galeria", data)
+  create: async (
+    data: Omit<GaleriaImagen, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<GaleriaImagen> => {
+    const response = await apiClient.post<GaleriaImagen>('/galeria', data)
     return response.data
   },
 

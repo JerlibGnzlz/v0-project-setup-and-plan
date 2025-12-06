@@ -9,7 +9,12 @@ interface AnimatedCounterProps {
   prefix?: string
 }
 
-export function AnimatedCounter({ end, duration = 2000, suffix = '', prefix = '' }: AnimatedCounterProps) {
+export function AnimatedCounter({
+  end,
+  duration = 2000,
+  suffix = '',
+  prefix = '',
+}: AnimatedCounterProps) {
   const [count, setCount] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
   const counterRef = useRef<HTMLSpanElement>(null)
@@ -52,7 +57,9 @@ export function AnimatedCounter({ end, duration = 2000, suffix = '', prefix = ''
 
   return (
     <span ref={counterRef} className="font-bold">
-      {prefix}{count}{suffix}
+      {prefix}
+      {count}
+      {suffix}
     </span>
   )
 }

@@ -16,7 +16,7 @@ export const uploadApi = {
   // Subir documento de inscripción (público, no requiere autenticación)
   uploadInscripcionDocumento: async (uri: string): Promise<UploadResponse> => {
     const formData = new FormData()
-    
+
     // En React Native, FormData acepta objetos con uri, type, name
     formData.append('file', {
       uri,
@@ -24,11 +24,15 @@ export const uploadApi = {
       name: 'documento.jpg',
     } as any)
 
-    const response = await apiClient.post<UploadResponse>('/upload/inscripcion-documento', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
+    const response = await apiClient.post<UploadResponse>(
+      '/upload/inscripcion-documento',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
     return response.data
   },
 }
@@ -66,5 +70,3 @@ export async function pickImage(): Promise<string | null> {
     return null
   }
 }
-
-

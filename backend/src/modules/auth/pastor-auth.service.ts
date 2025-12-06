@@ -1,4 +1,12 @@
-import { Injectable, UnauthorizedException, BadRequestException, NotFoundException, Logger, Inject, forwardRef } from '@nestjs/common'
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  NotFoundException,
+  Logger,
+  Inject,
+  forwardRef,
+} from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { PrismaService } from '../../prisma/prisma.service'
 import * as bcrypt from 'bcrypt'
@@ -21,8 +29,8 @@ export class PastorAuthService {
     private jwtService: JwtService,
     @Inject(forwardRef(() => NotificationsService))
     private notificationsService: NotificationsService,
-    private tokenBlacklist: TokenBlacklistService,
-  ) { }
+    private tokenBlacklist: TokenBlacklistService
+  ) {}
 
   /**
    * Registro de pastor - Verifica que el email existe en la tabla Pastores
@@ -103,11 +111,11 @@ export class PastorAuthService {
 
   /**
    * Registro completo de pastor/invitado
-   * 
+   *
    * Este endpoint permite:
    * 1. Pastores organizacionales: Crear cuenta de autenticación si ya existen en estructura organizacional
    * 2. Invitados: Crear pastor con activo=false (NO aparece en estructura organizacional) + cuenta de autenticación
-   * 
+   *
    * Separación:
    * - Pastores organizacionales: activo=true, aparecen en /admin/pastores
    * - Invitados: activo=false, NO aparecen en estructura organizacional, solo para autenticación
@@ -138,7 +146,9 @@ export class PastorAuthService {
         },
       })
 
-      this.logger.log(`✅ Pastor invitado creado: ${pastor.id} (activo=false, NO aparece en estructura organizacional)`)
+      this.logger.log(
+        `✅ Pastor invitado creado: ${pastor.id} (activo=false, NO aparece en estructura organizacional)`
+      )
     } else {
       // 3. Si existe, verificar que esté activo (solo para pastores organizacionales)
       if (!pastor.activo) {
@@ -177,7 +187,9 @@ export class PastorAuthService {
     })
 
     if (esInvitado) {
-      this.logger.log(`✅ Cuenta de invitado creada: ${pastor.email} (NO aparece en estructura organizacional)`)
+      this.logger.log(
+        `✅ Cuenta de invitado creada: ${pastor.email} (NO aparece en estructura organizacional)`
+      )
     } else {
       this.logger.log(`✅ Autenticación creada para pastor organizacional: ${pastor.email}`)
     }
@@ -201,19 +213,14 @@ export class PastorAuthService {
 
       // Enviar notificación a cada admin
       for (const admin of admins) {
-        await this.notificationsService.sendNotificationToAdmin(
-          admin.email,
-          titulo,
-          mensaje,
-          {
-            type: esInvitado ? 'nuevo_invitado' : 'nuevo_pastor_auth',
-            pastorId: pastor.id,
-            nombre: pastor.nombre,
-            apellido: pastor.apellido,
-            email: pastor.email,
-            esInvitado,
-          }
-        )
+        await this.notificationsService.sendNotificationToAdmin(admin.email, titulo, mensaje, {
+          type: esInvitado ? 'nuevo_invitado' : 'nuevo_pastor_auth',
+          pastorId: pastor.id,
+          nombre: pastor.nombre,
+          apellido: pastor.apellido,
+          email: pastor.email,
+          esInvitado,
+        })
       }
 
       this.logger.log(`📬 Notificaciones enviadas a ${admins.length} admin(s)`)
@@ -276,10 +283,7 @@ export class PastorAuthService {
       }
 
       // 3. Verificar contraseña
-      const isPasswordValid = await bcrypt.compare(
-        dto.password,
-        pastorAuth.password
-      )
+      const isPasswordValid = await bcrypt.compare(dto.password, pastorAuth.password)
 
       if (!isPasswordValid) {
         this.logger.warn(`❌ Login fallido: contraseña inválida`, {
@@ -513,4 +517,3 @@ export class PastorAuthService {
     throw new BadRequestException('Funcionalidad en desarrollo')
   }
 }
-

@@ -53,15 +53,9 @@ export default function NotificationsHistoryScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
-      <LinearGradient
-        colors={['#0a1628', '#0d1f35']}
-        style={styles.header}
-      >
+      <LinearGradient colors={['#0a1628', '#0d1f35']} style={styles.header}>
         <View style={styles.headerContent}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <ArrowLeft size={24} color="#fff" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
@@ -74,10 +68,7 @@ export default function NotificationsHistoryScreen() {
             )}
           </View>
           {unreadCount > 0 && (
-            <TouchableOpacity
-              onPress={() => markAllAsRead.mutate()}
-              style={styles.markAllButton}
-            >
+            <TouchableOpacity onPress={() => markAllAsRead.mutate()} style={styles.markAllButton}>
               <CheckCheck size={20} color="#10b981" />
             </TouchableOpacity>
           )}
@@ -88,9 +79,7 @@ export default function NotificationsHistoryScreen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {isLoading ? (
           <View style={styles.emptyContainer}>
@@ -102,13 +91,10 @@ export default function NotificationsHistoryScreen() {
             <Text style={styles.emptyText}>No hay notificaciones</Text>
           </View>
         ) : (
-          history?.notifications.map((notification) => (
+          history?.notifications.map(notification => (
             <TouchableOpacity
               key={notification.id}
-              style={[
-                styles.notificationCard,
-                !notification.read && styles.unreadCard,
-              ]}
+              style={[styles.notificationCard, !notification.read && styles.unreadCard]}
               onPress={() => {
                 if (!notification.read) {
                   markAsRead.mutate(notification.id)
@@ -120,12 +106,8 @@ export default function NotificationsHistoryScreen() {
                   {getNotificationIcon(notification.type)}
                 </Text>
                 <View style={styles.notificationContent}>
-                  <Text style={styles.notificationTitle}>
-                    {notification.title}
-                  </Text>
-                  <Text style={styles.notificationBody}>
-                    {notification.body}
-                  </Text>
+                  <Text style={styles.notificationTitle}>{notification.title}</Text>
+                  <Text style={styles.notificationBody}>{notification.body}</Text>
                   <View style={styles.notificationFooter}>
                     <Text style={styles.notificationDate}>
                       {format(new Date(notification.createdAt), 'PPp', { locale: es })}
@@ -279,4 +261,3 @@ const styles = StyleSheet.create({
     padding: 4,
   },
 })
-

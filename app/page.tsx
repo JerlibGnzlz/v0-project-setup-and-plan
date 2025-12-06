@@ -29,7 +29,7 @@ function HomePageContent() {
         description: 'Tu inscripción ha sido registrada correctamente. Te contactaremos pronto.',
         duration: 5000,
       })
-      
+
       // Limpiar el parámetro de la URL sin recargar la página
       const url = new URL(window.location.href)
       url.searchParams.delete('inscripcion')
@@ -74,42 +74,42 @@ function HomePageContent() {
         <div id="inicio">
           <HeroSection />
         </div>
-          <MarqueeTicker />
-          <div id="sedes">
-            <ScrollReveal>
-              <SedesSection />
-            </ScrollReveal>
-          </div>
-          <div id="mision">
-            <ScrollReveal delay={100}>
-              <AboutSection />
-            </ScrollReveal>
-          </div>
-          <div id="directiva">
-            <ScrollReveal delay={100}>
-              <LeadershipSection />
-            </ScrollReveal>
-          </div>
-          <div id="noticias">
-            <ScrollReveal delay={100}>
-              <NewsSection />
-            </ScrollReveal>
-          </div>
-          <div id="convenciones">
-            <ScrollReveal delay={100}>
-              <ConventionsSection />
-            </ScrollReveal>
-          </div>
-          <div id="galeria">
-            <ScrollReveal delay={100}>
-              <GallerySection />
-            </ScrollReveal>
-          </div>
-          <div id="educacion">
-            <ScrollReveal delay={100}>
-              <EducacionSection />
-            </ScrollReveal>
-          </div>
+        <MarqueeTicker />
+        <div id="sedes">
+          <ScrollReveal>
+            <SedesSection />
+          </ScrollReveal>
+        </div>
+        <div id="mision">
+          <ScrollReveal delay={100}>
+            <AboutSection />
+          </ScrollReveal>
+        </div>
+        <div id="directiva">
+          <ScrollReveal delay={100}>
+            <LeadershipSection />
+          </ScrollReveal>
+        </div>
+        <div id="noticias">
+          <ScrollReveal delay={100}>
+            <NewsSection />
+          </ScrollReveal>
+        </div>
+        <div id="convenciones">
+          <ScrollReveal delay={100}>
+            <ConventionsSection />
+          </ScrollReveal>
+        </div>
+        <div id="galeria">
+          <ScrollReveal delay={100}>
+            <GallerySection />
+          </ScrollReveal>
+        </div>
+        <div id="educacion">
+          <ScrollReveal delay={100}>
+            <EducacionSection />
+          </ScrollReveal>
+        </div>
         <Footer />
       </main>
     </div>

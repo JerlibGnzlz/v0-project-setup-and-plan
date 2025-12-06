@@ -24,7 +24,7 @@ const Tab = createBottomTabNavigator()
 
 function MainTabs() {
   const insets = useSafeAreaInsets()
-  
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -61,7 +61,7 @@ function MainTabs() {
           tabBarIcon: ({ color, size }) => <Home size={size || 24} color={color} />,
         }}
       >
-        {(props) => <HomeScreen navigation={props.navigation} />}
+        {props => <HomeScreen navigation={props.navigation} />}
       </Tab.Screen>
       <Tab.Screen
         name="Convenciones"
@@ -93,11 +93,22 @@ export function AppNavigator() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a1628' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#0a1628',
+        }}
+      >
         <View style={{ alignItems: 'center' }}>
-          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>AMVA Go</Text>
+          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
+            AMVA Go
+          </Text>
           <ActivityIndicator size="large" color="#22c55e" />
-          <Text style={{ marginTop: 16, color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>Cargando...</Text>
+          <Text style={{ marginTop: 16, color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>
+            Cargando...
+          </Text>
         </View>
       </View>
     )
@@ -109,10 +120,10 @@ export function AppNavigator() {
         {pastor ? (
           <>
             <Stack.Screen name="Main" component={MainTabs} />
-            <Stack.Screen 
-              name="Notifications" 
+            <Stack.Screen
+              name="Notifications"
               component={NotificationsHistoryScreen}
-              options={{ 
+              options={{
                 presentation: 'modal',
                 headerShown: false,
               }}
@@ -125,5 +136,3 @@ export function AppNavigator() {
     </NavigationContainer>
   )
 }
-
-

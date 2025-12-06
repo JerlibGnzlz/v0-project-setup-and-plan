@@ -3,18 +3,18 @@
 import { use } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { 
-  ArrowLeft, 
-  Calendar, 
+import {
+  ArrowLeft,
+  Calendar,
   Eye,
-  User, 
+  User,
   Share2,
   Facebook,
   Copy,
   Check,
   Loader2,
   Newspaper,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useNoticiaBySlug, useNoticiasPublicadas } from '@/lib/hooks/use-noticias'
@@ -63,58 +63,85 @@ function NoticiaContent({ slug }: { slug: string }) {
   // Tracking de vistas optimizado (no bloquea la carga)
   // Se ejecuta cuando la noticia se carga completamente
   useEffect(() => {
-    console.log(`📰 [NoticiaContent] useEffect ejecutado - noticia:`, noticia ? { slug: noticia.slug, titulo: noticia.titulo, vistas: noticia.vistas } : 'null', `isLoading: ${isLoading}`)
-    
+    console.log(
+      `📰 [NoticiaContent] useEffect ejecutado - noticia:`,
+      noticia ? { slug: noticia.slug, titulo: noticia.titulo, vistas: noticia.vistas } : 'null',
+      `isLoading: ${isLoading}`
+    )
+
     if (noticia && noticia.slug && !isLoading) {
-      console.log(`✅ [NoticiaContent] Noticia cargada, slug: "${noticia.slug}", vistas actuales: ${noticia.vistas || 0}, iniciando tracking...`)
-      
+      console.log(
+        `✅ [NoticiaContent] Noticia cargada, slug: "${noticia.slug}", vistas actuales: ${noticia.vistas || 0}, iniciando tracking...`
+      )
+
       // Si la noticia tiene 0 vistas o no tiene vistas, limpiar cualquier cache previo
       // Esto asegura que las noticias nuevas siempre se trackeen
       if ((noticia.vistas === 0 || noticia.vistas === undefined) && typeof window !== 'undefined') {
         const cacheKey = `amva_viewed_${noticia.slug}`
         if (localStorage.getItem(cacheKey)) {
-          console.log(`🧹 [NoticiaContent] Limpiando cache previo para noticia nueva: "${noticia.slug}"`)
+          console.log(
+            `🧹 [NoticiaContent] Limpiando cache previo para noticia nueva: "${noticia.slug}"`
+          )
           localStorage.removeItem(cacheKey)
         }
       }
-      
+
       // Función personalizada que incrementa la vista y actualiza la UI
       const incrementarVistaConActualizacion = async (slug: string) => {
         console.log(`📞 [incrementarVistaConActualizacion] Llamado para: "${slug}"`)
         try {
-          console.log(`🌐 [incrementarVistaConActualizacion] Llamando a noticiasApi.incrementarVista("${slug}")...`)
+          console.log(
+            `🌐 [incrementarVistaConActualizacion] Llamando a noticiasApi.incrementarVista("${slug}")...`
+          )
           await noticiasApi.incrementarVista(slug)
-          console.log(`✅ [incrementarVistaConActualizacion] API respondió exitosamente para "${slug}"`)
-          
+          console.log(
+            `✅ [incrementarVistaConActualizacion] API respondió exitosamente para "${slug}"`
+          )
+
           // Invalidar queries para actualizar la UI con el nuevo contador
           // La queryKey correcta es ['noticia', 'slug', slug] según useNoticiaBySlug
-          console.log(`🔄 [incrementarVistaConActualizacion] Invalidando queries para actualizar UI...`)
+          console.log(
+            `🔄 [incrementarVistaConActualizacion] Invalidando queries para actualizar UI...`
+          )
           queryClient.invalidateQueries({ queryKey: ['noticia', 'slug', slug] })
           queryClient.invalidateQueries({ queryKey: ['noticias', 'publicadas'] })
-          
+
           // También actualizar el cache directamente para respuesta inmediata
           queryClient.setQueryData(['noticia', 'slug', slug], (oldData: any) => {
             if (oldData) {
               const nuevasVistas = (oldData.vistas || 0) + 1
-              console.log(`📊 [incrementarVistaConActualizacion] Actualizando cache: ${oldData.vistas || 0} → ${nuevasVistas} vistas`)
+              console.log(
+                `📊 [incrementarVistaConActualizacion] Actualizando cache: ${oldData.vistas || 0} → ${nuevasVistas} vistas`
+              )
               return { ...oldData, vistas: nuevasVistas }
             }
             return oldData
           })
-          console.log(`✅ [incrementarVistaConActualizacion] Vista incrementada y UI actualizada para: ${slug}`)
+          console.log(
+            `✅ [incrementarVistaConActualizacion] Vista incrementada y UI actualizada para: ${slug}`
+          )
         } catch (error) {
-          console.error(`❌ [incrementarVistaConActualizacion] Error al incrementar vista para ${slug}:`, error)
+          console.error(
+            `❌ [incrementarVistaConActualizacion] Error al incrementar vista para ${slug}:`,
+            error
+          )
         }
       }
-      
+
       // Pequeño delay para asegurar que la página se cargó completamente
       const timer = setTimeout(() => {
         console.log(`⏰ [NoticiaContent] Timer ejecutado para "${noticia.slug}"`)
-        
+
         // Trackear vista de forma asíncrona y optimizada
         // Cada noticia (slug) se cuenta de forma INDEPENDIENTE
-        console.log(`🎯 [NoticiaContent] Llamando trackView("${noticia.slug}", incrementarVistaConActualizacion)`)
-        trackView(noticia.slug, incrementarVistaConActualizacion, noticia.vistas === 0 || noticia.vistas === undefined)
+        console.log(
+          `🎯 [NoticiaContent] Llamando trackView("${noticia.slug}", incrementarVistaConActualizacion)`
+        )
+        trackView(
+          noticia.slug,
+          incrementarVistaConActualizacion,
+          noticia.vistas === 0 || noticia.vistas === undefined
+        )
       }, 500) // 500ms después de que la noticia se carga
 
       return () => {
@@ -124,8 +151,8 @@ function NoticiaContent({ slug }: { slug: string }) {
     } else {
       console.log(`⏸️ [NoticiaContent] No se puede trackear vista:`, {
         tieneNoticia: !!noticia,
-        tieneSlug: !!(noticia?.slug),
-        isLoading
+        tieneSlug: !!noticia?.slug,
+        isLoading,
       })
     }
   }, [noticia, isLoading, queryClient])
@@ -174,14 +201,14 @@ function NoticiaContent({ slug }: { slug: string }) {
       <header className="sticky top-0 z-50 bg-[#0a1628]/80 backdrop-blur-xl border-b border-white/10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link 
-              href={typeof window !== 'undefined' ? getReturnUrl() : '/#noticias'} 
+            <Link
+              href={typeof window !== 'undefined' ? getReturnUrl() : '/#noticias'}
               className="flex items-center gap-2 text-white hover:text-emerald-400 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Volver</span>
             </Link>
-            
+
             {/* Share buttons */}
             <div className="flex items-center gap-1.5 sm:gap-2">
               <a
@@ -213,10 +240,12 @@ function NoticiaContent({ slug }: { slug: string }) {
         <article className="max-w-3xl mx-auto">
           {/* Category & Date */}
           <div className="flex flex-wrap items-center gap-3 mb-6">
-            <span className={cn(
-              "px-3 py-1 rounded-full text-sm font-medium border",
-              categoriaColors[noticia.categoria]
-            )}>
+            <span
+              className={cn(
+                'px-3 py-1 rounded-full text-sm font-medium border',
+                categoriaColors[noticia.categoria]
+              )}
+            >
               {categoriaLabels[noticia.categoria]}
             </span>
             {noticia.fechaPublicacion && (
@@ -238,16 +267,18 @@ function NoticiaContent({ slug }: { slug: string }) {
 
           {/* Extracto */}
           {noticia.extracto && (
-            <p className="text-xl text-white/70 mb-8 leading-relaxed">
-              {noticia.extracto}
-            </p>
+            <p className="text-xl text-white/70 mb-8 leading-relaxed">{noticia.extracto}</p>
           )}
 
           {/* Author */}
           {noticia.autor && (
             <div className="flex items-center gap-3 mb-8 pb-8 border-b border-white/10">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold">
-                {noticia.autor.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                {noticia.autor
+                  .split(' ')
+                  .map(n => n[0])
+                  .join('')
+                  .slice(0, 2)}
               </div>
               <div>
                 <p className="text-white font-medium">{noticia.autor}</p>
@@ -271,13 +302,14 @@ function NoticiaContent({ slug }: { slug: string }) {
 
           {/* Content */}
           <div className="prose prose-invert prose-lg max-w-none">
-            {noticia.contenido.split('\n').map((paragraph, index) => (
-              paragraph.trim() && (
-                <p key={index} className="text-white/80 leading-relaxed mb-4">
-                  {paragraph}
-                </p>
-              )
-            ))}
+            {noticia.contenido.split('\n').map(
+              (paragraph, index) =>
+                paragraph.trim() && (
+                  <p key={index} className="text-white/80 leading-relaxed mb-4">
+                    {paragraph}
+                  </p>
+                )
+            )}
           </div>
 
           {/* Share section */}
@@ -312,7 +344,7 @@ function NoticiaContent({ slug }: { slug: string }) {
           <section className="mt-16 pt-12 border-t border-white/10">
             <h2 className="text-2xl font-bold text-white mb-8">Más Noticias</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relacionadas.map((n) => (
+              {relacionadas.map(n => (
                 <Link
                   key={n.id}
                   href={`/noticias/${n.slug}`}
@@ -320,12 +352,7 @@ function NoticiaContent({ slug }: { slug: string }) {
                 >
                   <div className="relative aspect-video bg-white/5">
                     {n.imagenUrl ? (
-                      <Image
-                        src={n.imagenUrl}
-                        alt={n.titulo}
-                        fill
-                        className="object-contain"
-                      />
+                      <Image src={n.imagenUrl} alt={n.titulo} fill className="object-contain" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
                         <Newspaper className="w-8 h-8 text-white/20" />
@@ -333,10 +360,12 @@ function NoticiaContent({ slug }: { slug: string }) {
                     )}
                   </div>
                   <div className="p-4">
-                    <span className={cn(
-                      "inline-block px-2 py-0.5 rounded-full text-xs font-medium border mb-2",
-                      categoriaColors[n.categoria]
-                    )}>
+                    <span
+                      className={cn(
+                        'inline-block px-2 py-0.5 rounded-full text-xs font-medium border mb-2',
+                        categoriaColors[n.categoria]
+                      )}
+                    >
                       {categoriaLabels[n.categoria]}
                     </span>
                     <h3 className="text-white font-semibold group-hover:text-emerald-400 transition-colors line-clamp-2">
@@ -353,8 +382,8 @@ function NoticiaContent({ slug }: { slug: string }) {
       {/* Footer */}
       <footer className="border-t border-white/10 py-8 mt-12">
         <div className="container mx-auto px-4 text-center">
-          <Link 
-            href={typeof window !== 'undefined' ? getReturnUrl() : '/#noticias'} 
+          <Link
+            href={typeof window !== 'undefined' ? getReturnUrl() : '/#noticias'}
             className="text-white/60 hover:text-emerald-400 transition-colors inline-flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -368,7 +397,7 @@ function NoticiaContent({ slug }: { slug: string }) {
 
 export default function NoticiaPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params)
-  
+
   return (
     <QueryProvider>
       <NoticiaContent slug={resolvedParams.slug} />

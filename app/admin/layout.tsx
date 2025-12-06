@@ -1,25 +1,31 @@
 'use client'
 
-import type React from "react"
-import { LogOut, Menu, LayoutDashboard, Users, Newspaper, ImageIcon, CreditCard } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Toaster } from "@/components/ui/sonner"
-import { QueryProvider } from "@/lib/providers/query-provider"
-import { useAuth } from "@/lib/hooks/use-auth"
-import { useRouter, usePathname } from "next/navigation"
-import { useEffect } from "react"
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
-import { NotificationsBell } from "@/components/admin/notifications-bell"
+import type React from 'react'
+import {
+  LogOut,
+  Menu,
+  LayoutDashboard,
+  Users,
+  Newspaper,
+  ImageIcon,
+  CreditCard,
+  UserCircle,
+  Shield,
+} from 'lucide-react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { ThemeToggle } from '@/components/theme-toggle'
+import { Toaster } from '@/components/ui/sonner'
+import { QueryProvider } from '@/lib/providers/query-provider'
+import { useAuth } from '@/lib/hooks/use-auth'
+import { useRouter, usePathname } from 'next/navigation'
+import { useEffect } from 'react'
+import { AdminSidebar } from '@/components/admin/admin-sidebar'
+import { NotificationsBell } from '@/components/admin/notifications-bell'
 
-function AdminLayoutContent({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, logout, isAuthenticated, isHydrated, checkAuth } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
@@ -39,22 +45,30 @@ function AdminLayoutContent({
   }, [checkAuth])
 
   useEffect(() => {
-    console.log('[AdminLayout] Estado de autenticación:', { isHydrated, isAuthenticated, isPublicPath, pathname })
+    console.log('[AdminLayout] Estado de autenticación:', {
+      isHydrated,
+      isAuthenticated,
+      isPublicPath,
+      pathname,
+    })
 
     // Solo redirigir después de que se haya verificado la autenticación
     // Y dar un momento extra para que el estado se actualice después del login
     if (isHydrated && !isAuthenticated && !isPublicPath) {
       // Verificar también en storage como respaldo
-      const storedToken = typeof window !== 'undefined'
-        ? (localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token"))
-        : null
+      const storedToken =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+          : null
 
       if (!storedToken) {
         console.log('[AdminLayout] No autenticado y sin token en storage, redirigiendo a login')
         router.push('/admin/login')
       } else {
         // Si hay token en storage pero el estado no está actualizado, forzar verificación
-        console.log('[AdminLayout] Token encontrado en storage pero estado no actualizado, verificando...')
+        console.log(
+          '[AdminLayout] Token encontrado en storage pero estado no actualizado, verificando...'
+        )
         checkAuth()
       }
     }
@@ -119,18 +133,16 @@ function AdminLayoutContent({
             </div>
             {/* Notifications Bell */}
             <NotificationsBell />
-            {/* Avatar */}
-            {user?.avatar ? (
-              <img
-                src={user.avatar}
-                alt={user.nombre || 'Admin'}
-                className="size-10 rounded-full object-cover ring-2 ring-emerald-500/30"
-              />
-            ) : (
-              <div className="size-10 rounded-full bg-gradient-to-br from-sky-500 via-emerald-500 to-amber-500 flex items-center justify-center text-white font-bold text-sm">
-                {(user?.nombre || 'A').charAt(0).toUpperCase()}
+            {/* Avatar con icono de Lucide */}
+            <div className="relative group">
+              <div className="size-10 rounded-full bg-gradient-to-br from-sky-500 via-emerald-500 to-amber-500 flex items-center justify-center ring-2 ring-emerald-500/30 hover:ring-emerald-500/50 transition-all">
+                <Shield className="size-5 text-white drop-shadow-sm" />
               </div>
-            )}
+              {/* Tooltip en hover */}
+              <div className="absolute right-0 top-full mt-2 px-2 py-1 bg-black/80 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                {user?.nombre || 'Administrador'}
+              </div>
+            </div>
             <ThemeToggle />
             <Button
               size="sm"
@@ -154,7 +166,10 @@ function AdminLayoutContent({
               <span className="sr-only">Abrir menú</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0 border-r-sky-200/50 dark:border-r-sky-500/20">
+          <SheetContent
+            side="left"
+            className="w-72 p-0 border-r-sky-200/50 dark:border-r-sky-500/20"
+          >
             <div className="flex h-full flex-col">
               {/* Logo */}
               <div className="flex h-16 items-center gap-3 border-b border-sky-200/50 dark:border-sky-500/20 px-6 bg-gradient-to-r from-sky-50/50 to-emerald-50/50 dark:from-sky-950/30 dark:to-emerald-950/30">
@@ -175,35 +190,65 @@ function AdminLayoutContent({
               {/* Navigation */}
               <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                 {[
-                  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, description: 'Vista general' },
-                  { name: 'Estructura Organizacional', href: '/admin/pastores', icon: Users, description: 'Gestionar pastores' },
-                  { name: 'Noticias', href: '/admin/noticias', icon: Newspaper, description: 'Gestionar noticias' },
-                  { name: 'Multimedia', href: '/admin/galeria', icon: ImageIcon, description: 'Gestionar multimedia' },
-                  { name: 'Pagos', href: '/admin/pagos', icon: CreditCard, description: 'Gestionar pagos' },
-                ].map((item) => {
-                  const isActive = pathname === item.href || (item.href !== '/admin' && pathname?.startsWith(item.href))
+                  {
+                    name: 'Dashboard',
+                    href: '/admin',
+                    icon: LayoutDashboard,
+                    description: 'Vista general',
+                  },
+                  {
+                    name: 'Estructura Organizacional',
+                    href: '/admin/pastores',
+                    icon: Users,
+                    description: 'Gestionar pastores',
+                  },
+                  {
+                    name: 'Noticias',
+                    href: '/admin/noticias',
+                    icon: Newspaper,
+                    description: 'Gestionar noticias',
+                  },
+                  {
+                    name: 'Multimedia',
+                    href: '/admin/galeria',
+                    icon: ImageIcon,
+                    description: 'Gestionar multimedia',
+                  },
+                  {
+                    name: 'Pagos',
+                    href: '/admin/pagos',
+                    icon: CreditCard,
+                    description: 'Gestionar pagos',
+                  },
+                ].map(item => {
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href !== '/admin' && pathname?.startsWith(item.href))
                   const Icon = item.icon
 
                   return (
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
+                      className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                        isActive
                           ? 'bg-gradient-to-r from-sky-500/10 via-emerald-500/10 to-amber-500/10 dark:from-sky-500/20 dark:via-emerald-500/20 dark:to-amber-500/20 text-sky-700 dark:text-sky-300 shadow-sm border border-sky-200/50 dark:border-sky-500/30'
                           : 'text-muted-foreground hover:bg-sky-50/50 dark:hover:bg-sky-950/20 hover:text-sky-700 dark:hover:text-sky-300'
-                        }`}
+                      }`}
                     >
                       <div
-                        className={`p-2 rounded-lg transition-all duration-200 ${isActive
+                        className={`p-2 rounded-lg transition-all duration-200 ${
+                          isActive
                             ? 'bg-gradient-to-br from-sky-500/20 to-emerald-500/20 dark:from-sky-500/30 dark:to-emerald-500/30'
                             : 'bg-sky-50/50 dark:bg-sky-950/20 group-hover:bg-sky-100/50 dark:group-hover:bg-sky-900/30'
-                          }`}
+                        }`}
                       >
                         <Icon
-                          className={`h-5 w-5 transition-colors ${isActive
+                          className={`h-5 w-5 transition-colors ${
+                            isActive
                               ? 'text-sky-600 dark:text-sky-400'
                               : 'text-muted-foreground group-hover:text-sky-600 dark:group-hover:text-sky-400'
-                            }`}
+                          }`}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -235,9 +280,7 @@ function AdminLayoutContent({
                     <p className="text-sm font-medium text-foreground truncate">
                       {user?.nombre || 'Admin'}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {user?.email || ''}
-                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
                   </div>
                 </div>
               </div>
@@ -254,7 +297,9 @@ function AdminLayoutContent({
             height={56}
             className="w-14 h-14 object-contain"
           />
-          <h2 className="font-semibold bg-gradient-to-r from-sky-600 to-emerald-600 dark:from-sky-400 dark:to-emerald-400 bg-clip-text text-transparent">A.M.V.A</h2>
+          <h2 className="font-semibold bg-gradient-to-r from-sky-600 to-emerald-600 dark:from-sky-400 dark:to-emerald-400 bg-clip-text text-transparent">
+            A.M.V.A
+          </h2>
         </Link>
 
         {/* User info and actions */}
@@ -296,11 +341,7 @@ function AdminLayoutContent({
   )
 }
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <QueryProvider>
       <AdminLayoutContent>{children}</AdminLayoutContent>

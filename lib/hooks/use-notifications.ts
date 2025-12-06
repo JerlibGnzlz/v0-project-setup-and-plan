@@ -70,9 +70,9 @@ export function useDeleteNotifications() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (options: { ids?: string[]; deleteRead?: boolean; olderThanDays?: number }) => 
+    mutationFn: (options: { ids?: string[]; deleteRead?: boolean; olderThanDays?: number }) =>
       notificationsApi.deleteMultiple(options),
-    onSuccess: (data) => {
+    onSuccess: data => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
       toast.success(data.message || 'Notificaciones eliminadas')
     },
@@ -81,4 +81,3 @@ export function useDeleteNotifications() {
     },
   })
 }
-

@@ -1,11 +1,11 @@
-import { IsString, IsEmail, IsBoolean, IsOptional, IsEnum, IsInt, Min } from "class-validator"
+import { IsString, IsEmail, IsBoolean, IsOptional, IsEnum, IsInt, Min } from 'class-validator'
 
 // Enum que coincide con Prisma
 export enum TipoPastor {
-  DIRECTIVA = "DIRECTIVA",
-  SUPERVISOR = "SUPERVISOR",
-  PRESIDENTE = "PRESIDENTE",
-  PASTOR = "PASTOR",
+  DIRECTIVA = 'DIRECTIVA',
+  SUPERVISOR = 'SUPERVISOR',
+  PRESIDENTE = 'PRESIDENTE',
+  PASTOR = 'PASTOR',
 }
 
 export class CreatePastorDto {

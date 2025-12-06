@@ -1,12 +1,12 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Upload, X, Loader2 } from "lucide-react"
-import Image from "next/image"
-import { cn } from "@/lib/utils"
+import { useState, useRef } from 'react'
+import { Button } from '@/components/ui/button'
+import { Upload, X, Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import { cn } from '@/lib/utils'
 
 interface ImageUploadProps {
   value?: string
@@ -16,7 +16,13 @@ interface ImageUploadProps {
   className?: string
 }
 
-export function ImageUpload({ value, onChange, onUpload, disabled = false, className }: ImageUploadProps) {
+export function ImageUpload({
+  value,
+  onChange,
+  onUpload,
+  disabled = false,
+  className,
+}: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -26,15 +32,15 @@ export function ImageUpload({ value, onChange, onUpload, disabled = false, class
     if (!file) return
 
     // Validate file type
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
     if (!allowedTypes.includes(file.type)) {
-      setError("Solo se permiten imágenes JPG, PNG, WEBP o GIF")
+      setError('Solo se permiten imágenes JPG, PNG, WEBP o GIF')
       return
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError("La imagen no debe superar los 5MB")
+      setError('La imagen no debe superar los 5MB')
       return
     }
 
@@ -45,22 +51,22 @@ export function ImageUpload({ value, onChange, onUpload, disabled = false, class
       const url = await onUpload(file)
       onChange(url)
     } catch (err) {
-      setError("Error al subir la imagen. Intenta de nuevo.")
-      console.error("Upload error:", err)
+      setError('Error al subir la imagen. Intenta de nuevo.')
+      console.error('Upload error:', err)
     } finally {
       setIsUploading(false)
     }
   }
 
   const handleRemove = () => {
-    onChange("")
+    onChange('')
     if (inputRef.current) {
-      inputRef.current.value = ""
+      inputRef.current.value = ''
     }
   }
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn('space-y-2', className)}>
       <input
         ref={inputRef}
         type="file"
@@ -73,7 +79,7 @@ export function ImageUpload({ value, onChange, onUpload, disabled = false, class
 
       {value ? (
         <div className="relative w-32 h-32 rounded-lg overflow-hidden border">
-          <Image src={value || "/placeholder.svg"} alt="Preview" fill className="object-cover" />
+          <Image src={value || '/placeholder.svg'} alt="Preview" fill className="object-cover" />
           <Button
             type="button"
             variant="destructive"
@@ -89,8 +95,8 @@ export function ImageUpload({ value, onChange, onUpload, disabled = false, class
         <label
           htmlFor="image-upload"
           className={cn(
-            "flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors",
-            (disabled || isUploading) && "opacity-50 cursor-not-allowed",
+            'flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors',
+            (disabled || isUploading) && 'opacity-50 cursor-not-allowed'
           )}
         >
           {isUploading ? (

@@ -46,18 +46,18 @@ export function NewsScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.container}>
         <Text style={styles.title}>Noticias</Text>
-      <FlatList
-        data={news}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingVertical: 16, paddingBottom: 100 }}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card}>
-            <Text style={styles.cardTitle}>{item.titulo}</Text>
-            {item.extracto && <Text style={styles.cardText}>{item.extracto}</Text>}
-          </TouchableOpacity>
-        )}
-      />
-    </View>
+        <FlatList
+          data={news}
+          keyExtractor={item => item.id}
+          contentContainerStyle={{ paddingVertical: 16, paddingBottom: 100 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.card}>
+              <Text style={styles.cardTitle}>{item.titulo}</Text>
+              {item.extracto && <Text style={styles.cardText}>{item.extracto}</Text>}
+            </TouchableOpacity>
+          )}
+        />
+      </View>
     </SafeAreaView>
   )
 }
@@ -105,5 +105,3 @@ const styles = StyleSheet.create({
     color: 'rgba(148,163,184,0.9)',
   },
 })
-
-

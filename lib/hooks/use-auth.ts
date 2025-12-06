@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import { create } from "zustand"
-import { authApi, type LoginRequest, type LoginResponse } from "@/lib/api/auth"
+import { create } from 'zustand'
+import { authApi, type LoginRequest, type LoginResponse } from '@/lib/api/auth'
 
 interface AuthState {
-  user: LoginResponse["user"] | null
+  user: LoginResponse['user'] | null
   token: string | null
   isAuthenticated: boolean
   isHydrated: boolean
@@ -16,14 +16,14 @@ interface AuthState {
 
 // Función para obtener el token del storage correcto
 const getStoredToken = () => {
-  if (typeof window === "undefined") return null
-  return localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token")
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
 }
 
 // Función para obtener el usuario guardado
 const getStoredUser = () => {
-  if (typeof window === "undefined") return null
-  const userData = localStorage.getItem("auth_user") || sessionStorage.getItem("auth_user")
+  if (typeof window === 'undefined') return null
+  const userData = localStorage.getItem('auth_user') || sessionStorage.getItem('auth_user')
   if (userData) {
     try {
       return JSON.parse(userData)
@@ -34,7 +34,7 @@ const getStoredUser = () => {
   return null
 }
 
-export const useAuth = create<AuthState>()((set) => ({
+export const useAuth = create<AuthState>()(set => ({
   user: null,
   token: null,
   isAuthenticated: false,
@@ -45,30 +45,33 @@ export const useAuth = create<AuthState>()((set) => ({
     // Solo enviar email y password al backend, rememberMe es solo para el frontend
     const { rememberMe, ...loginData } = data
     const response = await authApi.login(loginData)
-    console.log('[useAuth] Respuesta del servidor recibida:', { 
-      hasToken: !!response.access_token, 
-      hasUser: !!response.user 
+    console.log('[useAuth] Respuesta del servidor recibida:', {
+      hasToken: !!response.access_token,
+      hasUser: !!response.user,
     })
 
     // Limpiar ambos storages primero
     if (typeof window !== 'undefined') {
-      localStorage.removeItem("auth_token")
-      localStorage.removeItem("auth_user")
-      sessionStorage.removeItem("auth_token")
-      sessionStorage.removeItem("auth_user")
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_user')
+      sessionStorage.removeItem('auth_token')
+      sessionStorage.removeItem('auth_user')
 
       // Si rememberMe es true, usar localStorage (persistente)
       // Si es false, usar sessionStorage (se borra al cerrar navegador)
       const storage = data.rememberMe ? localStorage : sessionStorage
 
       // Guardar token y usuario en storage
-      storage.setItem("auth_token", response.access_token)
-      storage.setItem("auth_user", JSON.stringify(response.user))
-      console.log('[useAuth] Token y usuario guardados en', data.rememberMe ? 'localStorage' : 'sessionStorage')
-      
+      storage.setItem('auth_token', response.access_token)
+      storage.setItem('auth_user', JSON.stringify(response.user))
+      console.log(
+        '[useAuth] Token y usuario guardados en',
+        data.rememberMe ? 'localStorage' : 'sessionStorage'
+      )
+
       // Verificar que se guardó correctamente
-      const verifyToken = storage.getItem("auth_token")
-      const verifyUser = storage.getItem("auth_user")
+      const verifyToken = storage.getItem('auth_token')
+      const verifyUser = storage.getItem('auth_user')
       if (!verifyToken || !verifyUser) {
         throw new Error('Error al guardar la sesión en storage')
       }
@@ -83,17 +86,17 @@ export const useAuth = create<AuthState>()((set) => ({
     }
     set(newState)
     console.log('[useAuth] Estado actualizado:', newState)
-    
+
     // Retornar para que el login page pueda esperar
     return Promise.resolve()
   },
 
   logout: () => {
     // Limpiar ambos storages
-    localStorage.removeItem("auth_token")
-    localStorage.removeItem("auth_user")
-    sessionStorage.removeItem("auth_token")
-    sessionStorage.removeItem("auth_user")
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
+    sessionStorage.removeItem('auth_token')
+    sessionStorage.removeItem('auth_user')
 
     set({
       user: null,
@@ -123,7 +126,7 @@ export const useAuth = create<AuthState>()((set) => ({
       console.log('[useAuth] Validando token con backend...')
       const response = await authApi.getProfile()
       console.log('[useAuth] Token válido, usuario verificado:', response)
-      
+
       // Actualizar con los datos del backend (pueden estar más actualizados)
       set({
         user: response,
@@ -133,13 +136,13 @@ export const useAuth = create<AuthState>()((set) => ({
       })
     } catch (error: any) {
       console.error('[useAuth] Token inválido o expirado:', error)
-      
+
       // Si el token es inválido, limpiar todo
-      localStorage.removeItem("auth_token")
-      localStorage.removeItem("auth_user")
-      sessionStorage.removeItem("auth_token")
-      sessionStorage.removeItem("auth_user")
-      
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_user')
+      sessionStorage.removeItem('auth_token')
+      sessionStorage.removeItem('auth_user')
+
       set({
         user: null,
         token: null,
@@ -155,7 +158,7 @@ export const useAuth = create<AuthState>()((set) => ({
 }))
 
 // Inicializar al cargar (solo en cliente)
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   // Pequeño delay para asegurar que el DOM está listo
   setTimeout(async () => {
     await useAuth.getState().checkAuth()

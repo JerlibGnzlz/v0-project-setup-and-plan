@@ -58,6 +58,3 @@ export class InvitadoCompleteRegisterDto {
   @IsString()
   sede?: string
 }
-
-
-

@@ -1,4 +1,4 @@
-import { apiClient } from "./client"
+import { apiClient } from './client'
 
 export interface UnifiedLoginRequest {
   email: string
@@ -23,27 +23,28 @@ export interface UnifiedLoginResponse {
 export const unifiedAuthApi = {
   login: async (data: UnifiedLoginRequest): Promise<UnifiedLoginResponse> => {
     try {
-      const response = await apiClient.post<UnifiedLoginResponse>("/auth/login/unified", data)
+      const response = await apiClient.post<UnifiedLoginResponse>('/auth/login/unified', data)
       return response.data
     } catch (error: any) {
       // Extraer mensaje de error del backend
       // El backend usa el formato: { success: false, error: { message: "...", statusCode: 401, error: "Unauthorized" } }
       let errorMessage = 'Error al iniciar sesión. Por favor, intenta de nuevo.'
-      
+
       if (error.response?.data) {
         const responseData = error.response.data
-        
+
         // Formato del GlobalExceptionFilter: { success: false, error: { message: "...", ... } }
         if (responseData.error?.message) {
           errorMessage = responseData.error.message
         }
         // Formato alternativo: { message: "..." }
         else if (responseData.message) {
-          errorMessage = typeof responseData.message === 'string' 
-            ? responseData.message 
-            : Array.isArray(responseData.message) 
-              ? responseData.message.join(', ')
-              : errorMessage
+          errorMessage =
+            typeof responseData.message === 'string'
+              ? responseData.message
+              : Array.isArray(responseData.message)
+                ? responseData.message.join(', ')
+                : errorMessage
         }
         // Formato string directo
         else if (typeof responseData === 'string') {
@@ -52,7 +53,7 @@ export const unifiedAuthApi = {
       } else if (error.message) {
         errorMessage = error.message
       }
-      
+
       // Crear un nuevo error con el mensaje extraído
       // Preservar toda la información del error original
       const enhancedError: any = new Error(errorMessage)
@@ -60,9 +61,8 @@ export const unifiedAuthApi = {
       enhancedError.status = error.response?.status || error.status
       enhancedError.isAxiosError = error.isAxiosError
       enhancedError.config = error.config
-      
+
       throw enhancedError
     }
   },
 }
-

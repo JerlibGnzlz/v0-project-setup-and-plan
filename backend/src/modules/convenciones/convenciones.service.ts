@@ -1,16 +1,16 @@
-import { Injectable, Logger } from "@nestjs/common"
-import { CreateConvencionDto, UpdateConvencionDto } from "./dto/convencion.dto"
-import { ConvencionRepository } from "./repositories/convencion.repository"
-import { Convencion } from "@prisma/client"
+import { Injectable, Logger } from '@nestjs/common'
+import { CreateConvencionDto, UpdateConvencionDto } from './dto/convencion.dto'
+import { ConvencionRepository } from './repositories/convencion.repository'
+import { Convencion, Prisma } from '@prisma/client'
 
 /**
  * Servicio para gestión de Convenciones
- * 
+ *
  * Clean Architecture:
  * - El servicio contiene la lógica de negocio
  * - Usa el repositorio para acceso a datos (no conoce Prisma directamente)
  * - Fácil de testear con mocks del repositorio
- * 
+ *
  * SOLID:
  * - S: Solo maneja lógica de negocio de convenciones
  * - O: Abierto para extensión (métodos pueden añadirse)
@@ -41,13 +41,11 @@ export class ConvencionesService {
    */
   async findActive(): Promise<Convencion | null> {
     const convencion = await this.repository.findActive()
-    
+
     this.logger.log(
-      convencion 
-        ? `✅ Convención activa: ${convencion.titulo}` 
-        : '📭 No hay convención activa'
+      convencion ? `✅ Convención activa: ${convencion.titulo}` : '📭 No hay convención activa'
     )
-    
+
     return convencion
   }
 
@@ -56,7 +54,21 @@ export class ConvencionesService {
    */
   async create(dto: CreateConvencionDto): Promise<Convencion> {
     this.logger.log(`📝 Creando convención: ${dto.titulo}`)
-    return this.repository.create(dto)
+    // Convertir fechas de string a Date y costo a Decimal si es necesario
+    const data: Prisma.ConvencionCreateInput = {
+      titulo: dto.titulo,
+      descripcion: dto.descripcion || null,
+      fechaInicio: new Date(dto.fechaInicio),
+      fechaFin: new Date(dto.fechaFin),
+      ubicacion: dto.ubicacion,
+      costo: dto.costo !== undefined ? new Prisma.Decimal(dto.costo) : undefined,
+      cupoMaximo: dto.cupoMaximo,
+      imagenUrl: dto.imagenUrl || null,
+      activa: dto.activa ?? false,
+      archivada: dto.archivada ?? false,
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return this.repository.create(data as any)
   }
 
   /**
@@ -64,11 +76,18 @@ export class ConvencionesService {
    * Si se activa, desactiva todas las demás
    */
   async update(id: string, dto: UpdateConvencionDto): Promise<Convencion> {
-    // Convertir costo a número si viene como string
-    const data: any = { ...dto }
-    if (data.costo !== undefined) {
-      data.costo = Number(data.costo)
-    }
+    // Convertir fechas de string a Date si vienen y costo a Decimal
+    const data: Prisma.ConvencionUpdateInput = {}
+    
+    if (dto.titulo !== undefined) data.titulo = dto.titulo
+    if (dto.descripcion !== undefined) data.descripcion = dto.descripcion
+    if (dto.fechaInicio !== undefined) data.fechaInicio = new Date(dto.fechaInicio)
+    if (dto.fechaFin !== undefined) data.fechaFin = new Date(dto.fechaFin)
+    if (dto.ubicacion !== undefined) data.ubicacion = dto.ubicacion
+    if (dto.costo !== undefined) data.costo = new Prisma.Decimal(dto.costo)
+    if (dto.cupoMaximo !== undefined) data.cupoMaximo = dto.cupoMaximo
+    if (dto.imagenUrl !== undefined) data.imagenUrl = dto.imagenUrl
+    if (dto.activa !== undefined) data.activa = dto.activa
 
     this.logger.log(`📝 Actualizando convención: ${id}`)
 
@@ -77,9 +96,10 @@ export class ConvencionesService {
       if (data.activa === true) {
         await this.deactivateOthers(id)
       }
-      
-      const result = await this.repository.update(id, data)
-      
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await this.repository.update(id, data as any)
+
       this.logger.log(`✅ Convención actualizada: ${result.titulo} (activa: ${result.activa})`)
       return result
     } catch (error) {
@@ -94,7 +114,7 @@ export class ConvencionesService {
   async archivar(id: string): Promise<Convencion> {
     this.logger.log(`📦 Archiving convención: ${id}`)
     const convencion = await this.repository.findByIdOrFail(id)
-    
+
     return this.repository.update(id, {
       archivada: true,
       fechaArchivado: new Date(),
@@ -127,7 +147,7 @@ export class ConvencionesService {
    */
   async activate(id: string): Promise<Convencion> {
     this.logger.log(`🔓 Activando convención: ${id}`)
-    
+
     await this.deactivateOthers(id)
     return this.repository.activate(id)
   }

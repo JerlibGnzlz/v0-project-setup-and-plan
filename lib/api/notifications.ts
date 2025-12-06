@@ -59,11 +59,17 @@ export const notificationsApi = {
     await apiClient.delete(`/notifications/${id}`)
   },
 
-  deleteMultiple: async (options: { ids?: string[]; deleteRead?: boolean; olderThanDays?: number }): Promise<{ deleted: number; message: string }> => {
-    const response = await apiClient.delete<{ deleted: number; message: string }>('/notifications', {
-      data: options,
-    })
+  deleteMultiple: async (options: {
+    ids?: string[]
+    deleteRead?: boolean
+    olderThanDays?: number
+  }): Promise<{ deleted: number; message: string }> => {
+    const response = await apiClient.delete<{ deleted: number; message: string }>(
+      '/notifications',
+      {
+        data: options,
+      }
+    )
     return response.data
   },
 }
-

@@ -1,32 +1,32 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { BaseRepository } from '../../../common/base.repository';
-import { Convencion } from '@prisma/client';
+import { Injectable } from '@nestjs/common'
+import { PrismaService } from '../../../prisma/prisma.service'
+import { BaseRepository } from '../../../common/base.repository'
+import { Convencion, Prisma } from '@prisma/client'
 
 /**
  * Interfaz específica para el repositorio de Convenciones
  * Extiende el contrato base con métodos específicos del dominio
  */
 export interface IConvencionRepository {
-  findActive(): Promise<Convencion | null>;
-  findUpcoming(): Promise<Convencion[]>;
-  findPast(): Promise<Convencion[]>;
-  deactivateAll(exceptId?: string): Promise<{ count: number }>;
+  findActive(): Promise<Convencion | null>
+  findUpcoming(): Promise<Convencion[]>
+  findPast(): Promise<Convencion[]>
+  deactivateAll(exceptId?: string): Promise<{ count: number }>
 }
 
 /**
  * Repositorio para la entidad Convencion
- * 
+ *
  * Encapsula todas las operaciones de acceso a datos para convenciones
  * Permite testear la lógica de negocio sin depender de la base de datos
  */
 @Injectable()
-export class ConvencionRepository 
-  extends BaseRepository<Convencion> 
-  implements IConvencionRepository {
-
+export class ConvencionRepository
+  extends BaseRepository<Convencion>
+  implements IConvencionRepository
+{
   constructor(private prisma: PrismaService) {
-    super(prisma.convencion, 'Convención');
+    super(prisma.convencion, 'Convención')
   }
 
   /**
@@ -34,8 +34,8 @@ export class ConvencionRepository
    */
   override async findAll(): Promise<Convencion[]> {
     return super.findAll({
-      orderBy: { fechaFin: 'desc' },
-    });
+      orderBy: { fechaFin: 'desc' } as unknown as Convencion,
+    })
   }
 
   /**
@@ -43,9 +43,9 @@ export class ConvencionRepository
    */
   async findActive(): Promise<Convencion | null> {
     return this.findFirst({
-      where: { activa: true },
-      orderBy: { fechaInicio: 'desc' },
-    });
+      where: { activa: true } as unknown as Convencion,
+      orderBy: { fechaInicio: 'desc' } as unknown as Convencion,
+    })
   }
 
   /**
@@ -55,9 +55,9 @@ export class ConvencionRepository
     return super.findAll({
       where: {
         fechaInicio: { gte: new Date() },
-      },
-      orderBy: { fechaInicio: 'asc' },
-    });
+      } as unknown as Convencion,
+      orderBy: { fechaInicio: 'asc' } as unknown as Convencion,
+    })
   }
 
   /**
@@ -67,22 +67,22 @@ export class ConvencionRepository
     return super.findAll({
       where: {
         fechaFin: { lt: new Date() },
-      },
-      orderBy: { fechaFin: 'desc' },
-    });
+      } as unknown as Convencion,
+      orderBy: { fechaFin: 'desc' } as unknown as Convencion,
+    })
   }
 
   /**
    * Desactiva todas las convenciones excepto una
    */
   async deactivateAll(exceptId?: string): Promise<{ count: number }> {
-    const where: any = { activa: true };
-    
+    const where: Prisma.ConvencionWhereInput = { activa: true }
+
     if (exceptId) {
-      where.id = { not: exceptId };
+      where.id = { not: exceptId }
     }
 
-    return this.updateMany(where, { activa: false });
+    return this.updateMany(where as unknown, { activa: false } as unknown)
   }
 
   /**
@@ -90,22 +90,22 @@ export class ConvencionRepository
    * Retorna la convención actualizada
    */
   async activate(id: string): Promise<Convencion> {
-    return this.update(id, { activa: true });
+    return this.update(id, { activa: true })
   }
 
   /**
    * Desactiva una convención específica
    */
   async deactivate(id: string): Promise<Convencion> {
-    return this.update(id, { activa: false });
+    return this.update(id, { activa: false })
   }
 
   /**
    * Busca convenciones por año
    */
   async findByYear(year: number): Promise<Convencion[]> {
-    const startOfYear = new Date(year, 0, 1);
-    const endOfYear = new Date(year, 11, 31, 23, 59, 59);
+    const startOfYear = new Date(year, 0, 1)
+    const endOfYear = new Date(year, 11, 31, 23, 59, 59)
 
     return super.findAll({
       where: {
@@ -113,17 +113,15 @@ export class ConvencionRepository
           gte: startOfYear,
           lte: endOfYear,
         },
-      },
-      orderBy: { fechaInicio: 'asc' },
-    });
+      } as unknown as Convencion,
+      orderBy: { fechaInicio: 'asc' } as unknown as Convencion,
+    })
   }
 
   /**
    * Verifica si hay una convención activa
    */
   async hasActiveConvention(): Promise<boolean> {
-    return this.exists({ activa: true });
+    return this.exists({ activa: true })
   }
 }
-
-

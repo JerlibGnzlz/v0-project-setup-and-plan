@@ -3,11 +3,7 @@
 import { useState } from 'react'
 import { Bell, Check, CheckCheck, ExternalLink, ArrowRight, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -20,7 +16,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useNotificationHistory, useUnreadCount, useMarkAsRead, useMarkAllAsRead, useDeleteNotification, useDeleteNotifications } from '@/lib/hooks/use-notifications'
+import {
+  useNotificationHistory,
+  useUnreadCount,
+  useMarkAsRead,
+  useMarkAllAsRead,
+  useDeleteNotification,
+  useDeleteNotifications,
+} from '@/lib/hooks/use-notifications'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -33,19 +36,19 @@ export function NotificationsBell() {
   const router = useRouter()
   const { data: history, isLoading } = useNotificationHistory(20, 0)
   const { data: unreadCount = 0 } = useUnreadCount()
-  
+
   // Asegurar que unreadCount siempre sea un número
   const safeUnreadCount = typeof unreadCount === 'number' ? unreadCount : 0
   const markAsRead = useMarkAsRead()
   const markAllAsRead = useMarkAllAsRead()
   const deleteNotification = useDeleteNotification()
   const deleteNotifications = useDeleteNotifications()
-  
+
   // Estados para diálogos de confirmación
   const [notificationToDelete, setNotificationToDelete] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showClearDialog, setShowClearDialog] = useState(false)
-  
+
   // Conectar a WebSocket para notificaciones en tiempo real
   useWebSocketNotifications()
 
@@ -66,7 +69,7 @@ export function NotificationsBell() {
 
     // Navegar según el tipo de notificación
     const data = notification.data || {}
-    
+
     switch (notification.type) {
       case 'nueva_inscripcion':
         // Navegar a la página de inscripciones y cerrar el popover
@@ -85,28 +88,28 @@ export function NotificationsBell() {
           }
         }, 500)
         break
-      
+
       case 'pago_validado':
       case 'inscripcion_confirmada':
         // Navegar a la página de inscripciones
         setOpen(false)
         router.push('/admin/inscripciones')
         break
-      
+
       case 'nuevo_pastor_registrado':
         // Navegar a la página de pastores
         setOpen(false)
         router.push('/admin/pastores')
         break
-      
+
       default:
         // Para otros tipos, solo cerrar el popover
         setOpen(false)
     }
   }
 
-  const unreadNotifications = history?.notifications.filter((n) => !n.read) || []
-  
+  const unreadNotifications = history?.notifications.filter(n => !n.read) || []
+
   // Función para obtener el texto del botón de acción según el tipo
   const getActionButtonText = (type: string) => {
     switch (type) {
@@ -126,11 +129,7 @@ export function NotificationsBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative"
-        >
+        <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           {safeUnreadCount > 0 && (
             <Badge
@@ -182,7 +181,7 @@ export function NotificationsBell() {
         <ScrollArea className="h-[400px]">
           {isLoading ? (
             <div className="p-4 space-y-3">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3].map(i => (
                 <div key={i} className="space-y-2">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-3 w-full" />
@@ -196,7 +195,7 @@ export function NotificationsBell() {
             </div>
           ) : (
             <div className="p-2">
-              {history?.notifications.map((notification) => (
+              {history?.notifications.map(notification => (
                 <div
                   key={notification.id}
                   className={`p-3 rounded-lg mb-2 transition-all ${
@@ -216,7 +215,7 @@ export function NotificationsBell() {
                       <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
                         {notification.body}
                       </p>
-                      
+
                       {/* Botón de acción rápida */}
                       {!notification.read && (
                         <Button
@@ -229,7 +228,7 @@ export function NotificationsBell() {
                           <ArrowRight className="h-3 w-3 ml-1" />
                         </Button>
                       )}
-                      
+
                       <div className="flex items-center gap-2 mt-2">
                         <span className="text-xs text-muted-foreground">
                           {format(new Date(notification.createdAt), 'PPp', { locale: es })}
@@ -249,7 +248,7 @@ export function NotificationsBell() {
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 flex-shrink-0"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation()
                             handleMarkAsRead(notification.id)
                           }}
@@ -262,7 +261,7 @@ export function NotificationsBell() {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 flex-shrink-0 text-muted-foreground hover:text-destructive"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation()
                           setNotificationToDelete(notification.id)
                           setShowDeleteDialog(true)
@@ -286,7 +285,7 @@ export function NotificationsBell() {
           </div>
         )}
       </PopoverContent>
-      
+
       {/* Diálogo de confirmación para eliminar una notificación */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
@@ -300,10 +299,12 @@ export function NotificationsBell() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setNotificationToDelete(null)
-              setShowDeleteDialog(false)
-            }}>
+            <AlertDialogCancel
+              onClick={() => {
+                setNotificationToDelete(null)
+                setShowDeleteDialog(false)
+              }}
+            >
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
@@ -332,10 +333,11 @@ export function NotificationsBell() {
               ¿Eliminar notificaciones leídas?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {history && (() => {
-                const readCount = history.notifications.filter(n => n.read).length
-                return `Se eliminarán ${readCount} notificación(es) leída(s). Esta acción no se puede deshacer.`
-              })()}
+              {history &&
+                (() => {
+                  const readCount = history.notifications.filter(n => n.read).length
+                  return `Se eliminarán ${readCount} notificación(es) leída(s). Esta acción no se puede deshacer.`
+                })()}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -347,8 +349,8 @@ export function NotificationsBell() {
                 if (history) {
                   const readNotifications = history.notifications.filter(n => n.read)
                   if (readNotifications.length > 0) {
-                    await deleteNotifications.mutateAsync({ 
-                      ids: readNotifications.map(n => n.id) 
+                    await deleteNotifications.mutateAsync({
+                      ids: readNotifications.map(n => n.id),
                     })
                   }
                   setShowClearDialog(false)
@@ -365,4 +367,3 @@ export function NotificationsBell() {
     </Popover>
   )
 }
-

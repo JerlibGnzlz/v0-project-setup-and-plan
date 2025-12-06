@@ -12,7 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CheckCircle2, AlertCircle, Ticket, Sparkles, Loader2, CheckCircle, Edit } from 'lucide-react'
+import {
+  CheckCircle2,
+  AlertCircle,
+  Ticket,
+  Sparkles,
+  Loader2,
+  CheckCircle,
+  Edit,
+} from 'lucide-react'
 import { useConvencionActiva } from '@/lib/hooks/use-convencion'
 import { useCreateInscripcion } from '@/lib/hooks/use-inscripciones'
 
@@ -35,19 +43,56 @@ export function RegistrationSection() {
 
   // Lista de países
   const paises = [
-    'Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba', 
-    'Ecuador', 'El Salvador', 'España', 'Estados Unidos', 'Guatemala', 'Honduras', 
-    'México', 'Nicaragua', 'Panamá', 'Paraguay', 'Perú', 'República Dominicana', 
-    'Uruguay', 'Venezuela', 'Otro'
+    'Argentina',
+    'Bolivia',
+    'Brasil',
+    'Chile',
+    'Colombia',
+    'Costa Rica',
+    'Cuba',
+    'Ecuador',
+    'El Salvador',
+    'España',
+    'Estados Unidos',
+    'Guatemala',
+    'Honduras',
+    'México',
+    'Nicaragua',
+    'Panamá',
+    'Paraguay',
+    'Perú',
+    'República Dominicana',
+    'Uruguay',
+    'Venezuela',
+    'Otro',
   ]
 
   // Provincias de Argentina
   const provinciasArgentina = [
-    'Buenos Aires', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba', 'Corrientes', 
-    'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza', 
-    'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis', 
-    'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 
-    'Tucumán', 'Ciudad Autónoma de Buenos Aires'
+    'Buenos Aires',
+    'Catamarca',
+    'Chaco',
+    'Chubut',
+    'Córdoba',
+    'Corrientes',
+    'Entre Ríos',
+    'Formosa',
+    'Jujuy',
+    'La Pampa',
+    'La Rioja',
+    'Mendoza',
+    'Misiones',
+    'Neuquén',
+    'Río Negro',
+    'Salta',
+    'San Juan',
+    'San Luis',
+    'Santa Cruz',
+    'Santa Fe',
+    'Santiago del Estero',
+    'Tierra del Fuego',
+    'Tucumán',
+    'Ciudad Autónoma de Buenos Aires',
   ]
 
   const [paisSearch, setPaisSearch] = useState('')
@@ -62,7 +107,7 @@ export function RegistrationSection() {
 
   // Mutation para crear inscripción
   const createInscripcionMutation = useCreateInscripcion()
-  
+
   // Manejar éxito y error
   useEffect(() => {
     if (createInscripcionMutation.isSuccess) {
@@ -92,7 +137,11 @@ export function RegistrationSection() {
   useEffect(() => {
     if (createInscripcionMutation.isError) {
       const error = createInscripcionMutation.error as any
-      setErrors({ submit: error.response?.data?.message || 'Error al enviar la inscripción. Por favor, intenta nuevamente.' })
+      setErrors({
+        submit:
+          error.response?.data?.message ||
+          'Error al enviar la inscripción. Por favor, intenta nuevamente.',
+      })
     }
   }, [createInscripcionMutation.isError, createInscripcionMutation.error])
 
@@ -110,55 +159,56 @@ export function RegistrationSection() {
   // Validación profesional de email con múltiples capas de seguridad
   const validateEmail = (email: string): boolean => {
     if (!email || email.length > 254) return false // RFC 5321
-    
+
     // Sanitizar: remover caracteres peligrosos
     const sanitized = email.trim().toLowerCase()
-    
+
     // Validación básica de formato
-    const emailRegex = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i
-    
+    const emailRegex =
+      /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i
+
     if (!emailRegex.test(sanitized)) return false
-    
+
     // Validaciones adicionales de seguridad
     const [localPart, domain] = sanitized.split('@')
-    
+
     // Validar parte local (antes del @)
     if (localPart.length > 64 || localPart.length === 0) return false // RFC 5321
     if (localPart.startsWith('.') || localPart.endsWith('.')) return false
     if (localPart.includes('..')) return false // No dobles puntos consecutivos
-    
+
     // Validar dominio
     if (domain.length > 253 || domain.length === 0) return false
     if (domain.startsWith('-') || domain.endsWith('-')) return false
     if (domain.includes('..')) return false
-    
+
     // Validar que el dominio tenga al menos un punto
     if (!domain.includes('.')) return false
-    
+
     // Validar TLD (Top Level Domain)
     const tld = domain.split('.').pop()
     if (!tld || tld.length < 2) return false
-    
+
     // Prevenir dominios sospechosos comunes
     const suspiciousDomains = ['test.com', 'example.com', 'mailinator.com']
     if (suspiciousDomains.includes(domain)) return false
-    
+
     return true
   }
 
   // Validación profesional de teléfono con código de país
   const validatePhone = (phone: string, codigoPais: string): boolean => {
     if (!phone) return true // Teléfono es opcional
-    
+
     // Remover espacios, guiones y paréntesis para validación
     const cleanPhone = phone.replace(/[\s\-()]/g, '')
-    
+
     // Solo debe contener números
     if (!/^\d+$/.test(cleanPhone)) return false
-    
+
     // Validar longitud mínima y máxima según el código de país
     const phoneLength = cleanPhone.length
-    
+
     // Longitudes comunes por región
     const minLengths: Record<string, number> = {
       '+1': 10, // US/CA
@@ -169,7 +219,7 @@ export function RegistrationSection() {
       '+51': 9, // Perú
       '+56': 9, // Chile
     }
-    
+
     const maxLengths: Record<string, number> = {
       '+1': 10,
       '+54': 10,
@@ -179,14 +229,14 @@ export function RegistrationSection() {
       '+51': 9,
       '+56': 9,
     }
-    
+
     const minLength = minLengths[codigoPais] || 7
     const maxLength = maxLengths[codigoPais] || 15
-    
+
     if (phoneLength < minLength || phoneLength > maxLength) {
       return false
     }
-    
+
     return true
   }
 
@@ -206,8 +256,8 @@ export function RegistrationSection() {
     if (typeof value === 'string' && field !== 'telefono' && field !== 'notas') {
       sanitizedValue = sanitizeInput(value)
     }
-    
-    setFormData((prev) => ({ ...prev, [field]: sanitizedValue }))
+
+    setFormData(prev => ({ ...prev, [field]: sanitizedValue }))
     setIsSubmitted(false)
 
     const newErrors = { ...errors }
@@ -251,17 +301,28 @@ export function RegistrationSection() {
 
     // Si cambia el país y no es Argentina, limpiar la provincia
     if (field === 'pais' && value !== 'Argentina') {
-      setFormData((prev) => ({ ...prev, provincia: '' }))
+      setFormData(prev => ({ ...prev, provincia: '' }))
       setProvinciaSearch('')
       delete newErrors.provincia
     }
 
     // Validación de campos requeridos
-    if (field !== 'notas' && field !== 'telefono' && field !== 'sede' && field !== 'codigoPais' && !value) {
+    if (
+      field !== 'notas' &&
+      field !== 'telefono' &&
+      field !== 'sede' &&
+      field !== 'codigoPais' &&
+      !value
+    ) {
       if (field === 'nombre' || field === 'apellido' || field === 'email') {
         newErrors[field] = 'Este campo es requerido'
       }
-    } else if (field !== 'email' && field !== 'telefono' && field !== 'notas' && field !== 'codigoPais') {
+    } else if (
+      field !== 'email' &&
+      field !== 'telefono' &&
+      field !== 'notas' &&
+      field !== 'codigoPais'
+    ) {
       delete newErrors[field]
     }
 
@@ -282,7 +343,7 @@ export function RegistrationSection() {
   }
 
   const handleBlur = (field: string) => {
-    setTouched((prev) => ({ ...prev, [field]: true }))
+    setTouched(prev => ({ ...prev, [field]: true }))
   }
 
   const isFieldValid = (field: string) => {
@@ -295,7 +356,7 @@ export function RegistrationSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!convencion) {
       setErrors({ submit: 'No hay una convención activa disponible' })
       return
@@ -311,8 +372,10 @@ export function RegistrationSection() {
     if (!formData.nombre) newErrors.nombre = 'Este campo es requerido'
     if (!formData.apellido) newErrors.apellido = 'Este campo es requerido'
     if (!formData.email) newErrors.email = 'Este campo es requerido'
-    if (formData.email && !validateEmail(formData.email)) newErrors.email = 'Correo electrónico inválido'
-    if (formData.telefono && !validatePhone(formData.telefono)) newErrors.telefono = 'Número de teléfono inválido'
+    if (formData.email && !validateEmail(formData.email))
+      newErrors.email = 'Correo electrónico inválido'
+    if (formData.telefono && !validatePhone(formData.telefono))
+      newErrors.telefono = 'Número de teléfono inválido'
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
@@ -327,7 +390,7 @@ export function RegistrationSection() {
         sede: true,
         numeroCuotas: true,
       })
-      
+
       // Scroll al primer campo con error
       const firstErrorField = Object.keys(newErrors)[0]
       const errorElement = document.getElementById(firstErrorField)
@@ -335,7 +398,7 @@ export function RegistrationSection() {
         errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
         errorElement.focus()
       }
-      
+
       return
     }
 
@@ -347,16 +410,17 @@ export function RegistrationSection() {
     if (!convencion) return
 
     // Combinar código de país con teléfono
-    const telefonoCompleto = formData.telefono 
+    const telefonoCompleto = formData.telefono
       ? `${formData.codigoPais} ${formData.telefono}`.trim()
       : undefined
 
     // Combinar país y provincia en las notas si es necesario, o agregar a sede
     let sedeCompleta = formData.sede || ''
     if (formData.pais) {
-      const ubicacion = formData.pais === 'Argentina' && formData.provincia
-        ? `${formData.pais}, ${formData.provincia}`
-        : formData.pais
+      const ubicacion =
+        formData.pais === 'Argentina' && formData.provincia
+          ? `${formData.pais}, ${formData.provincia}`
+          : formData.pais
       sedeCompleta = sedeCompleta ? `${sedeCompleta} - ${ubicacion}` : ubicacion
     }
 
@@ -365,7 +429,7 @@ export function RegistrationSection() {
     // Si se registra desde el dashboard, se manejará desde allí
     // Cuando esté la app móvil, enviará 'mobile'
     const origenRegistro = 'web'
-    
+
     createInscripcionMutation.mutate({
       convencionId: convencion.id,
       nombre: formData.nombre,
@@ -414,7 +478,8 @@ export function RegistrationSection() {
               </span>
             </h2>
             <p className="text-lg text-white/60 max-w-xl mx-auto">
-              No hay convenciones activas en este momento. Te notificaremos cuando se abran las inscripciones.
+              No hay convenciones activas en este momento. Te notificaremos cuando se abran las
+              inscripciones.
             </p>
           </div>
         </div>
@@ -482,7 +547,9 @@ export function RegistrationSection() {
             {/* Glow */}
             <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
 
-            <div className={`relative rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 overflow-hidden ${!convencion.activa ? 'opacity-60' : ''}`}>
+            <div
+              className={`relative rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 overflow-hidden ${!convencion.activa ? 'opacity-60' : ''}`}
+            >
               {/* Header gradient */}
               <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />
 
@@ -491,7 +558,9 @@ export function RegistrationSection() {
                   <div className="text-center p-6 bg-white/10 backdrop-blur-md rounded-lg border border-white/20">
                     <AlertCircle className="w-8 h-8 text-amber-400 mx-auto mb-2" />
                     <p className="text-white font-semibold mb-1">Inscripciones Cerradas</p>
-                    <p className="text-white/70 text-sm">Las inscripciones para esta convención no están disponibles en este momento.</p>
+                    <p className="text-white/70 text-sm">
+                      Las inscripciones para esta convención no están disponibles en este momento.
+                    </p>
                   </div>
                 </div>
               )}
@@ -504,7 +573,8 @@ export function RegistrationSection() {
                     </div>
                     <h3 className="text-2xl font-bold text-white mb-3">¡Inscripción Enviada!</h3>
                     <p className="text-white/70 mb-6">
-                      Tu inscripción ha sido registrada exitosamente. Te contactaremos pronto con más información.
+                      Tu inscripción ha sido registrada exitosamente. Te contactaremos pronto con
+                      más información.
                     </p>
                     <Button
                       onClick={() => {
@@ -536,8 +606,12 @@ export function RegistrationSection() {
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-500/50 mb-4">
                         <CheckCircle2 className="w-8 h-8 text-amber-400" />
                       </div>
-                      <h3 className="text-2xl font-bold text-white mb-2">Confirma tu Inscripción</h3>
-                      <p className="text-white/60 text-sm">Por favor, revisa la información antes de confirmar</p>
+                      <h3 className="text-2xl font-bold text-white mb-2">
+                        Confirma tu Inscripción
+                      </h3>
+                      <p className="text-white/60 text-sm">
+                        Por favor, revisa la información antes de confirmar
+                      </p>
                     </div>
 
                     {/* Resumen de datos */}
@@ -545,16 +619,22 @@ export function RegistrationSection() {
                       <div className="grid gap-3">
                         <div className="flex justify-between items-start pb-2 border-b border-white/10">
                           <span className="text-white/60 text-sm">Nombre completo:</span>
-                          <span className="text-white font-medium text-right">{formData.nombre} {formData.apellido}</span>
+                          <span className="text-white font-medium text-right">
+                            {formData.nombre} {formData.apellido}
+                          </span>
                         </div>
                         <div className="flex justify-between items-start pb-2 border-b border-white/10">
                           <span className="text-white/60 text-sm">Correo electrónico:</span>
-                          <span className="text-white font-medium text-right">{formData.email}</span>
+                          <span className="text-white font-medium text-right">
+                            {formData.email}
+                          </span>
                         </div>
                         {formData.telefono && (
                           <div className="flex justify-between items-start pb-2 border-b border-white/10">
                             <span className="text-white/60 text-sm">Teléfono:</span>
-                            <span className="text-white font-medium text-right">{formData.codigoPais} {formData.telefono}</span>
+                            <span className="text-white font-medium text-right">
+                              {formData.codigoPais} {formData.telefono}
+                            </span>
                           </div>
                         )}
                         <div className="flex justify-between items-start pb-2 border-b border-white/10">
@@ -564,26 +644,34 @@ export function RegistrationSection() {
                         {formData.pais === 'Argentina' && formData.provincia && (
                           <div className="flex justify-between items-start pb-2 border-b border-white/10">
                             <span className="text-white/60 text-sm">Provincia:</span>
-                            <span className="text-white font-medium text-right">{formData.provincia}</span>
+                            <span className="text-white font-medium text-right">
+                              {formData.provincia}
+                            </span>
                           </div>
                         )}
                         {formData.sede && (
                           <div className="flex justify-between items-start pb-2 border-b border-white/10">
                             <span className="text-white/60 text-sm">Iglesia / Sede:</span>
-                            <span className="text-white font-medium text-right">{formData.sede}</span>
+                            <span className="text-white font-medium text-right">
+                              {formData.sede}
+                            </span>
                           </div>
                         )}
                         <div className="flex justify-between items-start pb-2 border-b border-white/10">
                           <span className="text-white/60 text-sm">Número de cuotas:</span>
                           <span className="text-white font-medium text-right">
-                            {formData.numeroCuotas} {formData.numeroCuotas === 1 ? 'cuota (Pago único)' : 'cuotas'}
+                            {formData.numeroCuotas}{' '}
+                            {formData.numeroCuotas === 1 ? 'cuota (Pago único)' : 'cuotas'}
                           </span>
                         </div>
                         {convencion.costo && (
                           <div className="flex justify-between items-start pt-2">
                             <span className="text-white/60 text-sm">Costo por cuota:</span>
                             <span className="text-amber-400 font-bold text-lg">
-                              ${(Number(convencion.costo) / Number(formData.numeroCuotas)).toFixed(2)}
+                              $
+                              {(Number(convencion.costo) / Number(formData.numeroCuotas)).toFixed(
+                                2
+                              )}
                             </span>
                           </div>
                         )}
@@ -645,7 +733,7 @@ export function RegistrationSection() {
                             id="nombre"
                             placeholder="Juan"
                             value={formData.nombre}
-                            onChange={(e) => {
+                            onChange={e => {
                               // Solo permitir letras, espacios, guiones y apóstrofes
                               let value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]/g, '')
                               if (value.length > 50) value = value.slice(0, 50)
@@ -685,7 +773,7 @@ export function RegistrationSection() {
                             id="apellido"
                             placeholder="Pérez"
                             value={formData.apellido}
-                            onChange={(e) => {
+                            onChange={e => {
                               // Solo permitir letras, espacios, guiones y apóstrofes
                               let value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]/g, '')
                               if (value.length > 50) value = value.slice(0, 50)
@@ -727,7 +815,7 @@ export function RegistrationSection() {
                           type="email"
                           placeholder="juan@ejemplo.com"
                           value={formData.email}
-                          onChange={(e) => handleChange('email', e.target.value)}
+                          onChange={e => handleChange('email', e.target.value)}
                           onBlur={() => handleBlur('email')}
                           className={`bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-amber-500/50 ${
                             isFieldInvalid('email') ? 'border-red-500/50' : ''
@@ -751,9 +839,7 @@ export function RegistrationSection() {
                         </p>
                       )}
                       {!formData.email && !touched.email && (
-                        <p className="text-xs text-white/50">
-                          Ejemplo: juan.perez@correo.com
-                        </p>
+                        <p className="text-xs text-white/50">Ejemplo: juan.perez@correo.com</p>
                       )}
                     </div>
 
@@ -764,7 +850,7 @@ export function RegistrationSection() {
                       <div className="flex gap-2">
                         <Select
                           value={formData.codigoPais}
-                          onValueChange={(value) => handleChange('codigoPais', value)}
+                          onValueChange={value => handleChange('codigoPais', value)}
                         >
                           <SelectTrigger className="w-36 bg-white/5 border-white/10 text-white focus:border-amber-500/50">
                             <SelectValue />
@@ -808,7 +894,7 @@ export function RegistrationSection() {
                             type="tel"
                             placeholder="11 xxxx-xxxx"
                             value={formData.telefono}
-                            onChange={(e) => {
+                            onChange={e => {
                               // Solo permitir números, espacios, guiones y paréntesis
                               const value = e.target.value.replace(/[^\d\s\-()]/g, '')
                               handleChange('telefono', value)
@@ -837,13 +923,14 @@ export function RegistrationSection() {
                       )}
                       {formData.telefono && !isFieldInvalid('telefono') && (
                         <p className="text-xs text-white/50">
-                          Número completo: <span className="text-amber-400 font-medium">{formData.codigoPais} {formData.telefono}</span>
+                          Número completo:{' '}
+                          <span className="text-amber-400 font-medium">
+                            {formData.codigoPais} {formData.telefono}
+                          </span>
                         </p>
                       )}
                       {!formData.telefono && !touched.telefono && (
-                        <p className="text-xs text-white/50">
-                          Opcional - Ejemplo: 11 1234-5678
-                        </p>
+                        <p className="text-xs text-white/50">Opcional - Ejemplo: 11 1234-5678</p>
                       )}
                     </div>
 
@@ -857,14 +944,16 @@ export function RegistrationSection() {
                             <Input
                               id="pais"
                               placeholder="Buscar país..."
-                              value={paisSearch !== '' ? paisSearch : (formData.pais || '')}
-                              onChange={(e) => {
+                              value={paisSearch !== '' ? paisSearch : formData.pais || ''}
+                              onChange={e => {
                                 const value = e.target.value
                                 setPaisSearch(value)
                                 setShowPaisDropdown(true)
-                                
+
                                 // Si el valor coincide exactamente con un país, seleccionarlo
-                                const exactMatch = paises.find(p => p.toLowerCase() === value.toLowerCase())
+                                const exactMatch = paises.find(
+                                  p => p.toLowerCase() === value.toLowerCase()
+                                )
                                 if (exactMatch) {
                                   handleChange('pais', exactMatch)
                                   if (exactMatch !== 'Argentina') {
@@ -897,10 +986,10 @@ export function RegistrationSection() {
                           {showPaisDropdown && (
                             <div className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-slate-900 border border-white/20 rounded-lg shadow-xl">
                               {paises
-                                .filter(pais => 
+                                .filter(pais =>
                                   pais.toLowerCase().includes(paisSearch.toLowerCase())
                                 )
-                                .map((pais) => (
+                                .map(pais => (
                                   <button
                                     key={pais}
                                     type="button"
@@ -933,9 +1022,7 @@ export function RegistrationSection() {
                           </p>
                         )}
                         {!formData.pais && !touched.pais && (
-                          <p className="text-xs text-white/50">
-                            Escribe para buscar tu país
-                          </p>
+                          <p className="text-xs text-white/50">Escribe para buscar tu país</p>
                         )}
                       </div>
 
@@ -949,14 +1036,20 @@ export function RegistrationSection() {
                               <Input
                                 id="provincia"
                                 placeholder="Buscar provincia..."
-                                value={provinciaSearch !== '' ? provinciaSearch : (formData.provincia || '')}
-                                onChange={(e) => {
+                                value={
+                                  provinciaSearch !== ''
+                                    ? provinciaSearch
+                                    : formData.provincia || ''
+                                }
+                                onChange={e => {
                                   const value = e.target.value
                                   setProvinciaSearch(value)
                                   setShowProvinciaDropdown(true)
-                                  
+
                                   // Si el valor coincide exactamente con una provincia, seleccionarla
-                                  const exactMatch = provinciasArgentina.find(p => p.toLowerCase() === value.toLowerCase())
+                                  const exactMatch = provinciasArgentina.find(
+                                    p => p.toLowerCase() === value.toLowerCase()
+                                  )
                                   if (exactMatch) {
                                     handleChange('provincia', exactMatch)
                                     setProvinciaSearch('')
@@ -986,10 +1079,10 @@ export function RegistrationSection() {
                             {showProvinciaDropdown && (
                               <div className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-slate-900 border border-white/20 rounded-lg shadow-xl">
                                 {provinciasArgentina
-                                  .filter(provincia => 
+                                  .filter(provincia =>
                                     provincia.toLowerCase().includes(provinciaSearch.toLowerCase())
                                   )
-                                  .map((provincia) => (
+                                  .map(provincia => (
                                     <button
                                       key={provincia}
                                       type="button"
@@ -1036,7 +1129,7 @@ export function RegistrationSection() {
                           id="sede"
                           placeholder="Nombre de su iglesia o sede"
                           value={formData.sede}
-                          onChange={(e) => {
+                          onChange={e => {
                             let value = e.target.value
                             if (value.length > 200) value = value.slice(0, 200)
                             handleChange('sede', value)
@@ -1054,7 +1147,7 @@ export function RegistrationSection() {
                       </Label>
                       <Select
                         value={formData.numeroCuotas.toString()}
-                        onValueChange={(value) => handleChange('numeroCuotas', value)}
+                        onValueChange={value => handleChange('numeroCuotas', value)}
                       >
                         <SelectTrigger className="bg-white/5 border-white/10 text-white focus:border-amber-500/50">
                           <SelectValue />
@@ -1079,27 +1172,28 @@ export function RegistrationSection() {
                         placeholder="Información adicional, preguntas o comentarios..."
                         rows={4}
                         value={formData.notas}
-                        onChange={(e) => handleChange('notas', e.target.value)}
+                        onChange={e => handleChange('notas', e.target.value)}
                         className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-amber-500/50 resize-none"
                       />
                     </div>
 
                     {/* Resumen de errores si hay campos inválidos */}
-                    {Object.keys(errors).length > 0 && Object.keys(errors).some(key => key !== 'submit') && (
-                      <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 space-y-2">
-                        <p className="text-sm font-semibold text-red-400 flex items-center gap-2">
-                          <AlertCircle className="h-4 w-4" />
-                          Por favor, corrige los siguientes errores:
-                        </p>
-                        <ul className="text-xs text-red-300 space-y-1 ml-6 list-disc">
-                          {Object.entries(errors)
-                            .filter(([key]) => key !== 'submit')
-                            .map(([key, message]) => (
-                              <li key={key}>{message}</li>
-                            ))}
-                        </ul>
-                      </div>
-                    )}
+                    {Object.keys(errors).length > 0 &&
+                      Object.keys(errors).some(key => key !== 'submit') && (
+                        <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 space-y-2">
+                          <p className="text-sm font-semibold text-red-400 flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4" />
+                            Por favor, corrige los siguientes errores:
+                          </p>
+                          <ul className="text-xs text-red-300 space-y-1 ml-6 list-disc">
+                            {Object.entries(errors)
+                              .filter(([key]) => key !== 'submit')
+                              .map(([key, message]) => (
+                                <li key={key}>{message}</li>
+                              ))}
+                          </ul>
+                        </div>
+                      )}
 
                     {errors.submit && (
                       <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
@@ -1116,51 +1210,75 @@ export function RegistrationSection() {
                         <span>Progreso del formulario</span>
                         <span>
                           {(() => {
-                            const requiredFields = ['nombre', 'apellido', 'email', 'pais', 'numeroCuotas']
+                            const requiredFields = [
+                              'nombre',
+                              'apellido',
+                              'email',
+                              'pais',
+                              'numeroCuotas',
+                            ]
                             const requiredCompleted = requiredFields.filter(field => {
-                              return formData[field as keyof typeof formData] && 
-                                     String(formData[field as keyof typeof formData]).trim() !== ''
+                              return (
+                                formData[field as keyof typeof formData] &&
+                                String(formData[field as keyof typeof formData]).trim() !== ''
+                              )
                             }).length
-                            
+
                             // Si el país es Argentina, también verificar provincia
                             let provinciaCompleted = 0
                             if (formData.pais === 'Argentina') {
-                              provinciaCompleted = formData.provincia && formData.provincia.trim() !== '' ? 1 : 0
+                              provinciaCompleted =
+                                formData.provincia && formData.provincia.trim() !== '' ? 1 : 0
                             } else {
                               provinciaCompleted = 1 // Si no es Argentina, no se requiere provincia
                             }
-                            
-                            const totalRequired = formData.pais === 'Argentina' ? requiredFields.length + 1 : requiredFields.length
+
+                            const totalRequired =
+                              formData.pais === 'Argentina'
+                                ? requiredFields.length + 1
+                                : requiredFields.length
                             const totalCompleted = requiredCompleted + provinciaCompleted
-                            
+
                             return `${totalCompleted}/${totalRequired} campos requeridos completados`
                           })()}
                         </span>
                       </div>
                       <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
                           style={{
                             width: `${(() => {
-                              const requiredFields = ['nombre', 'apellido', 'email', 'pais', 'numeroCuotas']
+                              const requiredFields = [
+                                'nombre',
+                                'apellido',
+                                'email',
+                                'pais',
+                                'numeroCuotas',
+                              ]
                               const requiredCompleted = requiredFields.filter(field => {
-                                return formData[field as keyof typeof formData] && 
-                                       String(formData[field as keyof typeof formData]).trim() !== ''
+                                return (
+                                  formData[field as keyof typeof formData] &&
+                                  String(formData[field as keyof typeof formData]).trim() !== ''
+                                )
                               }).length
-                              
+
                               // Si el país es Argentina, también verificar provincia
                               let provinciaCompleted = 0
                               if (formData.pais === 'Argentina') {
-                                provinciaCompleted = formData.provincia && formData.provincia.trim() !== '' ? 1 : 0
+                                provinciaCompleted =
+                                  formData.provincia && formData.provincia.trim() !== '' ? 1 : 0
                               } else {
                                 provinciaCompleted = 1 // Si no es Argentina, no se requiere provincia
                               }
-                              
-                              const totalRequired = formData.pais === 'Argentina' ? requiredFields.length + 1 : requiredFields.length
+
+                              const totalRequired =
+                                formData.pais === 'Argentina'
+                                  ? requiredFields.length + 1
+                                  : requiredFields.length
                               const totalCompleted = requiredCompleted + provinciaCompleted
-                              
+
                               return totalRequired > 0 ? (totalCompleted / totalRequired) * 100 : 0
-                            })()}%`
+                            })()}%`,
                           }}
                         />
                       </div>

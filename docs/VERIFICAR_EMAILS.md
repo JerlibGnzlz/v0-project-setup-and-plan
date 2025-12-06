@@ -13,6 +13,7 @@ SMTP_PASSWORD=tu-app-password-de-16-caracteres
 ```
 
 ### Para Gmail:
+
 1. Ve a https://myaccount.google.com/apppasswords
 2. Genera una "App Password" de 16 caracteres
 3. Úsala como `SMTP_PASSWORD` (sin espacios)
@@ -59,21 +60,28 @@ Si ves errores, revisa:
 ## 4. Solución de Problemas
 
 ### Problema: "servicio no configurado"
+
 **Solución**: Verifica que `SMTP_USER` y `SMTP_PASSWORD` estén en el `.env` del backend
 
 ### Problema: "Error de autenticación"
-**Solución**: 
+
+**Solución**:
+
 - Para Gmail, usa una App Password, no tu contraseña normal
 - Asegúrate de que no haya espacios en el password
 
 ### Problema: "Error de conexión"
-**Solución**: 
+
+**Solución**:
+
 - Verifica `SMTP_HOST` (debe ser `smtp.gmail.com` para Gmail)
 - Verifica `SMTP_PORT` (587 para Gmail con STARTTLS)
 - Verifica tu conexión a internet
 
 ### Problema: Emails no llegan
+
 **Solución**:
+
 - Revisa la carpeta de spam
 - Verifica que el email de destino sea válido
 - Revisa los logs del backend para ver si hay errores específicos
@@ -92,4 +100,3 @@ Cuando envíes recordatorios, busca estos logs en el backend:
 ```
 
 Si ves `❌` en los logs, revisa el mensaje de error específico.
-

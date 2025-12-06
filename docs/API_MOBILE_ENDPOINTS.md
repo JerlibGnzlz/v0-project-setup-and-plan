@@ -3,9 +3,11 @@
 ## 🔐 Autenticación
 
 ### POST `/api/auth/login/mobile`
+
 Login específico para mobile que retorna access token y refresh token.
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -14,6 +16,7 @@ Login específico para mobile que retorna access token y refresh token.
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -29,9 +32,11 @@ Login específico para mobile que retorna access token y refresh token.
 ```
 
 ### POST `/api/auth/refresh`
+
 Refrescar access token usando refresh token.
 
 **Request:**
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -39,6 +44,7 @@ Refrescar access token usando refresh token.
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": "nuevo_token...",
@@ -47,14 +53,17 @@ Refrescar access token usando refresh token.
 ```
 
 ### POST `/api/auth/device/register`
+
 Registrar dispositivo para notificaciones push (requiere autenticación).
 
 **Headers:**
+
 ```
 Authorization: Bearer {access_token}
 ```
 
 **Request:**
+
 ```json
 {
   "deviceToken": "ExponentPushToken[...]",
@@ -68,9 +77,11 @@ Authorization: Bearer {access_token}
 ## 📝 Inscripciones
 
 ### POST `/api/inscripciones`
+
 Crear nueva inscripción. **Importante:** Establecer `origenRegistro: 'mobile'`.
 
 **Request:**
+
 ```json
 {
   "convencionId": "uuid",
@@ -86,6 +97,7 @@ Crear nueva inscripción. **Importante:** Establecer `origenRegistro: 'mobile'`.
 ```
 
 **Response:**
+
 ```json
 {
   "id": "uuid",
@@ -107,9 +119,11 @@ Crear nueva inscripción. **Importante:** Establecer `origenRegistro: 'mobile'`.
 ## 📰 Noticias
 
 ### GET `/api/noticias/publicadas`
+
 Obtener todas las noticias publicadas.
 
 **Response:**
+
 ```json
 [
   {
@@ -128,9 +142,11 @@ Obtener todas las noticias publicadas.
 ```
 
 ### GET `/api/noticias/slug/:slug`
+
 Obtener noticia por slug.
 
 ### POST `/api/noticias/:slug/incrementar-vista`
+
 Incrementar contador de vistas (no requiere autenticación).
 
 ---
@@ -138,12 +154,15 @@ Incrementar contador de vistas (no requiere autenticación).
 ## 🎯 Convenciones
 
 ### GET `/api/convenciones`
+
 Obtener todas las convenciones.
 
 **Query Params:**
+
 - `includeArchived`: boolean (opcional)
 
 **Response:**
+
 ```json
 [
   {
@@ -161,6 +180,7 @@ Obtener todas las convenciones.
 ```
 
 ### GET `/api/convenciones/:id`
+
 Obtener convención por ID.
 
 ---
@@ -168,9 +188,11 @@ Obtener convención por ID.
 ## 👥 Pastores
 
 ### GET `/api/pastores/active`
+
 Obtener todos los pastores activos.
 
 **Response:**
+
 ```json
 [
   {
@@ -192,9 +214,11 @@ Obtener todos los pastores activos.
 ## 💰 Pagos
 
 ### POST `/api/pagos`
+
 Crear nuevo pago (requiere autenticación).
 
 **Request:**
+
 ```json
 {
   "inscripcionId": "uuid",
@@ -212,9 +236,11 @@ Crear nuevo pago (requiere autenticación).
 ## 🔔 Notificaciones (Futuro)
 
 ### POST `/api/notifications/send`
+
 Enviar notificación push (solo admin).
 
 ### GET `/api/notifications/history`
+
 Obtener historial de notificaciones.
 
 ---
@@ -222,17 +248,21 @@ Obtener historial de notificaciones.
 ## ⚠️ Errores Comunes
 
 ### 401 Unauthorized
+
 - Token expirado: usar `/auth/refresh`
 - Token inválido: hacer login nuevamente
 
 ### 403 Forbidden
+
 - Usuario no tiene permisos para la acción
 
 ### 400 Bad Request
+
 - Validación fallida: revisar campos requeridos
 - Formato incorrecto: revisar tipos de datos
 
 ### 500 Internal Server Error
+
 - Error del servidor: contactar soporte
 
 ---
@@ -244,10 +274,3 @@ Obtener historial de notificaciones.
 3. **Refresh:** El access token expira en 15-30 min, usar refresh token para renovar
 4. **CORS:** El backend ya está configurado para aceptar requests de mobile
 5. **Rate Limiting:** Implementar retry con exponential backoff
-
-
-
-
-
-
-

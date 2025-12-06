@@ -56,6 +56,7 @@ Los usuarios reciben emails en **su bandeja de entrada** (Gmail, Outlook, etc.)
 ### ¿Cuándo se envía?
 
 El email se envía automáticamente como respaldo cuando:
+
 - ❌ El usuario **no tiene** la app móvil instalada
 - ❌ El usuario **no tiene** tokens de dispositivo registrados
 - ❌ El push notification **falla** por alguna razón
@@ -160,10 +161,12 @@ Asunto: ✅ Pago de Cuota 1 Validado
 **Cuándo:** Cuando validas un pago individual (cuota)
 
 **Mensaje Push/Email:**
+
 - Título: "✅ Pago de Cuota X Validado"
 - Mensaje: "Tu pago de $X ha sido validado exitosamente. Has pagado X de Y cuotas."
 
 **Datos incluidos:**
+
 - Número de cuota
 - Monto pagado
 - Progreso (cuotas pagadas/totales)
@@ -176,10 +179,12 @@ Asunto: ✅ Pago de Cuota 1 Validado
 **Cuándo:** Cuando todas las cuotas están pagadas y validadas
 
 **Mensaje Push/Email:**
+
 - Título: "🎉 ¡Inscripción Confirmada!"
 - Mensaje: "Tu inscripción a '[Convención]' ha sido confirmada. Todos los pagos han sido validados exitosamente. ¡Te esperamos!"
 
 **Datos incluidos:**
+
 - Título de la convención
 - Número total de cuotas pagadas
 - Estado: Confirmado
@@ -191,6 +196,7 @@ Asunto: ✅ Pago de Cuota 1 Validado
 ### Para Push Notifications:
 
 ✅ **Ya está configurado** - Usa Expo Push Notification Service
+
 - No requiere configuración adicional
 - Funciona automáticamente cuando el usuario instala la app
 
@@ -286,9 +292,3 @@ Si un usuario reporta que no recibió una notificación:
 3. ✅ Verifica la configuración SMTP (para emails)
 4. ✅ Verifica que el usuario tenga la app instalada (para push)
 5. ✅ Revisa el historial de notificaciones en la base de datos
-
-
-
-
-
-

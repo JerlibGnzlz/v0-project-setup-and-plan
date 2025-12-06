@@ -19,6 +19,7 @@ Password: Test1234
 ```
 
 **Requisitos de la contraseña:**
+
 - Mínimo 8 caracteres
 - Al menos una mayúscula
 - Al menos una minúscula
@@ -75,18 +76,22 @@ npm run create-test-pastor
 ## ⚠️ Errores Comunes
 
 ### "Tu email no está registrado en nuestro sistema"
+
 - **Causa**: El email no existe en la tabla `Pastores`
 - **Solución**: Crea el pastor primero desde el dashboard
 
 ### "Tu cuenta de pastor está inactiva"
+
 - **Causa**: El pastor existe pero `activo: false`
 - **Solución**: Ve al dashboard y activa el pastor
 
 ### "Ya existe una cuenta registrada con este email"
+
 - **Causa**: Ya te registraste antes
 - **Solución**: Usa "Iniciar Sesión" en lugar de "Registrarse"
 
 ### "Credenciales inválidas"
+
 - **Causa**: Email o contraseña incorrectos
 - **Solución**: Verifica que estés usando el email correcto y la contraseña que creaste
 
@@ -119,7 +124,7 @@ Content-Type: application/json
 
 ## 📝 Notas
 
-- **Los pastores y los admins son diferentes**: 
+- **Los pastores y los admins son diferentes**:
   - Admins usan `/api/auth/login` (para dashboard)
   - Pastores usan `/api/auth/pastor/login` (para app móvil)
 
@@ -132,14 +137,8 @@ Content-Type: application/json
 ## 🔄 Resetear Contraseña
 
 Si olvidaste tu contraseña, por ahora necesitas:
+
 1. Contactar a un admin
 2. O eliminar el registro de `PastorAuth` y registrarte de nuevo
 
 (La funcionalidad de recuperación de contraseña está preparada pero no implementada aún)
-
-
-
-
-
-
-

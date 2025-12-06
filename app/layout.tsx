@@ -7,16 +7,17 @@ import { BackToTop } from '@/components/back-to-top'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 
-const _inter = Inter({ subsets: ["latin"] });
-const _montserrat = Montserrat({ subsets: ["latin"] });
+const _inter = Inter({ subsets: ['latin'] })
+const _montserrat = Montserrat({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://vidaabundante.org'),
   title: {
     default: 'Vida Abundante - Ministerio Misionero Internacional',
-    template: '%s | Vida Abundante'
+    template: '%s | Vida Abundante',
   },
-  description: 'Organización misionera dedicada a la formación pastoral y el alcance global del evangelio. Formamos pastores, establecemos iglesias y llevamos el mensaje de esperanza a todo el mundo.',
+  description:
+    'Organización misionera dedicada a la formación pastoral y el alcance global del evangelio. Formamos pastores, establecemos iglesias y llevamos el mensaje de esperanza a todo el mundo.',
   keywords: [
     'ministerio misionero',
     'formación pastoral',
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
     'pastores',
     'ministerio',
     'cristianismo',
-    'fe'
+    'fe',
   ],
   authors: [{ name: 'Asociación Misionera Vida Abundante' }],
   creator: 'Asociación Misionera Vida Abundante',
@@ -43,7 +44,8 @@ export const metadata: Metadata = {
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://vidaabundante.org',
     siteName: 'Vida Abundante',
     title: 'Vida Abundante - Ministerio Misionero Internacional',
-    description: 'Organización misionera dedicada a la formación pastoral y el alcance global del evangelio',
+    description:
+      'Organización misionera dedicada a la formación pastoral y el alcance global del evangelio',
     images: [
       {
         url: '/og-image.jpg',
@@ -56,7 +58,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Vida Abundante - Ministerio Misionero Internacional',
-    description: 'Organización misionera dedicada a la formación pastoral y el alcance global del evangelio',
+    description:
+      'Organización misionera dedicada a la formación pastoral y el alcance global del evangelio',
     images: ['/og-image.jpg'],
   },
   robots: {
@@ -86,7 +89,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://vidaabundante.org'
-  
+
   // Structured Data (JSON-LD) para SEO
   const organizationSchema = {
     '@context': 'https://schema.org',
@@ -95,12 +98,13 @@ export default function RootLayout({
     alternateName: 'Vida Abundante',
     url: baseUrl,
     logo: `${baseUrl}/mundo.png`,
-    description: 'Organización misionera dedicada a la formación pastoral y el alcance global del evangelio',
+    description:
+      'Organización misionera dedicada a la formación pastoral y el alcance global del evangelio',
     sameAs: [
       // Agregar redes sociales cuando estén disponibles
     ],
   }
-  
+
   return (
     <html lang="es" className="scroll-smooth" suppressHydrationWarning>
       <head>

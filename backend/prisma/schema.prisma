@@ -8,15 +8,18 @@ datasource db {
 }
 
 model User {
-  id             String               @id @default(uuid())
-  email          String               @unique
-  password       String
-  createdAt      DateTime             @default(now()) @map("created_at")
-  updatedAt      DateTime             @updatedAt @map("updated_at")
-  nombre         String
-  rol            UserRole             @default(ADMIN)
-  avatar         String?
-  passwordResets PasswordResetToken[]
+  id                String               @id @default(uuid())
+  email             String               @unique
+  password          String
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+  nombre            String
+  rol               UserRole             @default(ADMIN)
+  avatar            String?
+  passwordResets    PasswordResetToken[]
+  // Seguridad: Bloqueo por intentos fallidos
+  failedLoginAttempts Int                @default(0) @map("failed_login_attempts")
+  lockedUntil        DateTime?           @map("locked_until")
 
   @@map("users")
 }

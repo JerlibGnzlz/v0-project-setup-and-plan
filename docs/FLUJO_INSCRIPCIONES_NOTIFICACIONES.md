@@ -7,6 +7,7 @@
 **Endpoint:** `POST /api/inscripciones`
 
 **Proceso:**
+
 1. Usuario completa formulario en landing page
 2. Validaciones:
    - Email único por convención
@@ -48,6 +49,7 @@
 ### Estado Actual
 
 #### ✅ Funcionando:
+
 1. **Notificaciones a Admins (Síncronas)**
    - Se envían directamente sin eventos
    - Email inmediato vía Gmail SMTP
@@ -69,6 +71,7 @@
    - `PAGO_RECORDATORIO` ✅
 
 #### ❌ No Funcionando:
+
 1. **NotificationListener**
    - Está registrado pero usa Bull Queue (removido)
    - Los eventos se emiten pero NO se procesan
@@ -86,12 +89,14 @@
 ### EmailService (Actual)
 
 **Configuración:**
+
 - Gmail SMTP (nodemailer)
 - Envío síncrono directo
 - Sin cola de trabajos
 - Sin reintentos automáticos
 
 **Limitaciones:**
+
 - ❌ No maneja emails masivos eficientemente
 - ❌ Puede bloquear el proceso si falla
 - ❌ Sin rate limiting para SMTP
@@ -104,32 +109,34 @@
 ### Opción 1: Sistema de Colas Simple (Sin Redis)
 
 **Ventajas:**
+
 - No requiere Redis
 - Implementación simple
 - Adecuado para volúmenes medianos
 
 **Implementación:**
+
 ```typescript
 // Cola en memoria con procesamiento asíncrono
 class EmailQueue {
   private queue: EmailJob[] = []
   private processing = false
-  
+
   async add(job: EmailJob) {
     this.queue.push(job)
     this.process()
   }
-  
+
   private async process() {
     if (this.processing) return
     this.processing = true
-    
+
     while (this.queue.length > 0) {
       const job = this.queue.shift()
       await this.sendEmail(job)
       await delay(100) // Rate limiting
     }
-    
+
     this.processing = false
   }
 }
@@ -138,6 +145,7 @@ class EmailQueue {
 ### Opción 2: Sistema de Colas con Bull (Recomendado para Producción)
 
 **Ventajas:**
+
 - ✅ Persistencia en Redis
 - ✅ Reintentos automáticos
 - ✅ Prioridades
@@ -145,10 +153,12 @@ class EmailQueue {
 - ✅ Escalable
 
 **Requisitos:**
+
 - Redis activo
 - Bull Module configurado
 
 **Implementación:**
+
 ```typescript
 // Ya tienes la estructura, solo falta reactivar
 @Processor('emails')
@@ -167,6 +177,7 @@ export class EmailProcessor {
 ### Escenario: Enviar Recordatorios a 1000+ Inscripciones
 
 **Problema Actual:**
+
 - `enviarRecordatoriosPago()` envía emails uno por uno síncronamente
 - Puede tomar minutos/horas
 - Bloquea el proceso
@@ -178,7 +189,7 @@ export class EmailProcessor {
 async enviarRecordatoriosPago(convencionId?: string) {
   // 1. Obtener inscripciones pendientes
   const inscripciones = await this.getInscripcionesPendientes(convencionId)
-  
+
   // 2. Encolar cada email (no bloquea)
   for (const insc of inscripciones) {
     await this.emailQueue.add({
@@ -188,7 +199,7 @@ async enviarRecordatoriosPago(convencionId?: string) {
       data: { inscripcion: insc }
     })
   }
-  
+
   // 3. Retornar inmediatamente
   return {
     message: `${inscripciones.length} recordatorios encolados`,
@@ -202,17 +213,20 @@ async enviarRecordatoriosPago(convencionId?: string) {
 ## 🔧 Estado Actual del Código
 
 ### NotificationListener
+
 - ✅ Escucha eventos correctamente
 - ❌ Intenta usar Bull Queue (no disponible)
 - ⚠️ Los eventos se emiten pero NO se procesan
 
 ### NotificationsService
+
 - ✅ `sendNotificationToAdmin()` - Funciona (síncrono)
 - ✅ `sendNotificationToUser()` - Funciona (síncrono)
 - ✅ WebSocket integrado
 - ✅ Historial guardado
 
 ### EmailService
+
 - ✅ Configurado con Gmail SMTP
 - ✅ Templates HTML
 - ❌ Sin cola de trabajos
@@ -223,25 +237,31 @@ async enviarRecordatoriosPago(convencionId?: string) {
 ## 💡 Recomendaciones Inmediatas
 
 ### 1. Para Emails Individuales (Actual)
+
 **Estado:** ✅ Funciona bien
+
 - Notificaciones a admins: inmediatas
 - Notificaciones a usuarios: inmediatas
 - WebSocket: tiempo real
 
 ### 2. Para Emails Masivos (Mejorar)
+
 **Opciones:**
 
 **A) Cola Simple en Memoria** (Rápido de implementar)
+
 - Procesamiento asíncrono
 - Rate limiting básico
 - Sin persistencia
 
 **B) Reactivar Bull + Redis** (Recomendado)
+
 - Ya tienes el código
 - Solo falta configurar Redis
 - Escalable y robusto
 
 **C) Servicio Externo** (Para producción)
+
 - SendGrid
 - Mailgun
 - AWS SES
@@ -275,16 +295,17 @@ async enviarRecordatoriosPago(convencionId?: string) {
 ## 🎯 Conclusión
 
 **Lo que funciona bien:**
+
 - ✅ Inscripciones por web
 - ✅ Notificaciones inmediatas a admins
 - ✅ WebSocket en tiempo real
 - ✅ Emails individuales
 
 **Lo que necesita mejoras:**
+
 - ⚠️ Emails masivos (sin cola)
 - ⚠️ Eventos sin procesar (listener inactivo)
 - ⚠️ Rate limiting para SMTP
 
 **Recomendación:**
 Para producción con emails masivos, reactivar Bull + Redis o usar servicio externo como SendGrid.
-

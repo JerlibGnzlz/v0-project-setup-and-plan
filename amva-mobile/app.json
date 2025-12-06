@@ -35,8 +35,7 @@
         }
       ]
     },
-    "web": {
-    },
+    "web": {},
     "extra": {
       "eas": {
         "projectId": "amva-mobile-example"
@@ -44,5 +43,3 @@
     }
   }
 }
-
-

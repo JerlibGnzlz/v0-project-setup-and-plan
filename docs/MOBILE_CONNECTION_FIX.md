@@ -14,6 +14,7 @@ npm run start:dev
 ```
 
 **Debe mostrar:**
+
 ```
 🚀 Backend running on http://localhost:4000/api
 ```
@@ -68,23 +69,27 @@ Si solo dice `await app.listen(port)`, cámbialo a `await app.listen(port, '0.0.
 ## ✅ Paso 5: Verificar el Firewall
 
 ### Linux (ufw):
+
 ```bash
 sudo ufw allow 4000
 sudo ufw status
 ```
 
 ### Linux (firewalld):
+
 ```bash
 sudo firewall-cmd --add-port=4000/tcp --permanent
 sudo firewall-cmd --reload
 ```
 
 ### Mac:
+
 1. System Preferences → Security & Privacy → Firewall
 2. Click "Firewall Options"
 3. Asegúrate de que el puerto 4000 esté permitido
 
 ### Windows:
+
 1. Windows Defender Firewall → Advanced Settings
 2. Inbound Rules → New Rule
 3. Port → TCP → 4000 → Allow
@@ -138,6 +143,7 @@ npx expo start --clear
 ### Ver qué URL está usando la app:
 
 Revisa los logs de Expo. Deberías ver:
+
 ```
 🚀 API URL configurada: http://192.168.0.33:4000/api
 ```
@@ -151,6 +157,7 @@ Si ves una URL diferente, verifica `amva-mobile/src/api/client.ts`.
 3. Debe mostrar JSON (o un error del backend, pero NO "no se puede conectar")
 
 Si no funciona desde el navegador del móvil, el problema es:
+
 - Firewall
 - Backend no escucha en `0.0.0.0`
 - Redes diferentes
@@ -160,13 +167,14 @@ Si no funciona desde el navegador del móvil, el problema es:
 ## 🆘 Si Nada Funciona
 
 1. **Usa ngrok para crear un túnel:**
+
    ```bash
    # Instala ngrok
    npm install -g ngrok
-   
+
    # Crea túnel
    ngrok http 4000
-   
+
    # Usa la URL de ngrok en client.ts
    # Ej: https://abc123.ngrok.io/api
    ```
@@ -188,10 +196,3 @@ Si no funciona desde el navegador del móvil, el problema es:
 - [ ] Expo reiniciado con `--clear`
 
 Si todo esto está correcto, debería funcionar. 🎉
-
-
-
-
-
-
-

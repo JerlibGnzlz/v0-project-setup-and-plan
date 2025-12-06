@@ -14,9 +14,11 @@ Se han implementado todas las mejoras recomendadas de seguridad para llevar el s
 **Ahora**: Validación completa en backend con `class-validator`
 
 **Archivos Modificados**:
+
 - `backend/src/modules/auth/dto/auth.dto.ts`
 
 **Cambios**:
+
 - `RegisterDto` ahora valida:
   - Mínimo 8 caracteres
   - Al menos una mayúscula
@@ -24,6 +26,7 @@ Se han implementado todas las mejoras recomendadas de seguridad para llevar el s
   - Al menos un número
 
 **Código**:
+
 ```typescript
 @IsString()
 @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
@@ -41,11 +44,13 @@ password: string
 **Ahora**: Cada vez que se usa un refresh token, se invalida y se genera uno nuevo
 
 **Archivos Modificados**:
+
 - `backend/src/modules/auth/auth.service.ts`
 - `backend/src/modules/auth/pastor-auth.service.ts`
 - `backend/src/modules/auth/invitado-auth.service.ts` (preparado)
 
 **Implementación**:
+
 ```typescript
 async refreshAccessToken(refreshToken: string) {
   // Verificar blacklist
@@ -55,18 +60,19 @@ async refreshAccessToken(refreshToken: string) {
   }
 
   // Validar token...
-  
+
   // Invalidar el refresh token anterior (rotación)
   await this.tokenBlacklist.addToBlacklist(refreshToken, 30 * 24 * 60 * 60)
 
   // Generar nuevos tokens
   const { accessToken, refreshToken: newRefreshToken } = this.generateTokenPair(...)
-  
+
   return { access_token: accessToken, refresh_token: newRefreshToken }
 }
 ```
 
 **Beneficios**:
+
 - Si un refresh token es comprometido, solo puede usarse una vez
 - Reduce el tiempo de exposición en caso de robo
 - Mejora la seguridad general del sistema
@@ -79,21 +85,25 @@ async refreshAccessToken(refreshToken: string) {
 **Ahora**: Sistema completo de blacklisting usando Redis
 
 **Archivos Creados**:
+
 - `backend/src/modules/auth/services/token-blacklist.service.ts`
 
 **Archivos Modificados**:
+
 - `backend/src/modules/auth/auth.module.ts`
 - `backend/src/modules/auth/guards/jwt-auth.guard.ts`
 - `backend/src/modules/auth/guards/pastor-jwt-auth.guard.ts`
 - `backend/src/modules/auth/guards/invitado-jwt-auth.guard.ts`
 
 **Características**:
+
 - Almacena tokens revocados en Redis con TTL automático
 - Verifica blacklist en cada request autenticado
 - Funciona sin Redis (fail-open) si Redis no está disponible
 - TTL automático basado en la expiración del token
 
 **Uso**:
+
 ```typescript
 // Agregar a blacklist
 await tokenBlacklist.addToBlacklist(token, expiresIn)
@@ -110,17 +120,20 @@ const isBlacklisted = await tokenBlacklist.isBlacklisted(token)
 **Ahora**: Logging estructurado con contexto completo
 
 **Archivos Modificados**:
+
 - `backend/src/modules/auth/auth.service.ts`
 - `backend/src/modules/auth/pastor-auth.service.ts`
 - `backend/src/modules/auth/invitado-auth.service.ts`
 
 **Mejoras**:
+
 - Logs estructurados con contexto (userId, email, timestamp)
 - Diferentes niveles: `log`, `warn`, `error`
 - Información de seguridad relevante en cada log
 - Fácil de integrar con sistemas de monitoreo
 
 **Ejemplo**:
+
 ```typescript
 this.logger.log(`✅ Login exitoso`, {
   userId: user.id,
@@ -144,6 +157,7 @@ this.logger.warn(`❌ Login fallido: contraseña inválida`, {
 **Ahora**: Endpoints de logout que invalidan tokens inmediatamente
 
 **Archivos Modificados**:
+
 - `backend/src/modules/auth/auth.controller.ts`
 - `backend/src/modules/auth/auth.service.ts`
 - `backend/src/modules/auth/pastor-auth.controller.ts`
@@ -152,19 +166,22 @@ this.logger.warn(`❌ Login fallido: contraseña inválida`, {
 - `backend/src/modules/auth/invitado-auth.service.ts`
 
 **Endpoints Agregados**:
+
 - `POST /api/auth/logout` (Admin)
 - `POST /api/auth/pastor/logout` (Pastor)
 - `POST /api/auth/invitado/logout` (Invitado)
 
 **Uso**:
+
 ```typescript
 // Frontend
 await apiClient.post('/auth/logout', {
-  refreshToken: refreshToken // opcional
+  refreshToken: refreshToken, // opcional
 })
 ```
 
 **Funcionalidad**:
+
 - Invalida el access token actual
 - Invalida el refresh token (si se proporciona)
 - Agrega ambos a la blacklist
@@ -271,15 +288,15 @@ curl -X POST http://localhost:4000/api/auth/refresh \
 
 ## 📈 Mejoras de Seguridad Logradas
 
-| Aspecto | Antes | Ahora | Mejora |
-|---------|-------|-------|--------|
-| **Expiración Access Token** | 7 días (admin) | 15 minutos (todos) | 🔴 Crítico |
-| **HTTPS Enforcement** | No | Sí (producción) | 🔴 Crítico |
-| **Validación Password Backend** | No | Sí | 🟡 Importante |
-| **Refresh Token Rotation** | No | Sí | 🟡 Importante |
-| **Token Blacklisting** | No | Sí (Redis) | 🟡 Importante |
-| **Logging Estructurado** | Básico | Completo | 🟢 Mejora |
-| **Endpoint Logout** | No | Sí | 🟡 Importante |
+| Aspecto                         | Antes          | Ahora              | Mejora        |
+| ------------------------------- | -------------- | ------------------ | ------------- |
+| **Expiración Access Token**     | 7 días (admin) | 15 minutos (todos) | 🔴 Crítico    |
+| **HTTPS Enforcement**           | No             | Sí (producción)    | 🔴 Crítico    |
+| **Validación Password Backend** | No             | Sí                 | 🟡 Importante |
+| **Refresh Token Rotation**      | No             | Sí                 | 🟡 Importante |
+| **Token Blacklisting**          | No             | Sí (Redis)         | 🟡 Importante |
+| **Logging Estructurado**        | Básico         | Completo           | 🟢 Mejora     |
+| **Endpoint Logout**             | No             | Sí                 | 🟡 Importante |
 
 ---
 
@@ -299,4 +316,3 @@ El sistema de autenticación ahora tiene:
 
 **Fecha de Implementación**: $(date)
 **Versión**: 2.0.0
-

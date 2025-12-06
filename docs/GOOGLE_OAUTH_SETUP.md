@@ -28,6 +28,7 @@
 ### 2. Obtener Credenciales
 
 Después de crear, obtendrás:
+
 - **Client ID**: `xxxxx.apps.googleusercontent.com`
 - **Client Secret**: `xxxxx`
 
@@ -58,14 +59,17 @@ En producción, actualiza `FRONTEND_URL` con tu dominio real.
 ## 🐛 Troubleshooting
 
 ### Error: "redirect_uri_mismatch"
+
 - Verifica que la URL en `GOOGLE_CALLBACK_URL` coincida exactamente con la configurada en Google Cloud Console
 - Asegúrate de incluir el protocolo (`http://` o `https://`)
 
 ### Error: "invalid_client"
+
 - Verifica que `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` sean correctos
 - Asegúrate de que las credenciales sean para "Web application"
 
 ### No redirige correctamente
+
 - Verifica que `FRONTEND_URL` esté configurado correctamente
 - Asegúrate de que el frontend esté escuchando en el puerto correcto
 
@@ -74,4 +78,3 @@ En producción, actualiza `FRONTEND_URL` con tu dominio real.
 - El `googleId` se almacena en la tabla `invitado_auth`
 - Si un usuario ya tiene cuenta con email y luego usa Google OAuth, se vinculará automáticamente
 - El email se marca como verificado automáticamente cuando se usa Google OAuth
-

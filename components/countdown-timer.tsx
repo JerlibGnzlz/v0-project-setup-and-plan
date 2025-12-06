@@ -34,11 +34,7 @@ function CircularProgress({
   const offset = circumference - (progress / 100) * circumference
 
   return (
-    <svg
-      width={size}
-      height={size}
-      className="absolute inset-0 m-auto -rotate-90 transform"
-    >
+    <svg width={size} height={size} className="absolute inset-0 m-auto -rotate-90 transform">
       {/* Background ring */}
       <circle
         cx={size / 2}
@@ -91,10 +87,12 @@ function AnimatedDigit({ digit, prevDigit }: { digit: string; prevDigit: string 
   }, [digit, prevDigit])
 
   return (
-    <span className={cn(
-      "inline-block transition-all duration-150",
-      isAnimating && "scale-110 opacity-80"
-    )}>
+    <span
+      className={cn(
+        'inline-block transition-all duration-150',
+        isAnimating && 'scale-110 opacity-80'
+      )}
+    >
       {currentDigit}
     </span>
   )
@@ -132,7 +130,7 @@ function CircularTimeCard({
         className="absolute inset-0 rounded-full blur-2xl transition-all duration-500 opacity-20 group-hover:opacity-40"
         style={{
           background: `linear-gradient(135deg, ${gradientColors.start}, ${gradientColors.end})`,
-          transform: 'scale(0.8)'
+          transform: 'scale(0.8)',
         }}
       />
 
@@ -156,7 +154,7 @@ function CircularTimeCard({
           style={{
             width: size - 20,
             height: size - 20,
-            boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.3)'
+            boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.3)',
           }}
         />
 
@@ -217,40 +215,43 @@ export function CountdownTimer({ targetDate, title = 'Próximo Evento' }: Countd
   const daysInYear = 365
   const maxDays = 30 // Show progress based on 30 days max
 
-  const timeUnits = useMemo(() => [
-    {
-      key: 'days',
-      value: timeLeft.days,
-      label: 'Días',
-      progress: Math.min((timeLeft.days / maxDays) * 100, 100),
-      gradientId: 'days-gradient',
-      gradientColors: { start: '#38bdf8', end: '#0ea5e9' } // Sky
-    },
-    {
-      key: 'hours',
-      value: timeLeft.hours,
-      label: 'Horas',
-      progress: (timeLeft.hours / 24) * 100,
-      gradientId: 'hours-gradient',
-      gradientColors: { start: '#34d399', end: '#10b981' } // Emerald
-    },
-    {
-      key: 'minutes',
-      value: timeLeft.minutes,
-      label: 'Minutos',
-      progress: (timeLeft.minutes / 60) * 100,
-      gradientId: 'minutes-gradient',
-      gradientColors: { start: '#fbbf24', end: '#f59e0b' } // Amber
-    },
-    {
-      key: 'seconds',
-      value: timeLeft.seconds,
-      label: 'Segundos',
-      progress: (timeLeft.seconds / 60) * 100,
-      gradientId: 'seconds-gradient',
-      gradientColors: { start: '#f97316', end: '#ea580c' } // Orange (accent)
-    },
-  ], [timeLeft])
+  const timeUnits = useMemo(
+    () => [
+      {
+        key: 'days',
+        value: timeLeft.days,
+        label: 'Días',
+        progress: Math.min((timeLeft.days / maxDays) * 100, 100),
+        gradientId: 'days-gradient',
+        gradientColors: { start: '#38bdf8', end: '#0ea5e9' }, // Sky
+      },
+      {
+        key: 'hours',
+        value: timeLeft.hours,
+        label: 'Horas',
+        progress: (timeLeft.hours / 24) * 100,
+        gradientId: 'hours-gradient',
+        gradientColors: { start: '#34d399', end: '#10b981' }, // Emerald
+      },
+      {
+        key: 'minutes',
+        value: timeLeft.minutes,
+        label: 'Minutos',
+        progress: (timeLeft.minutes / 60) * 100,
+        gradientId: 'minutes-gradient',
+        gradientColors: { start: '#fbbf24', end: '#f59e0b' }, // Amber
+      },
+      {
+        key: 'seconds',
+        value: timeLeft.seconds,
+        label: 'Segundos',
+        progress: (timeLeft.seconds / 60) * 100,
+        gradientId: 'seconds-gradient',
+        gradientColors: { start: '#f97316', end: '#ea580c' }, // Orange (accent)
+      },
+    ],
+    [timeLeft]
+  )
 
   // Responsive size based on screen
   const getCircleSize = () => {
@@ -318,9 +319,7 @@ export function CountdownTimer({ targetDate, title = 'Próximo Evento' }: Countd
       </div>
 
       {/* Message */}
-      <p className="mt-6 sm:mt-8 md:mt-10 text-xs sm:text-sm text-white/40">
-        ¡No te lo pierdas!
-      </p>
+      <p className="mt-6 sm:mt-8 md:mt-10 text-xs sm:text-sm text-white/40">¡No te lo pierdas!</p>
 
       {/* Styles for tabular numbers */}
       <style jsx global>{`

@@ -10,6 +10,7 @@ cd backend
 ```
 
 Este script:
+
 - ✅ Lee tu configuración actual de `.env`
 - ✅ Calcula la URL de callback completa
 - ✅ Muestra las URLs que debes configurar en Google Cloud Console
@@ -18,11 +19,13 @@ Este script:
 ## 📋 URLs Requeridas en Google Cloud Console
 
 ### Desarrollo (Local)
+
 ```
 http://localhost:4000/api/auth/invitado/google/callback
 ```
 
 ### Producción
+
 ```
 https://tu-dominio-backend.com/api/auth/invitado/google/callback
 ```
@@ -32,24 +35,29 @@ https://tu-dominio-backend.com/api/auth/invitado/google/callback
 ## 🔧 Cómo Configurar en Google Cloud Console
 
 ### Paso 1: Acceder a Google Cloud Console
+
 1. Ve a: https://console.cloud.google.com/
 2. Selecciona tu proyecto
 
 ### Paso 2: Ir a Credentials
+
 1. En el menú lateral, ve a: **APIs & Services** > **Credentials**
 2. Busca tu **OAuth 2.0 Client ID** (tipo: Web application)
 3. Haz clic en el ícono de **editar** (lápiz)
 
 ### Paso 3: Configurar Authorized Redirect URIs
+
 1. En la sección **Authorized redirect URIs**, haz clic en **+ ADD URI**
 2. Agrega las siguientes URLs (una por línea):
 
 #### Para Desarrollo:
+
 ```
 http://localhost:4000/api/auth/invitado/google/callback
 ```
 
 #### Para Producción:
+
 ```
 https://tu-dominio-backend.com/api/auth/invitado/google/callback
 ```
@@ -59,6 +67,7 @@ https://tu-dominio-backend.com/api/auth/invitado/google/callback
 ## ⚠️ Reglas Importantes
 
 ### ✅ DO (Hacer)
+
 - Las URLs deben coincidir **EXACTAMENTE** (incluyendo `http://` o `https://`)
 - Debe incluir el puerto si es necesario (ej: `:4000`)
 - El path debe ser exacto: `/api/auth/invitado/google/callback`
@@ -66,6 +75,7 @@ https://tu-dominio-backend.com/api/auth/invitado/google/callback
 - Puedes agregar múltiples URLs (una por línea)
 
 ### ❌ DON'T (No hacer)
+
 - ❌ No agregues trailing slash (`/`) al final
 - ❌ No uses `http://` en producción
 - ❌ No cambies el path sin actualizar también el código
@@ -90,11 +100,13 @@ GOOGLE_CALLBACK_URL="/api/auth/invitado/google/callback"
 ### 2. Calcular URL Completa
 
 La URL completa se construye así:
+
 ```
 {BACKEND_URL}{GOOGLE_CALLBACK_URL}
 ```
 
 Ejemplo:
+
 - `BACKEND_URL="https://api.midominio.com"`
 - `GOOGLE_CALLBACK_URL="/api/auth/invitado/google/callback"`
 - **URL Completa**: `https://api.midominio.com/api/auth/invitado/google/callback`
@@ -102,13 +114,12 @@ Ejemplo:
 ### 3. Verificar en el Código
 
 La URL se construye en:
+
 ```typescript
 // backend/src/modules/auth/strategies/google-oauth.strategy.ts
 const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
 const callbackPath = process.env.GOOGLE_CALLBACK_URL || '/api/auth/invitado/google/callback'
-const callbackURL = callbackPath.startsWith('http') 
-  ? callbackPath 
-  : `${backendUrl}${callbackPath}`
+const callbackURL = callbackPath.startsWith('http') ? callbackPath : `${backendUrl}${callbackPath}`
 ```
 
 ## 🐛 Troubleshooting
@@ -118,6 +129,7 @@ const callbackURL = callbackPath.startsWith('http')
 **Causa**: La URL en Google Cloud Console no coincide con la que usa tu aplicación.
 
 **Solución**:
+
 1. Ejecuta el script de verificación: `./scripts/verificar-callback-urls.sh`
 2. Copia la URL exacta que muestra
 3. Verifica que esa URL esté en Google Cloud Console
@@ -128,6 +140,7 @@ const callbackURL = callbackPath.startsWith('http')
 **Causa**: El `GOOGLE_CLIENT_ID` o `GOOGLE_CLIENT_SECRET` son incorrectos.
 
 **Solución**:
+
 1. Verifica que las credenciales en `.env` coincidan con las de Google Cloud Console
 2. Asegúrate de que no haya espacios o comillas extra
 
@@ -154,12 +167,14 @@ Antes de ir a producción, verifica:
 Si necesitas cambiar las URLs:
 
 1. **Actualiza `.env`**:
+
    ```env
    BACKEND_URL="https://nuevo-dominio.com"
    GOOGLE_CALLBACK_URL="/api/auth/invitado/google/callback"
    ```
 
 2. **Ejecuta el script de verificación**:
+
    ```bash
    ./scripts/verificar-callback-urls.sh
    ```
@@ -181,4 +196,3 @@ Si necesitas cambiar las URLs:
 
 **Última actualización**: $(date)
 **Script de verificación**: `backend/scripts/verificar-callback-urls.sh`
-

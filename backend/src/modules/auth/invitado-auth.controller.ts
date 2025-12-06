@@ -1,4 +1,14 @@
-import { Controller, Post, UseGuards, Get, Request, Body, UseInterceptors, ClassSerializerInterceptor, Res } from '@nestjs/common'
+import {
+  Controller,
+  Post,
+  UseGuards,
+  Get,
+  Request,
+  Body,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+  Res,
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { Response } from 'express'
 import { InvitadoAuthService } from './invitado-auth.service'
@@ -38,14 +48,14 @@ export class InvitadoAuthController {
   async getProfile(@Request() req) {
     // Obtener invitado completo con fotoUrl
     const invitado = await this.invitadoAuthService.validateInvitado(req.user.id)
-    
+
     console.log('[InvitadoAuthController] Perfil solicitado:', {
       invitadoId: invitado.id,
       email: invitado.email,
       fotoUrl: invitado.fotoUrl,
       tieneFotoUrl: !!invitado.fotoUrl,
     })
-    
+
     return {
       id: invitado.id,
       nombre: invitado.nombre,
@@ -70,7 +80,7 @@ export class InvitadoAuthController {
     await this.invitadoAuthService.logout(accessToken, body?.refreshToken)
 
     return {
-      message: "Logout exitoso",
+      message: 'Logout exitoso',
       success: true,
     }
   }
@@ -92,7 +102,7 @@ export class InvitadoAuthController {
   @UseInterceptors(ClassSerializerInterceptor)
   async googleAuthCallback(@Request() req, @Res() res: Response) {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-    
+
     try {
       // Validar que req.user existe y tiene los datos necesarios
       if (!req.user) {
@@ -128,12 +138,12 @@ export class InvitadoAuthController {
 
       // Redirigir al frontend con el token
       const redirectUrl = `${frontendUrl}/convencion/inscripcion?token=${result.access_token}&google=true&refresh_token=${result.refresh_token}`
-      
+
       return res.redirect(redirectUrl)
     } catch (error) {
       // Log del error para debugging
       console.error('[InvitadoAuthController] Error en callback de Google OAuth:', error)
-      
+
       // Determinar el tipo de error para un mensaje más específico
       let errorMessage = 'google_auth_failed'
       if (error instanceof Error) {
@@ -145,9 +155,8 @@ export class InvitadoAuthController {
       }
 
       const errorUrl = `${frontendUrl}/convencion/inscripcion?error=${errorMessage}`
-      
+
       return res.redirect(errorUrl)
     }
   }
 }
-

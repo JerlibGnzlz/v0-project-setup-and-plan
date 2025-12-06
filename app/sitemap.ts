@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://vidaabundante.org'
-  
+
   return [
     {
       url: baseUrl,
@@ -24,10 +24,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 }
-
-
-
-
-
-
-

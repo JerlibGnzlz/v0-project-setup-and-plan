@@ -2,7 +2,7 @@
  * Utilidad optimizada para tracking de vistas de noticias
  * Implementa debounce y localStorage para evitar múltiples conteos
  * No bloquea la carga de la página
- * 
+ *
  * IMPORTANTE: Cada noticia (slug) se cuenta de forma INDEPENDIENTE
  * - Si visitas noticia A → se cuenta 1 vista para A
  * - Si visitas noticia B → se cuenta 1 vista para B (independiente de A)
@@ -24,7 +24,7 @@ const processingSet = new Set<string>()
  */
 function hasBeenViewed(slug: string): boolean {
   console.log(`🔍 [hasBeenViewed] Verificando slug: "${slug}"`)
-  
+
   if (!slug) {
     console.log(`⚠️ [hasBeenViewed] Slug inválido, retornando true`)
     return true // Slug inválido, no contar
@@ -47,11 +47,11 @@ function hasBeenViewed(slug: string): boolean {
     const key = `${VIEWED_KEY_PREFIX}${slug}`
     const viewed = localStorage.getItem(key)
     console.log(`🔍 [hasBeenViewed] localStorage.getItem("${key}") =`, viewed)
-    
+
     if (viewed) {
       const viewedDate = new Date(viewed)
       const now = new Date()
-      
+
       // Validar que la fecha sea válida
       if (isNaN(viewedDate.getTime())) {
         // Fecha inválida, limpiar
@@ -63,7 +63,7 @@ function hasBeenViewed(slug: string): boolean {
       // Si fue vista en las últimas 24 horas, no contar de nuevo
       const hoursSinceView = (now.getTime() - viewedDate.getTime()) / (1000 * 60 * 60)
       console.log(`⏱️ [hasBeenViewed] "${slug}" fue vista hace ${hoursSinceView.toFixed(2)} horas`)
-      
+
       if (hoursSinceView < 24) {
         viewedCache.add(slug)
         console.log(`✅ [hasBeenViewed] "${slug}" fue vista hace menos de 24h, retornando true`)
@@ -103,9 +103,13 @@ let debounceTimers: Map<string, NodeJS.Timeout> = new Map()
  * @param incrementVista - Función que incrementa la vista en el servidor
  * @param forceTrack - Si es true, fuerza el tracking incluso si ya fue vista (útil para noticias nuevas con 0 vistas)
  */
-export function trackView(slug: string, incrementVista: (slug: string) => Promise<void> | void, forceTrack: boolean = false): void {
+export function trackView(
+  slug: string,
+  incrementVista: (slug: string) => Promise<void> | void,
+  forceTrack: boolean = false
+): void {
   console.log(`🔍 [trackView] Llamado para slug: "${slug}", forceTrack: ${forceTrack}`)
-  
+
   if (!slug) {
     console.warn('⚠️ [trackView] slug vacío, no se puede contar vista')
     return
@@ -127,7 +131,7 @@ export function trackView(slug: string, incrementVista: (slug: string) => Promis
   if (!forceTrack) {
     const alreadyViewed = hasBeenViewed(slug)
     console.log(`🔍 [trackView] hasBeenViewed("${slug}") = ${alreadyViewed}`)
-    
+
     if (alreadyViewed) {
       console.log(`⏭️ [trackView] Noticia "${slug}" ya fue vista, no se cuenta de nuevo`)
       return // Ya fue vista, no contar de nuevo
@@ -153,16 +157,16 @@ export function trackView(slug: string, incrementVista: (slug: string) => Promis
   const timer = setTimeout(async () => {
     try {
       console.log(`🚀 [trackView] Ejecutando incremento de vista para "${slug}"...`)
-      
+
       // Marcar como vista ANTES de hacer la llamada al servidor
       markAsViewed(slug)
       console.log(`✅ [trackView] Marca "${slug}" como vista en localStorage`)
-      
+
       // Incrementar vista en el servidor
       console.log(`📞 [trackView] Llamando incrementVista("${slug}")...`)
       await incrementVista(slug)
       console.log(`✅ [trackView] incrementVista completado para "${slug}"`)
-      
+
       console.log(`✅ [trackView] Vista registrada exitosamente para: ${slug}`)
     } catch (error) {
       console.error(`❌ [trackView] Error al registrar vista para ${slug}:`, error)
@@ -235,7 +239,7 @@ export function clearViewCache(): void {
   viewedCache.clear()
   processingSet.clear()
   debounceTimers.clear()
-  
+
   if (typeof window !== 'undefined') {
     const keysToRemove: string[] = []
     for (let i = 0; i < localStorage.length; i++) {
@@ -248,4 +252,3 @@ export function clearViewCache(): void {
     console.log(`🧹 Cache de vistas limpiado. ${keysToRemove.length} entradas eliminadas.`)
   }
 }
-

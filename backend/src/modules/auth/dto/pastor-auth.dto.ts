@@ -80,4 +80,3 @@ export class PastorGoogleAuthDto {
   @IsString()
   idToken: string
 }
-

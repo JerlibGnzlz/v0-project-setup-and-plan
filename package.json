@@ -5,7 +5,10 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "lint": "eslint .",
+    "lint": "eslint app components lib --ext .ts,.tsx",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "start": "next start"
   },
   "dependencies": {
@@ -96,8 +99,12 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
     "baseline-browser-mapping": "^2.8.32",
+    "eslint": "^8.57.0",
     "postcss": "^8.5",
+    "prettier": "^3.2.5",
     "tailwindcss": "^4.1.9",
     "tw-animate-css": "1.3.3",
     "typescript": "^5.9.3"

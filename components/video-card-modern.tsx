@@ -19,17 +19,17 @@ function formatDuration(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
-export function VideoCardModern({ 
-  video, 
-  thumbnailUrl, 
-  onPlay, 
+export function VideoCardModern({
+  video,
+  thumbnailUrl,
+  onPlay,
   isFullPlaying,
-  className 
+  className,
 }: VideoCardModernProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  
+
   const [isHovering, setIsHovering] = useState(false)
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
@@ -40,15 +40,16 @@ export function VideoCardModern({
   const [showControls, setShowControls] = useState(false)
 
   // Calcular duración del clip si hay metadata
-  const clipDuration = video.videoEndTime && video.videoStartTime 
-    ? video.videoEndTime - video.videoStartTime 
-    : duration
+  const clipDuration =
+    video.videoEndTime && video.videoStartTime
+      ? video.videoEndTime - video.videoStartTime
+      : duration
 
   // Handle mouse enter - start preview after delay
   const handleMouseEnter = useCallback(() => {
     setIsHovering(true)
     setShowControls(true)
-    
+
     // Start preview after 500ms delay
     hoverTimeoutRef.current = setTimeout(() => {
       if (videoRef.current && !isFullPlaying) {
@@ -63,11 +64,11 @@ export function VideoCardModern({
   const handleMouseLeave = useCallback(() => {
     setIsHovering(false)
     setShowControls(false)
-    
+
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current)
     }
-    
+
     if (videoRef.current && isPreviewPlaying) {
       videoRef.current.pause()
       videoRef.current.currentTime = 0
@@ -83,7 +84,7 @@ export function VideoCardModern({
       const total = videoRef.current.duration
       setCurrentTime(current)
       setProgress((current / total) * 100)
-      
+
       // Loop preview after 10 seconds
       if (current >= 10) {
         videoRef.current.currentTime = 0
@@ -100,13 +101,16 @@ export function VideoCardModern({
   }, [])
 
   // Toggle mute
-  const toggleMute = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted
-      setIsMuted(!isMuted)
-    }
-  }, [isMuted])
+  const toggleMute = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      if (videoRef.current) {
+        videoRef.current.muted = !isMuted
+        setIsMuted(!isMuted)
+      }
+    },
+    [isMuted]
+  )
 
   // Handle progress bar click
   const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -137,11 +141,11 @@ export function VideoCardModern({
   }, [isFullPlaying])
 
   return (
-    <div 
+    <div
       className={cn(
-        "relative group cursor-pointer",
-        "transform transition-all duration-500 ease-out",
-        isHovering && "scale-[1.02] z-10",
+        'relative group cursor-pointer',
+        'transform transition-all duration-500 ease-out',
+        isHovering && 'scale-[1.02] z-10',
         className
       )}
       onMouseEnter={handleMouseEnter}
@@ -149,25 +153,29 @@ export function VideoCardModern({
       onClick={onPlay}
     >
       {/* Glow effect */}
-      <div className={cn(
-        "absolute -inset-2 rounded-2xl transition-all duration-500",
-        "bg-gradient-to-r from-sky-500/0 via-blue-500/0 to-emerald-500/0",
-        isHovering && "from-sky-500/30 via-blue-500/30 to-emerald-500/30 blur-xl"
-      )} />
-      
+      <div
+        className={cn(
+          'absolute -inset-2 rounded-2xl transition-all duration-500',
+          'bg-gradient-to-r from-sky-500/0 via-blue-500/0 to-emerald-500/0',
+          isHovering && 'from-sky-500/30 via-blue-500/30 to-emerald-500/30 blur-xl'
+        )}
+      />
+
       {/* Card container */}
-      <div className={cn(
-        "relative aspect-video overflow-hidden rounded-2xl",
-        "bg-[#0d1f35] border transition-all duration-500",
-        isHovering ? "border-sky-500/50 shadow-2xl shadow-sky-500/20" : "border-white/10"
-      )}>
+      <div
+        className={cn(
+          'relative aspect-video overflow-hidden rounded-2xl',
+          'bg-[#0d1f35] border transition-all duration-500',
+          isHovering ? 'border-sky-500/50 shadow-2xl shadow-sky-500/20' : 'border-white/10'
+        )}
+      >
         {/* Video element for preview */}
         <video
           ref={videoRef}
           src={video.imagenUrl}
           className={cn(
-            "absolute inset-0 w-full h-full object-cover transition-opacity duration-500",
-            isPreviewPlaying ? "opacity-100" : "opacity-0"
+            'absolute inset-0 w-full h-full object-cover transition-opacity duration-500',
+            isPreviewPlaying ? 'opacity-100' : 'opacity-0'
           )}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
@@ -181,31 +189,35 @@ export function VideoCardModern({
           src={thumbnailUrl}
           alt={video.titulo}
           className={cn(
-            "absolute inset-0 w-full h-full object-cover transition-all duration-700",
-            isHovering && "scale-110",
-            isPreviewPlaying && "opacity-0"
+            'absolute inset-0 w-full h-full object-cover transition-all duration-700',
+            isHovering && 'scale-110',
+            isPreviewPlaying && 'opacity-0'
           )}
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = '/placeholder.svg'
+          onError={e => {
+            ;(e.target as HTMLImageElement).src = '/placeholder.svg'
           }}
         />
 
         {/* Gradient overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-transparent to-transparent opacity-80" />
-        <div className={cn(
-          "absolute inset-0 bg-gradient-to-r from-sky-900/20 to-transparent opacity-0 transition-opacity duration-500",
-          isHovering && "opacity-100"
-        )} />
+        <div
+          className={cn(
+            'absolute inset-0 bg-gradient-to-r from-sky-900/20 to-transparent opacity-0 transition-opacity duration-500',
+            isHovering && 'opacity-100'
+          )}
+        />
 
         {/* Top badges */}
         <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
           {/* Duration badge */}
-          <div className={cn(
-            "flex items-center gap-1.5 px-2.5 py-1 rounded-full",
-            "bg-black/60 backdrop-blur-md text-white text-xs font-medium",
-            "transform transition-all duration-300",
-            isHovering ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
-          )}>
+          <div
+            className={cn(
+              'flex items-center gap-1.5 px-2.5 py-1 rounded-full',
+              'bg-black/60 backdrop-blur-md text-white text-xs font-medium',
+              'transform transition-all duration-300',
+              isHovering ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
+            )}
+          >
             <Clock className="w-3 h-3" />
             {formatDuration(clipDuration || duration)}
           </div>
@@ -220,35 +232,43 @@ export function VideoCardModern({
         </div>
 
         {/* Center play button */}
-        <div className={cn(
-          "absolute inset-0 flex items-center justify-center",
-          "transition-all duration-500",
-          isPreviewPlaying && "opacity-0 pointer-events-none"
-        )}>
+        <div
+          className={cn(
+            'absolute inset-0 flex items-center justify-center',
+            'transition-all duration-500',
+            isPreviewPlaying && 'opacity-0 pointer-events-none'
+          )}
+        >
           <div className="relative">
             {/* Animated rings */}
-            <div className={cn(
-              "absolute -inset-4 rounded-full",
-              "bg-gradient-to-r from-sky-500/20 to-blue-500/20",
-              "transition-all duration-500",
-              isHovering ? "scale-150 opacity-100 animate-ping" : "scale-100 opacity-0"
-            )} />
-            <div className={cn(
-              "absolute -inset-2 rounded-full",
-              "bg-gradient-to-r from-sky-500/30 to-blue-500/30",
-              "transition-all duration-300",
-              isHovering && "animate-pulse"
-            )} />
-            
+            <div
+              className={cn(
+                'absolute -inset-4 rounded-full',
+                'bg-gradient-to-r from-sky-500/20 to-blue-500/20',
+                'transition-all duration-500',
+                isHovering ? 'scale-150 opacity-100 animate-ping' : 'scale-100 opacity-0'
+              )}
+            />
+            <div
+              className={cn(
+                'absolute -inset-2 rounded-full',
+                'bg-gradient-to-r from-sky-500/30 to-blue-500/30',
+                'transition-all duration-300',
+                isHovering && 'animate-pulse'
+              )}
+            />
+
             {/* Play button */}
-            <div className={cn(
-              "relative w-16 h-16 rounded-full",
-              "bg-gradient-to-r from-sky-500 to-blue-500",
-              "flex items-center justify-center",
-              "shadow-2xl shadow-sky-500/50",
-              "transform transition-all duration-300",
-              isHovering ? "scale-110" : "scale-100"
-            )}>
+            <div
+              className={cn(
+                'relative w-16 h-16 rounded-full',
+                'bg-gradient-to-r from-sky-500 to-blue-500',
+                'flex items-center justify-center',
+                'shadow-2xl shadow-sky-500/50',
+                'transform transition-all duration-300',
+                isHovering ? 'scale-110' : 'scale-100'
+              )}
+            >
               <Play className="w-7 h-7 text-white ml-1" fill="white" />
             </div>
           </div>
@@ -257,32 +277,32 @@ export function VideoCardModern({
         {/* Bottom section */}
         <div className="absolute bottom-0 left-0 right-0">
           {/* Progress bar */}
-          <div 
+          <div
             ref={progressRef}
             onClick={handleProgressClick}
             className={cn(
-              "relative h-1 mx-3 mb-2 rounded-full overflow-hidden cursor-pointer",
-              "bg-white/20 backdrop-blur-sm",
-              "transform transition-all duration-300",
-              showControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+              'relative h-1 mx-3 mb-2 rounded-full overflow-hidden cursor-pointer',
+              'bg-white/20 backdrop-blur-sm',
+              'transform transition-all duration-300',
+              showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
             )}
           >
             {/* Buffer indicator */}
             <div className="absolute inset-0 bg-white/10" style={{ width: '100%' }} />
-            
+
             {/* Progress */}
-            <div 
+            <div
               className="absolute h-full bg-gradient-to-r from-sky-500 to-blue-500 rounded-full transition-all duration-100"
               style={{ width: `${progress}%` }}
             />
-            
+
             {/* Progress handle */}
-            <div 
+            <div
               className={cn(
-                "absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full",
-                "bg-white shadow-lg",
-                "transform transition-all duration-200",
-                isHovering ? "scale-100 opacity-100" : "scale-0 opacity-0"
+                'absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full',
+                'bg-white shadow-lg',
+                'transform transition-all duration-200',
+                isHovering ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
               )}
               style={{ left: `calc(${progress}% - 6px)` }}
             />
@@ -291,54 +311,54 @@ export function VideoCardModern({
           {/* Info and controls */}
           <div className="px-4 pb-4 flex items-end justify-between gap-4">
             {/* Title and description */}
-            <div className={cn(
-              "flex-1 min-w-0 transform transition-all duration-300",
-              isHovering ? "translate-y-0" : "translate-y-2"
-            )}>
-              <h4 className="text-white font-semibold text-lg truncate">
-                {video.titulo}
-              </h4>
+            <div
+              className={cn(
+                'flex-1 min-w-0 transform transition-all duration-300',
+                isHovering ? 'translate-y-0' : 'translate-y-2'
+              )}
+            >
+              <h4 className="text-white font-semibold text-lg truncate">{video.titulo}</h4>
               {video.descripcion && (
-                <p className={cn(
-                  "text-white/60 text-sm mt-1 line-clamp-2 transition-all duration-300",
-                  isHovering ? "opacity-100 max-h-10" : "opacity-0 max-h-0"
-                )}>
+                <p
+                  className={cn(
+                    'text-white/60 text-sm mt-1 line-clamp-2 transition-all duration-300',
+                    isHovering ? 'opacity-100 max-h-10' : 'opacity-0 max-h-0'
+                  )}
+                >
                   {video.descripcion}
                 </p>
               )}
             </div>
 
             {/* Action buttons */}
-            <div className={cn(
-              "flex items-center gap-2 transition-all duration-300",
-              showControls ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"
-            )}>
+            <div
+              className={cn(
+                'flex items-center gap-2 transition-all duration-300',
+                showControls ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
+              )}
+            >
               {/* Mute/Unmute */}
               <button
                 onClick={toggleMute}
                 className={cn(
-                  "p-2.5 rounded-full transition-all duration-200",
-                  "bg-white/10 hover:bg-white/20 backdrop-blur-md",
-                  "text-white hover:scale-110"
+                  'p-2.5 rounded-full transition-all duration-200',
+                  'bg-white/10 hover:bg-white/20 backdrop-blur-md',
+                  'text-white hover:scale-110'
                 )}
               >
-                {isMuted ? (
-                  <VolumeX className="w-4 h-4" />
-                ) : (
-                  <Volume2 className="w-4 h-4" />
-                )}
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </button>
 
               {/* Fullscreen / Play full */}
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation()
                   onPlay()
                 }}
                 className={cn(
-                  "p-2.5 rounded-full transition-all duration-200",
-                  "bg-gradient-to-r from-sky-500 to-blue-500",
-                  "text-white hover:scale-110 shadow-lg shadow-sky-500/30"
+                  'p-2.5 rounded-full transition-all duration-200',
+                  'bg-gradient-to-r from-sky-500 to-blue-500',
+                  'text-white hover:scale-110 shadow-lg shadow-sky-500/30'
                 )}
               >
                 <Maximize2 className="w-4 h-4" />
@@ -348,16 +368,20 @@ export function VideoCardModern({
         </div>
 
         {/* Hover border animation */}
-        <div className={cn(
-          "absolute inset-0 rounded-2xl pointer-events-none",
-          "border-2 border-transparent transition-all duration-500",
-          isHovering && "border-sky-500/50"
-        )}>
+        <div
+          className={cn(
+            'absolute inset-0 rounded-2xl pointer-events-none',
+            'border-2 border-transparent transition-all duration-500',
+            isHovering && 'border-sky-500/50'
+          )}
+        >
           {/* Animated border gradient */}
-          <div className={cn(
-            "absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500",
-            isHovering && "opacity-100"
-          )}>
+          <div
+            className={cn(
+              'absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500',
+              isHovering && 'opacity-100'
+            )}
+          >
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-sky-500 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
             <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-sky-500 to-transparent" />

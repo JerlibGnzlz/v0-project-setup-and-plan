@@ -40,11 +40,7 @@ export function ThemeToggle() {
       className="size-9"
       aria-label="Toggle theme"
     >
-      {theme === 'light' ? (
-        <Moon className="size-4" />
-      ) : (
-        <Sun className="size-4" />
-      )}
+      {theme === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
     </Button>
   )
 }

@@ -3,6 +3,13 @@ import { PrismaService } from '../../prisma/prisma.service'
 import { EmailService } from './email.service'
 import { NotificationsGateway } from './notifications.gateway'
 import * as https from 'https'
+import { Prisma } from '@prisma/client'
+import {
+  NotificationData,
+  ExpoMessage,
+  ExpoResponse,
+  ExpoResponseItem,
+} from './types/notification.types'
 
 @Injectable()
 export class NotificationsService {
@@ -12,8 +19,10 @@ export class NotificationsService {
   constructor(
     private prisma: PrismaService,
     private emailService: EmailService,
-    @Optional() @Inject(forwardRef(() => NotificationsGateway)) private notificationsGateway?: NotificationsGateway,
-  ) { }
+    @Optional()
+    @Inject(forwardRef(() => NotificationsGateway))
+    private notificationsGateway?: NotificationsGateway
+  ) {}
 
   /**
    * Registra un token de dispositivo para un pastor
@@ -69,7 +78,12 @@ export class NotificationsService {
    * Guarda el historial y emite vía WebSocket
    * Nota: Como el schema requiere pastorId, buscamos o creamos un "pastor" especial para admins
    */
-  async sendNotificationToAdmin(email: string, title: string, body: string, data?: any) {
+  async sendNotificationToAdmin(
+    email: string,
+    title: string,
+    body: string,
+    data?: NotificationData
+  ) {
     try {
       // Verificar que es un usuario admin
       const user = await this.prisma.user.findUnique({
@@ -112,7 +126,7 @@ export class NotificationsService {
             title,
             body,
             type: data?.type || 'general',
-            data: data || {},
+            data: (data || {}) as Prisma.InputJsonValue,
             sentVia: 'web', // Solo web para admins
             pushSuccess: false,
             emailSuccess: false,
@@ -161,7 +175,12 @@ export class NotificationsService {
    * Si no hay tokens push, envía email de respaldo
    * Guarda el historial de notificaciones
    */
-  async sendNotificationToUser(email: string, title: string, body: string, data?: any) {
+  async sendNotificationToUser(
+    email: string,
+    title: string,
+    body: string,
+    data?: NotificationData
+  ) {
     try {
       // Buscar el PastorAuth por email
       const pastorAuth = await this.prisma.pastorAuth.findUnique({
@@ -171,7 +190,12 @@ export class NotificationsService {
 
       if (!pastorAuth || !pastorAuth.pastor) {
         this.logger.warn(`No se encontró PastorAuth para ${email}`)
-        return { success: false, message: 'Usuario no encontrado', pushSuccess: false, emailSuccess: false }
+        return {
+          success: false,
+          message: 'Usuario no encontrado',
+          pushSuccess: false,
+          emailSuccess: false,
+        }
       }
 
       const pastorId = pastorAuth.pastorId
@@ -190,11 +214,13 @@ export class NotificationsService {
 
       // Intentar enviar push notification
       if (deviceTokens && deviceTokens.length > 0) {
-        const tokens = deviceTokens.map((dt) => dt.token)
+        const tokens = deviceTokens.map(dt => dt.token)
         const results = await this.sendPushNotifications(tokens, title, body, data)
         pushSuccess = results.successCount > 0
         sentVia = pushSuccess ? 'push' : 'none'
-        this.logger.log(`📱 Push a ${email}: ${results.successCount} exitosas, ${results.failureCount} fallidas`)
+        this.logger.log(
+          `📱 Push a ${email}: ${results.successCount} exitosas, ${results.failureCount} fallidas`
+        )
       } else {
         this.logger.warn(`No se encontraron tokens activos para ${email}`)
       }
@@ -220,7 +246,7 @@ export class NotificationsService {
             title,
             body,
             type: data?.type || 'general',
-            data: data || {},
+            data: (data || {}) as Prisma.InputJsonValue,
             sentVia,
             pushSuccess,
             emailSuccess,
@@ -252,7 +278,9 @@ export class NotificationsService {
       }
 
       const overallSuccess = pushSuccess || emailSuccess
-      this.logger.log(`✅ Notificación procesada para ${email}: push=${pushSuccess}, email=${emailSuccess}`)
+      this.logger.log(
+        `✅ Notificación procesada para ${email}: push=${pushSuccess}, email=${emailSuccess}`
+      )
 
       return {
         success: overallSuccess,
@@ -273,20 +301,20 @@ export class NotificationsService {
     tokens: string[],
     title: string,
     body: string,
-    data?: any,
+    data?: NotificationData
   ): Promise<{ successCount: number; failureCount: number }> {
     if (tokens.length === 0) {
       return { successCount: 0, failureCount: 0 }
     }
 
-    const messages = tokens.map((token) => ({
+    const messages: ExpoMessage[] = tokens.map(token => ({
       to: token,
-      sound: 'default',
+      sound: 'default' as const,
       title,
       body,
       data: data || {},
-      priority: 'high',
-      channelId: 'default', // Para Android
+      priority: 'high' as const,
+      channelId: 'default',
     }))
 
     try {
@@ -296,12 +324,12 @@ export class NotificationsService {
       let failureCount = 0
 
       if (response.data) {
-        response.data.forEach((result: any) => {
+        response.data.forEach((result: ExpoResponseItem) => {
           if (result.status === 'ok') {
             successCount++
           } else {
             failureCount++
-            this.logger.warn(`Error enviando notificación: ${result.message}`)
+            this.logger.warn(`Error enviando notificación: ${result.message || 'Error desconocido'}`)
           }
         })
       }
@@ -316,7 +344,7 @@ export class NotificationsService {
   /**
    * Envía mensajes a Expo Push Notification Service
    */
-  private async sendToExpo(messages: any[]): Promise<any> {
+  private async sendToExpo(messages: ExpoMessage[]): Promise<ExpoResponse> {
     return new Promise((resolve, reject) => {
       const postData = JSON.stringify(messages)
 
@@ -330,24 +358,25 @@ export class NotificationsService {
         },
       }
 
-      const req = https.request(this.EXPO_PUSH_URL, options, (res) => {
+      const req = https.request(this.EXPO_PUSH_URL, options, res => {
         let responseData = ''
 
-        res.on('data', (chunk) => {
+        res.on('data', chunk => {
           responseData += chunk
         })
 
         res.on('end', () => {
           try {
-            const parsed = JSON.parse(responseData)
+            const parsed = JSON.parse(responseData) as ExpoResponse
             resolve(parsed)
           } catch (error) {
-            reject(new Error(`Error parseando respuesta: ${error}`))
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            reject(new Error(`Error parseando respuesta: ${errorMessage}`))
           }
         })
       })
 
-      req.on('error', (error) => {
+      req.on('error', error => {
         reject(error)
       })
 
@@ -572,13 +601,16 @@ export class NotificationsService {
   /**
    * Elimina múltiples notificaciones según criterios
    */
-  async deleteNotifications(email: string, options: { ids?: string[]; deleteRead?: boolean; olderThanDays?: number }) {
+  async deleteNotifications(
+    email: string,
+    options: { ids?: string[]; deleteRead?: boolean; olderThanDays?: number }
+  ) {
     // Verificar si es un pastor
     const pastorAuth = await this.prisma.pastorAuth.findUnique({
       where: { email },
     })
 
-    const where: any = {}
+    const where: Prisma.NotificationHistoryWhereInput = {}
 
     if (pastorAuth) {
       where.pastorId = pastorAuth.pastorId
@@ -628,7 +660,9 @@ export class NotificationsService {
       },
     })
 
-    this.logger.log(`🧹 Limpieza automática: Se eliminaron ${result.count} notificaciones leídas anteriores a ${daysToKeep} días`)
+    this.logger.log(
+      `🧹 Limpieza automática: Se eliminaron ${result.count} notificaciones leídas anteriores a ${daysToKeep} días`
+    )
 
     return {
       deleted: result.count,

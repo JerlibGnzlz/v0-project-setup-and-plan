@@ -86,7 +86,7 @@ export function StatsCharts({ inscripciones, pagos, pastores }: StatsChartsProps
   const inscripcionesPorMes = useMemo(() => {
     const meses: Record<string, number> = {}
     const ahora = new Date()
-    
+
     // Inicializar últimos 6 meses
     for (let i = 5; i >= 0; i--) {
       const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1)
@@ -114,7 +114,7 @@ export function StatsCharts({ inscripciones, pagos, pastores }: StatsChartsProps
   const ingresosPorMes = useMemo(() => {
     const meses: Record<string, number> = {}
     const ahora = new Date()
-    
+
     // Inicializar últimos 6 meses
     for (let i = 5; i >= 0; i--) {
       const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1)
@@ -145,7 +145,7 @@ export function StatsCharts({ inscripciones, pagos, pastores }: StatsChartsProps
   const inscripcionesPorDia = useMemo(() => {
     const dias: Record<string, number> = {}
     const ahora = new Date()
-    
+
     // Inicializar últimos 30 días
     for (let i = 29; i >= 0; i--) {
       const fecha = new Date(ahora)
@@ -159,7 +159,7 @@ export function StatsCharts({ inscripciones, pagos, pastores }: StatsChartsProps
         const fecha = new Date(insc.fechaInscripcion)
         const hoy = new Date()
         const diasDiferencia = Math.floor((hoy.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24))
-        
+
         if (diasDiferencia >= 0 && diasDiferencia < 30) {
           const key = fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
           if (dias.hasOwnProperty(key)) {
@@ -196,7 +196,7 @@ export function StatsCharts({ inscripciones, pagos, pastores }: StatsChartsProps
           <CardContent>
             <div className="text-2xl font-bold">{inscripciones.length}</div>
             <p className="text-xs text-muted-foreground">
-              {inscripcionesPorEstado.find((e) => e.name === 'Confirmado')?.value || 0} confirmados
+              {inscripcionesPorEstado.find(e => e.name === 'Confirmado')?.value || 0} confirmados
             </p>
           </CardContent>
         </Card>
@@ -208,10 +208,14 @@ export function StatsCharts({ inscripciones, pagos, pastores }: StatsChartsProps
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${totalRecaudado.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              $
+              {totalRecaudado.toLocaleString('es-AR', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              })}
             </div>
             <p className="text-xs text-muted-foreground">
-              {pagosPorEstado.find((e) => e.name === 'Completado')?.value || 0} pagos completados
+              {pagosPorEstado.find(e => e.name === 'Completado')?.value || 0} pagos completados
             </p>
           </CardContent>
         </Card>
@@ -223,11 +227,9 @@ export function StatsCharts({ inscripciones, pagos, pastores }: StatsChartsProps
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {pagosPorEstado.find((e) => e.name === 'Pendiente')?.value || 0}
+              {pagosPorEstado.find(e => e.name === 'Pendiente')?.value || 0}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Requieren validación
-            </p>
+            <p className="text-xs text-muted-foreground">Requieren validación</p>
           </CardContent>
         </Card>
 
@@ -237,12 +239,8 @@ export function StatsCharts({ inscripciones, pagos, pastores }: StatsChartsProps
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {pastores.filter((p: any) => p.activo).length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              En estructura organizacional
-            </p>
+            <div className="text-2xl font-bold">{pastores.filter((p: any) => p.activo).length}</div>
+            <p className="text-xs text-muted-foreground">En estructura organizacional</p>
           </CardContent>
         </Card>
       </div>
@@ -437,6 +435,3 @@ export function StatsCharts({ inscripciones, pagos, pastores }: StatsChartsProps
     </div>
   )
 }
-
-
-

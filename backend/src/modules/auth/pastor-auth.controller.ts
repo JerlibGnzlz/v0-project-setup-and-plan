@@ -9,7 +9,11 @@ import {
 } from './dto/pastor-auth.dto'
 import { RefreshTokenDto } from './dto/auth.dto'
 import { PastorJwtAuthGuard } from './guards/pastor-jwt-auth.guard'
-import { ThrottleAuth, ThrottleRegister, ThrottlePasswordReset } from '../../common/decorators/throttle-auth.decorator'
+import {
+  ThrottleAuth,
+  ThrottleRegister,
+  ThrottlePasswordReset,
+} from '../../common/decorators/throttle-auth.decorator'
 
 @Controller('auth/pastor')
 export class PastorAuthController {
@@ -81,9 +85,8 @@ export class PastorAuthController {
     await this.pastorAuthService.logout(accessToken, body?.refreshToken)
 
     return {
-      message: "Logout exitoso",
+      message: 'Logout exitoso',
       success: true,
     }
   }
 }
-

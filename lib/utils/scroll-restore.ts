@@ -81,7 +81,7 @@ export function restoreScrollPosition(): void {
         // Forzar visibilidad de elementos en viewport después del scroll
         setTimeout(() => {
           const elements = document.querySelectorAll('[class*="opacity-0"]')
-          elements.forEach((el) => {
+          elements.forEach(el => {
             const rect = el.getBoundingClientRect()
             if (rect.top < window.innerHeight && rect.bottom > 0) {
               // Si está en viewport, forzar visibilidad
@@ -118,4 +118,3 @@ export function restoreScrollPosition(): void {
     }
   }
 }
-

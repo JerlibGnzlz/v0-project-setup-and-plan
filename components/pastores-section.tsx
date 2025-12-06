@@ -150,7 +150,7 @@ export function PastoresSection() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-emerald-500/20 to-transparent rounded-full blur-[100px]" />
         </div>
         {/* Grid */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `
@@ -183,11 +183,7 @@ export function PastoresSection() {
         {/* Accordion */}
         <Accordion type="single" collapsible className="max-w-4xl mx-auto space-y-4">
           {regionalPastors.map((region, regionIndex) => (
-            <AccordionItem
-              key={region.region}
-              value={`region-${regionIndex}`}
-              className="border-0"
-            >
+            <AccordionItem key={region.region} value={`region-${regionIndex}`} className="border-0">
               <AccordionTrigger className="group px-6 py-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:no-underline transition-all duration-300 data-[state=open]:rounded-b-none data-[state=open]:border-b-0">
                 <div className="flex items-center gap-4">
                   <div className={`w-2 h-8 rounded-full bg-gradient-to-b ${region.gradient}`} />
@@ -201,7 +197,7 @@ export function PastoresSection() {
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 pt-0 rounded-b-xl bg-white/5 backdrop-blur-sm border border-t-0 border-white/10">
                 <div className="grid gap-4 pt-6">
-                  {region.pastors.map((pastor) => (
+                  {region.pastors.map(pastor => (
                     <div
                       key={pastor.name}
                       className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-300"
@@ -209,7 +205,7 @@ export function PastoresSection() {
                       {/* Avatar */}
                       <div className="flex-shrink-0">
                         <img
-                          src={pastor.image || "/placeholder.svg"}
+                          src={pastor.image || '/placeholder.svg'}
                           alt={pastor.name}
                           className="w-20 h-20 rounded-xl object-cover"
                         />
@@ -218,7 +214,9 @@ export function PastoresSection() {
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-bold text-white">{pastor.name}</h3>
-                        <p className={`text-sm font-medium bg-gradient-to-r ${region.gradient} bg-clip-text text-transparent`}>
+                        <p
+                          className={`text-sm font-medium bg-gradient-to-r ${region.gradient} bg-clip-text text-transparent`}
+                        >
                           {pastor.role}
                         </p>
                         <div className="flex flex-wrap gap-4 mt-2 text-sm text-white/50">
@@ -248,8 +246,12 @@ export function PastoresSection() {
                           </DialogTrigger>
                           <DialogContent className="max-w-2xl bg-[#0d1f35] border-white/10 text-white">
                             <DialogHeader>
-                              <DialogTitle className="text-2xl text-white">{pastor.name}</DialogTitle>
-                              <DialogDescription className={`text-base bg-gradient-to-r ${region.gradient} bg-clip-text text-transparent font-medium`}>
+                              <DialogTitle className="text-2xl text-white">
+                                {pastor.name}
+                              </DialogTitle>
+                              <DialogDescription
+                                className={`text-base bg-gradient-to-r ${region.gradient} bg-clip-text text-transparent font-medium`}
+                              >
                                 {pastor.role} - {pastor.city}
                               </DialogDescription>
                             </DialogHeader>
@@ -270,15 +272,23 @@ export function PastoresSection() {
                               </div>
 
                               <div>
-                                <h4 className="font-bold text-lg mb-4 text-white">Recorrido Ministerial</h4>
+                                <h4 className="font-bold text-lg mb-4 text-white">
+                                  Recorrido Ministerial
+                                </h4>
                                 <div className="space-y-4">
                                   {pastor.journey.map((item, idx) => (
                                     <div key={idx} className="flex gap-4 items-start">
-                                      <div className={`flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-r ${region.gradient} flex items-center justify-center shadow-lg`}>
-                                        <span className="text-sm font-bold text-white">{item.year}</span>
+                                      <div
+                                        className={`flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-r ${region.gradient} flex items-center justify-center shadow-lg`}
+                                      >
+                                        <span className="text-sm font-bold text-white">
+                                          {item.year}
+                                        </span>
                                       </div>
                                       <div className="flex-1 pt-3">
-                                        <p className="text-white/80 leading-relaxed">{item.milestone}</p>
+                                        <p className="text-white/80 leading-relaxed">
+                                          {item.milestone}
+                                        </p>
                                       </div>
                                     </div>
                                   ))}

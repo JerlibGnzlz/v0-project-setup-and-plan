@@ -1,9 +1,9 @@
-import { Injectable, UnauthorizedException, Logger } from "@nestjs/common"
-import { JwtService } from "@nestjs/jwt"
-import { PrismaService } from "../../prisma/prisma.service"
-import * as bcrypt from "bcrypt"
-import { LoginDto, RegisterDto, RegisterDeviceDto } from "./dto/auth.dto"
-import { TokenBlacklistService } from "./services/token-blacklist.service"
+import { Injectable, UnauthorizedException, Logger, BadRequestException } from '@nestjs/common'
+import { JwtService } from '@nestjs/jwt'
+import { PrismaService } from '../../prisma/prisma.service'
+import * as bcrypt from 'bcrypt'
+import { LoginDto, RegisterDto, RegisterDeviceDto } from './dto/auth.dto'
+import { TokenBlacklistService } from './services/token-blacklist.service'
 
 @Injectable()
 export class AuthService {
@@ -12,8 +12,8 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private tokenBlacklist: TokenBlacklistService,
-  ) { }
+    private tokenBlacklist: TokenBlacklistService
+  ) {}
 
   async register(dto: RegisterDto) {
     const hashedPassword = await bcrypt.hash(dto.password, 10)
@@ -27,7 +27,7 @@ export class AuthService {
         password: hashedPassword,
         nombre: dto.name || 'Admin',
         avatar: defaultAvatar,
-        rol: "ADMIN",
+        rol: 'ADMIN',
       },
     })
 
@@ -45,23 +45,34 @@ export class AuthService {
     }
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, clientIp?: string) {
     try {
       this.logger.log(`🔐 Intentando login para: ${dto.email}`, {
         email: dto.email,
+        ip: clientIp || 'unknown',
         timestamp: new Date().toISOString(),
       })
 
+      // Obtener usuario - query simple sin campos de seguridad
       const user = await this.prisma.user.findUnique({
         where: { email: dto.email },
+        select: {
+          id: true,
+          email: true,
+          password: true,
+          nombre: true,
+          rol: true,
+          avatar: true,
+        },
       })
 
       if (!user) {
         this.logger.warn(`❌ Login fallido: usuario no encontrado`, {
           email: dto.email,
+          ip: clientIp || 'unknown',
           timestamp: new Date().toISOString(),
         })
-        throw new UnauthorizedException("Credenciales inválidas")
+        throw new UnauthorizedException('Credenciales inválidas')
       }
 
       this.logger.debug(`✅ Usuario encontrado: ${user.email}`, {
@@ -70,29 +81,26 @@ export class AuthService {
       })
 
       // Verificar contraseña
-      let isPasswordValid = false
-      try {
-        isPasswordValid = await bcrypt.compare(dto.password, user.password)
-      } catch (bcryptError) {
-        this.logger.error(`❌ Error al comparar contraseña:`, bcryptError)
-        throw new UnauthorizedException("Error al procesar la autenticación")
-      }
+      const isPasswordValid = await bcrypt.compare(dto.password, user.password)
 
       if (!isPasswordValid) {
         this.logger.warn(`❌ Login fallido: contraseña inválida`, {
           email: dto.email,
           userId: user.id,
+          ip: clientIp || 'unknown',
           timestamp: new Date().toISOString(),
         })
-        throw new UnauthorizedException("Credenciales inválidas")
+        throw new UnauthorizedException('Credenciales inválidas')
       }
 
+      // Generar token JWT
       const token = this.generateToken(user.id, user.email, user.rol)
-      
+
       this.logger.log(`✅ Login exitoso`, {
         userId: user.id,
         email: user.email,
         rol: user.rol,
+        ip: clientIp || 'unknown',
         timestamp: new Date().toISOString(),
       })
 
@@ -102,20 +110,31 @@ export class AuthService {
           id: user.id,
           email: user.email,
           nombre: user.nombre,
-          avatar: user.avatar,
+          avatar: user.avatar || null,
           rol: user.rol,
         },
       }
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
+      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
         throw error
       }
-      this.logger.error(`❌ Error en login:`, {
-        error: error instanceof Error ? error.message : 'Unknown error',
+
+      // Log detallado del error real
+      const errorDetails = {
+        message: error instanceof Error ? error.message : String(error),
+        name: error instanceof Error ? error.name : 'Unknown',
+        stack: error instanceof Error ? error.stack : undefined,
         email: dto.email,
         timestamp: new Date().toISOString(),
-      })
-      throw new UnauthorizedException("Error al procesar el login")
+      }
+
+      this.logger.error(`❌ Error en login (detalles completos):`, errorDetails)
+      console.error('Error completo:', error)
+
+      // Lanzar error más descriptivo
+      throw new UnauthorizedException(
+        `Error al procesar el login: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      )
     }
   }
 
@@ -127,20 +146,16 @@ export class AuthService {
       })
 
       if (!user) {
-        throw new UnauthorizedException("Credenciales inválidas")
+        throw new UnauthorizedException('Credenciales inválidas')
       }
 
       const isPasswordValid = await bcrypt.compare(dto.password, user.password)
 
       if (!isPasswordValid) {
-        throw new UnauthorizedException("Credenciales inválidas")
+        throw new UnauthorizedException('Credenciales inválidas')
       }
 
-      const { accessToken, refreshToken } = this.generateTokenPair(
-        user.id,
-        user.email,
-        user.rol
-      )
+      const { accessToken, refreshToken } = this.generateTokenPair(user.id, user.email, user.rol)
 
       return {
         access_token: accessToken,
@@ -157,8 +172,8 @@ export class AuthService {
       if (error instanceof UnauthorizedException) {
         throw error
       }
-      console.error("Error en login mobile:", error)
-      throw new UnauthorizedException("Error al procesar el login")
+      console.error('Error en login mobile:', error)
+      throw new UnauthorizedException('Error al procesar el login')
     }
   }
 
@@ -171,14 +186,14 @@ export class AuthService {
         this.logger.warn(`❌ Refresh token revocado intentado usar`, {
           timestamp: new Date().toISOString(),
         })
-        throw new UnauthorizedException("Refresh token revocado")
+        throw new UnauthorizedException('Refresh token revocado')
       }
 
       const payload = await this.validateRefreshToken(refreshToken)
       const user = await this.validateUser(payload.sub)
 
       if (!user) {
-        throw new UnauthorizedException("Usuario no encontrado")
+        throw new UnauthorizedException('Usuario no encontrado')
       }
 
       // Invalidar el refresh token anterior (rotación)
@@ -209,7 +224,7 @@ export class AuthService {
         error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       })
-      throw new UnauthorizedException("Error al refrescar token")
+      throw new UnauthorizedException('Error al refrescar token')
     }
   }
 
@@ -256,7 +271,7 @@ export class AuthService {
     // Por ahora solo retornamos éxito
     return {
       success: true,
-      message: "Dispositivo registrado correctamente",
+      message: 'Dispositivo registrado correctamente',
     }
   }
 

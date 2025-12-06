@@ -40,12 +40,7 @@ export function Footer() {
             <div className="lg:col-span-1">
               <div className="flex items-center gap-3 mb-6">
                 <div className="relative w-12 h-12">
-                  <Image
-                    src="/mundo.png"
-                    alt="AMVA Logo"
-                    fill
-                    className="object-contain"
-                  />
+                  <Image src="/mundo.png" alt="AMVA Logo" fill className="object-contain" />
                 </div>
                 <div>
                   <span className="font-bold text-white text-lg block">A.M.V.A</span>
@@ -53,17 +48,18 @@ export function Footer() {
                 </div>
               </div>
               <p className="text-white/60 text-sm leading-relaxed mb-6">
-                Llevando formación pastoral y vida abundante a las naciones a través de convenciones, seminarios y recursos de formación continua.
+                Llevando formación pastoral y vida abundante a las naciones a través de
+                convenciones, seminarios y recursos de formación continua.
               </p>
-              
+
               {/* Download App Button */}
               <div className="mb-6">
                 <DownloadAppButton />
               </div>
-              
+
               {/* Social Links */}
               <div className="flex gap-3">
-                {socialLinks.map((social) => {
+                {socialLinks.map(social => {
                   const Icon = social.icon
                   return (
                     <a
@@ -86,7 +82,7 @@ export function Footer() {
                 Enlaces Rápidos
               </h3>
               <ul className="space-y-3">
-                {quickLinks.map((link) => (
+                {quickLinks.map(link => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
@@ -166,10 +162,10 @@ export function Footer() {
                 &copy; {new Date().getFullYear()} Asociación Misionera Vida Abundante. Hecho con{' '}
                 <Heart className="w-4 h-4 text-red-500 fill-red-500 animate-pulse" /> para el Reino.
               </p>
-              
+
               {/* Separator - hidden on mobile */}
               <span className="hidden sm:inline text-white/20">|</span>
-              
+
               {/* Developer Credit */}
               <p className="text-white/40 text-xs sm:text-sm">
                 Diseñado y desarrollado por{' '}

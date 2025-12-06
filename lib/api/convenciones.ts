@@ -1,4 +1,4 @@
-import { apiClient } from "./client"
+import { apiClient } from './client'
 
 export interface Convencion {
   id: string
@@ -19,7 +19,7 @@ export interface Convencion {
 
 export const convencionesApi = {
   getAll: async (): Promise<Convencion[]> => {
-    const response = await apiClient.get<Convencion[]>("/convenciones")
+    const response = await apiClient.get<Convencion[]>('/convenciones')
     return response.data
   },
 
@@ -30,7 +30,7 @@ export const convencionesApi = {
 
   getActive: async (): Promise<Convencion | null> => {
     try {
-      const response = await apiClient.get<Convencion>("/convenciones/active")
+      const response = await apiClient.get<Convencion>('/convenciones/active')
       // Verificar que realmente tenemos datos válidos
       if (!response.data || !response.data.id) {
         return null
@@ -44,7 +44,10 @@ export const convencionesApi = {
       }
       // 500 generalmente significa problema de base de datos
       if (error.response?.status === 500) {
-        console.error('❌ Error de servidor (posible problema de base de datos):', error.response?.data?.message || error.message)
+        console.error(
+          '❌ Error de servidor (posible problema de base de datos):',
+          error.response?.data?.message || error.message
+        )
         // Retornar null en lugar de lanzar error para que el frontend pueda manejar esto
         return null
       }
@@ -54,8 +57,8 @@ export const convencionesApi = {
     }
   },
 
-  create: async (data: Omit<Convencion, "id" | "createdAt" | "updatedAt">): Promise<Convencion> => {
-    const response = await apiClient.post<Convencion>("/convenciones", data)
+  create: async (data: Omit<Convencion, 'id' | 'createdAt' | 'updatedAt'>): Promise<Convencion> => {
+    const response = await apiClient.post<Convencion>('/convenciones', data)
     return response.data
   },
 

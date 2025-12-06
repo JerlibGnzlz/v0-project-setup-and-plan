@@ -1,4 +1,11 @@
-import { Injectable, UnauthorizedException, BadRequestException, Logger, Inject, forwardRef } from '@nestjs/common'
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  Logger,
+  Inject,
+  forwardRef,
+} from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { PrismaService } from '../../prisma/prisma.service'
 import * as bcrypt from 'bcrypt'
@@ -19,7 +26,7 @@ export class InvitadoAuthService {
     private jwtService: JwtService,
     @Inject(forwardRef(() => NotificationsService))
     private notificationsService: NotificationsService,
-    private tokenBlacklist: TokenBlacklistService,
+    private tokenBlacklist: TokenBlacklistService
   ) {}
 
   /**
@@ -181,10 +188,7 @@ export class InvitadoAuthService {
       }
 
       // 2. Verificar contraseña
-      const isPasswordValid = await bcrypt.compare(
-        dto.password,
-        invitadoAuth.password
-      )
+      const isPasswordValid = await bcrypt.compare(dto.password, invitadoAuth.password)
 
       if (!isPasswordValid) {
         throw new UnauthorizedException('Credenciales inválidas')
@@ -265,7 +269,7 @@ export class InvitadoAuthService {
 
   /**
    * Autenticación con Google OAuth
-   * 
+   *
    * @param googleId - ID único de Google del usuario
    * @param email - Email del usuario (debe estar verificado por Google)
    * @param nombre - Nombre del usuario
@@ -326,7 +330,7 @@ export class InvitadoAuthService {
           where: { id: invitadoAuth.id },
           data: { googleId },
         })
-        
+
         // Actualizar invitado con foto si no tiene y Google proporciona una
         if (fotoUrl && !invitadoAuth.invitado.fotoUrl) {
           await this.prisma.invitado.update({
@@ -334,7 +338,7 @@ export class InvitadoAuthService {
             data: { fotoUrl },
           })
         }
-        
+
         // Obtener datos actualizados
         invitadoAuth = await this.prisma.invitadoAuth.findUnique({
           where: { id: invitadoAuth.id },
@@ -348,11 +352,14 @@ export class InvitadoAuthService {
     // 3. Si no existe, crear nuevo invitado y auth
     if (!invitadoAuth) {
       // Generar una contraseña aleatoria (no se usará, pero es requerida por el schema)
-      const randomPassword = await bcrypt.hash(Math.random().toString(36) + Date.now().toString(), 10)
-      
+      const randomPassword = await bcrypt.hash(
+        Math.random().toString(36) + Date.now().toString(),
+        10
+      )
+
       // Crear invitado
       this.logger.log(`📸 Guardando fotoUrl de Google: ${fotoUrl || 'NO HAY FOTO'}`)
-      
+
       const invitado = await this.prisma.invitado.create({
         data: {
           nombre,
@@ -395,13 +402,16 @@ export class InvitadoAuthService {
       })
 
       // Actualizar foto si Google proporciona una nueva o si no hay foto actual
-      if (fotoUrl && (!invitadoAuth.invitado.fotoUrl || invitadoAuth.invitado.fotoUrl !== fotoUrl)) {
+      if (
+        fotoUrl &&
+        (!invitadoAuth.invitado.fotoUrl || invitadoAuth.invitado.fotoUrl !== fotoUrl)
+      ) {
         await this.prisma.invitado.update({
           where: { id: invitadoAuth.invitado.id },
           data: { fotoUrl },
         })
         this.logger.log(`✅ Foto de perfil actualizada para invitado: ${email}`)
-        
+
         // Obtener datos actualizados
         invitadoAuth = await this.prisma.invitadoAuth.findUnique({
           where: { id: invitadoAuth.id },
@@ -479,6 +489,3 @@ export class InvitadoAuthService {
     }
   }
 }
-
-
-

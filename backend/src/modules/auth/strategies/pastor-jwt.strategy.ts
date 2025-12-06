@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { PastorAuthService } from '../pastor-auth.service'
+import { PastorJwtPayload } from '../types/jwt-payload.types'
 
 @Injectable()
 export class PastorJwtStrategy extends PassportStrategy(Strategy, 'pastor-jwt') {
@@ -12,7 +13,7 @@ export class PastorJwtStrategy extends PassportStrategy(Strategy, 'pastor-jwt') 
     })
   }
 
-  async validate(payload: any) {
+  async validate(payload: PastorJwtPayload) {
     if (payload.type !== 'access') {
       throw new UnauthorizedException('Token inválido')
     }
@@ -24,10 +25,3 @@ export class PastorJwtStrategy extends PassportStrategy(Strategy, 'pastor-jwt') 
     return pastor
   }
 }
-
-
-
-
-
-
-

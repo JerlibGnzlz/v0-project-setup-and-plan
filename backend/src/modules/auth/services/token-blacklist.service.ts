@@ -13,23 +13,20 @@ export class TokenBlacklistService implements OnModuleInit {
 
   constructor() {
     // Inicializar Redis si está configurado
-    if (
-      process.env.REDIS_HOST ||
-      process.env.REDIS_URL
-    ) {
+    if (process.env.REDIS_HOST || process.env.REDIS_URL) {
       try {
         this.redis = new Redis({
           host: process.env.REDIS_HOST || 'localhost',
           port: parseInt(process.env.REDIS_PORT || '6379'),
           password: process.env.REDIS_PASSWORD || undefined,
           db: parseInt(process.env.REDIS_DB || '0'),
-          retryStrategy: (times) => {
+          retryStrategy: times => {
             const delay = Math.min(times * 50, 2000)
             return delay
           },
         })
 
-        this.redis.on('error', (error) => {
+        this.redis.on('error', error => {
           this.logger.error('❌ Error de conexión a Redis:', error)
           this.redis = null
         })
@@ -75,7 +72,7 @@ export class TokenBlacklistService implements OnModuleInit {
 
       // Almacenar token con TTL
       await this.redis.setex(`blacklist:token:${token}`, ttl, '1')
-      
+
       this.logger.debug(`✅ Token agregado a blacklist (TTL: ${ttl}s)`)
     } catch (error) {
       this.logger.error('❌ Error al agregar token a blacklist:', error)
@@ -137,4 +134,3 @@ export class TokenBlacklistService implements OnModuleInit {
     }
   }
 }
-

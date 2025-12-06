@@ -3,6 +3,7 @@
 ## Mejoras Implementadas
 
 ### 1. ✅ Tipado TypeScript Completo
+
 - **Antes**: Uso de `any` en el perfil de Google
 - **Ahora**: Tipos completos con `Profile` de `passport-google-oauth20`
 - **Archivos**:
@@ -10,17 +11,20 @@
   - `backend/src/modules/auth/types/google-oauth.types.ts` (nuevo)
 
 ### 2. ✅ Validación de Variables de Entorno
+
 - **Validación al inicio**: Verifica que `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` estén configurados
 - **Validación de valores de ejemplo**: Detecta y advierte sobre valores de ejemplo
 - **Archivo**: `backend/src/main.ts`
 
 ### 3. ✅ Validación de Datos de Google
+
 - **Email verificado**: Valida que el email esté verificado por Google
 - **Campos requeridos**: Valida que `googleId` y `email` estén presentes
 - **Formato de email**: Valida formato con regex
 - **Archivo**: `backend/src/modules/auth/invitado-auth.service.ts`
 
 ### 4. ✅ Manejo de Errores Mejorado
+
 - **Backend**: Manejo específico de errores con mensajes descriptivos
 - **Frontend**: Mensajes de error específicos según el tipo de error
 - **Archivos**:
@@ -28,11 +32,13 @@
   - `components/convencion/step1-auth.tsx`
 
 ### 5. ✅ Logging Estructurado
+
 - **Logs con contexto**: Incluye información relevante (email, googleId, etc.)
 - **Niveles apropiados**: `log`, `warn`, `error` según corresponda
 - **Archivo**: `backend/src/modules/auth/invitado-auth.service.ts`
 
 ### 6. ✅ Tipos TypeScript para Respuestas
+
 - **Interfaces definidas**: `GoogleOAuthUserData`, `GoogleOAuthResponse`
 - **Enums para errores**: `GoogleOAuthErrorType`
 - **Archivo**: `backend/src/modules/auth/types/google-oauth.types.ts`
@@ -55,6 +61,7 @@ FRONTEND_URL="https://tu-dominio-frontend.com"
 ### Configuración en Google Cloud Console
 
 #### 🔍 Verificación Automática
+
 Ejecuta el script de verificación para ver exactamente qué URLs necesitas configurar:
 
 ```bash
@@ -77,6 +84,7 @@ Este script calcula automáticamente las URLs basándose en tu configuración de
    - `profile`
 
 #### 📖 Guía Completa
+
 Para instrucciones detalladas, consulta: [VERIFICAR_GOOGLE_CALLBACK_URLS.md](./VERIFICAR_GOOGLE_CALLBACK_URLS.md)
 
 ### Validaciones Implementadas
@@ -90,11 +98,13 @@ Para instrucciones detalladas, consulta: [VERIFICAR_GOOGLE_CALLBACK_URLS.md](./V
 ### Manejo de Errores
 
 #### Errores del Backend:
+
 - `google_auth_email_error`: Error con el email
 - `google_auth_token_error`: Error al generar tokens
 - `google_auth_failed`: Error general
 
 #### Errores del Frontend:
+
 - Mensajes específicos según el tipo de error
 - Limpieza automática de parámetros de error en la URL
 
@@ -103,6 +113,7 @@ Para instrucciones detalladas, consulta: [VERIFICAR_GOOGLE_CALLBACK_URLS.md](./V
 ### Pruebas Recomendadas:
 
 1. **Flujo completo de autenticación**:
+
    ```bash
    # 1. Click en "Continuar con Google"
    # 2. Autorizar en Google
@@ -123,6 +134,7 @@ Para instrucciones detalladas, consulta: [VERIFICAR_GOOGLE_CALLBACK_URLS.md](./V
 ## Seguridad
 
 ### ✅ Implementado:
+
 - Validación de email verificado por Google
 - Validación de formato de email
 - Validación de campos requeridos
@@ -130,6 +142,7 @@ Para instrucciones detalladas, consulta: [VERIFICAR_GOOGLE_CALLBACK_URLS.md](./V
 - Manejo seguro de errores (sin exponer detalles internos)
 
 ### ⚠️ Recomendaciones Adicionales:
+
 - Usar HTTPS en producción (obligatorio para OAuth)
 - Implementar rate limiting en endpoints de OAuth
 - Monitorear logs de autenticación
@@ -138,6 +151,7 @@ Para instrucciones detalladas, consulta: [VERIFICAR_GOOGLE_CALLBACK_URLS.md](./V
 ## Monitoreo
 
 ### Logs a Monitorear:
+
 - `✅ Google OAuth Strategy inicializada`
 - `✅ Usuario de Google validado: {email}`
 - `✅ Invitado creado con Google OAuth: {email}`
@@ -145,6 +159,7 @@ Para instrucciones detalladas, consulta: [VERIFICAR_GOOGLE_CALLBACK_URLS.md](./V
 - `❌ Google Auth: {error}`
 
 ### Métricas Recomendadas:
+
 - Tasa de éxito de autenticación con Google
 - Tiempo de respuesta del callback
 - Errores por tipo
@@ -152,16 +167,21 @@ Para instrucciones detalladas, consulta: [VERIFICAR_GOOGLE_CALLBACK_URLS.md](./V
 ## Troubleshooting
 
 ### Error: "Google OAuth no está configurado"
+
 **Solución**: Verifica que `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` estén en `.env`
 
 ### Error: "Perfil de Google inválido"
+
 **Solución**: Verifica que el usuario haya autorizado los scopes `email` y `profile`
 
 ### Error: "Email no disponible en el perfil de Google"
+
 **Solución**: Verifica que el usuario haya autorizado el scope `email`
 
 ### Error: "Callback URL mismatch" o "redirect_uri_mismatch"
-**Solución**: 
+
+**Solución**:
+
 1. Ejecuta el script de verificación: `./scripts/verificar-callback-urls.sh`
 2. Copia la URL exacta que muestra el script
 3. Verifica que esa URL esté en Google Cloud Console (Authorized redirect URIs)
@@ -180,4 +200,3 @@ Para instrucciones detalladas, consulta: [VERIFICAR_GOOGLE_CALLBACK_URLS.md](./V
 
 **Última actualización**: $(date)
 **Estado**: ✅ Listo para Producción
-

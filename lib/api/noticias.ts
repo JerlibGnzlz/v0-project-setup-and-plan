@@ -1,11 +1,11 @@
 import api from './client'
 
-export type CategoriaNoticia = 
-  | 'ANUNCIO' 
-  | 'EVENTO' 
-  | 'ACTIVIDAD' 
-  | 'OPORTUNIDADES' 
-  | 'CAPACITACION' 
+export type CategoriaNoticia =
+  | 'ANUNCIO'
+  | 'EVENTO'
+  | 'ACTIVIDAD'
+  | 'OPORTUNIDADES'
+  | 'CAPACITACION'
   | 'COMUNICADO'
 
 export interface Noticia {
@@ -127,28 +127,28 @@ export const noticiasApi = {
   incrementarVista: async (slug: string): Promise<void> => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
     const url = `${apiUrl}/noticias/slug/${slug}/vista`
-    
+
     console.log(`🌐 [incrementarVista] Iniciando petición POST a: ${url}`)
-    
+
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         keepalive: true, // Permite que la petición continúe después de cerrar la página
       })
-      
+
       console.log(`📡 [incrementarVista] Respuesta recibida:`, {
         status: response.status,
         statusText: response.statusText,
-        ok: response.ok
+        ok: response.ok,
       })
-      
+
       if (!response.ok) {
         const errorText = await response.text()
         console.error(`❌ [incrementarVista] Error HTTP ${response.status}:`, errorText)
         throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`)
       }
-      
+
       const data = await response.json()
       console.log(`✅ [incrementarVista] Vista incrementada exitosamente para: ${slug}`, data)
     } catch (error) {

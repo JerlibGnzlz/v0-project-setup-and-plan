@@ -9,7 +9,8 @@ const locations = [
   {
     country: 'Colombia',
     city: 'Bogotá',
-    description: 'Nuestra sede principal en América del Sur, alcanzando comunidades con el mensaje de esperanza.',
+    description:
+      'Nuestra sede principal en América del Sur, alcanzando comunidades con el mensaje de esperanza.',
     image: '/bogota-colombia-cityscape-with-mountains.jpg',
     flag: '🇨🇴',
   },
@@ -23,7 +24,8 @@ const locations = [
   {
     country: 'Argentina',
     city: 'Buenos Aires',
-    description: 'Ministerio activo en el corazón de Argentina, transformando vidas con el evangelio.',
+    description:
+      'Ministerio activo en el corazón de Argentina, transformando vidas con el evangelio.',
     image: '/buenos-aires-argentina-cityscape.jpg',
     flag: '🇦🇷',
   },
@@ -59,11 +61,11 @@ export function SedesSection() {
   }, [])
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % locations.length)
+    setCurrentIndex(prev => (prev + 1) % locations.length)
   }
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + locations.length) % locations.length)
+    setCurrentIndex(prev => (prev - 1 + locations.length) % locations.length)
   }
 
   const goToSlide = (index: number) => {
@@ -74,7 +76,7 @@ export function SedesSection() {
     <section id="sedes" className="relative py-24 overflow-hidden">
       {/* Fondo con gradiente mesh */}
       <div className="absolute inset-0 bg-[#0d1f35]">
-        <div 
+        <div
           className="absolute inset-0 opacity-60"
           style={{
             background: `
@@ -84,7 +86,7 @@ export function SedesSection() {
           }}
         />
         {/* Grid pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage: `
@@ -110,7 +112,8 @@ export function SedesSection() {
             </span>
           </h2>
           <p className="text-lg text-white/60 max-w-2xl mx-auto">
-            Presencia misionera en múltiples países, llevando el mensaje de vida abundante a todas las naciones
+            Presencia misionera en múltiples países, llevando el mensaje de vida abundante a todas
+            las naciones
           </p>
         </div>
 
@@ -121,7 +124,7 @@ export function SedesSection() {
               {/* Image */}
               <div className="absolute inset-0">
                 <ImageWithSkeleton
-                  src={locations[currentIndex].image || "/placeholder.svg"}
+                  src={locations[currentIndex].image || '/placeholder.svg'}
                   alt={`${locations[currentIndex].country} - ${locations[currentIndex].city}`}
                   className="w-full h-full object-cover"
                 />
@@ -134,7 +137,9 @@ export function SedesSection() {
                   <span className="text-4xl">{locations[currentIndex].flag}</span>
                   <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm">
                     <MapPin className="w-4 h-4 text-emerald-400" />
-                    <span className="text-white/90 font-medium">{locations[currentIndex].city}</span>
+                    <span className="text-white/90 font-medium">
+                      {locations[currentIndex].city}
+                    </span>
                   </div>
                 </div>
                 <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">

@@ -1,18 +1,28 @@
-import { Controller, Get, Post, Body, Patch, Delete, UseGuards, Param, NotFoundException } from "@nestjs/common"
-import { ConvencionesService } from "./convenciones.service"
-import { CreateConvencionDto, UpdateConvencionDto } from "./dto/convencion.dto"
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Delete,
+  UseGuards,
+  Param,
+  NotFoundException,
+} from '@nestjs/common'
+import { ConvencionesService } from './convenciones.service'
+import { CreateConvencionDto, UpdateConvencionDto } from './dto/convencion.dto'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 
-@Controller("convenciones")
+@Controller('convenciones')
 export class ConvencionesController {
-  constructor(private convencionesService: ConvencionesService) { }
+  constructor(private convencionesService: ConvencionesService) {}
 
   @Get()
   findAll() {
     return this.convencionesService.findAll()
   }
 
-  @Get("active")
+  @Get('active')
   async findActive() {
     const convencion = await this.convencionesService.findActive()
     if (!convencion) {
@@ -21,38 +31,38 @@ export class ConvencionesController {
     return convencion
   }
 
-  @Get(":id")
-  findOne(@Param("id") id: string) {
+  @Get(':id')
+  findOne(@Param('id') id: string) {
     return this.convencionesService.findOne(id)
   }
 
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() dto: CreateConvencionDto) {
-    return this.convencionesService.create(dto);
+    return this.convencionesService.create(dto)
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(":id")
-  update(@Param("id") id: string, @Body() dto: UpdateConvencionDto) {
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateConvencionDto) {
     return this.convencionesService.update(id, dto)
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(":id/archivar")
-  archivar(@Param("id") id: string) {
+  @Patch(':id/archivar')
+  archivar(@Param('id') id: string) {
     return this.convencionesService.archivar(id)
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(":id/desarchivar")
-  desarchivar(@Param("id") id: string) {
+  @Patch(':id/desarchivar')
+  desarchivar(@Param('id') id: string) {
     return this.convencionesService.desarchivar(id)
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(":id")
-  remove(@Param("id") id: string) {
+  @Delete(':id')
+  remove(@Param('id') id: string) {
     return this.convencionesService.remove(id)
   }
 }

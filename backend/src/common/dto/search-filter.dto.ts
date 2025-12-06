@@ -76,4 +76,3 @@ export class PagoFilterDto extends SearchFilterDto {
   @IsString()
   convencionId?: string
 }
-

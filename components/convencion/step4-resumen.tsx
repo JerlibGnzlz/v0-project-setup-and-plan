@@ -2,7 +2,18 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, AlertCircle, FileText, Mail, Phone, MapPin, Calendar, CreditCard, Sparkles, Loader2 } from 'lucide-react'
+import {
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  CreditCard,
+  Sparkles,
+  Loader2,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useCreateInscripcion, useCheckInscripcion } from '@/lib/hooks/use-inscripciones'
@@ -37,18 +48,18 @@ interface Step4ResumenProps {
   isSubmitting?: boolean
 }
 
-export function Step4Resumen({ 
-  convencion, 
-  formData, 
-  onConfirm, 
-  onBack, 
-  isSubmitting: isSubmittingProp = false 
+export function Step4Resumen({
+  convencion,
+  formData,
+  onConfirm,
+  onBack,
+  isSubmitting: isSubmittingProp = false,
 }: Step4ResumenProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const createInscripcionMutation = useCreateInscripcion()
   const { user } = useUnifiedAuth() // Obtener datos del usuario autenticado (pastor o invitado)
-  
+
   // Verificar si ya está inscrito antes de enviar
   const { data: inscripcionExistente } = useCheckInscripcion(convencion?.id, formData?.email)
 
@@ -57,9 +68,10 @@ export function Step4Resumen({
   const fechaFormateada = format(fechaInicio, "d 'de' MMMM, yyyy", { locale: es })
   const fechaFinFormateada = format(fechaFin, "d 'de' MMMM, yyyy", { locale: es })
 
-  const costo = typeof convencion.costo === 'number' 
-    ? convencion.costo 
-    : parseFloat(String(convencion.costo || 0))
+  const costo =
+    typeof convencion.costo === 'number'
+      ? convencion.costo
+      : parseFloat(String(convencion.costo || 0))
   const montoPorCuota = costo / formData.numeroCuotas
 
   const handleConfirm = async () => {
@@ -67,23 +79,23 @@ export function Step4Resumen({
     console.log('[Step4Resumen] inscripcionExistente:', inscripcionExistente)
     console.log('[Step4Resumen] formData:', formData)
     console.log('[Step4Resumen] convencion:', convencion)
-    
+
     // Verificar si ya está inscrito ANTES de enviar
     if (inscripcionExistente) {
       console.log('[Step4Resumen] Ya está inscrito, bloqueando envío')
-      toast.error("❌ Ya estás inscrito", {
+      toast.error('❌ Ya estás inscrito', {
         description: `Este correo electrónico (${formData.email}) ya está registrado para esta convención. No puedes inscribirte dos veces.`,
         duration: 6000,
       })
       return
     }
-    
+
     // Verificar nuevamente antes de enviar (por si acaso cambió el estado)
     try {
       const checkResult = await inscripcionesApi.checkInscripcion(convencion.id, formData.email)
       if (checkResult) {
         console.log('[Step4Resumen] Verificación final: Ya está inscrito')
-        toast.error("❌ Ya estás inscrito", {
+        toast.error('❌ Ya estás inscrito', {
           description: `Este correo electrónico (${formData.email}) ya está registrado para esta convención. No puedes inscribirte dos veces.`,
           duration: 6000,
         })
@@ -97,13 +109,13 @@ export function Step4Resumen({
     console.log('[Step4Resumen] Iniciando envío de inscripción...')
     console.log('[Step4Resumen] formData completo:', JSON.stringify(formData, null, 2))
     console.log('[Step4Resumen] convencion:', convencion)
-    
+
     setIsSubmitting(true)
     console.log('[Step4Resumen] setIsSubmitting(true) ejecutado')
 
     try {
       console.log('[Step4Resumen] Entrando al bloque try...')
-      
+
       // Validar que todos los campos requeridos estén presentes
       console.log('[Step4Resumen] Validando campos requeridos...')
       console.log('[Step4Resumen] nombre:', formData.nombre, 'válido:', !!formData.nombre)
@@ -111,14 +123,15 @@ export function Step4Resumen({
       console.log('[Step4Resumen] email:', formData.email, 'válido:', !!formData.email)
       console.log('[Step4Resumen] sede:', formData.sede, 'válido:', !!formData.sede)
       console.log('[Step4Resumen] telefono:', formData.telefono, 'válido:', !!formData.telefono)
-      
+
       // Validar campos requeridos (sede puede venir del usuario, así que verificar si está vacío)
       const camposFaltantes = []
       if (!formData.nombre || formData.nombre.trim().length === 0) camposFaltantes.push('nombre')
-      if (!formData.apellido || formData.apellido.trim().length === 0) camposFaltantes.push('apellido')
+      if (!formData.apellido || formData.apellido.trim().length === 0)
+        camposFaltantes.push('apellido')
       if (!formData.email || formData.email.trim().length === 0) camposFaltantes.push('email')
       if (!formData.sede || formData.sede.trim().length === 0) camposFaltantes.push('sede')
-      
+
       if (camposFaltantes.length > 0) {
         console.error('[Step4Resumen] ❌ Datos incompletos detectados:', camposFaltantes)
         toast.error('Datos incompletos', {
@@ -127,12 +140,12 @@ export function Step4Resumen({
         setIsSubmitting(false)
         return
       }
-      
+
       console.log('[Step4Resumen] ✅ Validación de campos pasada')
 
       // Construir teléfono completo: si el usuario tiene teléfono, usarlo. Si no, usar el del formulario.
       let telefonoFinal: string | undefined = undefined
-      
+
       if (user?.telefono && user.telefono.trim().length >= 8 && user.telefono.trim().length <= 20) {
         // Usar teléfono del usuario si es válido
         telefonoFinal = user.telefono.trim()
@@ -146,7 +159,10 @@ export function Step4Resumen({
           telefonoFinal = telefonoCompleto
           console.log('[Step4Resumen] Usando teléfono del formulario:', telefonoFinal)
         } else {
-          console.warn('[Step4Resumen] Teléfono del formulario no cumple validación (8-20 caracteres):', telefonoLimpio.length)
+          console.warn(
+            '[Step4Resumen] Teléfono del formulario no cumple validación (8-20 caracteres):',
+            telefonoLimpio.length
+          )
         }
       } else if (formData.telefono) {
         // Solo teléfono sin código de país
@@ -155,10 +171,13 @@ export function Step4Resumen({
           telefonoFinal = formData.telefono.trim()
           console.log('[Step4Resumen] Usando teléfono sin código de país:', telefonoFinal)
         } else {
-          console.warn('[Step4Resumen] Teléfono no cumple validación (8-20 caracteres):', telefonoLimpio.length)
+          console.warn(
+            '[Step4Resumen] Teléfono no cumple validación (8-20 caracteres):',
+            telefonoLimpio.length
+          )
         }
       }
-      
+
       // Limpiar y validar sede
       const sedeLimpia = formData.sede?.trim()
       if (!sedeLimpia || sedeLimpia.length === 0) {
@@ -169,9 +188,9 @@ export function Step4Resumen({
         setIsSubmitting(false)
         return
       }
-      
+
       console.log('[Step4Resumen] Sede limpia:', sedeLimpia)
-      
+
       // Construir objeto de datos, asegurando que solo se incluyan campos válidos
       const datosInscripcion: any = {
         convencionId: convencion.id,
@@ -182,35 +201,35 @@ export function Step4Resumen({
         numeroCuotas: formData.numeroCuotas || 3,
         origenRegistro: 'web',
       }
-      
+
       // Agregar teléfono solo si es válido (8-20 caracteres)
       if (telefonoFinal && telefonoFinal.trim().length >= 8 && telefonoFinal.trim().length <= 20) {
         datosInscripcion.telefono = telefonoFinal.trim()
       } else {
         console.log('[Step4Resumen] Teléfono no incluido (opcional y no válido)')
       }
-      
+
       if (sedeLimpia && sedeLimpia.trim().length > 0) {
         datosInscripcion.sede = sedeLimpia.trim()
       }
-      
+
       // Agregar país y provincia
       if (formData.pais && formData.pais.trim().length > 0) {
         datosInscripcion.pais = formData.pais.trim()
       }
-      
+
       if (formData.provincia && formData.provincia.trim().length > 0) {
         datosInscripcion.provincia = formData.provincia.trim()
       }
-      
+
       if (formData.documentoUrl && formData.documentoUrl.trim().length > 0) {
         datosInscripcion.documentoUrl = formData.documentoUrl.trim()
       }
-      
+
       if (formData.notas && formData.notas.trim().length > 0) {
         datosInscripcion.notas = formData.notas.trim()
       }
-      
+
       console.log('[Step4Resumen] ✅ DatosInscripcion construido correctamente')
       console.log('[Step4Resumen] Datos a enviar:', JSON.stringify(datosInscripcion, null, 2))
       console.log('[Step4Resumen] Validación de tipos:', {
@@ -224,7 +243,7 @@ export function Step4Resumen({
         pais: typeof datosInscripcion.pais,
         provincia: typeof datosInscripcion.provincia,
       })
-      
+
       // Validación previa de campos críticos
       if (!datosInscripcion.convencionId || typeof datosInscripcion.convencionId !== 'string') {
         console.error('[Step4Resumen] ❌ convencionId inválido')
@@ -232,22 +251,22 @@ export function Step4Resumen({
         setIsSubmitting(false)
         return
       }
-      
+
       if (!datosInscripcion.sede || datosInscripcion.sede.trim().length < 2) {
         console.error('[Step4Resumen] ❌ sede inválida:', datosInscripcion.sede)
         toast.error('Error de datos', { description: 'La sede debe tener al menos 2 caracteres.' })
         setIsSubmitting(false)
         return
       }
-      
+
       console.log('[Step4Resumen] ✅ Validación previa pasada, llamando a mutateAsync...')
-      
+
       const resultado = await createInscripcionMutation.mutateAsync(datosInscripcion)
       console.log('[Step4Resumen] ✅ Inscripción creada exitosamente:', resultado)
 
       // Pequeño delay para asegurar que el toast se muestre
       await new Promise(resolve => setTimeout(resolve, 500))
-      
+
       // Redirigir a landing con mensaje de éxito
       console.log('[Step4Resumen] Redirigiendo a landing...')
       router.push('/?inscripcion=exito#convenciones')
@@ -262,22 +281,28 @@ export function Step4Resumen({
       console.error('[Step4Resumen] Error message:', error.message)
       console.error('[Step4Resumen] Error code:', error.code)
       console.error('[Step4Resumen] Error stack:', error.stack)
-      
+
       // Determinar el mensaje de error más descriptivo
       let errorMessage = 'Error al enviar la inscripción. Por favor, intenta nuevamente.'
-      
+
       if (!error.response) {
         // Error de red (servidor no responde)
-        errorMessage = 'No se pudo conectar con el servidor. Por favor, verifica que el backend esté corriendo en http://localhost:4000'
+        errorMessage =
+          'No se pudo conectar con el servidor. Por favor, verifica que el backend esté corriendo en http://localhost:4000'
       } else if (error.response.status === 400) {
         // Error de validación - extraer mensaje del formato del GlobalExceptionFilter
         const responseData = error.response.data
-        
+
         // El GlobalExceptionFilter devuelve: { success: false, error: { message, statusCode, error, details: { validationErrors: [...] } } }
-        if (responseData?.error?.details?.validationErrors && Array.isArray(responseData.error.details.validationErrors)) {
-          const validationErrors = responseData.error.details.validationErrors.map((err: any) => 
-            typeof err === 'string' ? err : `${err.field || 'campo'}: ${err.message || err}`
-          ).join(', ')
+        if (
+          responseData?.error?.details?.validationErrors &&
+          Array.isArray(responseData.error.details.validationErrors)
+        ) {
+          const validationErrors = responseData.error.details.validationErrors
+            .map((err: any) =>
+              typeof err === 'string' ? err : `${err.field || 'campo'}: ${err.message || err}`
+            )
+            .join(', ')
           errorMessage = `Error de validación: ${validationErrors}`
         } else if (responseData?.error?.message) {
           errorMessage = responseData.error.message
@@ -285,48 +310,59 @@ export function Step4Resumen({
           errorMessage = responseData.message
         } else if (typeof responseData === 'object' && Object.keys(responseData).length === 0) {
           // Si responseData está vacío, puede ser un problema de validación silencioso
-          errorMessage = 'Error de validación. Por favor, verifica que todos los campos estén completos y sean válidos. Revisa la consola para más detalles.'
+          errorMessage =
+            'Error de validación. Por favor, verifica que todos los campos estén completos y sean válidos. Revisa la consola para más detalles.'
         } else {
           errorMessage = 'Error de validación. Por favor, verifica los datos ingresados.'
         }
       } else if (error.response.status === 409) {
         // Conflicto (email duplicado)
         const responseData = error.response.data
-        errorMessage = responseData?.error?.message || responseData?.message || `El correo electrónico ${formData.email} ya está inscrito en esta convención.`
-        
+        errorMessage =
+          responseData?.error?.message ||
+          responseData?.message ||
+          `El correo electrónico ${formData.email} ya está inscrito en esta convención.`
+
         // Mostrar toast específico para duplicado (más visible)
-        toast.error("❌ Ya estás inscrito", {
+        toast.error('❌ Ya estás inscrito', {
           description: errorMessage,
           duration: 6000,
         })
       } else if (error.response.status === 404) {
         // No encontrado
         const responseData = error.response.data
-        errorMessage = responseData?.error?.message || responseData?.message || 'La convención no fue encontrada. Por favor, intenta nuevamente.'
+        errorMessage =
+          responseData?.error?.message ||
+          responseData?.message ||
+          'La convención no fue encontrada. Por favor, intenta nuevamente.'
       } else if (error.response.status >= 500) {
         // Error del servidor
         const responseData = error.response.data
-        errorMessage = responseData?.error?.message || responseData?.message || 'Error del servidor. Por favor, intenta más tarde o contacta al administrador.'
+        errorMessage =
+          responseData?.error?.message ||
+          responseData?.message ||
+          'Error del servidor. Por favor, intenta más tarde o contacta al administrador.'
       } else {
         // Otro error
         const responseData = error.response.data
-        errorMessage = responseData?.error?.message || responseData?.message || error.message || errorMessage
+        errorMessage =
+          responseData?.error?.message || responseData?.message || error.message || errorMessage
       }
-      
+
       console.error('[Step4Resumen] Mensaje de error a mostrar:', errorMessage)
-      
+
       toast.error('Error al crear la inscripción', {
         description: errorMessage,
         duration: 8000,
       })
-      
+
       setIsSubmitting(false)
       console.log('[Step4Resumen] setIsSubmitting(false) ejecutado después del error')
     }
   }
 
   const submitting = isSubmitting || isSubmittingProp || createInscripcionMutation.isPending
-  
+
   // Debug: Log del estado del botón
   console.log('[Step4Resumen] Estado del botón:', {
     isSubmitting,
@@ -334,14 +370,14 @@ export function Step4Resumen({
     isPending: createInscripcionMutation.isPending,
     submitting,
     inscripcionExistente: !!inscripcionExistente,
-    buttonDisabled: submitting || !!inscripcionExistente
+    buttonDisabled: submitting || !!inscripcionExistente,
   })
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div 
+      <div
         className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl overflow-hidden"
-        onClick={(e) => {
+        onClick={e => {
           // Debug: verificar si hay clicks en el contenedor
           console.log('[Step4Resumen] Click en contenedor:', e.target)
         }}
@@ -380,7 +416,9 @@ export function Step4Resumen({
             </div>
             <div className="flex justify-between">
               <span className="text-white/70">Fechas:</span>
-              <span className="text-white font-medium">{fechaFormateada} al {fechaFinFormateada}</span>
+              <span className="text-white font-medium">
+                {fechaFormateada} al {fechaFinFormateada}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-white/70">Ubicación:</span>
@@ -398,7 +436,9 @@ export function Step4Resumen({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div>
               <span className="text-white/70">Nombre:</span>
-              <p className="text-white font-medium">{formData.nombre} {formData.apellido}</p>
+              <p className="text-white font-medium">
+                {formData.nombre} {formData.apellido}
+              </p>
             </div>
             <div>
               <span className="text-white/70">Email:</span>
@@ -416,7 +456,10 @@ export function Step4Resumen({
             </div>
             <div>
               <span className="text-white/70">País:</span>
-              <p className="text-white font-medium">{formData.pais}{formData.provincia ? `, ${formData.provincia}` : ''}</p>
+              <p className="text-white font-medium">
+                {formData.pais}
+                {formData.provincia ? `, ${formData.provincia}` : ''}
+              </p>
             </div>
             <div className="sm:col-span-2">
               <span className="text-white/70">Iglesia / Sede:</span>
@@ -441,7 +484,9 @@ export function Step4Resumen({
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-white/70">Plan de pago:</span>
-              <span className="text-white font-medium">{formData.numeroCuotas} cuota{formData.numeroCuotas > 1 ? 's' : ''}</span>
+              <span className="text-white font-medium">
+                {formData.numeroCuotas} cuota{formData.numeroCuotas > 1 ? 's' : ''}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-white/70">Monto por cuota:</span>
@@ -501,7 +546,7 @@ export function Step4Resumen({
             ← Atrás
           </Button>
           <Button
-            onClick={(e) => {
+            onClick={e => {
               e.preventDefault()
               e.stopPropagation()
               console.log('[Step4Resumen] ===== BOTÓN CLICKEADO =====')
@@ -510,21 +555,21 @@ export function Step4Resumen({
                 submitting,
                 inscripcionExistente: !!inscripcionExistente,
                 formData,
-                convencion
+                convencion,
               })
-              
+
               // Llamar directamente sin await para no bloquear
-              handleConfirm().catch((error) => {
+              handleConfirm().catch(error => {
                 console.error('[Step4Resumen] Error no capturado en handleConfirm:', error)
               })
             }}
             disabled={submitting || !!inscripcionExistente}
             className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
             type="button"
-            style={{ 
+            style={{
               pointerEvents: submitting || !!inscripcionExistente ? 'none' : 'auto',
               position: 'relative',
-              zIndex: 10
+              zIndex: 10,
             }}
             onMouseEnter={() => console.log('[Step4Resumen] Mouse sobre botón')}
             onMouseLeave={() => console.log('[Step4Resumen] Mouse fuera del botón')}
@@ -551,4 +596,3 @@ export function Step4Resumen({
     </div>
   )
 }
-

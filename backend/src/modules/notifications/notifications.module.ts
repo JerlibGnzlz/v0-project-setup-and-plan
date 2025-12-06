@@ -48,5 +48,4 @@ import { AuthModule } from '../auth/auth.module'
   ],
   exports: [NotificationsService, NotificationsGateway, EmailService],
 })
-export class NotificationsModule { }
-
+export class NotificationsModule {}

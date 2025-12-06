@@ -1,7 +1,19 @@
-import { Controller, Post, Get, Body, UseGuards, Req, Query, Param, Patch, Delete } from '@nestjs/common'
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  UseGuards,
+  Req,
+  Query,
+  Param,
+  Patch,
+  Delete,
+} from '@nestjs/common'
 import { NotificationsService } from './notifications.service'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { PastorJwtAuthGuard } from '../auth/guards/pastor-jwt-auth.guard'
+import { AuthenticatedRequest, AuthenticatedPastorRequest } from '../auth/types/request.types'
 
 @Controller('notifications')
 export class NotificationsController {
@@ -10,8 +22,14 @@ export class NotificationsController {
   // Endpoint para mobile (pastores)
   @Post('register')
   @UseGuards(PastorJwtAuthGuard)
-  async registerToken(@Req() req: any, @Body() body: { token: string; platform: string; deviceId?: string }) {
+  async registerToken(
+    @Req() req: AuthenticatedPastorRequest,
+    @Body() body: { token: string; platform: string; deviceId?: string }
+  ) {
     const email = req.user.email
+    if (!email) {
+      throw new Error('Email no disponible en el usuario autenticado')
+    }
     return this.notificationsService.registerToken(email, body.token, body.platform, body.deviceId)
   }
 
@@ -19,9 +37,9 @@ export class NotificationsController {
   @Get('history')
   @UseGuards(JwtAuthGuard)
   async getHistory(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('offset') offset?: string
   ) {
     const email = req.user.email
     return this.notificationsService.getNotificationHistory(email, {
@@ -32,7 +50,7 @@ export class NotificationsController {
 
   @Get('unread-count')
   @UseGuards(JwtAuthGuard)
-  async getUnreadCount(@Req() req: any) {
+  async getUnreadCount(@Req() req: AuthenticatedRequest) {
     const email = req.user.email
     const count = await this.notificationsService.getUnreadCount(email)
     // Asegurar que siempre retorne un objeto con count
@@ -41,21 +59,21 @@ export class NotificationsController {
 
   @Patch('mark-read/:id')
   @UseGuards(JwtAuthGuard)
-  async markAsRead(@Req() req: any, @Param('id') id: string) {
+  async markAsRead(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
     const email = req.user.email
     return this.notificationsService.markAsRead(id, email)
   }
 
   @Patch('mark-all-read')
   @UseGuards(JwtAuthGuard)
-  async markAllAsRead(@Req() req: any) {
+  async markAllAsRead(@Req() req: AuthenticatedRequest) {
     const email = req.user.email
     return this.notificationsService.markAllAsRead(email)
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async deleteNotification(@Req() req: any, @Param('id') id: string) {
+  async deleteNotification(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
     const email = req.user.email
     return this.notificationsService.deleteNotification(id, email)
   }
@@ -63,11 +81,10 @@ export class NotificationsController {
   @Delete()
   @UseGuards(JwtAuthGuard)
   async deleteNotifications(
-    @Req() req: any,
-    @Body() body: { ids?: string[]; deleteRead?: boolean; olderThanDays?: number },
+    @Req() req: AuthenticatedRequest,
+    @Body() body: { ids?: string[]; deleteRead?: boolean; olderThanDays?: number }
   ) {
     const email = req.user.email
     return this.notificationsService.deleteNotifications(email, body)
   }
 }
-

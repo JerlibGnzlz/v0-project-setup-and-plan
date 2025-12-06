@@ -1,13 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Request } from "@nestjs/common"
-import { PastoresService } from "./pastores.service"
-import { CreatePastorDto, UpdatePastorDto } from "./dto/pastor.dto"
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
-import { PaginationDto } from "../../common/dto/pagination.dto"
-import { PastorFilterDto } from "../../common/dto/search-filter.dto"
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+  Request,
+} from '@nestjs/common'
+import { PastoresService } from './pastores.service'
+import { CreatePastorDto, UpdatePastorDto } from './dto/pastor.dto'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { PaginationDto } from '../../common/dto/pagination.dto'
+import { PastorFilterDto } from '../../common/dto/search-filter.dto'
 
-@Controller("pastores")
+@Controller('pastores')
 export class PastoresController {
-  constructor(private pastoresService: PastoresService) { }
+  constructor(private pastoresService: PastoresService) {}
 
   // ==========================================
   // ENDPOINTS PÚBLICOS (para landing page)
@@ -86,7 +97,7 @@ export class PastoresController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(":id")
+  @Patch(':id')
   update(@Request() req, @Param('id') id: string, @Body() dto: UpdatePastorDto) {
     return this.pastoresService.updateWithAudit(id, dto, req.user?.id, req.user?.email)
   }

@@ -3,8 +3,9 @@
 ## 📋 Diferencia Clave
 
 ### **Landing Page** (`/` - `app/page.tsx`)
+
 - **Propósito**: Página pública de presentación de AMVA Digital
-- **Contenido**: 
+- **Contenido**:
   - Información general de la organización
   - Secciones: Hero, Sedes, Misión, Directiva, Noticias, **Convenciones**, Galería, Educación
   - **Sección de Convenciones**: Muestra si hay convención activa o "Próximamente"
@@ -12,6 +13,7 @@
 - **Navegación**: Usuario puede hacer scroll por todas las secciones
 
 ### **Página de Inscripción** (`/convencion/inscripcion` - `app/convencion/inscripcion/page.tsx`)
+
 - **Propósito**: Proceso de inscripción a una convención específica
 - **Contenido**:
   - Paso 1: Autenticación (Google OAuth o Email/Password)
@@ -112,6 +114,7 @@ if (!convencion || !convencion.activa) {
 ### **3. Google OAuth Solo Disponible con Convención Activa**
 
 **Lógica implementada:**
+
 - ✅ La página `/convencion/inscripcion` verifica convención activa antes de renderizar
 - ✅ Si NO hay convención activa → Muestra mensaje y botón para volver
 - ✅ Si HAY convención activa → Muestra el wizard con Google OAuth habilitado
@@ -136,6 +139,7 @@ if (!convencion || !convencion.activa) {
 4. Guardar
 
 **Resultado:**
+
 - ✅ Landing page muestra card de invitación
 - ✅ Botón "Confirmar Asistencia" aparece
 - ✅ Página de inscripción permite Google OAuth
@@ -146,6 +150,7 @@ if (!convencion || !convencion.activa) {
 ## 🔍 Verificación del Flujo
 
 ### **Test 1: Sin Convención Activa**
+
 ```
 1. Ir a / (landing page)
 2. Scroll a sección "Convenciones"
@@ -154,6 +159,7 @@ if (!convencion || !convencion.activa) {
 ```
 
 ### **Test 2: Con Convención Activa**
+
 ```
 1. Admin activa convención
 2. Ir a / (landing page)
@@ -165,6 +171,7 @@ if (!convencion || !convencion.activa) {
 ```
 
 ### **Test 3: Acceso Directo sin Convención**
+
 ```
 1. Ir directamente a /convencion/inscripcion (sin convención activa)
 2. Debe mostrar: "No hay convención activa"
@@ -187,7 +194,7 @@ if (!convencion || !convencion.activa) {
 ## 📞 Soporte
 
 Si tienes dudas sobre el flujo:
+
 1. Revisa este documento
 2. Verifica que la convención esté marcada como `activa: true` en el admin
 3. Revisa los logs del backend para verificar que la API `/convenciones/active` retorna la convención correcta
-

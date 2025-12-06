@@ -8,12 +8,12 @@ Si tienes noticias con categorías `DEVOCIONAL` o `TESTIMONIO`, primero actualí
 
 ```sql
 -- Actualizar categorías antiguas a nuevas
-UPDATE noticias 
-SET categoria = 'ACTIVIDAD' 
+UPDATE noticias
+SET categoria = 'ACTIVIDAD'
 WHERE categoria = 'DEVOCIONAL';
 
-UPDATE noticias 
-SET categoria = 'OPORTUNIDADES' 
+UPDATE noticias
+SET categoria = 'OPORTUNIDADES'
 WHERE categoria = 'TESTIMONIO';
 ```
 
@@ -41,10 +41,3 @@ Deberías ver el campo `vistas` en la tabla `noticias` con valor por defecto 0.
 ## Nota
 
 El campo `vistas` se inicializa en 0 para todas las noticias existentes. Las nuevas vistas se contarán desde ahora.
-
-
-
-
-
-
-

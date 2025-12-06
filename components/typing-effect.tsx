@@ -26,9 +26,7 @@ export function TypingEffect({ text, className = '', speed = 100 }: TypingEffect
   return (
     <span className={className}>
       {displayedText}
-      {currentIndex < text.length && (
-        <span className="animate-pulse">|</span>
-      )}
+      {currentIndex < text.length && <span className="animate-pulse">|</span>}
     </span>
   )
 }

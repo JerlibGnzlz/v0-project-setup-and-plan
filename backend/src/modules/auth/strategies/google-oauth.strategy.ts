@@ -9,7 +9,7 @@ export type { GoogleOAuthUserData as GoogleOAuthUser }
 
 /**
  * Estrategia de autenticación con Google OAuth
- * 
+ *
  * @class GoogleOAuthStrategy
  * @extends PassportStrategy
  */
@@ -31,10 +31,10 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
     // Construir callback URL completo con el backend URL
     const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
     const callbackPath = process.env.GOOGLE_CALLBACK_URL || '/api/auth/invitado/google/callback'
-    const callbackURL = callbackPath.startsWith('http') 
-      ? callbackPath 
+    const callbackURL = callbackPath.startsWith('http')
+      ? callbackPath
       : `${backendUrl}${callbackPath}`
-    
+
     super({
       clientID,
       clientSecret,
@@ -48,7 +48,7 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
 
   /**
    * Valida y procesa el perfil de Google OAuth
-   * 
+   *
    * @param accessToken - Token de acceso de Google
    * @param refreshToken - Token de refresco de Google (no usado actualmente)
    * @param profile - Perfil del usuario de Google
@@ -58,7 +58,7 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
     accessToken: string,
     refreshToken: string,
     profile: Profile,
-    done: VerifyCallback,
+    done: VerifyCallback
   ): Promise<void> {
     try {
       // Validar que el perfil tenga los datos necesarios
@@ -84,7 +84,8 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
 
       // Extraer nombre y apellido
       const nombre = profile.name?.givenName || profile.displayName?.split(' ')[0] || ''
-      const apellido = profile.name?.familyName || profile.displayName?.split(' ').slice(1).join(' ') || ''
+      const apellido =
+        profile.name?.familyName || profile.displayName?.split(' ').slice(1).join(' ') || ''
 
       // Validar que al menos tengamos un nombre
       if (!nombre && !apellido) {
@@ -93,7 +94,7 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
 
       // Obtener foto del perfil de Google (si existe)
       const fotoUrl = profile.photos && profile.photos[0] ? profile.photos[0].value : null
-      
+
       this.logger.log(`📸 Foto de Google obtenida: ${fotoUrl || 'NO DISPONIBLE'}`, {
         email,
         tieneFotos: !!profile.photos,
@@ -123,4 +124,3 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
     }
   }
 }
-

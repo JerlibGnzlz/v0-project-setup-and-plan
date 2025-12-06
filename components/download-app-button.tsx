@@ -39,7 +39,7 @@ export function DownloadAppButton() {
     if (isMobile) {
       // Intentar abrir la app con deep link
       const deepLink = `${DEEP_LINK_SCHEME}home`
-      
+
       // Intentar abrir la app
       window.location.href = deepLink
 
@@ -81,15 +81,13 @@ export function DownloadAppButton() {
               Escanea el código QR con tu dispositivo móvil o usa los enlaces directos
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             {/* QR Code placeholder - Reemplazar con QR real */}
             <div className="flex justify-center p-6 bg-white rounded-lg border-2 border-dashed border-gray-300">
               <div className="text-center">
                 <QrCode className="w-32 h-32 mx-auto text-gray-400 mb-2" />
-                <p className="text-sm text-gray-500">
-                  QR Code generado dinámicamente
-                </p>
+                <p className="text-sm text-gray-500">QR Code generado dinámicamente</p>
                 <p className="text-xs text-gray-400 mt-2">
                   (Implementar generación de QR con librería)
                 </p>
@@ -111,7 +109,7 @@ export function DownloadAppButton() {
                 />
                 <ExternalLink className="w-4 h-4" />
               </a>
-              
+
               <a
                 href={APP_STORE_URL}
                 target="_blank"
@@ -132,4 +130,3 @@ export function DownloadAppButton() {
     </>
   )
 }
-

@@ -14,17 +14,17 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
-import { 
-  Calendar, 
-  MapPin, 
-  CreditCard, 
-  User, 
-  Mail, 
-  Phone, 
+import {
+  Calendar,
+  MapPin,
+  CreditCard,
+  User,
+  Mail,
+  Phone,
   CheckCircle2,
   Loader2,
   Sparkles,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -69,19 +69,19 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
   // Función helper para normalizar URLs de Google
   const normalizeGoogleImageUrl = (url: string | undefined): string | undefined => {
     if (!url) return undefined
-    
+
     // Si es una URL de Google, normalizarla para obtener mejor calidad
     if (url.includes('googleusercontent.com')) {
       try {
         const urlObj = new URL(url)
-        
+
         // Remover todos los parámetros de tamaño existentes
         urlObj.searchParams.delete('sz')
         urlObj.searchParams.delete('s')
-        
+
         // Agregar parámetro para tamaño más grande (200px) sin recorte
         urlObj.searchParams.set('s', '200')
-        
+
         return urlObj.toString()
       } catch (e) {
         // Si falla el parsing, intentar método simple
@@ -89,14 +89,15 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
         return `${baseUrl}?sz=200`
       }
     }
-    
+
     return url
   }
 
   // Convertir costo a número
-  const costo = typeof convencion.costo === 'number' 
-    ? convencion.costo 
-    : parseFloat(String(convencion.costo || 0))
+  const costo =
+    typeof convencion.costo === 'number'
+      ? convencion.costo
+      : parseFloat(String(convencion.costo || 0))
 
   const fechaInicio = new Date(convencion.fechaInicio)
   const fechaFin = new Date(convencion.fechaFin)
@@ -119,19 +120,56 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
 
   // Lista de países
   const paises = [
-    'Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba',
-    'Ecuador', 'El Salvador', 'España', 'Estados Unidos', 'Guatemala', 'Honduras',
-    'México', 'Nicaragua', 'Panamá', 'Paraguay', 'Perú', 'República Dominicana',
-    'Uruguay', 'Venezuela', 'Otro'
+    'Argentina',
+    'Bolivia',
+    'Brasil',
+    'Chile',
+    'Colombia',
+    'Costa Rica',
+    'Cuba',
+    'Ecuador',
+    'El Salvador',
+    'España',
+    'Estados Unidos',
+    'Guatemala',
+    'Honduras',
+    'México',
+    'Nicaragua',
+    'Panamá',
+    'Paraguay',
+    'Perú',
+    'República Dominicana',
+    'Uruguay',
+    'Venezuela',
+    'Otro',
   ]
 
   // Provincias de Argentina
   const provinciasArgentina = [
-    'Buenos Aires', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba', 'Corrientes',
-    'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza',
-    'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis',
-    'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego',
-    'Tucumán', 'Ciudad Autónoma de Buenos Aires'
+    'Buenos Aires',
+    'Catamarca',
+    'Chaco',
+    'Chubut',
+    'Córdoba',
+    'Corrientes',
+    'Entre Ríos',
+    'Formosa',
+    'Jujuy',
+    'La Pampa',
+    'La Rioja',
+    'Mendoza',
+    'Misiones',
+    'Neuquén',
+    'Río Negro',
+    'Salta',
+    'San Juan',
+    'San Luis',
+    'Santa Cruz',
+    'Santa Fe',
+    'Santiago del Estero',
+    'Tierra del Fuego',
+    'Tucumán',
+    'Ciudad Autónoma de Buenos Aires',
   ]
 
   const [paisSearch, setPaisSearch] = useState('')
@@ -150,7 +188,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
   // Validación
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
-    
+
     if (!formData.nombre.trim()) newErrors.nombre = 'El nombre es requerido'
     if (!formData.apellido.trim()) newErrors.apellido = 'El apellido es requerido'
     if (!formData.email.trim()) newErrors.email = 'El email es requerido'
@@ -159,7 +197,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
     if (formData.pais === 'Argentina' && !formData.provincia.trim()) {
       newErrors.provincia = 'La provincia es requerida para Argentina'
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -176,14 +214,14 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
     e.preventDefault()
 
     if (inscripcionExistente) {
-      toast.error("Ya estás inscrito", {
-        description: "Este correo electrónico ya está registrado para esta convención.",
+      toast.error('Ya estás inscrito', {
+        description: 'Este correo electrónico ya está registrado para esta convención.',
       })
       return
     }
 
     if (!validateForm()) {
-      toast.error("Por favor completa todos los campos requeridos")
+      toast.error('Por favor completa todos los campos requeridos')
       return
     }
 
@@ -216,7 +254,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
         // Forzar refetch inmediato
         queryClient.refetchQueries({ queryKey: ['checkInscripcion', convencion.id, user.email] })
       }, 500)
-      
+
       // El toast ya se muestra en el hook useCreateInscripcion
     } catch (error: any) {
       console.error('Error al crear inscripción:', error)
@@ -281,7 +319,9 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                               className="w-full h-full object-cover"
                               onError={() => {
                                 if (process.env.NODE_ENV === 'development') {
-                                  console.warn('[UnifiedInscriptionForm] Error cargando foto, mostrando iniciales')
+                                  console.warn(
+                                    '[UnifiedInscriptionForm] Error cargando foto, mostrando iniciales'
+                                  )
                                 }
                                 setImageError(true)
                               }}
@@ -307,25 +347,21 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                       <Label className="text-white/90">Nombre *</Label>
                       <Input
                         value={formData.nombre}
-                        onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                        onChange={e => setFormData({ ...formData, nombre: e.target.value })}
                         className="bg-white/5 border-white/20 text-white"
                         placeholder="Tu nombre"
                       />
-                      {errors.nombre && (
-                        <p className="text-xs text-red-400">{errors.nombre}</p>
-                      )}
+                      {errors.nombre && <p className="text-xs text-red-400">{errors.nombre}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label className="text-white/90">Apellido *</Label>
                       <Input
                         value={formData.apellido}
-                        onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                        onChange={e => setFormData({ ...formData, apellido: e.target.value })}
                         className="bg-white/5 border-white/20 text-white"
                         placeholder="Tu apellido"
                       />
-                      {errors.apellido && (
-                        <p className="text-xs text-red-400">{errors.apellido}</p>
-                      )}
+                      {errors.apellido && <p className="text-xs text-red-400">{errors.apellido}</p>}
                     </div>
                   </div>
 
@@ -344,7 +380,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                     <Label className="text-white/90">Teléfono</Label>
                     <Input
                       value={formData.telefono}
-                      onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                      onChange={e => setFormData({ ...formData, telefono: e.target.value })}
                       className="bg-white/5 border-white/20 text-white"
                       placeholder="+54 11 1234-5678"
                     />
@@ -357,7 +393,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                     <div className="relative">
                       <Input
                         value={paisSearch || formData.pais}
-                        onChange={(e) => {
+                        onChange={e => {
                           setPaisSearch(e.target.value)
                           setShowPaisDropdown(true)
                         }}
@@ -368,12 +404,16 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                       />
                       {showPaisDropdown && filteredPaises.length > 0 && (
                         <div className="absolute z-10 w-full mt-1 bg-[#0a1628] border border-white/20 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                          {filteredPaises.map((pais) => (
+                          {filteredPaises.map(pais => (
                             <button
                               key={pais}
                               type="button"
                               onClick={() => {
-                                setFormData({ ...formData, pais, provincia: pais !== 'Argentina' ? '' : formData.provincia })
+                                setFormData({
+                                  ...formData,
+                                  pais,
+                                  provincia: pais !== 'Argentina' ? '' : formData.provincia,
+                                })
                                 setPaisSearch('')
                                 setShowPaisDropdown(false)
                               }}
@@ -385,9 +425,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                         </div>
                       )}
                     </div>
-                    {errors.pais && (
-                      <p className="text-xs text-red-400">{errors.pais}</p>
-                    )}
+                    {errors.pais && <p className="text-xs text-red-400">{errors.pais}</p>}
                   </div>
 
                   {/* Provincia (solo para Argentina) */}
@@ -399,7 +437,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                       <div className="relative">
                         <Input
                           value={provinciaSearch || formData.provincia}
-                          onChange={(e) => {
+                          onChange={e => {
                             setProvinciaSearch(e.target.value)
                             setShowProvinciaDropdown(true)
                           }}
@@ -410,7 +448,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                         />
                         {showProvinciaDropdown && filteredProvincias.length > 0 && (
                           <div className="absolute z-10 w-full mt-1 bg-[#0a1628] border border-white/20 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                            {filteredProvincias.map((provincia) => (
+                            {filteredProvincias.map(provincia => (
                               <button
                                 key={provincia}
                                 type="button"
@@ -437,20 +475,18 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                     <Label className="text-white/90">Sede *</Label>
                     <Input
                       value={formData.sede}
-                      onChange={(e) => setFormData({ ...formData, sede: e.target.value })}
+                      onChange={e => setFormData({ ...formData, sede: e.target.value })}
                       className="bg-white/5 border-white/20 text-white"
                       placeholder="Nombre de tu iglesia"
                     />
-                    {errors.sede && (
-                      <p className="text-xs text-red-400">{errors.sede}</p>
-                    )}
+                    {errors.sede && <p className="text-xs text-red-400">{errors.sede}</p>}
                   </div>
 
                   <div className="space-y-2">
                     <Label className="text-white/90">Tipo de Inscripción</Label>
                     <Select
                       value={formData.tipoInscripcion}
-                      onValueChange={(value) => setFormData({ ...formData, tipoInscripcion: value })}
+                      onValueChange={value => setFormData({ ...formData, tipoInscripcion: value })}
                     >
                       <SelectTrigger className="bg-white/5 border-white/20 text-white">
                         <SelectValue />
@@ -468,7 +504,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                     <Label className="text-white/90">Notas (Opcional)</Label>
                     <Textarea
                       value={formData.notas}
-                      onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
+                      onChange={e => setFormData({ ...formData, notas: e.target.value })}
                       className="bg-white/5 border-white/20 text-white"
                       placeholder="Notas adicionales..."
                       rows={3}
@@ -535,7 +571,9 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/70">Ubicación:</span>
-                    <span className="text-white font-medium text-right">{convencion.ubicacion}</span>
+                    <span className="text-white font-medium text-right">
+                      {convencion.ubicacion}
+                    </span>
                   </div>
                 </div>
 
@@ -545,8 +583,9 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                 <div className="space-y-3">
                   <Label className="text-white/90">Plan de Pago</Label>
                   <div className="space-y-2">
-                    {[1, 2, 3].map((num) => {
-                      const monto = num === 1 ? montoPorCuota1 : num === 2 ? montoPorCuota2 : montoPorCuota3
+                    {[1, 2, 3].map(num => {
+                      const monto =
+                        num === 1 ? montoPorCuota1 : num === 2 ? montoPorCuota2 : montoPorCuota3
                       const isSelected = formData.numeroCuotas === num
                       return (
                         <button
@@ -554,22 +593,23 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                           type="button"
                           onClick={() => setFormData({ ...formData, numeroCuotas: num })}
                           className={cn(
-                            "w-full p-3 rounded-lg border-2 transition-all text-left",
+                            'w-full p-3 rounded-lg border-2 transition-all text-left',
                             isSelected
-                              ? "border-emerald-500 bg-emerald-500/10"
-                              : "border-white/10 bg-white/5 hover:border-white/20"
+                              ? 'border-emerald-500 bg-emerald-500/10'
+                              : 'border-white/10 bg-white/5 hover:border-white/20'
                           )}
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-white font-medium">{num} {num === 1 ? 'cuota' : 'cuotas'}</p>
+                              <p className="text-white font-medium">
+                                {num} {num === 1 ? 'cuota' : 'cuotas'}
+                              </p>
                               <p className="text-xs text-white/60">
-                                ${monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })} {num > 1 ? 'cada una' : ''}
+                                ${monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}{' '}
+                                {num > 1 ? 'cada una' : ''}
                               </p>
                             </div>
-                            {isSelected && (
-                              <CheckCircle2 className="size-5 text-emerald-400" />
-                            )}
+                            {isSelected && <CheckCircle2 className="size-5 text-emerald-400" />}
                           </div>
                         </button>
                       )
@@ -594,7 +634,10 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                   <div className="flex justify-between text-sm">
                     <span className="text-white/70">Monto por cuota:</span>
                     <span className="text-white font-semibold">
-                      ${(costo / formData.numeroCuotas).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                      $
+                      {(costo / formData.numeroCuotas).toLocaleString('es-AR', {
+                        minimumFractionDigits: 2,
+                      })}
                     </span>
                   </div>
                 </div>
@@ -602,7 +645,8 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                 {/* Información de Pago */}
                 <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
                   <p className="text-xs text-amber-300">
-                    💡 Los pagos se crearán después desde tu panel. Recibirás un código de referencia único.
+                    💡 Los pagos se crearán después desde tu panel. Recibirás un código de
+                    referencia único.
                   </p>
                 </div>
               </CardContent>
@@ -613,4 +657,3 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
     </div>
   )
 }
-

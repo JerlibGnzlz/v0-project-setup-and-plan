@@ -1,26 +1,26 @@
-import { Module, forwardRef } from "@nestjs/common"
-import { JwtModule } from "@nestjs/jwt"
-import { PassportModule } from "@nestjs/passport"
-import { AuthService } from "./auth.service"
-import { AuthController } from "./auth.controller"
-import { JwtStrategy } from "./strategies/jwt.strategy"
-import { PastorAuthService } from "./pastor-auth.service"
-import { PastorAuthController } from "./pastor-auth.controller"
-import { PastorJwtStrategy } from "./strategies/pastor-jwt.strategy"
-import { InvitadoAuthService } from "./invitado-auth.service"
-import { InvitadoAuthController } from "./invitado-auth.controller"
-import { InvitadoJwtStrategy } from "./strategies/invitado-jwt.strategy"
-import { GoogleOAuthStrategy } from "./strategies/google-oauth.strategy"
-import { UnifiedAuthService } from "./unified-auth.service"
-import { NotificationsModule } from "../notifications/notifications.module"
-import { TokenBlacklistService } from "./services/token-blacklist.service"
+import { Module, forwardRef } from '@nestjs/common'
+import { JwtModule } from '@nestjs/jwt'
+import { PassportModule } from '@nestjs/passport'
+import { AuthService } from './auth.service'
+import { AuthController } from './auth.controller'
+import { JwtStrategy } from './strategies/jwt.strategy'
+import { PastorAuthService } from './pastor-auth.service'
+import { PastorAuthController } from './pastor-auth.controller'
+import { PastorJwtStrategy } from './strategies/pastor-jwt.strategy'
+import { InvitadoAuthService } from './invitado-auth.service'
+import { InvitadoAuthController } from './invitado-auth.controller'
+import { InvitadoJwtStrategy } from './strategies/invitado-jwt.strategy'
+import { GoogleOAuthStrategy } from './strategies/google-oauth.strategy'
+import { UnifiedAuthService } from './unified-auth.service'
+import { NotificationsModule } from '../notifications/notifications.module'
+import { TokenBlacklistService } from './services/token-blacklist.service'
 
 @Module({
   imports: [
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || "your-secret-key",
-      signOptions: { expiresIn: process.env.JWT_EXPIRATION || "15m" }, // Cambiado de 7d a 15m para seguridad
+      secret: process.env.JWT_SECRET || 'your-secret-key',
+      signOptions: { expiresIn: process.env.JWT_EXPIRATION || '15m' }, // Cambiado de 7d a 15m para seguridad
     }),
     forwardRef(() => NotificationsModule),
   ],
@@ -47,4 +47,4 @@ import { TokenBlacklistService } from "./services/token-blacklist.service"
     TokenBlacklistService,
   ],
 })
-export class AuthModule { }
+export class AuthModule {}

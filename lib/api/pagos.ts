@@ -1,4 +1,4 @@
-import { apiClient } from "./client"
+import { apiClient } from './client'
 
 export interface Inscripcion {
   id: string
@@ -25,7 +25,7 @@ export interface Pago {
   monto: number | string
   metodoPago: string
   numeroCuota?: number // 1, 2, o 3 para identificar la cuota
-  estado: "PENDIENTE" | "COMPLETADO" | "CANCELADO" | "REEMBOLSADO"
+  estado: 'PENDIENTE' | 'COMPLETADO' | 'CANCELADO' | 'REEMBOLSADO'
   referencia?: string
   comprobanteUrl?: string // URL de la imagen del comprobante
   fechaPago?: string
@@ -64,12 +64,13 @@ export const pagosApi = {
     const params: any = { page, limit }
     if (filters?.search) params.search = filters.search
     if (filters?.estado && filters.estado !== 'todos') params.estado = filters.estado
-    if (filters?.metodoPago && filters.metodoPago !== 'todos') params.metodoPago = filters.metodoPago
+    if (filters?.metodoPago && filters.metodoPago !== 'todos')
+      params.metodoPago = filters.metodoPago
     if (filters?.origen && filters.origen !== 'todos') params.origen = filters.origen
     if (filters?.inscripcionId) params.inscripcionId = filters.inscripcionId
     if (filters?.convencionId) params.convencionId = filters.convencionId
 
-    const response = await apiClient.get<PaginatedResponse<Pago>>("/pagos", {
+    const response = await apiClient.get<PaginatedResponse<Pago>>('/pagos', {
       params,
     })
     return response.data
@@ -85,12 +86,12 @@ export const pagosApi = {
     monto: string
     metodoPago: string
     numeroCuota?: number
-    estado?: "PENDIENTE" | "COMPLETADO" | "CANCELADO" | "REEMBOLSADO"
+    estado?: 'PENDIENTE' | 'COMPLETADO' | 'CANCELADO' | 'REEMBOLSADO'
     referencia?: string
     comprobanteUrl?: string
     notas?: string
   }): Promise<Pago> => {
-    const response = await apiClient.post<Pago>("/pagos", data)
+    const response = await apiClient.post<Pago>('/pagos', data)
     return response.data
   },
 
@@ -113,7 +114,9 @@ export const pagosApi = {
     return response.data
   },
 
-  validarPagosMasivos: async (ids: string[]): Promise<{
+  validarPagosMasivos: async (
+    ids: string[]
+  ): Promise<{
     exitosos: number
     fallidos: number
     advertencias: number
@@ -125,7 +128,9 @@ export const pagosApi = {
     } catch (error: any) {
       console.error('[pagosApi] Error en validarPagosMasivos:', error)
       if (error.response?.status === 404) {
-        throw new Error('El endpoint de validación masiva no está disponible. Por favor, reinicia el servidor backend.')
+        throw new Error(
+          'El endpoint de validación masiva no está disponible. Por favor, reinicia el servidor backend.'
+        )
       }
       throw error
     }
@@ -136,4 +141,3 @@ export const pagosApi = {
     return response.data
   },
 }
-

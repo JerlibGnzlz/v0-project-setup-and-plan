@@ -33,13 +33,15 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
   constructor(
     private jwtService: JwtService,
-    private prisma: PrismaService,
+    private prisma: PrismaService
   ) {}
 
   async handleConnection(client: AuthenticatedSocket) {
     try {
       // Autenticar usando token JWT
-      const token = client.handshake.auth?.token || client.handshake.headers?.authorization?.replace('Bearer ', '')
+      const token =
+        client.handshake.auth?.token ||
+        client.handshake.headers?.authorization?.replace('Bearer ', '')
 
       if (!token) {
         this.logger.warn(`Cliente ${client.id} desconectado: sin token`)
@@ -79,7 +81,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
    */
   async emitToUser(email: string, notification: any) {
     const clients = Array.from(this.connectedClients.values()).filter(
-      (client) => client.email === email,
+      client => client.email === email
     )
 
     if (clients.length === 0) {
@@ -87,7 +89,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
       return
     }
 
-    clients.forEach((client) => {
+    clients.forEach(client => {
       client.emit('notification', notification)
       this.logger.log(`Notificación enviada a ${email} (${client.id})`)
     })
@@ -98,7 +100,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
    */
   async emitUnreadCountUpdate(email: string) {
     const clients = Array.from(this.connectedClients.values()).filter(
-      (client) => client.email === email,
+      client => client.email === email
     )
 
     if (clients.length === 0) {
@@ -107,7 +109,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
     const unreadCount = await this.getUnreadCount(email)
 
-    clients.forEach((client) => {
+    clients.forEach(client => {
       client.emit('unread-count', { count: unreadCount })
     })
   }
@@ -129,10 +131,3 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     })
   }
 }
-
-
-
-
-
-
-

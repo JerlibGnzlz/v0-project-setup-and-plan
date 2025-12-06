@@ -16,7 +16,12 @@ export interface EmailTemplate {
 /**
  * Template base para emails
  */
-function buildBaseTemplate(title: string, body: string, icon: string = '📬', color: string = '#10b981'): string {
+function buildBaseTemplate(
+  title: string,
+  body: string,
+  icon: string = '📬',
+  color: string = '#10b981'
+): string {
   return `
 <!DOCTYPE html>
 <html>
@@ -143,7 +148,10 @@ export function getPagoRehabilitadoTemplate(data: EmailTemplateData): EmailTempl
  * Template para recordatorio de pago
  */
 export function getPagoRecordatorioTemplate(data: EmailTemplateData): EmailTemplate {
-  const montoPendiente = typeof data.montoPendiente === 'number' ? data.montoPendiente : parseFloat(data.montoPendiente || 0)
+  const montoPendiente =
+    typeof data.montoPendiente === 'number'
+      ? data.montoPendiente
+      : parseFloat(data.montoPendiente || 0)
   const montoFormateado = new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
@@ -176,7 +184,8 @@ export function getPagoRecordatorioTemplate(data: EmailTemplateData): EmailTempl
  * Template para inscripción creada
  */
 export function getInscripcionCreadaTemplate(data: EmailTemplateData): EmailTemplate {
-  const montoTotal = typeof data.montoTotal === 'number' ? data.montoTotal : parseFloat(data.montoTotal || 0)
+  const montoTotal =
+    typeof data.montoTotal === 'number' ? data.montoTotal : parseFloat(data.montoTotal || 0)
   const montoFormateado = new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
@@ -206,12 +215,14 @@ export function getInscripcionCreadaTemplate(data: EmailTemplateData): EmailTemp
  * Template para inscripción confirmada
  */
 export function getInscripcionConfirmadaTemplate(data: EmailTemplateData): EmailTemplate {
-  const fechaInicio = data.fechaInicio ? new Date(data.fechaInicio).toLocaleDateString('es-AR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }) : 'N/A'
+  const fechaInicio = data.fechaInicio
+    ? new Date(data.fechaInicio).toLocaleDateString('es-AR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : 'N/A'
 
   const body = `
     <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 20px; font-weight: 600;">🎉 Inscripción Confirmada</h2>
@@ -303,7 +314,7 @@ export const emailTemplates = {
  */
 export function getEmailTemplate(type: string, data: EmailTemplateData): EmailTemplate {
   const templateFn = emailTemplates[type as keyof typeof emailTemplates]
-  
+
   if (!templateFn) {
     // Template genérico si no hay uno específico
     return {
@@ -321,6 +332,3 @@ export function getEmailTemplate(type: string, data: EmailTemplateData): EmailTe
 
   return templateFn(data)
 }
-
-
-

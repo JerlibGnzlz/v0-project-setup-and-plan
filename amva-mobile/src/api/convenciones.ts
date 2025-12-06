@@ -57,4 +57,3 @@ export const convencionesApi = {
     return response.data
   },
 }
-

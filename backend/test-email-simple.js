@@ -13,7 +13,10 @@ envContent.split('\n').forEach(line => {
     const key = match[1].trim()
     let value = match[2].trim()
     // Remover comillas si las tiene
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
       value = value.slice(1, -1)
     }
     envVars[key] = value
@@ -39,7 +42,9 @@ console.log('📧 Configuración SMTP:')
 console.log(`   Host: ${emailConfig.host}`)
 console.log(`   Port: ${emailConfig.port}`)
 console.log(`   User: ${emailConfig.auth.user}`)
-console.log(`   Password: ${emailConfig.auth.pass ? '***' + emailConfig.auth.pass.slice(-4) : 'NO CONFIGURADO'}`)
+console.log(
+  `   Password: ${emailConfig.auth.pass ? '***' + emailConfig.auth.pass.slice(-4) : 'NO CONFIGURADO'}`
+)
 console.log('')
 
 if (!emailConfig.auth.user || !emailConfig.auth.pass) {
@@ -58,7 +63,7 @@ transporter.verify(function (error, success) {
   } else {
     console.log('✅ Conexión SMTP verificada correctamente')
     console.log('')
-    
+
     // Enviar email de prueba
     const mailOptions = {
       from: `"AMVA Digital" <${emailConfig.auth.user}>`,
@@ -87,4 +92,3 @@ transporter.verify(function (error, success) {
     })
   }
 })
-

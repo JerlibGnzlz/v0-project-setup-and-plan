@@ -10,10 +10,7 @@ declare module 'expo-secure-store' {
     authenticationPrompt?: string
   }
 
-  export function getItemAsync(
-    key: string,
-    options?: SecureStoreOptions
-  ): Promise<string | null>
+  export function getItemAsync(key: string, options?: SecureStoreOptions): Promise<string | null>
 
   export function setItemAsync(
     key: string,
@@ -21,17 +18,7 @@ declare module 'expo-secure-store' {
     options?: SecureStoreOptions
   ): Promise<void>
 
-  export function deleteItemAsync(
-    key: string,
-    options?: SecureStoreOptions
-  ): Promise<void>
+  export function deleteItemAsync(key: string, options?: SecureStoreOptions): Promise<void>
 
   export function isAvailableAsync(): Promise<boolean>
 }
-
-
-
-
-
-
-

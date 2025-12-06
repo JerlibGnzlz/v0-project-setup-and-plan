@@ -10,29 +10,34 @@ export async function testBackendConnection(): Promise<boolean> {
     console.log('🧪 ========================================')
     console.log('🧪 DIAGNÓSTICO DE CONEXIÓN')
     console.log('🧪 ========================================')
-    
+
     const baseURL = apiClient.defaults.baseURL
     console.log('📍 Base URL configurada:', baseURL)
-    
+
     // Intentar una petición simple (endpoint público)
     // Usar apiClient para mantener consistencia
     const testUrl = `/noticias/publicadas`
     console.log('🔗 URL completa a probar:', baseURL + testUrl)
     console.log('⏱️  Timeout: 10 segundos')
-    
+
     const startTime = Date.now()
     const response = await apiClient.get(testUrl, {
       timeout: 10000, // 10 segundos para la prueba
     })
     const endTime = Date.now()
     const duration = endTime - startTime
-    
+
     console.log('✅ ========================================')
     console.log('✅ CONEXIÓN EXITOSA!')
     console.log('✅ ========================================')
     console.log('✅ Status:', response.status)
     console.log('✅ Tiempo de respuesta:', duration + 'ms')
-    console.log('✅ Datos recibidos:', response.data ? 'Sí (' + (Array.isArray(response.data) ? response.data.length + ' items' : 'objeto') + ')' : 'No')
+    console.log(
+      '✅ Datos recibidos:',
+      response.data
+        ? 'Sí (' + (Array.isArray(response.data) ? response.data.length + ' items' : 'objeto') + ')'
+        : 'No'
+    )
     console.log('✅ Headers recibidos:', Object.keys(response.headers).length + ' headers')
     return true
   } catch (error: any) {
@@ -42,7 +47,7 @@ export async function testBackendConnection(): Promise<boolean> {
     console.error('❌ Código:', error.code)
     console.error('❌ Mensaje:', error.message)
     console.error('❌ URL intentada:', apiClient.defaults.baseURL)
-    
+
     if (error.response) {
       console.error('⚠️  El servidor respondió pero con error:')
       console.error('   Status:', error.response.status)
@@ -50,14 +55,17 @@ export async function testBackendConnection(): Promise<boolean> {
       console.error('   Esto significa que la conexión funciona, pero hay un error en el endpoint')
       return true // Consideramos esto como conexión exitosa
     }
-    
+
     if (error.code === 'ECONNREFUSED') {
       console.error('💡 CONEXIÓN RECHAZADA')
       console.error('   El backend no está corriendo o no está escuchando en esa IP/puerto')
       console.error('   Verifica:')
       console.error('   1. Backend corriendo: cd backend && npm run start:dev')
       console.error('   2. Backend escuchando en 0.0.0.0 (no solo localhost)')
-      console.error('   3. Prueba desde terminal: curl', apiClient.defaults.baseURL + '/noticias/publicadas')
+      console.error(
+        '   3. Prueba desde terminal: curl',
+        apiClient.defaults.baseURL + '/noticias/publicadas'
+      )
     } else if (error.code === 'ENOTFOUND' || error.code === 'EAI_AGAIN') {
       console.error('💡 NO SE PUEDE RESOLVER EL HOSTNAME')
       console.error('   Verifica:')
@@ -82,9 +90,8 @@ export async function testBackendConnection(): Promise<boolean> {
       console.error('💡 ERROR DESCONOCIDO')
       console.error('   Detalles completos:', JSON.stringify(error, null, 2))
     }
-    
+
     console.error('❌ ========================================')
     return false
   }
 }
-

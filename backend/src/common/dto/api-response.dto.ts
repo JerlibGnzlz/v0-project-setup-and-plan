@@ -1,6 +1,6 @@
 /**
  * DTOs de respuesta estandarizados para la API
- * 
+ *
  * Proveen una estructura consistente para todas las respuestas
  * Facilitan el manejo de errores y datos en el frontend
  */
@@ -9,20 +9,20 @@
  * Respuesta exitosa genérica
  */
 export class ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-  timestamp: string;
+  success: boolean
+  data: T
+  message?: string
+  timestamp: string
 
   constructor(data: T, message?: string) {
-    this.success = true;
-    this.data = data;
-    this.message = message;
-    this.timestamp = new Date().toISOString();
+    this.success = true
+    this.data = data
+    this.message = message
+    this.timestamp = new Date().toISOString()
   }
 
   static ok<T>(data: T, message?: string): ApiResponse<T> {
-    return new ApiResponse(data, message);
+    return new ApiResponse(data, message)
   }
 }
 
@@ -30,16 +30,16 @@ export class ApiResponse<T> {
  * Respuesta de lista con paginación
  */
 export class PaginatedResponse<T> {
-  success: boolean;
-  data: T[];
-  meta: PaginationMeta;
-  timestamp: string;
+  success: boolean
+  data: T[]
+  meta: PaginationMeta
+  timestamp: string
 
   constructor(data: T[], meta: PaginationMeta) {
-    this.success = true;
-    this.data = data;
-    this.meta = meta;
-    this.timestamp = new Date().toISOString();
+    this.success = true
+    this.data = data
+    this.meta = meta
+    this.timestamp = new Date().toISOString()
   }
 }
 
@@ -47,20 +47,20 @@ export class PaginatedResponse<T> {
  * Metadatos de paginación
  */
 export class PaginationMeta {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+  hasNext: boolean
+  hasPrev: boolean
 
   constructor(total: number, page: number, limit: number) {
-    this.total = total;
-    this.page = page;
-    this.limit = limit;
-    this.totalPages = Math.ceil(total / limit);
-    this.hasNext = page < this.totalPages;
-    this.hasPrev = page > 1;
+    this.total = total
+    this.page = page
+    this.limit = limit
+    this.totalPages = Math.ceil(total / limit)
+    this.hasNext = page < this.totalPages
+    this.hasPrev = page > 1
   }
 }
 
@@ -68,24 +68,19 @@ export class PaginationMeta {
  * Respuesta de error
  */
 export class ErrorResponse {
-  success: boolean;
-  error: ErrorDetail;
-  timestamp: string;
+  success: boolean
+  error: ErrorDetail
+  timestamp: string
 
-  constructor(
-    message: string,
-    statusCode: number,
-    error?: string,
-    details?: any
-  ) {
-    this.success = false;
+  constructor(message: string, statusCode: number, error?: string, details?: unknown) {
+    this.success = false
     this.error = {
       message,
       statusCode,
       error: error || 'Error',
       details,
-    };
-    this.timestamp = new Date().toISOString();
+    }
+    this.timestamp = new Date().toISOString()
   }
 }
 
@@ -93,10 +88,10 @@ export class ErrorResponse {
  * Detalle del error
  */
 export interface ErrorDetail {
-  message: string;
-  statusCode: number;
-  error: string;
-  details?: any;
+  message: string
+  statusCode: number
+  error: string
+  details?: unknown
 }
 
 /**
@@ -104,7 +99,7 @@ export interface ErrorDetail {
  */
 export class CreatedResponse<T> extends ApiResponse<T> {
   constructor(data: T, entityName: string) {
-    super(data, `${entityName} creado exitosamente`);
+    super(data, `${entityName} creado exitosamente`)
   }
 }
 
@@ -113,7 +108,7 @@ export class CreatedResponse<T> extends ApiResponse<T> {
  */
 export class UpdatedResponse<T> extends ApiResponse<T> {
   constructor(data: T, entityName: string) {
-    super(data, `${entityName} actualizado exitosamente`);
+    super(data, `${entityName} actualizado exitosamente`)
   }
 }
 
@@ -122,7 +117,7 @@ export class UpdatedResponse<T> extends ApiResponse<T> {
  */
 export class DeletedResponse<T> extends ApiResponse<T> {
   constructor(data: T, entityName: string) {
-    super(data, `${entityName} eliminado exitosamente`);
+    super(data, `${entityName} eliminado exitosamente`)
   }
 }
 
@@ -130,14 +125,14 @@ export class DeletedResponse<T> extends ApiResponse<T> {
  * Respuesta vacía (para operaciones sin retorno)
  */
 export class EmptyResponse {
-  success: boolean;
-  message: string;
-  timestamp: string;
+  success: boolean
+  message: string
+  timestamp: string
 
   constructor(message: string = 'Operación completada') {
-    this.success = true;
-    this.message = message;
-    this.timestamp = new Date().toISOString();
+    this.success = true
+    this.message = message
+    this.timestamp = new Date().toISOString()
   }
 }
 
@@ -146,12 +141,7 @@ export class EmptyResponse {
  */
 export class ValidationErrorResponse extends ErrorResponse {
   constructor(errors: ValidationError[]) {
-    super(
-      'Error de validación',
-      400,
-      'Bad Request',
-      { validationErrors: errors }
-    );
+    super('Error de validación', 400, 'Bad Request', { validationErrors: errors })
   }
 }
 
@@ -159,9 +149,9 @@ export class ValidationErrorResponse extends ErrorResponse {
  * Error de validación individual
  */
 export interface ValidationError {
-  field: string;
-  message: string;
-  value?: any;
+  field: string
+  message: string
+  value?: unknown
 }
 
 /**
@@ -173,11 +163,9 @@ export const ApiResponses = {
   updated: <T>(data: T, entityName: string) => new UpdatedResponse(data, entityName),
   deleted: <T>(data: T, entityName: string) => new DeletedResponse(data, entityName),
   empty: (message?: string) => new EmptyResponse(message),
-  error: (message: string, statusCode: number, error?: string, details?: any) =>
+  error: (message: string, statusCode: number, error?: string, details?: unknown) =>
     new ErrorResponse(message, statusCode, error, details),
   validationError: (errors: ValidationError[]) => new ValidationErrorResponse(errors),
   paginated: <T>(data: T[], total: number, page: number, limit: number) =>
     new PaginatedResponse(data, new PaginationMeta(total, page, limit)),
-};
-
-
+}

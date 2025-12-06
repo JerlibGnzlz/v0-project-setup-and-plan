@@ -1,10 +1,10 @@
-import { Injectable, BadRequestException } from "@nestjs/common"
-import { cloudinary } from "./cloudinary.config"
-import { FileValidatorService } from "./file-validator.service"
-import * as streamifier from "streamifier"
-import * as fs from "fs"
-import * as path from "path"
-import type { Express } from "express"
+import { Injectable, BadRequestException } from '@nestjs/common'
+import { cloudinary } from './cloudinary.config'
+import { FileValidatorService } from './file-validator.service'
+import * as streamifier from 'streamifier'
+import * as fs from 'fs'
+import * as path from 'path'
+import type { Express } from 'express'
 
 export interface UploadResult {
   url: string
@@ -23,7 +23,7 @@ export class UploadService {
     )
   }
 
-  async uploadImage(file: Express.Multer.File, folder = "ministerio-amva"): Promise<UploadResult> {
+  async uploadImage(file: Express.Multer.File, folder = 'ministerio-amva'): Promise<UploadResult> {
     // Validación avanzada usando FileValidatorService
     await this.fileValidator.validateImage(file, {
       maxSize: 5 * 1024 * 1024, // 5MB
@@ -42,7 +42,7 @@ export class UploadService {
       try {
         return await this.uploadToCloudinary(file, folder)
       } catch (error) {
-        console.log("⚠️ Cloudinary falló, usando guardado local como fallback")
+        console.log('⚠️ Cloudinary falló, usando guardado local como fallback')
         return this.uploadLocally(file, folder)
       }
     }
@@ -51,20 +51,27 @@ export class UploadService {
     return this.uploadLocally(file, folder)
   }
 
-  private async uploadToCloudinary(file: Express.Multer.File, folder: string): Promise<UploadResult> {
+  private async uploadToCloudinary(
+    file: Express.Multer.File,
+    folder: string
+  ): Promise<UploadResult> {
     console.log(`☁️ Subiendo a Cloudinary: ${file.originalname} (${file.size} bytes) -> ${folder}`)
 
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder,
-          resource_type: "image",
-          transformation: [{ width: 800, height: 800, crop: "limit" }, { quality: "auto" }, { format: "webp" }],
+          resource_type: 'image',
+          transformation: [
+            { width: 800, height: 800, crop: 'limit' },
+            { quality: 'auto' },
+            { format: 'webp' },
+          ],
         },
         (error, result) => {
           if (error) {
-            console.error("❌ Error de Cloudinary:", error)
-            reject(new BadRequestException("Error al subir imagen a Cloudinary: " + error.message))
+            console.error('❌ Error de Cloudinary:', error)
+            reject(new BadRequestException('Error al subir imagen a Cloudinary: ' + error.message))
           } else if (result) {
             console.log(`✅ Imagen subida a Cloudinary: ${result.secure_url}`)
             resolve({
@@ -72,9 +79,9 @@ export class UploadService {
               publicId: result.public_id,
             })
           } else {
-            reject(new BadRequestException("No se recibió respuesta de Cloudinary"))
+            reject(new BadRequestException('No se recibió respuesta de Cloudinary'))
           }
-        },
+        }
       )
 
       streamifier.createReadStream(file.buffer).pipe(uploadStream)
@@ -83,13 +90,13 @@ export class UploadService {
 
   private async uploadLocally(file: Express.Multer.File, folder: string): Promise<UploadResult> {
     // Crear directorio de uploads si no existe
-    const uploadDir = path.join(process.cwd(), "uploads", folder)
+    const uploadDir = path.join(process.cwd(), 'uploads', folder)
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true })
     }
 
     // Generar nombre único
-    const ext = path.extname(file.originalname) || ".jpg"
+    const ext = path.extname(file.originalname) || '.jpg'
     const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`
     const filepath = path.join(uploadDir, filename)
 
@@ -108,7 +115,7 @@ export class UploadService {
 
   async uploadVideo(
     file: Express.Multer.File,
-    folder = "ministerio-amva/videos",
+    folder = 'ministerio-amva/videos',
     trimOptions?: { startTime: number; endTime: number }
   ): Promise<UploadResult> {
     // Validación avanzada usando FileValidatorService
@@ -125,7 +132,7 @@ export class UploadService {
       try {
         return await this.uploadVideoToCloudinary(file, folder, trimOptions)
       } catch (error) {
-        console.log("⚠️ Cloudinary falló, usando guardado local como fallback")
+        console.log('⚠️ Cloudinary falló, usando guardado local como fallback')
         return this.uploadVideoLocally(file, folder)
       }
     }
@@ -139,12 +146,15 @@ export class UploadService {
     folder: string,
     trimOptions?: { startTime: number; endTime: number }
   ): Promise<UploadResult> {
-    const hasTrim = trimOptions && trimOptions.startTime !== undefined && trimOptions.endTime !== undefined
+    const hasTrim =
+      trimOptions && trimOptions.startTime !== undefined && trimOptions.endTime !== undefined
 
     if (hasTrim) {
       console.log(`✂️ Recortando video: ${trimOptions.startTime}s - ${trimOptions.endTime}s`)
     }
-    console.log(`☁️ Subiendo video a Cloudinary: ${file.originalname} (${file.size} bytes) -> ${folder}`)
+    console.log(
+      `☁️ Subiendo video a Cloudinary: ${file.originalname} (${file.size} bytes) -> ${folder}`
+    )
 
     return new Promise((resolve, reject) => {
       // Construir transformaciones
@@ -159,29 +169,28 @@ export class UploadService {
       }
 
       // Agregar optimizaciones
-      transformations.push(
-        { quality: "auto" },
-        { format: "mp4" }
-      )
+      transformations.push({ quality: 'auto' }, { format: 'mp4' })
 
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder,
-          resource_type: "video",
-          eager: hasTrim ? [
-            {
-              start_offset: trimOptions.startTime.toFixed(1),
-              end_offset: trimOptions.endTime.toFixed(1),
-              quality: "auto",
-              format: "mp4"
-            }
-          ] : undefined,
+          resource_type: 'video',
+          eager: hasTrim
+            ? [
+                {
+                  start_offset: trimOptions.startTime.toFixed(1),
+                  end_offset: trimOptions.endTime.toFixed(1),
+                  quality: 'auto',
+                  format: 'mp4',
+                },
+              ]
+            : undefined,
           eager_async: false, // Esperar a que se procese el recorte
         },
         (error, result) => {
           if (error) {
-            console.error("❌ Error de Cloudinary:", error)
-            reject(new BadRequestException("Error al subir video a Cloudinary: " + error.message))
+            console.error('❌ Error de Cloudinary:', error)
+            reject(new BadRequestException('Error al subir video a Cloudinary: ' + error.message))
           } else if (result) {
             // Si hay recorte, usar la URL del video procesado (eager)
             let finalUrl = result.secure_url
@@ -206,24 +215,27 @@ export class UploadService {
               publicId: result.public_id,
             })
           } else {
-            reject(new BadRequestException("No se recibió respuesta de Cloudinary"))
+            reject(new BadRequestException('No se recibió respuesta de Cloudinary'))
           }
-        },
+        }
       )
 
       streamifier.createReadStream(file.buffer).pipe(uploadStream)
     })
   }
 
-  private async uploadVideoLocally(file: Express.Multer.File, folder: string): Promise<UploadResult> {
+  private async uploadVideoLocally(
+    file: Express.Multer.File,
+    folder: string
+  ): Promise<UploadResult> {
     // Crear directorio de uploads si no existe
-    const uploadDir = path.join(process.cwd(), "uploads", folder)
+    const uploadDir = path.join(process.cwd(), 'uploads', folder)
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true })
     }
 
     // Generar nombre único
-    const ext = path.extname(file.originalname) || ".mp4"
+    const ext = path.extname(file.originalname) || '.mp4'
     const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`
     const filepath = path.join(uploadDir, filename)
 
@@ -245,11 +257,11 @@ export class UploadService {
       try {
         await cloudinary.uploader.destroy(publicId)
       } catch (error) {
-        console.error("Error al eliminar imagen de Cloudinary:", error)
+        console.error('Error al eliminar imagen de Cloudinary:', error)
       }
     } else {
       // Eliminar archivo local
-      const filepath = path.join(process.cwd(), "uploads", publicId)
+      const filepath = path.join(process.cwd(), 'uploads', publicId)
       if (fs.existsSync(filepath)) {
         fs.unlinkSync(filepath)
         console.log(`🗑️ Imagen eliminada: ${filepath}`)

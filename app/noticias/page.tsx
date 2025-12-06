@@ -3,18 +3,18 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { 
-  Newspaper, 
-  Calendar, 
-  ArrowLeft, 
-  ArrowRight, 
-  Search, 
+import {
+  Newspaper,
+  Calendar,
+  ArrowLeft,
+  ArrowRight,
+  Search,
   Filter,
   Eye,
   User,
   Star,
   Loader2,
-  X
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -40,11 +40,18 @@ function formatDate(dateString: string | null): string {
   }
 }
 
-const categorias: CategoriaNoticia[] = ['ANUNCIO', 'EVENTO', 'ACTIVIDAD', 'OPORTUNIDADES', 'CAPACITACION', 'COMUNICADO']
+const categorias: CategoriaNoticia[] = [
+  'ANUNCIO',
+  'EVENTO',
+  'ACTIVIDAD',
+  'OPORTUNIDADES',
+  'CAPACITACION',
+  'COMUNICADO',
+]
 
 function NewsCard({ noticia }: { noticia: Noticia }) {
   return (
-    <Link 
+    <Link
       href={`/noticias/${noticia.slug}`}
       className="group block bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300"
     >
@@ -62,12 +69,14 @@ function NewsCard({ noticia }: { noticia: Noticia }) {
             <Newspaper className="w-12 h-12 text-white/20" />
           </div>
         )}
-        
+
         {/* Category badge */}
-        <div className={cn(
-          "absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-medium border",
-          categoriaColors[noticia.categoria]
-        )}>
+        <div
+          className={cn(
+            'absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-medium border',
+            categoriaColors[noticia.categoria]
+          )}
+        >
           {categoriaLabels[noticia.categoria]}
         </div>
 
@@ -83,11 +92,9 @@ function NewsCard({ noticia }: { noticia: Noticia }) {
         <h3 className="text-lg font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors line-clamp-2">
           {noticia.titulo}
         </h3>
-        
+
         {noticia.extracto && (
-          <p className="text-white/60 text-sm mb-4 line-clamp-3">
-            {noticia.extracto}
-          </p>
+          <p className="text-white/60 text-sm mb-4 line-clamp-3">{noticia.extracto}</p>
         )}
 
         <div className="flex flex-wrap items-center gap-3 text-white/50 text-xs">
@@ -118,8 +125,8 @@ function NoticiasContent() {
   const [selectedCategoria, setSelectedCategoria] = useState<CategoriaNoticia | null>(null)
   const { data: noticias = [], isLoading } = useNoticiasPublicadas()
 
-  const filteredNoticias = noticias.filter((noticia) => {
-    const matchesSearch = 
+  const filteredNoticias = noticias.filter(noticia => {
+    const matchesSearch =
       noticia.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
       noticia.extracto?.toLowerCase().includes(searchQuery.toLowerCase())
 
@@ -137,8 +144,8 @@ function NoticiasContent() {
       <header className="sticky top-0 z-50 bg-[#0a1628]/80 backdrop-blur-xl border-b border-white/10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link 
-              href={typeof window !== 'undefined' ? getReturnUrl() : '/#noticias'} 
+            <Link
+              href={typeof window !== 'undefined' ? getReturnUrl() : '/#noticias'}
               className="flex items-center gap-2 text-white hover:text-emerald-400 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -164,7 +171,8 @@ function NoticiasContent() {
             </span>
           </h1>
           <p className="text-lg text-white/60 max-w-2xl mx-auto">
-            Mantente informado sobre los últimos acontecimientos, eventos y anuncios de nuestra comunidad
+            Mantente informado sobre los últimos acontecimientos, eventos y anuncios de nuestra
+            comunidad
           </p>
         </div>
 
@@ -176,7 +184,7 @@ function NoticiasContent() {
             <Input
               placeholder="Buscar noticias..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-12 bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-emerald-500/50"
             />
             {searchQuery && (
@@ -196,25 +204,25 @@ function NoticiasContent() {
               size="sm"
               onClick={() => setSelectedCategoria(null)}
               className={cn(
-                "rounded-full border transition-all",
-                !selectedCategoria 
-                  ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400" 
-                  : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                'rounded-full border transition-all',
+                !selectedCategoria
+                  ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+                  : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
               )}
             >
               Todas
             </Button>
-            {categorias.map((cat) => (
+            {categorias.map(cat => (
               <Button
                 key={cat}
                 variant="ghost"
                 size="sm"
                 onClick={() => setSelectedCategoria(selectedCategoria === cat ? null : cat)}
                 className={cn(
-                  "rounded-full border transition-all",
-                  selectedCategoria === cat 
+                  'rounded-full border transition-all',
+                  selectedCategoria === cat
                     ? categoriaColors[cat]
-                    : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                    : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
                 )}
               >
                 {categoriaLabels[cat]}
@@ -255,7 +263,7 @@ function NoticiasContent() {
                   Destacadas
                 </h2>
                 <div className="grid md:grid-cols-2 gap-6">
-                  {destacadas.slice(0, 2).map((noticia) => (
+                  {destacadas.slice(0, 2).map(noticia => (
                     <NewsCard key={noticia.id} noticia={noticia} />
                   ))}
                 </div>
@@ -268,7 +276,7 @@ function NoticiasContent() {
                 {destacadas.length > 0 ? 'Más Noticias' : 'Todas las Noticias'}
               </h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {regulares.map((noticia) => (
+                {regulares.map(noticia => (
                   <NewsCard key={noticia.id} noticia={noticia} />
                 ))}
               </div>
@@ -280,8 +288,8 @@ function NoticiasContent() {
       {/* Footer */}
       <footer className="border-t border-white/10 py-8 mt-12">
         <div className="container mx-auto px-4 text-center">
-          <Link 
-            href={typeof window !== 'undefined' ? getReturnUrl() : '/#noticias'} 
+          <Link
+            href={typeof window !== 'undefined' ? getReturnUrl() : '/#noticias'}
             className="text-white/60 hover:text-emerald-400 transition-colors inline-flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />

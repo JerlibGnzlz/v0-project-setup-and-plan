@@ -15,7 +15,7 @@ export function ImageWithSkeleton({ src, alt, className = '' }: ImageWithSkeleto
 
   // Handle localhost URLs in production - show placeholder
   const isLocalUrl = src?.includes('localhost:')
-  const effectiveSrc = isLocalUrl ? '/placeholder.svg' : (src || '/placeholder.svg')
+  const effectiveSrc = isLocalUrl ? '/placeholder.svg' : src || '/placeholder.svg'
 
   if (hasError || isLocalUrl) {
     return (
@@ -30,9 +30,7 @@ export function ImageWithSkeleton({ src, alt, className = '' }: ImageWithSkeleto
 
   return (
     <div className="relative w-full h-full">
-      {isLoading && (
-        <div className="absolute inset-0 bg-muted animate-pulse" />
-      )}
+      {isLoading && <div className="absolute inset-0 bg-muted animate-pulse" />}
       <img
         src={effectiveSrc}
         alt={alt}

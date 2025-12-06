@@ -2,21 +2,35 @@
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, MapPin, Loader2, Ticket, Sparkles, Bell, PartyPopper, Clock, Star } from 'lucide-react'
+import {
+  Calendar,
+  MapPin,
+  Loader2,
+  Ticket,
+  Sparkles,
+  Bell,
+  PartyPopper,
+  Clock,
+  Star,
+} from 'lucide-react'
 import { CountdownTimer } from './countdown-timer'
 import { useConvencionActiva } from '@/lib/hooks/use-convencion'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 
 // Decorative corner component for invitation
-function DecorativeCorner({ position }: { position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' }) {
+function DecorativeCorner({
+  position,
+}: {
+  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+}) {
   const rotations = {
     'top-left': 'rotate-0',
     'top-right': 'rotate-90',
     'bottom-right': 'rotate-180',
     'bottom-left': '-rotate-90',
   }
-  
+
   const positions = {
     'top-left': 'top-0 left-0',
     'top-right': 'top-0 right-0',
@@ -25,17 +39,15 @@ function DecorativeCorner({ position }: { position: 'top-left' | 'top-right' | '
   }
 
   return (
-    <div className={`absolute ${positions[position]} w-12 h-12 sm:w-14 sm:h-14 ${rotations[position]}`}>
+    <div
+      className={`absolute ${positions[position]} w-12 h-12 sm:w-14 sm:h-14 ${rotations[position]}`}
+    >
       <svg viewBox="0 0 100 100" className="w-full h-full text-amber-500/60">
         <path
           d="M0,0 L30,0 C20,0 10,10 10,20 L10,30 C10,15 15,10 30,10 L40,10 C25,10 20,15 20,30 L20,40 L0,40 Z"
           fill="currentColor"
         />
-        <path
-          d="M0,0 L0,30 L3,30 L3,3 L30,3 L30,0 Z"
-          fill="currentColor"
-          opacity="0.5"
-        />
+        <path d="M0,0 L0,30 L3,30 L3,3 L30,3 L30,0 Z" fill="currentColor" opacity="0.5" />
       </svg>
     </div>
   )
@@ -76,8 +88,9 @@ function ComingSoonAnnouncement() {
   return (
     <section
       id="convenciones"
-      className={`relative py-24 overflow-hidden transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`}
+      className={`relative py-24 overflow-hidden transition-all duration-700 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
     >
       {/* Background con efecto especial */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0d1f35] via-[#0a1628] to-[#0d1f35]">
@@ -129,7 +142,10 @@ function ComingSoonAnnouncement() {
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500 rounded-full blur-xl opacity-30 animate-pulse" />
             <div className="relative p-6 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
-              <PartyPopper className="w-12 h-12 text-amber-400 animate-bounce" style={{ animationDuration: '2s' }} />
+              <PartyPopper
+                className="w-12 h-12 text-amber-400 animate-bounce"
+                style={{ animationDuration: '2s' }}
+              />
             </div>
           </div>
         </div>
@@ -174,7 +190,8 @@ function ComingSoonAnnouncement() {
                 </div>
 
                 <p className="text-white/50 mb-6">
-                  Estamos definiendo la fecha, ubicación y todos los detalles de nuestra próxima convención.
+                  Estamos definiendo la fecha, ubicación y todos los detalles de nuestra próxima
+                  convención.
                 </p>
 
                 <div className="flex flex-col gap-3">
@@ -208,24 +225,24 @@ function ComingSoonAnnouncement() {
 }
 
 // Horizontal Invitation Card Component - Premium Design
-function HorizontalInvitationCard({ 
-  convencion, 
-  fechaFormateada 
-}: { 
+function HorizontalInvitationCard({
+  convencion,
+  fechaFormateada,
+}: {
   convencion: any
-  fechaFormateada: string 
+  fechaFormateada: string
 }) {
   return (
     <div className="relative group h-full">
       {/* Multi-layer glow effects */}
       <div className="absolute -inset-3 bg-gradient-to-r from-amber-500/30 via-yellow-400/20 to-amber-500/30 rounded-3xl blur-2xl opacity-60 group-hover:opacity-90 transition-opacity duration-700 animate-pulse" />
       <div className="absolute -inset-1 bg-gradient-to-br from-amber-400/20 via-orange-500/15 to-amber-400/20 rounded-2xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity duration-500" />
-      
+
       {/* Card shadow with depth */}
       <div className="absolute inset-0 translate-y-3 translate-x-2 bg-gradient-to-br from-black/40 to-amber-900/20 rounded-2xl blur-xl" />
-      
+
       {/* Main invitation card - Premium design */}
-      <div 
+      <div
         className="relative h-full rounded-2xl overflow-hidden transform transition-all duration-500 group-hover:scale-[1.02] group-hover:shadow-2xl group-hover:shadow-amber-500/30"
         style={{
           background: 'linear-gradient(165deg, #1e293b 0%, #0f172a 30%, #1e293b 70%, #0f172a 100%)',
@@ -239,25 +256,26 @@ function HorizontalInvitationCard({
       >
         {/* Animated gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-orange-500/10 opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
-        
+
         {/* Texture overlay - premium paper effect */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grain' width='100' height='100' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='25' cy='25' r='1' fill='%23fff' opacity='0.3'/%3E%3Ccircle cx='75' cy='75' r='1' fill='%23fff' opacity='0.3'/%3E%3Ccircle cx='50' cy='10' r='0.5' fill='%23fff' opacity='0.2'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23grain)'/%3E%3C/svg%3E")`,
             backgroundSize: '100px 100px',
           }}
         />
-        
+
         {/* Decorative corners - enhanced */}
         <DecorativeCorner position="top-left" />
         <DecorativeCorner position="top-right" />
         <DecorativeCorner position="bottom-left" />
         <DecorativeCorner position="bottom-right" />
-        
+
         {/* Premium border frame with gradient */}
         <div className="absolute inset-2 rounded-xl pointer-events-none overflow-hidden">
-          <div className="absolute inset-0 border-2 border-transparent bg-gradient-to-r from-amber-500/40 via-yellow-400/30 to-amber-500/40 rounded-xl" 
+          <div
+            className="absolute inset-0 border-2 border-transparent bg-gradient-to-r from-amber-500/40 via-yellow-400/30 to-amber-500/40 rounded-xl"
             style={{
               maskImage: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
               maskComposite: 'exclude',
@@ -265,10 +283,10 @@ function HorizontalInvitationCard({
             }}
           />
         </div>
-        
+
         {/* Ornamental top border */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
-        
+
         {/* Content */}
         <div className="relative p-6 sm:p-8 h-full flex flex-col">
           {/* Header with logo - Premium */}
@@ -278,7 +296,7 @@ function HorizontalInvitationCard({
               {/* Outer glow rings */}
               <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/30 via-yellow-400/20 to-amber-500/30 rounded-full blur-xl animate-pulse" />
               <div className="absolute -inset-2 bg-gradient-to-r from-amber-500/20 via-yellow-400/15 to-amber-500/20 rounded-full blur-md" />
-              
+
               {/* Main seal */}
               <div className="relative w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-amber-500/30 via-amber-600/20 to-amber-700/10 border-2 border-amber-500/50 flex items-center justify-center shadow-lg shadow-amber-500/20">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 to-transparent" />
@@ -290,11 +308,11 @@ function HorizontalInvitationCard({
                   className="object-contain relative z-10 drop-shadow-lg"
                 />
               </div>
-              
+
               {/* Decorative rings */}
               <div className="absolute -inset-1 border border-amber-500/20 rounded-full" />
             </div>
-            
+
             {/* Organization name - Premium typography */}
             <div className="space-y-1">
               <p className="text-amber-300/90 text-xs tracking-[0.3em] uppercase font-bold letter-spacing-wider">
@@ -324,15 +342,16 @@ function HorizontalInvitationCard({
 
           {/* Event title - Premium */}
           <div className="text-center mb-4 flex-shrink-0">
-            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight" 
-              style={{ 
+            <h3
+              className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight"
+              style={{
                 fontFamily: 'Georgia, serif',
                 textShadow: '0 2px 8px rgba(0,0,0,0.3)',
               }}
             >
               {convencion.titulo}
             </h3>
-            
+
             {/* Premium Badge */}
             <Badge className="bg-gradient-to-r from-amber-500/30 via-yellow-500/25 to-orange-500/30 text-amber-200 border border-amber-400/40 px-3 py-1 text-xs font-semibold shadow-lg shadow-amber-500/20 backdrop-blur-sm">
               <Ticket className="w-3 h-3 mr-1.5" />
@@ -356,17 +375,23 @@ function HorizontalInvitationCard({
               <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30">
                 <Calendar className="w-5 h-5 text-amber-300" />
               </div>
-              <span className="text-sm text-white/90 font-medium flex-1" style={{ fontFamily: 'Georgia, serif' }}>
+              <span
+                className="text-sm text-white/90 font-medium flex-1"
+                style={{ fontFamily: 'Georgia, serif' }}
+              >
                 {fechaFormateada}
               </span>
             </div>
-            
+
             {/* Location - Enhanced */}
             <div className="flex items-center gap-3 justify-center p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
               <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30">
                 <MapPin className="w-5 h-5 text-amber-300" />
               </div>
-              <span className="text-sm text-white/90 font-medium flex-1" style={{ fontFamily: 'Georgia, serif' }}>
+              <span
+                className="text-sm text-white/90 font-medium flex-1"
+                style={{ fontFamily: 'Georgia, serif' }}
+              >
                 {convencion.ubicacion}
               </span>
             </div>
@@ -374,7 +399,9 @@ function HorizontalInvitationCard({
             {/* Price - Premium display */}
             {convencion.costo && Number(convencion.costo) > 0 && (
               <div className="text-center pt-3 mt-3 border-t border-amber-500/30">
-                <p className="text-amber-400/60 text-[10px] tracking-[0.2em] uppercase font-semibold mb-2">Inversión</p>
+                <p className="text-amber-400/60 text-[10px] tracking-[0.2em] uppercase font-semibold mb-2">
+                  Inversión
+                </p>
                 <div className="relative inline-block">
                   <div className="absolute -inset-2 bg-gradient-to-r from-amber-500/20 via-yellow-400/15 to-amber-500/20 rounded-lg blur-md" />
                   <div className="relative text-2xl font-bold bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 bg-clip-text text-transparent">
@@ -392,14 +419,14 @@ function HorizontalInvitationCard({
             onClick={() => {
               // Detectar si es dispositivo móvil para deep linking
               const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-              
+
               if (isMobile) {
                 // Intentar abrir la app móvil con deep link
                 const deepLink = `amva-app://convencion/${convencion.id}/inscripcion`
-                
+
                 // Intentar abrir la app
                 window.location.href = deepLink
-                
+
                 // Si después de 1 segundo no se abrió la app, redirigir a página de inscripción
                 setTimeout(() => {
                   window.location.href = '/convencion/inscripcion'
@@ -430,12 +457,12 @@ function HorizontalInvitationCard({
 
         {/* Premium shine effect on hover */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none overflow-hidden rounded-2xl">
-          <div 
+          <div
             className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
             style={{ transform: 'skewX(-25deg)' }}
           />
         </div>
-        
+
         {/* Animated border glow */}
         <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
           <div className="absolute inset-0 rounded-2xl border-2 border-amber-400/30 animate-pulse" />
@@ -483,14 +510,15 @@ export function ConventionsSection() {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
-    year: 'numeric'
+    year: 'numeric',
   })
 
   return (
     <section
       id="convenciones"
-      className={`relative py-16 sm:py-20 lg:py-24 overflow-hidden transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`}
+      className={`relative py-16 sm:py-20 lg:py-24 overflow-hidden transition-all duration-700 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
     >
       {/* Background */}
       <div className="absolute inset-0 bg-[#0d1f35]">
@@ -547,19 +575,13 @@ export function ConventionsSection() {
           {/* Countdown Section */}
           <div className="lg:col-span-7 flex flex-col">
             <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 p-6 sm:p-8 flex-grow flex flex-col justify-center">
-              <CountdownTimer
-                targetDate={fechaConvencion}
-                title={convencion.titulo}
-              />
+              <CountdownTimer targetDate={fechaConvencion} title={convencion.titulo} />
             </div>
           </div>
 
           {/* Invitation Card */}
           <div className="lg:col-span-5">
-            <HorizontalInvitationCard 
-              convencion={convencion} 
-              fechaFormateada={fechaFormateada}
-            />
+            <HorizontalInvitationCard convencion={convencion} fechaFormateada={fechaFormateada} />
           </div>
         </div>
       </div>

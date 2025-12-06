@@ -7,28 +7,24 @@ export function ProfileScreen() {
   const { pastor, logout } = useAuth()
 
   const handleLogout = () => {
-    Alert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro de que deseas cerrar sesión?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
+    Alert.alert('Cerrar Sesión', '¿Estás seguro de que deseas cerrar sesión?', [
+      {
+        text: 'Cancelar',
+        style: 'cancel',
+      },
+      {
+        text: 'Cerrar Sesión',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logout()
+          } catch (error) {
+            console.error('Error al cerrar sesión:', error)
+            Alert.alert('Error', 'No se pudo cerrar sesión. Intenta nuevamente.')
+          }
         },
-        {
-          text: 'Cerrar Sesión',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout()
-            } catch (error) {
-              console.error('Error al cerrar sesión:', error)
-              Alert.alert('Error', 'No se pudo cerrar sesión. Intenta nuevamente.')
-            }
-          },
-        },
-      ]
-    )
+      },
+    ])
   }
 
   if (!pastor) {
@@ -43,70 +39,70 @@ export function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <View style={styles.logoGlow} />
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>🌍</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoGlow} />
+            <View style={styles.logoCircle}>
+              <Text style={styles.logoText}>🌍</Text>
+            </View>
           </View>
-        </View>
-        <Text style={styles.title}>AMVA Go</Text>
-        <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
-      </View>
-
-      {/* Profile Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Mi Perfil</Text>
-        
-        <View style={styles.profileSection}>
-          <Text style={styles.label}>👤 Nombre Completo</Text>
-          <Text style={styles.value}>
-            {pastor.nombre} {pastor.apellido}
-          </Text>
+          <Text style={styles.title}>AMVA Go</Text>
+          <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
         </View>
 
-        <View style={styles.profileSection}>
-          <Text style={styles.label}>📧 Correo Electrónico</Text>
-          <Text style={styles.value}>{pastor.email}</Text>
-        </View>
+        {/* Profile Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Mi Perfil</Text>
 
-        {pastor.cargo && (
           <View style={styles.profileSection}>
-            <Text style={styles.label}>💼 Cargo</Text>
-            <Text style={styles.value}>{pastor.cargo}</Text>
-          </View>
-        )}
-
-        {pastor.ministerio && (
-          <View style={styles.profileSection}>
-            <Text style={styles.label}>⛪ Ministerio</Text>
-            <Text style={styles.value}>{pastor.ministerio}</Text>
-          </View>
-        )}
-
-        {(pastor.sede || pastor.region || pastor.pais) && (
-          <View style={styles.profileSection}>
-            <Text style={styles.label}>📍 Ubicación</Text>
+            <Text style={styles.label}>👤 Nombre Completo</Text>
             <Text style={styles.value}>
-              {[pastor.sede, pastor.region, pastor.pais].filter(Boolean).join(', ')}
+              {pastor.nombre} {pastor.apellido}
             </Text>
           </View>
-        )}
 
-        {pastor.tipo && (
           <View style={styles.profileSection}>
-            <Text style={styles.label}>🏷️ Tipo</Text>
-            <Text style={styles.value}>{pastor.tipo}</Text>
+            <Text style={styles.label}>📧 Correo Electrónico</Text>
+            <Text style={styles.value}>{pastor.email}</Text>
           </View>
-        )}
-      </View>
 
-      {/* Logout Button */}
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>🚪 Cerrar Sesión</Text>
-      </TouchableOpacity>
-    </ScrollView>
+          {pastor.cargo && (
+            <View style={styles.profileSection}>
+              <Text style={styles.label}>💼 Cargo</Text>
+              <Text style={styles.value}>{pastor.cargo}</Text>
+            </View>
+          )}
+
+          {pastor.ministerio && (
+            <View style={styles.profileSection}>
+              <Text style={styles.label}>⛪ Ministerio</Text>
+              <Text style={styles.value}>{pastor.ministerio}</Text>
+            </View>
+          )}
+
+          {(pastor.sede || pastor.region || pastor.pais) && (
+            <View style={styles.profileSection}>
+              <Text style={styles.label}>📍 Ubicación</Text>
+              <Text style={styles.value}>
+                {[pastor.sede, pastor.region, pastor.pais].filter(Boolean).join(', ')}
+              </Text>
+            </View>
+          )}
+
+          {pastor.tipo && (
+            <View style={styles.profileSection}>
+              <Text style={styles.label}>🏷️ Tipo</Text>
+              <Text style={styles.value}>{pastor.tipo}</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>🚪 Cerrar Sesión</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   )
 }
@@ -223,5 +219,3 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 })
-
-

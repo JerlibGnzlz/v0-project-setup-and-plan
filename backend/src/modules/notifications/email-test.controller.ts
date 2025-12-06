@@ -20,7 +20,7 @@ export class EmailTestController {
         {
           type: 'test',
           message: 'Si recibes este email, la configuración está correcta ✅',
-        },
+        }
       )
 
       if (result) {
@@ -44,10 +44,3 @@ export class EmailTestController {
     }
   }
 }
-
-
-
-
-
-
-

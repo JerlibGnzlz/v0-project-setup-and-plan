@@ -1,7 +1,7 @@
-import { apiClient } from "./client"
+import { apiClient } from './client'
 
 // Tipos de pastor
-export type TipoPastor = "DIRECTIVA" | "SUPERVISOR" | "PRESIDENTE" | "PASTOR"
+export type TipoPastor = 'DIRECTIVA' | 'SUPERVISOR' | 'PRESIDENTE' | 'PASTOR'
 
 export interface Pastor {
   id: string
@@ -9,44 +9,44 @@ export interface Pastor {
   apellido: string
   email?: string
   telefono?: string
-  
+
   // Clasificación
   tipo: TipoPastor
   cargo?: string
   ministerio?: string
-  
+
   // Ubicación
   sede?: string
   region?: string
   pais?: string
-  
+
   // Contenido
   fotoUrl?: string
   biografia?: string
   trayectoria?: string
-  
+
   // Control
   orden: number
   activo: boolean
   mostrarEnLanding: boolean
-  
+
   createdAt: string
   updatedAt: string
 }
 
-export type CreatePastorData = Omit<Pastor, "id" | "createdAt" | "updatedAt">
+export type CreatePastorData = Omit<Pastor, 'id' | 'createdAt' | 'updatedAt'>
 export type UpdatePastorData = Partial<CreatePastorData>
 
 export const pastoresApi = {
   // ==========================================
   // ENDPOINTS PÚBLICOS (para landing)
   // ==========================================
-  
+
   /**
    * Obtiene pastores para mostrar en la landing page
    */
   getForLanding: async (): Promise<Pastor[]> => {
-    const response = await apiClient.get<Pastor[]>("/pastores/landing")
+    const response = await apiClient.get<Pastor[]>('/pastores/landing')
     return response.data
   },
 
@@ -54,7 +54,7 @@ export const pastoresApi = {
    * Obtiene la directiva pastoral
    */
   getDirectiva: async (): Promise<Pastor[]> => {
-    const response = await apiClient.get<Pastor[]>("/pastores/directiva")
+    const response = await apiClient.get<Pastor[]>('/pastores/directiva')
     return response.data
   },
 
@@ -62,9 +62,9 @@ export const pastoresApi = {
    * Obtiene supervisores (opcionalmente por región)
    */
   getSupervisores: async (region?: string): Promise<Pastor[]> => {
-    const url = region 
+    const url = region
       ? `/pastores/supervisores?region=${encodeURIComponent(region)}`
-      : "/pastores/supervisores"
+      : '/pastores/supervisores'
     const response = await apiClient.get<Pastor[]>(url)
     return response.data
   },
@@ -118,7 +118,7 @@ export const pastoresApi = {
         hasNextPage: boolean
         hasPreviousPage: boolean
       }
-    }>("/pastores", { params })
+    }>('/pastores', { params })
     return response.data
   },
 
@@ -128,7 +128,7 @@ export const pastoresApi = {
   },
 
   getActive: async (): Promise<Pastor[]> => {
-    const response = await apiClient.get<Pastor[]>("/pastores/active")
+    const response = await apiClient.get<Pastor[]>('/pastores/active')
     return response.data
   },
 
@@ -138,25 +138,25 @@ export const pastoresApi = {
 
   create: async (data: CreatePastorData): Promise<Pastor> => {
     try {
-      const response = await apiClient.post<Pastor>("/pastores", data)
+      const response = await apiClient.post<Pastor>('/pastores', data)
       return response.data
     } catch (error: any) {
       // Manejar error 409 (ConflictException - email duplicado)
       if (error.response?.status === 409) {
         const responseData = error.response.data
         let errorMessage = 'Ya existe un pastor con este correo electrónico.'
-        
+
         if (responseData?.error?.message) {
           errorMessage = responseData.error.message
         } else if (responseData?.message) {
           errorMessage = responseData.message
         }
-        
+
         const conflictError = new Error(errorMessage)
         ;(conflictError as any).response = error.response
         throw conflictError
       }
-      
+
       throw error
     }
   },

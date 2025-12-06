@@ -76,6 +76,7 @@ FRONTEND_URL="http://localhost:3000"
 ### Paso 3: Verificar Configuración
 
 1. **Reinicia el servidor backend**
+
    ```bash
    cd backend
    pnpm start:dev
@@ -92,16 +93,19 @@ FRONTEND_URL="http://localhost:3000"
 Cuando despliegues a producción, agrega también en Google Cloud Console:
 
 **Authorized JavaScript origins:**
+
 ```
 https://tu-dominio.com
 ```
 
 **Authorized redirect URIs:**
+
 ```
 https://tu-dominio.com/api/auth/invitado/google/callback
 ```
 
 Y actualiza `FRONTEND_URL` en producción:
+
 ```env
 FRONTEND_URL="https://tu-dominio.com"
 ```
@@ -109,14 +113,17 @@ FRONTEND_URL="https://tu-dominio.com"
 ## 🐛 Solución de Problemas
 
 ### Error: "redirect_uri_mismatch"
+
 - Verifica que la URL en `GOOGLE_CALLBACK_URL` coincida exactamente con la configurada en Google Cloud Console
 - Asegúrate de incluir el protocolo completo (`http://` o `https://`)
 
 ### Error: "invalid_client"
+
 - Verifica que `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` sean correctos
 - Asegúrate de que las credenciales sean para "Web application"
 
 ### No redirige correctamente
+
 - Verifica que `FRONTEND_URL` esté configurado correctamente
 - Asegúrate de que el frontend esté escuchando en el puerto correcto
 
@@ -131,4 +138,3 @@ FRONTEND_URL="https://tu-dominio.com"
 
 - [Google OAuth 2.0 Documentation](https://developers.google.com/identity/protocols/oauth2)
 - [Passport Google Strategy](http://www.passportjs.org/packages/passport-google-oauth20/)
-

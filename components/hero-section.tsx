@@ -52,7 +52,7 @@ export function HeroSection() {
 
   const parallaxY = scrollY * 0.4
   const opacity = Math.max(1 - scrollY / 600, 0.2)
-  
+
   // Limitar el scale para evitar deformaciones extremas
   const scaleValue = Math.min(1 + scrollY * 0.0002, 1.1)
 
@@ -184,9 +184,7 @@ export function HeroSection() {
           style={{ animationDelay: '0s' }}
         >
           <Sparkles className="w-4 h-4 text-amber-400" />
-          <span className="text-sm text-white/80 font-medium">
-            Transformando vidas desde 1995
-          </span>
+          <span className="text-sm text-white/80 font-medium">Transformando vidas desde 1995</span>
           <div className="absolute inset-0 rounded-full overflow-hidden">
             <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           </div>

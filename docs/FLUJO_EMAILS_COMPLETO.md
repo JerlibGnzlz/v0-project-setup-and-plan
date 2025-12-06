@@ -7,11 +7,13 @@
 ## 🎯 Emails que se Envían Automáticamente
 
 ### 1. 📝 Email de Inscripción Recibida
+
 **Cuándo se envía:** Al crear una inscripción desde la landing page o app móvil
 
 **Destinatario:** El usuario que se inscribió
 
 **Contenido:**
+
 - ✅ Saludo personalizado
 - ✅ Detalles de la convención (título, fechas, ubicación)
 - ✅ Costo total y número de cuotas
@@ -24,11 +26,13 @@
 ---
 
 ### 2. ✅ Email de Pago Validado (por cada cuota)
+
 **Cuándo se envía:** Cuando el admin valida un pago individual
 
 **Destinatario:** El usuario que realizó el pago
 
 **Contenido:**
+
 - ✅ Confirmación de pago validado
 - ✅ Monto pagado
 - ✅ Número de cuota (ej: "Cuota 1 de 3")
@@ -40,11 +44,13 @@
 ---
 
 ### 3. 🎉 Email de Inscripción Confirmada
+
 **Cuándo se envía:** Cuando se validan TODAS las cuotas de una inscripción
 
 **Destinatario:** El usuario que completó todos los pagos
 
 **Contenido:**
+
 - ✅ Confirmación de inscripción completa
 - ✅ Título de la convención
 - ✅ Mensaje de bienvenida
@@ -140,6 +146,7 @@ SMTP_PASSWORD=tu-app-password-de-16-caracteres
 ## 🎨 Templates de Email
 
 Todos los emails usan el mismo template HTML profesional con:
+
 - ✅ Header con logo y nombre "AMVA Digital"
 - ✅ Iconos según el tipo de notificación
 - ✅ Colores personalizados por tipo
@@ -148,6 +155,7 @@ Todos los emails usan el mismo template HTML profesional con:
 - ✅ Diseño responsive
 
 **Tipos de email:**
+
 - `inscripcion_recibida` - 📝 Azul
 - `pago_validado` - ✅ Verde
 - `inscripcion_confirmada` - 🎉 Ámbar
@@ -174,14 +182,14 @@ node test-email-simple.js
 
 ## 📊 Resumen de Emails por Flujo
 
-| Evento | Email Enviado | Destinatario |
-|--------|---------------|--------------|
-| Inscripción creada | ✅ Inscripción Recibida | Usuario |
-| Pago 1 validado | ✅ Pago Validado (1/3) | Usuario |
-| Pago 2 validado | ✅ Pago Validado (2/3) | Usuario |
-| Pago 3 validado | ✅ Pago Validado (3/3) | Usuario |
-| Todas las cuotas pagadas | 🎉 Inscripción Confirmada | Usuario |
-| Nueva inscripción | 🔔 Notificación | Admin (dashboard) |
+| Evento                   | Email Enviado             | Destinatario      |
+| ------------------------ | ------------------------- | ----------------- |
+| Inscripción creada       | ✅ Inscripción Recibida   | Usuario           |
+| Pago 1 validado          | ✅ Pago Validado (1/3)    | Usuario           |
+| Pago 2 validado          | ✅ Pago Validado (2/3)    | Usuario           |
+| Pago 3 validado          | ✅ Pago Validado (3/3)    | Usuario           |
+| Todas las cuotas pagadas | 🎉 Inscripción Confirmada | Usuario           |
+| Nueva inscripción        | 🔔 Notificación           | Admin (dashboard) |
 
 ---
 
@@ -209,5 +217,3 @@ node test-email-simple.js
 ---
 
 **Última actualización:** 30 de noviembre de 2024
-
-

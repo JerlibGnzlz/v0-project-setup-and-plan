@@ -3,19 +3,19 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { 
-  Newspaper, 
-  Calendar, 
-  ArrowRight, 
-  Star, 
-  ChevronLeft, 
+import {
+  Newspaper,
+  Calendar,
+  ArrowRight,
+  Star,
+  ChevronLeft,
   ChevronRight,
   Loader2,
   User,
   TrendingUp,
   Radio,
   Zap,
-  Eye
+  Eye,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useNoticiasPublicadas } from '@/lib/hooks/use-noticias'
@@ -47,7 +47,7 @@ function formatShortDate(dateString: string | null): string {
     const date = new Date(dateString)
     // Asegurarse de que la fecha es válida
     if (isNaN(date.getTime())) return ''
-    return format(date, "d MMM", { locale: es })
+    return format(date, 'd MMM', { locale: es })
   } catch {
     return ''
   }
@@ -74,9 +74,7 @@ function NewsTicker({ noticias }: { noticias: Noticia[] }) {
       <div className="flex animate-ticker pl-32">
         {[...noticias, ...noticias].map((noticia, i) => (
           <div key={`${noticia.id}-${i}`} className="flex items-center whitespace-nowrap">
-            <span className="text-white/90 text-sm font-medium px-4">
-              {noticia.titulo}
-            </span>
+            <span className="text-white/90 text-sm font-medium px-4">{noticia.titulo}</span>
             <span className="text-white/50 text-lg">•</span>
           </div>
         ))}
@@ -91,7 +89,7 @@ function NewsTicker({ noticias }: { noticias: Noticia[] }) {
 // Noticia Principal Hero
 function MainNewsHero({ noticia }: { noticia: Noticia }) {
   return (
-    <Link 
+    <Link
       href={`/noticias/${noticia.slug}`}
       className="group relative block overflow-hidden rounded-2xl bg-slate-900"
     >
@@ -108,11 +106,11 @@ function MainNewsHero({ noticia }: { noticia: Noticia }) {
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600" />
         )}
-        
+
         {/* Multiple overlay gradients for depth */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-90" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent" />
-        
+
         {/* Top bar */}
         <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between">
           {/* Breaking badge */}
@@ -123,10 +121,12 @@ function MainNewsHero({ noticia }: { noticia: Noticia }) {
                 Breaking
               </div>
             )}
-            <div className={cn(
-              "px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider",
-              "bg-emerald-500/90 text-white"
-            )}>
+            <div
+              className={cn(
+                'px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider',
+                'bg-emerald-500/90 text-white'
+              )}
+            >
               {categoriaLabels[noticia.categoria]}
             </div>
           </div>
@@ -162,7 +162,7 @@ function MainNewsHero({ noticia }: { noticia: Noticia }) {
         <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 group-hover:text-emerald-400 transition-colors leading-tight">
           {noticia.titulo}
         </h3>
-        
+
         {/* Excerpt */}
         {noticia.extracto && (
           <p className="text-white/70 text-base md:text-lg mb-6 line-clamp-2 max-w-4xl">
@@ -186,26 +186,33 @@ function MainNewsHero({ noticia }: { noticia: Noticia }) {
 }
 
 // Noticia secundaria en grid
-function SecondaryNewsCard({ noticia, size = 'normal' }: { noticia: Noticia; size?: 'normal' | 'small' }) {
+function SecondaryNewsCard({
+  noticia,
+  size = 'normal',
+}: {
+  noticia: Noticia
+  size?: 'normal' | 'small'
+}) {
   const isSmall = size === 'small'
-  
+
   return (
-    <Link 
-      href={`/noticias/${noticia.slug}`}
-      className="group block h-full"
-    >
-      <div className={cn(
-        "relative h-full overflow-hidden rounded-xl transition-all duration-300",
-        "bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm",
-        "border border-white/10 hover:border-emerald-500/50",
-        "hover:shadow-2xl hover:shadow-emerald-500/10",
-        "hover:-translate-y-1"
-      )}>
+    <Link href={`/noticias/${noticia.slug}`} className="group block h-full">
+      <div
+        className={cn(
+          'relative h-full overflow-hidden rounded-xl transition-all duration-300',
+          'bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm',
+          'border border-white/10 hover:border-emerald-500/50',
+          'hover:shadow-2xl hover:shadow-emerald-500/10',
+          'hover:-translate-y-1'
+        )}
+      >
         {/* Image */}
-        <div className={cn(
-          "relative overflow-hidden bg-black/20",
-          isSmall ? "aspect-[16/10]" : "aspect-[16/9]"
-        )}>
+        <div
+          className={cn(
+            'relative overflow-hidden bg-black/20',
+            isSmall ? 'aspect-[16/10]' : 'aspect-[16/9]'
+          )}
+        >
           {noticia.imagenUrl ? (
             <Image
               src={noticia.imagenUrl}
@@ -218,16 +225,18 @@ function SecondaryNewsCard({ noticia, size = 'normal' }: { noticia: Noticia; siz
               <Newspaper className="w-12 h-12 text-white/10" />
             </div>
           )}
-          
+
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent opacity-60" />
-          
+
           {/* Category */}
           <div className="absolute top-3 left-3">
-            <span className={cn(
-              "px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider",
-              "bg-emerald-500/90 text-white"
-            )}>
+            <span
+              className={cn(
+                'px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider',
+                'bg-emerald-500/90 text-white'
+              )}
+            >
               {categoriaLabels[noticia.categoria]}
             </span>
           </div>
@@ -245,17 +254,17 @@ function SecondaryNewsCard({ noticia, size = 'normal' }: { noticia: Noticia; siz
 
         {/* Content */}
         <div className="p-4 sm:p-5">
-          <h3 className={cn(
-            "font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors line-clamp-2",
-            isSmall ? "text-sm" : "text-base sm:text-lg"
-          )}>
+          <h3
+            className={cn(
+              'font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors line-clamp-2',
+              isSmall ? 'text-sm' : 'text-base sm:text-lg'
+            )}
+          >
             {noticia.titulo}
           </h3>
-          
+
           {!isSmall && noticia.extracto && (
-            <p className="text-white/50 text-sm mb-4 line-clamp-2">
-              {noticia.extracto}
-            </p>
+            <p className="text-white/50 text-sm mb-4 line-clamp-2">{noticia.extracto}</p>
           )}
 
           {/* Footer */}
@@ -283,7 +292,7 @@ function SideNewsList({ noticias }: { noticias: Noticia[] }) {
   return (
     <div className="space-y-1">
       {noticias.map((noticia, index) => (
-        <Link 
+        <Link
           key={noticia.id}
           href={`/noticias/${noticia.slug}`}
           className="group flex gap-4 p-3 rounded-lg hover:bg-white/5 transition-colors"
@@ -295,10 +304,12 @@ function SideNewsList({ noticias }: { noticias: Noticia[] }) {
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <span className={cn(
-              "text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
-              "bg-emerald-500/20 text-emerald-400"
-            )}>
+            <span
+              className={cn(
+                'text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded',
+                'bg-emerald-500/20 text-emerald-400'
+              )}
+            >
               {categoriaLabels[noticia.categoria]}
             </span>
             <h4 className="text-white text-sm font-medium mt-1.5 group-hover:text-emerald-400 transition-colors line-clamp-2">
@@ -322,7 +333,9 @@ export function NewsSection() {
   // Separar noticias
   const destacada = noticias.find(n => n.destacado) || noticias[0]
   const secundarias = noticias.filter(n => n.id !== destacada?.id).slice(0, 3)
-  const laterales = noticias.filter(n => n.id !== destacada?.id && !secundarias.find(s => s.id === n.id)).slice(0, 5)
+  const laterales = noticias
+    .filter(n => n.id !== destacada?.id && !secundarias.find(s => s.id === n.id))
+    .slice(0, 5)
 
   if (isLoading) {
     return (
@@ -358,7 +371,7 @@ export function NewsSection() {
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
                 <span className="text-sm text-emerald-400 font-medium">Noticias</span>
               </div>
-              
+
               {/* Title */}
               <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3">
                 Noticias y{' '}
@@ -366,12 +379,21 @@ export function NewsSection() {
                   <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
                     Actualidad
                   </span>
-                  <svg className="absolute -bottom-2 left-0 w-full h-3 text-emerald-500/30" viewBox="0 0 100 12" preserveAspectRatio="none">
-                    <path d="M0 6 Q 25 0 50 6 T 100 6" stroke="currentColor" strokeWidth="2" fill="none" />
+                  <svg
+                    className="absolute -bottom-2 left-0 w-full h-3 text-emerald-500/30"
+                    viewBox="0 0 100 12"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      d="M0 6 Q 25 0 50 6 T 100 6"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      fill="none"
+                    />
                   </svg>
                 </span>
               </h2>
-              
+
               <p className="text-white/50 text-base sm:text-lg max-w-xl">
                 Mantente al día con los últimos acontecimientos y anuncios de nuestra comunidad
               </p>
@@ -390,21 +412,29 @@ export function NewsSection() {
               </div>
 
               {/* Message */}
-              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-                Próximamente
-              </h3>
+              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">Próximamente</h3>
               <p className="text-white/60 text-lg mb-2 max-w-md mx-auto">
                 Estamos preparando contenido especial para ti
               </p>
               <p className="text-white/40 text-sm max-w-md mx-auto mb-8">
-                Muy pronto compartiremos noticias, anuncios y actualizaciones importantes de nuestra comunidad
+                Muy pronto compartiremos noticias, anuncios y actualizaciones importantes de nuestra
+                comunidad
               </p>
 
               {/* Decorative elements */}
               <div className="flex items-center justify-center gap-2 mt-8">
-                <div className="w-2 h-2 rounded-full bg-emerald-500/50 animate-pulse" style={{ animationDelay: '0s' }} />
-                <div className="w-2 h-2 rounded-full bg-teal-500/50 animate-pulse" style={{ animationDelay: '0.2s' }} />
-                <div className="w-2 h-2 rounded-full bg-cyan-500/50 animate-pulse" style={{ animationDelay: '0.4s' }} />
+                <div
+                  className="w-2 h-2 rounded-full bg-emerald-500/50 animate-pulse"
+                  style={{ animationDelay: '0s' }}
+                />
+                <div
+                  className="w-2 h-2 rounded-full bg-teal-500/50 animate-pulse"
+                  style={{ animationDelay: '0.2s' }}
+                />
+                <div
+                  className="w-2 h-2 rounded-full bg-cyan-500/50 animate-pulse"
+                  style={{ animationDelay: '0.4s' }}
+                />
               </div>
 
               {/* Quote */}
@@ -415,7 +445,8 @@ export function NewsSection() {
                   </div>
                   <div className="text-left">
                     <p className="text-white/70 italic text-sm leading-relaxed">
-                      La información oportuna fortalece nuestra comunidad y nos mantiene unidos en propósito y visión.
+                      La información oportuna fortalece nuestra comunidad y nos mantiene unidos en
+                      propósito y visión.
                     </p>
                   </div>
                 </div>
@@ -434,16 +465,16 @@ export function NewsSection() {
     <section id="noticias" className="relative overflow-hidden bg-[#0a1628]">
       {/* Breaking News Ticker */}
       {noticias.length > 0 && <NewsTicker noticias={noticias.slice(0, 5)} />}
-      
+
       {/* Main content */}
       <div className="py-16 sm:py-20 lg:py-24">
         {/* Background effects */}
         <div className="absolute inset-0">
           <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[150px]" />
           <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[150px]" />
-          
+
           {/* Newspaper pattern */}
-          <div 
+          <div
             className="absolute inset-0 opacity-[0.02]"
             style={{
               backgroundImage: `
@@ -468,7 +499,7 @@ export function NewsSection() {
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
                 <span className="text-sm text-emerald-400 font-medium">Lo Último</span>
               </div>
-              
+
               {/* Title */}
               <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3">
                 Noticias y{' '}
@@ -476,12 +507,21 @@ export function NewsSection() {
                   <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
                     Actualidad
                   </span>
-                  <svg className="absolute -bottom-2 left-0 w-full h-3 text-emerald-500/30" viewBox="0 0 100 12" preserveAspectRatio="none">
-                    <path d="M0 6 Q 25 0 50 6 T 100 6" stroke="currentColor" strokeWidth="2" fill="none" />
+                  <svg
+                    className="absolute -bottom-2 left-0 w-full h-3 text-emerald-500/30"
+                    viewBox="0 0 100 12"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      d="M0 6 Q 25 0 50 6 T 100 6"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      fill="none"
+                    />
                   </svg>
                 </span>
               </h2>
-              
+
               <p className="text-white/50 text-base sm:text-lg max-w-xl">
                 Mantente al día con los últimos acontecimientos y anuncios de nuestra comunidad
               </p>
@@ -494,11 +534,11 @@ export function NewsSection() {
             <div className="lg:col-span-8 space-y-6">
               {/* Featured article */}
               {destacada && <MainNewsHero noticia={destacada} />}
-              
+
               {/* Secondary grid */}
               {secundarias.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {secundarias.map((noticia) => (
+                  {secundarias.map(noticia => (
                     <SecondaryNewsCard key={noticia.id} noticia={noticia} />
                   ))}
                 </div>
@@ -515,9 +555,7 @@ export function NewsSection() {
                 </div>
 
                 {/* Side news list */}
-                {laterales.length > 0 && (
-                  <SideNewsList noticias={laterales} />
-                )}
+                {laterales.length > 0 && <SideNewsList noticias={laterales} />}
 
                 {/* CTA Card */}
                 <div className="mt-6 p-5 rounded-xl bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border border-emerald-500/20">
@@ -528,8 +566,8 @@ export function NewsSection() {
                   <p className="text-white/60 text-sm mb-4">
                     Explora todas nuestras noticias, devocionales y anuncios.
                   </p>
-                  <Link 
-                    href="/noticias" 
+                  <Link
+                    href="/noticias"
                     className="block"
                     onClick={() => {
                       if (typeof window !== 'undefined') {
@@ -537,9 +575,7 @@ export function NewsSection() {
                       }
                     }}
                   >
-                    <Button 
-                      className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white"
-                    >
+                    <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white">
                       Ver todas las noticias
                     </Button>
                   </Link>
@@ -556,8 +592,12 @@ export function NewsSection() {
       {/* Ticker animation styles */}
       <style jsx global>{`
         @keyframes ticker {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
         }
         .animate-ticker {
           animation: ticker 30s linear infinite;

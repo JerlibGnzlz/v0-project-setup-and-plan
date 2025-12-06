@@ -20,18 +20,21 @@
 #### Casos de uso principales:
 
 **A. Notificaciones de Actividad del Sistema**
+
 - ✅ Nuevas inscripciones recibidas
 - ✅ Pagos pendientes de validar
 - ✅ Convenciones próximas a iniciar
 - ✅ Recordatorios de tareas pendientes
 
 **B. Notificaciones de Eventos Importantes**
+
 - ✅ Cupo de convención casi lleno (80% o más)
 - ✅ Pagos vencidos o pendientes
 - ✅ Nuevas noticias publicadas
 - ✅ Cambios en estructura organizacional
 
 **C. Notificaciones de Seguridad**
+
 - ✅ Intentos de login fallidos
 - ✅ Cambios en configuración crítica
 - ✅ Accesos desde nuevas ubicaciones
@@ -41,17 +44,20 @@
 #### Casos de uso principales:
 
 **A. Notificaciones de Pagos**
+
 - ✅ Pago validado (ya implementado)
 - ✅ Inscripción confirmada (ya implementado)
 - ⚠️ Recordatorio de pago pendiente
 - ⚠️ Pago rechazado (necesita comprobante)
 
 **B. Notificaciones de Convenciones**
+
 - ⚠️ Recordatorio de convención próxima
 - ⚠️ Cambios en fecha/ubicación
 - ⚠️ Materiales o información adicional
 
 **C. Notificaciones de Noticias**
+
 - ⚠️ Nueva noticia importante publicada
 - ⚠️ Noticia destacada
 
@@ -150,10 +156,12 @@
 ## 📱 Integración con App Móvil
 
 Las notificaciones se envían automáticamente a:
+
 - 📱 **Push notification** si el usuario tiene la app instalada
 - 📧 **Email** como respaldo si no hay token push
 
 El usuario debe:
+
 1. Iniciar sesión en la app
 2. Permitir notificaciones push
 3. Mantener la app actualizada
@@ -174,6 +182,7 @@ El usuario debe:
 ## 📊 Métricas Recomendadas
 
 Considera trackear:
+
 - Tasa de apertura de notificaciones
 - Tiempo promedio de lectura
 - Notificaciones más importantes
@@ -204,10 +213,3 @@ Considera trackear:
 3. ✅ Mejorar UI de notificaciones con acciones rápidas
 4. ⏳ Agregar preferencias de notificaciones
 5. ⏳ Implementar notificaciones programadas
-
-
-
-
-
-
-

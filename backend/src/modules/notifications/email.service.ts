@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import * as nodemailer from 'nodemailer'
+import { NotificationData } from './types/notification.types'
 
 @Injectable()
 export class EmailService {
@@ -36,7 +37,9 @@ export class EmailService {
     } else {
       this.logger.warn('⚠️ Servicio de email no configurado (faltan credenciales SMTP)')
       this.logger.warn('   Configura SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD en .env')
-      this.logger.warn('   Para Gmail, necesitas una App Password: https://myaccount.google.com/apppasswords')
+      this.logger.warn(
+        '   Para Gmail, necesitas una App Password: https://myaccount.google.com/apppasswords'
+      )
     }
   }
 
@@ -49,7 +52,7 @@ export class EmailService {
     to: string,
     title: string,
     body: string,
-    data?: any,
+    data?: NotificationData
   ): Promise<boolean> {
     if (!this.transporter) {
       this.logger.error('❌ No se puede enviar email: servicio no configurado')
@@ -65,11 +68,11 @@ export class EmailService {
 
     try {
       this.logger.log(`📧 Preparando email para ${to}...`)
-      
+
       // Si el body ya es HTML completo (de templates centralizados), usarlo directamente
       // Si no, construir usando el método legacy para compatibilidad
-      const htmlContent = body.trim().startsWith('<!DOCTYPE') 
-        ? body 
+      const htmlContent = body.trim().startsWith('<!DOCTYPE')
+        ? body
         : this.buildEmailTemplate(title, body, data)
 
       // Extraer texto plano del HTML para la versión de texto
@@ -89,25 +92,29 @@ export class EmailService {
       this.logger.log(`   Message ID: ${info.messageId}`)
       this.logger.log(`   Response: ${info.response || 'N/A'}`)
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorCode = this.getErrorCode(error)
+      const errorStack = error instanceof Error ? error.stack : undefined
+
       this.logger.error(`❌ Error enviando email a ${to}:`, {
-        message: error.message,
-        code: error.code,
-        command: error.command,
-        response: error.response,
-        responseCode: error.responseCode,
-        stack: error.stack,
+        message: errorMessage,
+        code: errorCode,
+        command: this.getErrorProperty(error, 'command'),
+        response: this.getErrorProperty(error, 'response'),
+        responseCode: this.getErrorProperty(error, 'responseCode'),
+        stack: errorStack,
       })
-      
+
       // Mensajes de error más específicos
-      if (error.code === 'EAUTH') {
+      if (errorCode === 'EAUTH') {
         this.logger.error('   ⚠️ Error de autenticación SMTP. Verifica SMTP_USER y SMTP_PASSWORD')
-      } else if (error.code === 'ECONNECTION') {
+      } else if (errorCode === 'ECONNECTION') {
         this.logger.error('   ⚠️ Error de conexión SMTP. Verifica SMTP_HOST y SMTP_PORT')
-      } else if (error.code === 'ETIMEDOUT') {
+      } else if (errorCode === 'ETIMEDOUT') {
         this.logger.error('   ⚠️ Timeout de conexión SMTP. Verifica tu conexión a internet')
       }
-      
+
       return false
     }
   }
@@ -115,7 +122,7 @@ export class EmailService {
   /**
    * Construye el template HTML del email
    */
-  private buildEmailTemplate(title: string, body: string, data?: any): string {
+  private buildEmailTemplate(title: string, body: string, data?: NotificationData): string {
     const tipo = data?.type || 'general'
     let icon = '📬'
     let color = '#10b981' // emerald
@@ -154,11 +161,13 @@ export class EmailService {
           <!-- Content -->
           <tr>
             <td style="padding: 30px;">
-              ${body.trim().startsWith('<div') || body.trim().startsWith('<!DOCTYPE')
-        ? body
-        : `<h2 style="margin: 0 0 20px; color: #1f2937; font-size: 20px; font-weight: 600;">${title}</h2>
+              ${
+                body.trim().startsWith('<div') || body.trim().startsWith('<!DOCTYPE')
+                  ? body
+                  : `<h2 style="margin: 0 0 20px; color: #1f2937; font-size: 20px; font-weight: 600;">${title}</h2>
                    <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">${body}</p>
-                   ${data ? this.buildDataSection(data) : ''}`}
+                   ${data ? this.buildDataSection(data) : ''}`
+              }
             </td>
           </tr>
           <!-- Footer -->
@@ -182,39 +191,94 @@ export class EmailService {
   /**
    * Construye sección de datos adicionales en el email
    */
-  private buildDataSection(data: any): string {
+  private buildDataSection(data: NotificationData): string {
     if (!data) return ''
 
-    let html = '<div style="margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 6px; border-left: 4px solid #10b981;">'
+    let html =
+      '<div style="margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 6px; border-left: 4px solid #10b981;">'
 
-    if (data.numeroCuota && data.cuotasTotales) {
-      html += `<p style="margin: 0 0 10px; color: #1f2937; font-size: 14px;"><strong>Progreso:</strong> Cuota ${data.numeroCuota} de ${data.cuotasTotales}</p>`
+    const numeroCuota = this.getNumberValue(data.numeroCuota)
+    const cuotasTotales = this.getNumberValue(data.cuotasTotales)
+    if (numeroCuota !== null && cuotasTotales !== null) {
+      html += `<p style="margin: 0 0 10px; color: #1f2937; font-size: 14px;"><strong>Progreso:</strong> Cuota ${numeroCuota} de ${cuotasTotales}</p>`
     }
 
-    if (data.cuotasPagadas && data.cuotasTotales) {
-      html += `<p style="margin: 0 0 10px; color: #1f2937; font-size: 14px;"><strong>Cuotas pagadas:</strong> ${data.cuotasPagadas} de ${data.cuotasTotales}</p>`
+    const cuotasPagadas = this.getNumberValue(data.cuotasPagadas)
+    if (cuotasPagadas !== null && cuotasTotales !== null) {
+      html += `<p style="margin: 0 0 10px; color: #1f2937; font-size: 14px;"><strong>Cuotas pagadas:</strong> ${cuotasPagadas} de ${cuotasTotales}</p>`
     }
 
     if (data.monto) {
-      const monto = typeof data.monto === 'number' ? data.monto : parseFloat(data.monto)
-      html += `<p style="margin: 0 0 10px; color: #1f2937; font-size: 14px;"><strong>Monto:</strong> $${monto.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>`
+      const montoValue = this.getNumberValue(data.monto)
+      if (montoValue !== null) {
+        html += `<p style="margin: 0 0 10px; color: #1f2937; font-size: 14px;"><strong>Monto:</strong> $${montoValue.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>`
+      }
     }
 
-    if (data.metodoPago) {
-      html += `<p style="margin: 0 0 10px; color: #1f2937; font-size: 14px;"><strong>Método de pago:</strong> ${data.metodoPago}</p>`
+    const metodoPago = this.getStringValue(data.metodoPago)
+    if (metodoPago) {
+      html += `<p style="margin: 0 0 10px; color: #1f2937; font-size: 14px;"><strong>Método de pago:</strong> ${metodoPago}</p>`
     }
 
-    if (data.convencionTitulo) {
-      html += `<p style="margin: 0 0 10px; color: #1f2937; font-size: 14px;"><strong>Convención:</strong> ${data.convencionTitulo}</p>`
+    const convencionTitulo = this.getStringValue(data.convencionTitulo)
+    if (convencionTitulo) {
+      html += `<p style="margin: 0 0 10px; color: #1f2937; font-size: 14px;"><strong>Convención:</strong> ${convencionTitulo}</p>`
     }
 
-    if (data.numeroCuotas && data.montoPorCuota) {
-      const monto = typeof data.montoPorCuota === 'number' ? data.montoPorCuota : parseFloat(data.montoPorCuota)
-      html += `<p style="margin: 0; color: #1f2937; font-size: 14px;"><strong>Cuotas:</strong> ${data.numeroCuotas} cuota(s) de $${monto.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>`
+    const numeroCuotas = this.getNumberValue(data.numeroCuotas)
+    const montoPorCuota = this.getNumberValue(data.montoPorCuota)
+    if (numeroCuotas !== null && montoPorCuota !== null) {
+      html += `<p style="margin: 0; color: #1f2937; font-size: 14px;"><strong>Cuotas:</strong> ${numeroCuotas} cuota(s) de $${montoPorCuota.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>`
     }
 
     html += '</div>'
     return html
   }
-}
 
+  /**
+   * Helper para obtener el código de error de forma segura
+   */
+  private getErrorCode(error: unknown): string | undefined {
+    if (error && typeof error === 'object' && 'code' in error) {
+      return typeof error.code === 'string' ? error.code : undefined
+    }
+    return undefined
+  }
+
+  /**
+   * Helper para obtener propiedades de error de forma segura
+   */
+  private getErrorProperty(error: unknown, property: string): unknown {
+    if (error && typeof error === 'object' && property in error) {
+      return (error as Record<string, unknown>)[property]
+    }
+    return undefined
+  }
+
+  /**
+   * Helper para obtener un valor numérico de forma segura desde unknown
+   */
+  private getNumberValue(value: unknown): number | null {
+    if (typeof value === 'number') {
+      return value
+    }
+    if (typeof value === 'string') {
+      const parsed = parseFloat(value)
+      return isNaN(parsed) ? null : parsed
+    }
+    return null
+  }
+
+  /**
+   * Helper para obtener un valor string de forma segura desde unknown
+   */
+  private getStringValue(value: unknown): string | null {
+    if (typeof value === 'string') {
+      return value
+    }
+    if (typeof value === 'number') {
+      return value.toString()
+    }
+    return null
+  }
+}

@@ -5,16 +5,18 @@
 Este documento explica la separación clara entre dos conceptos diferentes en el sistema:
 
 ### 1. **Pastores (Estructura Organizacional)**
+
 - **Ubicación**: Tabla `pastores` en la base de datos
 - **Propósito**: Representa a los pastores que forman parte de la estructura organizacional del ministerio
 - **Gestión**: Solo se crean/editan desde `app/admin/pastores`
-- **Uso**: 
+- **Uso**:
   - Mostrar en la landing page (si `mostrarEnLanding: true`)
   - Estructura organizacional del ministerio
   - Directiva pastoral
   - Equipo de liderazgo
 
 ### 2. **Inscripciones (Participantes de Convenciones)**
+
 - **Ubicación**: Tabla `inscripciones` en la base de datos
 - **Propósito**: Registro de participantes (pastores o invitados) que se inscriben a convenciones
 - **Gestión**: Se crean desde:
@@ -72,6 +74,7 @@ Este documento explica la separación clara entre dos conceptos diferentes en el
 ## Flujo de Registro
 
 ### Desde Landing Page:
+
 ```
 Usuario completa formulario
     ↓
@@ -85,6 +88,7 @@ origenRegistro: 'web'
 ```
 
 ### Desde Admin Dashboard:
+
 ```
 Admin completa formulario manual
     ↓
@@ -98,6 +102,7 @@ origenRegistro: 'dashboard'
 ```
 
 ### Crear Pastor (Estructura Organizacional):
+
 ```
 Admin va a /admin/pastores
     ↓
@@ -124,6 +129,7 @@ Se crea SOLO en tabla 'pastores'
 ## Casos de Uso
 
 ### Caso 1: Invitado se registra desde la web para usar app móvil
+
 - Usa `register-complete` desde la web/app móvil
 - Se crea pastor con `activo=false` (invitado)
 - Se crea cuenta de autenticación
@@ -131,17 +137,20 @@ Se crea SOLO en tabla 'pastores'
 - NO aparece en estructura organizacional (`/admin/pastores`)
 
 ### Caso 2: Invitado se inscribe a convención desde landing page
+
 - Se crea inscripción con `origenRegistro: 'web'`
 - NO se crea pastor automáticamente
 - Si quiere usar la app móvil, debe usar `register-complete` primero
 
 ### Caso 3: Admin registra invitado manualmente
+
 - Se crea inscripción con `origenRegistro: 'dashboard'`
 - `tipoInscripcion: 'invitado'`
 - NO se crea pastor en estructura organizacional
 - Si el invitado quiere usar la app móvil, debe usar `register-complete`
 
 ### Caso 4: Admin agrega pastor a estructura organizacional
+
 - Se crea pastor en tabla `pastores` con `activo=true`
 - Aparece en `/admin/pastores` (estructura organizacional)
 - NO se crea inscripción automáticamente
@@ -157,4 +166,3 @@ Si en el futuro necesitas relacionar pastores con inscripciones:
 3. **Opción 3**: Buscar por email cuando sea necesario
 
 **IMPORTANTE**: Nunca crear pastores automáticamente desde inscripciones.
-

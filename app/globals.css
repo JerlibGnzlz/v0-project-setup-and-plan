@@ -25,17 +25,17 @@
   --accent-foreground: oklch(0.99 0 0);
 
   --muted: oklch(0.95 0.01 90);
-  --muted-foreground: oklch(0.50 0.015 90);
+  --muted-foreground: oklch(0.5 0.015 90);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.90 0.01 90);
-  --input: oklch(0.90 0.01 90);
+  --border: oklch(0.9 0.01 90);
+  --input: oklch(0.9 0.01 90);
   --ring: oklch(0.45 0.12 240);
   --chart-1: oklch(0.45 0.12 240);
   --chart-2: oklch(0.48 0.11 150);
   --chart-3: oklch(0.55 0.08 60);
-  --chart-4: oklch(0.60 0.10 200);
-  --chart-5: oklch(0.50 0.09 40);
+  --chart-4: oklch(0.6 0.1 200);
+  --chart-5: oklch(0.5 0.09 40);
   --radius: 0.5rem;
 }
 
@@ -113,7 +113,6 @@
 /* Added custom keyframe animations for hero effects */
 @layer utilities {
   @keyframes float {
-
     0%,
     100% {
       transform: translateY(0) translateX(0);
@@ -149,14 +148,15 @@
   }
 
   @keyframes glow {
-
     0%,
     100% {
       text-shadow: 0 0 20px rgba(217, 119, 6, 0.5);
     }
 
     50% {
-      text-shadow: 0 0 40px rgba(217, 119, 6, 0.8), 0 0 60px rgba(217, 119, 6, 0.4);
+      text-shadow:
+        0 0 40px rgba(217, 119, 6, 0.8),
+        0 0 60px rgba(217, 119, 6, 0.4);
     }
   }
 
@@ -177,7 +177,6 @@
   }
 
   @keyframes gradient-shift {
-
     0%,
     100% {
       opacity: 0.5;
@@ -189,7 +188,6 @@
   }
 
   @keyframes pulse-slow {
-
     0%,
     100% {
       opacity: 0.3;
@@ -223,7 +221,6 @@
 
   /* Gradient animation - movimiento de gradiente */
   @keyframes gradient {
-
     0%,
     100% {
       background-position: 0% 50%;
@@ -244,7 +241,6 @@
 
   /* Blob animation - formas orgánicas flotantes */
   @keyframes blob {
-
     0%,
     100% {
       transform: translate(0, 0) scale(1);

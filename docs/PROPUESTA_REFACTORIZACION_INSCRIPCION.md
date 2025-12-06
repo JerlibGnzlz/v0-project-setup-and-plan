@@ -3,12 +3,14 @@
 ## 📋 Análisis del Flujo Actual
 
 ### Estado Actual:
+
 1. Landing page → Botón "Confirmar Asistencia" → Scroll a formulario en la misma página
 2. Formulario está en la landing (sección `#inscripcion`)
 3. No hay autenticación previa
 4. El formulario es largo y requiere muchos campos
 
 ### Problemas Identificados:
+
 - ❌ Muchos clicks para llegar al formulario
 - ❌ No hay autenticación previa (no se guarda quién se inscribe)
 - ❌ Formulario muy largo en la landing
@@ -21,6 +23,7 @@
 ### Opción 1: Página Dedicada con Steps (RECOMENDADA) ⭐
 
 **Flujo:**
+
 ```
 Landing → "Confirmar Asistencia" → /convencion/inscripcion
   ↓
@@ -31,6 +34,7 @@ Página dedicada con 3 pasos:
 ```
 
 **Ventajas:**
+
 - ✅ Flujo claro y profesional
 - ✅ Menos clicks (todo en una página)
 - ✅ Datos del usuario se guardan automáticamente
@@ -38,6 +42,7 @@ Página dedicada con 3 pasos:
 - ✅ Funciona igual en web y móvil
 
 **Estructura:**
+
 ```
 /convencion/inscripcion
   ├── Step 1: Auth (Login/Registro tabs)
@@ -50,6 +55,7 @@ Página dedicada con 3 pasos:
 ### Opción 2: Modal/Dialog con Steps
 
 **Flujo:**
+
 ```
 Landing → "Confirmar Asistencia" → Modal/Dialog
   ↓
@@ -57,10 +63,12 @@ Modal con 3 pasos (igual que Opción 1)
 ```
 
 **Ventajas:**
+
 - ✅ No sale de la landing
 - ✅ Más rápido (no hay navegación)
 
 **Desventajas:**
+
 - ❌ Menos espacio en móvil
 - ❌ Más complejo de implementar
 - ❌ Difícil de compartir URL
@@ -70,6 +78,7 @@ Modal con 3 pasos (igual que Opción 1)
 ### Opción 3: Página con Tabs (Login/Registro lado a lado)
 
 **Flujo:**
+
 ```
 Landing → "Confirmar Asistencia" → /convencion/inscripcion
   ↓
@@ -79,10 +88,12 @@ Página con:
 ```
 
 **Ventajas:**
+
 - ✅ Simple y directo
 - ✅ Todo visible de una vez
 
 **Desventajas:**
+
 - ❌ Puede ser abrumador en móvil
 - ❌ Menos guiado
 
@@ -147,11 +158,13 @@ Página con:
 ### 1. Autenticación
 
 **Opción A: Usar sistema de auth existente (`/auth/login`, `/auth/register`)**
+
 - ✅ Ya existe
 - ✅ Funciona para admins
 - ❌ Crea usuarios en tabla `users` (no es ideal para participantes)
 
 **Opción B: Crear sistema de auth para participantes**
+
 - ✅ Tabla separada para participantes de convenciones
 - ✅ No mezcla con admins
 - ❌ Más trabajo
@@ -175,11 +188,13 @@ Página con:
 ## 🎨 Diseño Visual
 
 ### Paleta de Colores (mantener):
+
 - Fondo: `#0a1628` (dark blue)
 - Acentos: `#22c55e` (green), `#3b82f6` (blue), `#f59e0b` (amber)
 - Texto: Blanco con opacidades
 
 ### Elementos Visuales:
+
 - ✅ Imagen del mundo (`/mundo.png`) en el header
 - ✅ Gradientes y efectos glow
 - ✅ Animaciones suaves entre steps
@@ -190,6 +205,7 @@ Página con:
 ## 📱 Flujo Móvil
 
 ### App Móvil:
+
 - Misma estructura de steps
 - Pantalla completa por step
 - Navegación con botones "Siguiente" / "Atrás"
@@ -227,25 +243,30 @@ Página con:
 ## 🚀 Plan de Implementación
 
 ### Fase 1: Página Base
+
 - Crear `/convencion/inscripcion`
 - Layout con imagen del mundo
 - Estructura de 3 steps
 
 ### Fase 2: Step 1 (Autenticación)
+
 - Tabs Login/Registro
 - Integración con auth API
 - Validaciones
 
 ### Fase 3: Step 2 (Info Convención)
+
 - Card con datos de convención
 - Diseño visual atractivo
 
 ### Fase 4: Step 3 (Formulario)
+
 - Formulario pre-llenado
 - Validaciones
 - Submit
 
 ### Fase 5: Mobile
+
 - Adaptar para app móvil
 - Navegación entre steps
 
@@ -270,6 +291,7 @@ Página con:
 ## 💡 Recomendación Final
 
 **Implementar Opción 1 (Página con Steps)** porque:
+
 - ✅ Más profesional
 - ✅ Mejor UX
 - ✅ Funciona en web y móvil
@@ -277,10 +299,3 @@ Página con:
 - ✅ Mantiene funcionalidad actual
 
 ¿Procedo con la implementación de esta solución?
-
-
-
-
-
-
-

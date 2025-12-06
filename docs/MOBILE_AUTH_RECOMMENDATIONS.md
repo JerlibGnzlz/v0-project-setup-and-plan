@@ -3,12 +3,14 @@
 ## 🎯 Contexto Actual
 
 ### Situación Actual:
+
 - ✅ **Modelo Pastor** existe con `email` (opcional, único)
 - ✅ **Modelo User** solo para admins del dashboard
 - ✅ **Inscripciones** no están vinculadas a Pastores (solo tienen email)
 - ✅ **Noticias** son públicas (no requieren autenticación)
 
 ### Necesidades:
+
 1. App móvil **solo para pastores**
 2. Inscribirse a convenciones
 3. Ver noticias (mismas que la web)
@@ -20,6 +22,7 @@
 ## 🔐 Opción 1: Autenticación con Email + Password (RECOMENDADA)
 
 ### ✅ Ventajas:
+
 - **Control total**: Tú gestionas las cuentas
 - **Simplicidad**: No depende de terceros (Google)
 - **Privacidad**: Los datos no salen de tu sistema
@@ -28,11 +31,13 @@
 - **Offline**: Funciona sin conexión a servicios externos
 
 ### ❌ Desventajas:
+
 - Usuarios deben recordar contraseña
 - Necesitas sistema de recuperación de contraseña
 - Más código para mantener
 
 ### Implementación:
+
 ```typescript
 // 1. Agregar password al modelo Pastor (o crear tabla separada)
 // 2. Endpoint: POST /api/auth/pastor/register
@@ -45,12 +50,14 @@
 ## 🔐 Opción 2: Google OAuth (Alternativa)
 
 ### ✅ Ventajas:
+
 - **UX mejorada**: Login con un clic
 - **Seguridad**: Google maneja las contraseñas
 - **Menos fricción**: No crear cuenta nueva
 - **Verificación automática**: Email verificado por Google
 
 ### ❌ Desventajas:
+
 - **Dependencia externa**: Si Google falla, no funciona
 - **Configuración compleja**: OAuth setup, client IDs, etc.
 - **Costo potencial**: Si superas límites de Google
@@ -58,6 +65,7 @@
 - **Validación manual**: Debes verificar que el email pertenece a un pastor
 
 ### Implementación:
+
 ```typescript
 // 1. Configurar Google OAuth en Google Cloud Console
 // 2. Instalar: @react-native-google-signin/google-signin
@@ -70,11 +78,13 @@
 ## 🏆 RECOMENDACIÓN FINAL: **Híbrida (Email + Password + Google OAuth Opcional)**
 
 ### Estrategia:
+
 1. **Principal**: Email + Password (obligatorio)
 2. **Opcional**: Google OAuth como alternativa rápida
 3. **Validación**: El email DEBE existir en la tabla Pastores
 
 ### Flujo de Registro:
+
 ```
 1. Pastor ingresa su email
 2. Sistema verifica si el email existe en tabla Pastores
@@ -84,6 +94,7 @@
 ```
 
 ### Flujo de Login:
+
 ```
 1. Email + Password (principal)
 2. O Google OAuth (alternativa)
@@ -95,6 +106,7 @@
 ## 🗄️ Cambios Necesarios en Base de Datos
 
 ### Opción A: Agregar password al modelo Pastor (Simple)
+
 ```prisma
 model Pastor {
   // ... campos existentes
@@ -106,14 +118,17 @@ model Pastor {
 ```
 
 **Ventajas:**
+
 - ✅ Simple, todo en una tabla
 - ✅ Fácil de implementar
 
 **Desventajas:**
+
 - ❌ Mezcla datos de perfil con autenticación
 - ❌ Si un pastor no tiene email, no puede autenticarse
 
 ### Opción B: Tabla separada PastorAuth (Recomendada)
+
 ```prisma
 model Pastor {
   // ... campos existentes (sin cambios)
@@ -131,20 +146,22 @@ model PastorAuth {
   ultimoLogin DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   pastor Pastor @relation(fields: [pastorId], references: [id], onDelete: Cascade)
-  
+
   @@map("pastor_auth")
 }
 ```
 
 **Ventajas:**
+
 - ✅ Separación de responsabilidades
 - ✅ Más flexible (puede tener Google OAuth y password)
 - ✅ No modifica modelo Pastor existente
 - ✅ Mejor para escalar
 
 **Desventajas:**
+
 - ❌ Más complejo (2 tablas)
 
 ---
@@ -159,7 +176,7 @@ const handleDownloadApp = () => {
   const userAgent = navigator.userAgent.toLowerCase()
   const isIOS = /iphone|ipad|ipod/.test(userAgent)
   const isAndroid = /android/.test(userAgent)
-  
+
   if (isIOS) {
     // Intentar abrir app, si no existe → App Store
     window.location.href = 'amva-app://home'
@@ -182,7 +199,9 @@ const handleDownloadApp = () => {
 ### Opción 2: Botón Simple con Links Directos
 
 ```tsx
-<Button onClick={() => window.open('https://play.google.com/store/apps/details?id=org.vidaabundante.app')}>
+<Button
+  onClick={() => window.open('https://play.google.com/store/apps/details?id=org.vidaabundante.app')}
+>
   <Smartphone className="w-5 h-5 mr-2" />
   Descargar App
 </Button>
@@ -200,6 +219,7 @@ const handleDownloadApp = () => {
 ## 🎯 Plan de Implementación Recomendado
 
 ### Fase 1: Autenticación Básica (Email + Password)
+
 1. ✅ Crear tabla `PastorAuth` en Prisma
 2. ✅ Endpoints: `/api/auth/pastor/register`, `/api/auth/pastor/login`
 3. ✅ Verificar que email existe en Pastores
@@ -207,18 +227,21 @@ const handleDownloadApp = () => {
 5. ✅ JWT tokens para mobile
 
 ### Fase 2: Google OAuth (Opcional, después)
+
 1. Configurar Google Cloud Console
 2. Implementar Google Sign-In en React Native
 3. Backend: Verificar token de Google
 4. Vincular con PastorAuth
 
 ### Fase 3: Landing Page
+
 1. Botón inteligente con detección de dispositivo
 2. Deep linking a la app
 3. Fallback a Play Store/App Store
 4. QR code para desktop
 
 ### Fase 4: App Móvil
+
 1. Pantalla de login (email/password + Google opcional)
 2. Verificación de email en Pastores
 3. Pantalla de inscripciones
@@ -230,6 +253,7 @@ const handleDownloadApp = () => {
 ## 🔒 Seguridad
 
 ### Validaciones Necesarias:
+
 1. **Email debe existir en Pastores**: No permitir registro si el email no está en la BD
 2. **Password mínimo 8 caracteres**: Con mayúsculas, números, símbolos
 3. **Rate limiting**: Máximo 5 intentos de login por minuto
@@ -237,6 +261,7 @@ const handleDownloadApp = () => {
 5. **Email verification**: Opcional pero recomendado
 
 ### Flujo de Seguridad:
+
 ```
 1. Pastor intenta registrarse con email
 2. Backend verifica: ¿Existe en Pastores?
@@ -252,31 +277,34 @@ const handleDownloadApp = () => {
 
 ## 📊 Comparación Final
 
-| Característica | Email + Password | Google OAuth | Híbrida |
-|---------------|------------------|--------------|---------|
-| **Simplicidad** | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
-| **Control** | ⭐⭐⭐ | ⭐ | ⭐⭐⭐ |
-| **UX** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| **Seguridad** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| **Costo** | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
-| **Mantenimiento** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
+| Característica    | Email + Password | Google OAuth | Híbrida |
+| ----------------- | ---------------- | ------------ | ------- |
+| **Simplicidad**   | ⭐⭐⭐           | ⭐⭐         | ⭐⭐    |
+| **Control**       | ⭐⭐⭐           | ⭐           | ⭐⭐⭐  |
+| **UX**            | ⭐⭐             | ⭐⭐⭐       | ⭐⭐⭐  |
+| **Seguridad**     | ⭐⭐⭐           | ⭐⭐⭐       | ⭐⭐⭐  |
+| **Costo**         | ⭐⭐⭐           | ⭐⭐         | ⭐⭐    |
+| **Mantenimiento** | ⭐⭐             | ⭐⭐⭐       | ⭐⭐    |
 
 ---
 
 ## ✅ Recomendación Final
 
 ### **Implementar Email + Password PRIMERO**
+
 - Más control
 - Más simple de implementar
 - No depende de terceros
 - Funciona offline
 
 ### **Agregar Google OAuth DESPUÉS** (si es necesario)
+
 - Como mejora de UX
 - Opcional, no obligatorio
 - Los pastores pueden elegir
 
 ### **Botón Inteligente en Landing**
+
 - Detecta dispositivo
 - Deep linking si tiene app
 - Play Store/App Store si no tiene
@@ -293,10 +321,3 @@ const handleDownloadApp = () => {
 5. **Mobile**: Pantalla de login
 
 ¿Quieres que implemente alguna de estas opciones?
-
-
-
-
-
-
-

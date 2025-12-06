@@ -5,6 +5,7 @@ App móvil para pastores de la Asociación Misionera Vida Abundante.
 ## 🚀 Inicio Rápido
 
 ### 1. Instalar dependencias
+
 ```bash
 npm install
 ```
@@ -14,29 +15,34 @@ npm install
 **IMPORTANTE:** La app necesita conectarse al backend. Edita `src/api/client.ts`:
 
 #### Para Emulador Android:
+
 ```typescript
 const LOCAL_IP = '10.0.2.2' // IP especial para Android Emulator
 ```
 
 #### Para Emulador iOS:
+
 ```typescript
 const LOCAL_IP = 'localhost'
 ```
 
 #### Para Dispositivo Físico:
+
 1. Encuentra la IP de tu computadora:
+
    ```bash
    # Linux
    hostname -I
-   
+
    # Mac
    ipconfig getifaddr en0
-   
+
    # Windows
    ipconfig
    ```
 
 2. Actualiza `src/api/client.ts`:
+
    ```typescript
    const LOCAL_IP = '192.168.0.33' // Tu IP local
    ```
@@ -44,11 +50,13 @@ const LOCAL_IP = 'localhost'
 3. **Asegúrate de que tu dispositivo y computadora estén en la misma red WiFi.**
 
 ### 3. Iniciar la app
+
 ```bash
 npx expo start
 ```
 
 Luego escanea el QR con:
+
 - **iOS**: Cámara nativa
 - **Android**: Expo Go app
 
@@ -60,6 +68,7 @@ Password: Test1234
 ```
 
 Si no funciona, crea un nuevo pastor de prueba:
+
 ```bash
 cd ../backend
 npm run create-test-pastor
@@ -68,6 +77,7 @@ npm run create-test-pastor
 ## 🛠️ Desarrollo
 
 ### Estructura del proyecto
+
 ```
 src/
   api/          # Clientes API
@@ -79,6 +89,7 @@ src/
 ### Variables de entorno
 
 Crea un archivo `.env` (opcional):
+
 ```
 EXPO_PUBLIC_API_URL=http://TU_IP:4000/api
 ```
@@ -92,15 +103,18 @@ EXPO_PUBLIC_API_URL=http://TU_IP:4000/api
 ## ⚠️ Problemas Comunes
 
 ### "No acepta el correo de prueba"
+
 1. Verifica que el backend esté corriendo: `http://localhost:4000`
 2. Verifica la URL del API en `src/api/client.ts`
 3. Asegúrate de estar en la misma red WiFi (si usas dispositivo físico)
 4. Verifica las credenciales: `pastor.test@ministerio.org` / `Test1234`
 
 ### "101 problemas de TypeScript"
+
 Estos son falsos positivos del IDE. La app funciona correctamente. Expo maneja la compilación.
 
 ### "Network Error"
+
 - Verifica que el backend esté corriendo
 - Verifica la URL del API (no uses `localhost` en dispositivo físico)
 - Verifica que el firewall no esté bloqueando el puerto 4000

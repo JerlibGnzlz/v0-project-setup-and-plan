@@ -9,7 +9,7 @@ export enum NotificationEventType {
   PAGO_RECHAZADO = 'pago.rechazado',
   PAGO_REHABILITADO = 'pago.rehabilitado',
   PAGO_RECORDATORIO = 'pago.recordatorio',
-  
+
   // Eventos de inscripciones
   INSCRIPCION_CREADA = 'inscripcion.creada',
   INSCRIPCION_CONFIRMADA = 'inscripcion.confirmada',
@@ -258,6 +258,3 @@ export class InscripcionActualizadaEvent implements BaseNotificationEvent {
     }
   }
 }
-
-
-

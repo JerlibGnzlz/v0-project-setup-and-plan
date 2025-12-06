@@ -7,6 +7,7 @@
 ## 🎯 RESUMEN EJECUTIVO
 
 Proyecto full-stack completo para el **Ministerio AMVA (Asociación Misionera Vida Abundante)** con:
+
 - ✅ **Landing Page** moderna y responsive (Next.js)
 - ✅ **Dashboard Administrativo** completo (Next.js)
 - ✅ **Backend API** robusto (NestJS + Prisma + PostgreSQL)
@@ -36,6 +37,7 @@ v0-project-setup-and-plan/
 **URL:** `http://localhost:3000`
 
 ### Secciones Implementadas:
+
 1. ✅ **Hero Section** - Sección principal con imagen del mundo
 2. ✅ **Marquee Ticker** - Ticker de noticias deslizante
 3. ✅ **Sedes Section** - Información de sedes del ministerio
@@ -48,6 +50,7 @@ v0-project-setup-and-plan/
 10. ✅ **Footer** - Pie de página completo
 
 ### Funcionalidades:
+
 - ✅ Navegación suave entre secciones
 - ✅ Scroll restoration (restaura posición al volver)
 - ✅ Tema claro/oscuro
@@ -59,6 +62,7 @@ v0-project-setup-and-plan/
 - ✅ Deep linking a app móvil
 
 ### Rutas Públicas:
+
 - `/` - Landing page principal
 - `/noticias` - Lista de noticias
 - `/noticias/[slug]` - Detalle de noticia
@@ -72,6 +76,7 @@ v0-project-setup-and-plan/
 **URL:** `http://localhost:3000/admin`
 
 ### Rutas Protegidas:
+
 - `/admin` - Dashboard principal con estadísticas
 - `/admin/login` - Login de administrador
 - `/admin/pastores` - Gestión de pastores (Estructura Organizacional)
@@ -81,6 +86,7 @@ v0-project-setup-and-plan/
 - `/admin/inscripciones` - Gestión de inscripciones
 
 ### Funcionalidades Principales:
+
 - ✅ **Autenticación JWT** con validación en backend
 - ✅ **Sidebar** con navegación intuitiva
 - ✅ **Notificaciones en tiempo real** (WebSockets)
@@ -98,6 +104,7 @@ v0-project-setup-and-plan/
 - ✅ **Filtros y búsqueda** en todas las secciones
 
 ### Autenticación:
+
 - ✅ Login con email/password
 - ✅ Validación de JWT en cada carga
 - ✅ Refresh automático si token expirado
@@ -113,6 +120,7 @@ v0-project-setup-and-plan/
 ### Módulos Implementados:
 
 #### 1. **Auth Module** - Autenticación Admin
+
 - `POST /auth/login` - Login de administrador
 - `POST /auth/register` - Registrar nuevo admin
 - `GET /auth/me` - Obtener perfil (validar token)
@@ -120,6 +128,7 @@ v0-project-setup-and-plan/
 - `POST /auth/reset-password` - Resetear contraseña
 
 #### 2. **Pastor Auth Module** - Autenticación Pastores (Mobile)
+
 - `POST /auth/pastor/login` - Login de pastor
 - `POST /auth/pastor/register` - Registro de pastor
 - `POST /auth/pastor/register-complete` - Registro completo
@@ -127,6 +136,7 @@ v0-project-setup-and-plan/
 - `GET /auth/pastor/me` - Perfil del pastor
 
 #### 3. **Pastores Module** - CRUD de Pastores
+
 - `GET /pastores` - Listar todos (con filtros)
 - `GET /pastores/:id` - Ver un pastor
 - `POST /pastores` - Crear pastor (protegido)
@@ -134,6 +144,7 @@ v0-project-setup-and-plan/
 - `DELETE /pastores/:id` - Desactivar (protegido)
 
 #### 4. **Noticias Module** - CRUD de Noticias
+
 - `GET /noticias` - Listar todas (con filtros)
 - `GET /noticias/:id` - Ver una noticia
 - `POST /noticias` - Crear (protegido)
@@ -142,6 +153,7 @@ v0-project-setup-and-plan/
 - `PATCH /noticias/:id/vistas` - Incrementar vistas
 
 #### 5. **Convenciones Module** - CRUD de Convenciones
+
 - `GET /convenciones` - Listar todas (con filtros)
 - `GET /convenciones/:id` - Ver una convención
 - `POST /convenciones` - Crear (protegido)
@@ -149,6 +161,7 @@ v0-project-setup-and-plan/
 - `DELETE /convenciones/:id` - Eliminar/Archivar (protegido)
 
 #### 6. **Inscripciones Module** - Gestión de Inscripciones
+
 - `GET /inscripciones` - Listar todas (con filtros)
 - `POST /inscripciones` - Crear inscripción (público)
 - `GET /inscripciones/:id` - Ver una inscripción
@@ -156,6 +169,7 @@ v0-project-setup-and-plan/
 - **📧 Envía email automático** al crear inscripción
 
 #### 7. **Pagos Module** - Gestión de Pagos
+
 - `GET /pagos` - Listar todos (con filtros)
 - `POST /pagos` - Crear pago
 - `PATCH /pagos/:id/validar` - Validar pago (protegido)
@@ -164,10 +178,12 @@ v0-project-setup-and-plan/
 - **📧 Envía email automático** al completar todos los pagos
 
 #### 8. **Upload Module** - Subida de Archivos
+
 - `POST /upload/image` - Subir imagen a Cloudinary
 - `POST /upload/document` - Subir documento
 
 #### 9. **Notifications Module** - Notificaciones y Emails
+
 - `POST /notifications/register-device` - Registrar dispositivo (push)
 - `GET /notifications/history` - Historial de notificaciones
 - `GET /notifications/unread-count` - Contador de no leídas
@@ -176,6 +192,7 @@ v0-project-setup-and-plan/
 - `POST /notifications/test-email` - Probar envío de email
 
 #### 10. **WebSocket Gateway** - Notificaciones en Tiempo Real
+
 - Namespace: `/notifications`
 - Eventos: `notification`, `unread-count`
 - Notificaciones automáticas a admins cuando:
@@ -184,11 +201,13 @@ v0-project-setup-and-plan/
   - Se valida un pago
 
 #### 11. **Galeria Module** - Gestión de Galería
+
 - `GET /galeria` - Listar imágenes
 - `POST /galeria` - Subir imagen (protegido)
 - `DELETE /galeria/:id` - Eliminar imagen (protegido)
 
 ### Base de Datos (Prisma + PostgreSQL):
+
 - ✅ PostgreSQL (Neon)
 - ✅ Modelos: User, Pastor, PastorAuth, Noticia, Convencion, Inscripcion, Pago, GaleriaImagen, PasswordResetToken
 - ✅ Relaciones configuradas correctamente
@@ -200,6 +219,7 @@ v0-project-setup-and-plan/
 ## 📧 SISTEMA DE EMAILS (COMPLETO Y FUNCIONANDO)
 
 ### ✅ Configuración:
+
 - **Servicio:** Gmail SMTP con Nodemailer
 - **Estado:** ✅ Funcionando correctamente
 - **Variables de entorno:**
@@ -214,6 +234,7 @@ v0-project-setup-and-plan/
 ### ✅ Emails Implementados:
 
 #### 1. **Email de Inscripción Recibida**
+
 - **Cuándo:** Al crear una inscripción desde landing/app
 - **Destinatario:** El usuario que se inscribió
 - **Contenido:**
@@ -225,6 +246,7 @@ v0-project-setup-and-plan/
   - Instrucciones sobre próximos pasos
 
 #### 2. **Email de Pago Validado** (por cada cuota)
+
 - **Cuándo:** Al validar un pago individual desde el dashboard
 - **Destinatario:** El usuario que realizó el pago
 - **Contenido:**
@@ -235,6 +257,7 @@ v0-project-setup-and-plan/
   - Cuotas pendientes
 
 #### 3. **Email de Inscripción Confirmada**
+
 - **Cuándo:** Al validar TODAS las cuotas de una inscripción
 - **Destinatario:** El usuario que completó todos los pagos
 - **Contenido:**
@@ -244,6 +267,7 @@ v0-project-setup-and-plan/
   - Información de que todos los pagos fueron validados
 
 ### ✅ Características:
+
 - ✅ Templates HTML profesionales y responsive
 - ✅ Fallback inteligente (funciona para usuarios regulares, no requiere ser pastor)
 - ✅ Manejo de errores robusto (no interrumpe el proceso si falla)
@@ -253,12 +277,14 @@ v0-project-setup-and-plan/
 - ✅ Iconos y colores personalizados por tipo
 
 ### 📁 Archivos del Sistema de Emails:
+
 - `backend/src/modules/notifications/email.service.ts` - Servicio principal
 - `backend/src/modules/inscripciones/inscripciones.service.ts` - Integración
 - `backend/src/modules/notifications/notifications.module.ts` - Módulo
 - `backend/src/modules/notifications/email-test.controller.ts` - Testing
 
 ### 📚 Documentación:
+
 - `docs/FLUJO_EMAILS_COMPLETO.md` - Flujo completo paso a paso
 - `docs/CODIGO_EMAILS_RESUMEN.md` - Resumen técnico del código
 - `backend/GUIA_CONFIGURAR_GMAIL.md` - Guía para configurar Gmail
@@ -270,6 +296,7 @@ v0-project-setup-and-plan/
 **Ubicación:** `amva-mobile/`
 
 ### Tecnologías:
+
 - ✅ React Native (Expo)
 - ✅ TypeScript
 - ✅ React Navigation
@@ -279,6 +306,7 @@ v0-project-setup-and-plan/
 - ✅ Expo Image Picker (documentos)
 
 ### Pantallas Implementadas:
+
 1. ✅ **LoginScreen** - Login de pastores
 2. ✅ **RegisterScreen** - Registro de pastores
 3. ✅ **HomeScreen** - Pantalla principal con cards
@@ -288,6 +316,7 @@ v0-project-setup-and-plan/
 7. ✅ **ProfileScreen** - Perfil del pastor
 
 ### Funcionalidades:
+
 - ✅ Autenticación con JWT (access + refresh tokens)
 - ✅ Refresh tokens automático
 - ✅ Navegación por tabs
@@ -302,6 +331,7 @@ v0-project-setup-and-plan/
 - ✅ Logout funcional
 
 ### Navegación:
+
 - Tab Navigator con 5 tabs:
   - 🏠 Inicio
   - 📰 Noticias
@@ -314,6 +344,7 @@ v0-project-setup-and-plan/
 ## 🔧 CONFIGURACIÓN
 
 ### Variables de Entorno (Backend - `.env`):
+
 ```env
 # Base de datos
 DATABASE_URL=postgresql://...
@@ -338,11 +369,13 @@ SMTP_PASSWORD=tu-app-password-de-16-caracteres
 ```
 
 ### Variables de Entorno (Frontend - `.env.local`):
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
 ```
 
 ### Variables de Entorno (Mobile - `.env`):
+
 ```env
 EXPO_PUBLIC_API_URL=http://192.168.0.33:4000/api
 ```
@@ -352,6 +385,7 @@ EXPO_PUBLIC_API_URL=http://192.168.0.33:4000/api
 ## 🚀 COMANDOS PARA INICIAR
 
 ### Backend:
+
 ```bash
 cd backend
 pnpm install
@@ -359,21 +393,26 @@ pnpm prisma generate
 pnpm prisma db push
 pnpm start:dev
 ```
+
 **Servidor:** `http://localhost:4000`
 
 ### Frontend:
+
 ```bash
 pnpm install
 pnpm dev
 ```
+
 **Servidor:** `http://localhost:3000`
 
 ### Mobile App:
+
 ```bash
 cd amva-mobile
 npm install
 npm start
 ```
+
 **Expo Dev Tools:** Se abre automáticamente
 
 ---
@@ -436,6 +475,7 @@ npm start
 ## ✅ ESTADO ACTUAL - RESUMEN
 
 ### ✅ Funcionando Completamente:
+
 - ✅ Landing page completa y responsive
 - ✅ Dashboard administrativo completo
 - ✅ Autenticación JWT (admin y pastores)
@@ -451,6 +491,7 @@ npm start
 - ✅ Filtros y búsqueda en todas las secciones
 
 ### 📚 Documentación Disponible:
+
 - ✅ `docs/FLUJO_EMAILS_COMPLETO.md` - Flujo de emails
 - ✅ `docs/CODIGO_EMAILS_RESUMEN.md` - Código de emails
 - ✅ `docs/PASTOR_AUTH_API.md` - API de autenticación
@@ -460,6 +501,7 @@ npm start
 - ✅ Y más...
 
 ### 🧪 Testing Disponible:
+
 - ✅ `backend/test-email-simple.js` - Probar emails
 - ✅ `backend/test-flujo-completo.sh` - Probar flujo completo
 - ✅ `POST /api/notifications/test-email` - Endpoint de prueba
@@ -469,6 +511,7 @@ npm start
 ## 🎯 PRÓXIMOS PASOS (Opcionales)
 
 ### Mejoras Futuras:
+
 - [ ] Agregar recordatorios de pago pendiente (emails programados)
 - [ ] Agregar notificaciones de convención próxima
 - [ ] Personalizar templates por tipo de usuario
@@ -496,6 +539,7 @@ npm start
 **El proyecto está COMPLETO y FUNCIONANDO al 100%**
 
 Todos los módulos principales están implementados:
+
 - ✅ Frontend (Landing + Admin)
 - ✅ Backend (API completa)
 - ✅ Mobile App
@@ -508,4 +552,3 @@ Todos los módulos principales están implementados:
 ---
 
 **Última actualización:** 30 de noviembre de 2024
-

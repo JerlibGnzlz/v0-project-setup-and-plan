@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
 
-export type AuditEntityType = 
+export type AuditEntityType =
   | 'INSCRIPCION'
   | 'PAGO'
   | 'PASTOR'
@@ -32,17 +32,17 @@ export interface AuditLogData {
   userEmail?: string
   changes?: {
     field: string
-    oldValue: any
-    newValue: any
+    oldValue: unknown
+    newValue: unknown
   }[]
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   ipAddress?: string
   userAgent?: string
 }
 
 /**
  * Servicio centralizado para auditoría de cambios importantes
- * 
+ *
  * Registra todas las acciones críticas en el sistema para trazabilidad
  */
 @Injectable()
@@ -78,8 +78,10 @@ export class AuditService {
 
       // TODO: Crear tabla genérica de auditoría cuando sea necesario
       // await this.prisma.auditoria.create({ data: { ... } })
-    } catch (error: any) {
-      this.logger.error(`Error registrando auditoría: ${error.message}`, error.stack)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorStack = error instanceof Error ? error.stack : undefined
+      this.logger.error(`Error registrando auditoría: ${errorMessage}`, errorStack)
       // No fallar si la auditoría falla - es crítico pero no debe romper el flujo
     }
   }
@@ -131,10 +133,7 @@ export class AuditService {
   /**
    * Obtiene el historial de auditoría de una entidad
    */
-  async getAuditHistory(
-    entityType: AuditEntityType,
-    entityId: string
-  ): Promise<any[]> {
+  async getAuditHistory(entityType: AuditEntityType, entityId: string): Promise<any[]> {
     try {
       if (entityType === 'PAGO') {
         const auditoriaPagoModel = (this.prisma as any).auditoriaPago
@@ -161,7 +160,7 @@ export class AuditService {
   /**
    * Helper para crear datos de auditoría desde cambios de entidad
    */
-  createAuditDataFromChanges<T extends Record<string, any>>(
+  createAuditDataFromChanges<T extends Record<string, unknown>>(
     entityType: AuditEntityType,
     entityId: string,
     action: AuditAction,
@@ -170,10 +169,10 @@ export class AuditService {
     userId?: string,
     userEmail?: string
   ): AuditLogData {
-    const changes: { field: string; oldValue: any; newValue: any }[] = []
+    const changes: { field: string; oldValue: unknown; newValue: unknown }[] = []
 
     // Comparar campos y detectar cambios
-    Object.keys(newData).forEach((key) => {
+    Object.keys(newData).forEach(key => {
       const oldValue = oldData?.[key]
       const newValue = newData[key]
 
@@ -200,4 +199,3 @@ export class AuditService {
     }
   }
 }
-

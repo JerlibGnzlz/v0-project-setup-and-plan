@@ -57,7 +57,7 @@ async function main() {
 
     // 4. Crear cuenta de autenticación
     const hashedPassword = await bcrypt.hash(password, 10)
-    
+
     await prisma.pastorAuth.create({
       data: {
         pastorId: pastor.id,
@@ -74,7 +74,6 @@ async function main() {
     console.log(`   Password: ${password}`)
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     console.log('\n✅ Listo! Ya puedes hacer login en la app móvil')
-
   } catch (error) {
     console.error('❌ Error:', error)
   } finally {
@@ -83,10 +82,3 @@ async function main() {
 }
 
 main()
-
-
-
-
-
-
-

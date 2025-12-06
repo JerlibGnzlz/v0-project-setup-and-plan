@@ -20,7 +20,7 @@ export function ScrollReveal({ children, className = '', delay = 0 }: ScrollReve
     const checkInitialVisibility = () => {
       const rect = element.getBoundingClientRect()
       const isInViewport = rect.top < window.innerHeight && rect.bottom > 0
-      
+
       if (isInViewport) {
         // Si ya está visible, mostrarlo inmediatamente
         setTimeout(() => {
@@ -39,8 +39,8 @@ export function ScrollReveal({ children, className = '', delay = 0 }: ScrollReve
     }, 100)
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
+      entries => {
+        entries.forEach(entry => {
           if (entry.isIntersecting) {
             setTimeout(() => {
               setIsVisible(true)
@@ -72,9 +72,7 @@ export function ScrollReveal({ children, className = '', delay = 0 }: ScrollReve
     <div
       ref={ref}
       className={`transition-all duration-700 ${
-        isVisible 
-          ? 'opacity-100 translate-y-0' 
-          : 'opacity-0 translate-y-4'
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       } ${className}`}
       style={{ animationDuration: '700ms', animationFillMode: 'forwards' }}
     >

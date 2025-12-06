@@ -10,10 +10,16 @@ interface Step2ConvencionInfoProps {
   onBack: () => void
 }
 
-export function Step2ConvencionInfo({ convencion, yaInscrito = false, inscripcionExistente, onComplete, onBack }: Step2ConvencionInfoProps) {
+export function Step2ConvencionInfo({
+  convencion,
+  yaInscrito = false,
+  inscripcionExistente,
+  onComplete,
+  onBack,
+}: Step2ConvencionInfoProps) {
   const fechaInicio = new Date(convencion.fechaInicio)
   const fechaFin = new Date(convencion.fechaFin)
-  
+
   const formatoFecha = (fecha: Date) => {
     return fecha.toLocaleDateString('es-ES', {
       day: 'numeric',
@@ -22,10 +28,11 @@ export function Step2ConvencionInfo({ convencion, yaInscrito = false, inscripcio
     })
   }
 
-  const costo = typeof convencion.costo === 'number' 
-    ? Number(convencion.costo)
-    : parseFloat(String(convencion.costo || 0))
-  
+  const costo =
+    typeof convencion.costo === 'number'
+      ? Number(convencion.costo)
+      : parseFloat(String(convencion.costo || 0))
+
   // Asegurar que sean números válidos
   const montoPorCuota1 = Number(costo) || 0
   const montoPorCuota2 = Number(costo / 2) || 0
@@ -47,11 +54,7 @@ export function Step2ConvencionInfo({ convencion, yaInscrito = false, inscripcio
 
         {/* Image */}
         {convencion.imagenUrl && (
-          <Image
-            source={{ uri: convencion.imagenUrl }}
-            style={styles.image}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: convencion.imagenUrl }} style={styles.image} resizeMode="cover" />
         )}
 
         {/* Info Cards */}
@@ -111,7 +114,8 @@ export function Step2ConvencionInfo({ convencion, yaInscrito = false, inscripcio
               <Text style={styles.yaInscritoIcon}>✓</Text>
               <Text style={styles.yaInscritoTitle}>Ya estás inscrito</Text>
               <Text style={styles.yaInscritoText}>
-                Tu inscripción fue registrada el {new Date(inscripcionExistente.fechaInscripcion).toLocaleDateString('es-ES', {
+                Tu inscripción fue registrada el{' '}
+                {new Date(inscripcionExistente.fechaInscripcion).toLocaleDateString('es-ES', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric',
@@ -134,7 +138,9 @@ export function Step2ConvencionInfo({ convencion, yaInscrito = false, inscripcio
             onPress={onComplete}
             disabled={yaInscrito}
           >
-            <Text style={[styles.continueButtonText, yaInscrito && styles.continueButtonTextDisabled]}>
+            <Text
+              style={[styles.continueButtonText, yaInscrito && styles.continueButtonTextDisabled]}
+            >
               {yaInscrito ? '✓ Ya Inscrito' : '✓ Continuar'}
             </Text>
           </TouchableOpacity>
@@ -364,4 +370,3 @@ const styles = StyleSheet.create({
     color: '#22c55e',
   },
 })
-

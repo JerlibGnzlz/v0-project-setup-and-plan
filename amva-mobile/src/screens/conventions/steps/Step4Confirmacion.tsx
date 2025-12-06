@@ -18,27 +18,24 @@ export function Step4Confirmacion({ onBack }: Step4ConfirmacionProps) {
 
         {/* Título */}
         <Text style={styles.title}>¡Inscripción Completa!</Text>
-        
+
         {/* Mensaje */}
         <Text style={styles.message}>
-          Tu inscripción ha sido registrada exitosamente. Tus datos han sido enviados a AMVA Go para su revisión.
+          Tu inscripción ha sido registrada exitosamente. Tus datos han sido enviados a AMVA Go para
+          su revisión.
         </Text>
 
         {/* Información adicional */}
         <View style={styles.infoBox}>
           <Text style={styles.infoTitle}>Próximos pasos:</Text>
           <Text style={styles.infoText}>
-            • Revisa tu correo electrónico para confirmación{'\n'}
-            • Los pagos se han creado automáticamente{'\n'}
-            • Puedes ver el estado desde tu perfil
+            • Revisa tu correo electrónico para confirmación{'\n'}• Los pagos se han creado
+            automáticamente{'\n'}• Puedes ver el estado desde tu perfil
           </Text>
         </View>
 
         {/* Botón */}
-        <TouchableOpacity
-          style={styles.button}
-          onPress={onBack}
-        >
+        <TouchableOpacity style={styles.button} onPress={onBack}>
           <Text style={styles.buttonText}>🏠 Volver al Inicio</Text>
         </TouchableOpacity>
       </View>
@@ -128,4 +125,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 })
-

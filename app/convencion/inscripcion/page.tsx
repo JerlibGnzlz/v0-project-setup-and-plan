@@ -20,36 +20,33 @@ function ConvencionInscripcionPageContent() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const { data: convencion, isLoading: loadingConvencion } = useConvencionActiva()
-  
+
   // Hook de React Query para autenticación del invitado (reemplaza useEffect)
   const invitadoAuth = useInvitadoAuth()
-  
+
   // Fallback a useUnifiedAuth para compatibilidad
   const unifiedAuth = useUnifiedAuth()
-  
+
   // Usar datos de invitado si está autenticado como invitado, sino usar unifiedAuth
   const user = invitadoAuth.user || unifiedAuth.user
   const isAuthenticated = invitadoAuth.isAuthenticated || unifiedAuth.isAuthenticated
   const isHydrated = invitadoAuth.isHydrated && unifiedAuth.isHydrated
-  
+
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<any>(null)
   const [pasosCompletados, setPasosCompletados] = useState<number[]>([])
-  
+
   // Verificar si ya está inscrito - React Query maneja automáticamente el refetch
-  const { 
-    data: inscripcionExistente, 
+  const {
+    data: inscripcionExistente,
     isLoading: isLoadingInscripcion,
-    isFetching: isFetchingInscripcion
-  } = useCheckInscripcion(
-    convencion?.id,
-    user?.email
-  )
+    isFetching: isFetchingInscripcion,
+  } = useCheckInscripcion(convencion?.id, user?.email)
   const estaConfirmado = inscripcionExistente?.estado === 'confirmado'
 
   // React Query maneja automáticamente la sincronización cuando cambia user?.email
   // useCheckInscripcion se refetch automáticamente cuando cambia convencion?.id o user?.email
-  
+
   // Efecto simplificado: solo actualizar pasos completados y step basado en datos de React Query
   useEffect(() => {
     // Si hay inscripción existente, ambos pasos están completados
@@ -58,7 +55,12 @@ function ConvencionInscripcionPageContent() {
       if (currentStep === 1) {
         setCurrentStep(2)
       }
-    } else if (isAuthenticated && currentStep === 1 && !isLoadingInscripcion && !isFetchingInscripcion) {
+    } else if (
+      isAuthenticated &&
+      currentStep === 1 &&
+      !isLoadingInscripcion &&
+      !isFetchingInscripcion
+    ) {
       // Usuario autenticado sin inscripción, avanzar al formulario
       setCurrentStep(2)
       setPasosCompletados([1])
@@ -67,7 +69,13 @@ function ConvencionInscripcionPageContent() {
     } else if (currentStep >= 1) {
       setPasosCompletados([1])
     }
-  }, [inscripcionExistente, isAuthenticated, currentStep, isLoadingInscripcion, isFetchingInscripcion])
+  }, [
+    inscripcionExistente,
+    isAuthenticated,
+    currentStep,
+    isLoadingInscripcion,
+    isFetchingInscripcion,
+  ])
 
   // Si no hay convención activa, redirigir a landing
   useEffect(() => {
@@ -119,11 +127,15 @@ function ConvencionInscripcionPageContent() {
   ]
 
   const handleStepComplete = async (step: number, data?: any) => {
-    console.log('[ConvencionInscripcionPage] handleStepComplete llamado:', { step, data, currentStep })
+    console.log('[ConvencionInscripcionPage] handleStepComplete llamado:', {
+      step,
+      data,
+      currentStep,
+    })
     if (data) {
       setFormData((prev: any) => ({ ...prev, ...data }))
     }
-    
+
     // Avanzar al siguiente paso (step 2 = formulario de inscripción o card de inscripción existente)
     if (step === 1) {
       // Si el usuario está autenticado, React Query ya está verificando la inscripción automáticamente
@@ -170,8 +182,12 @@ function ConvencionInscripcionPageContent() {
               </div>
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white">Inscripción a Convención</h1>
-              <p className="text-white/70 text-sm sm:text-base">Asociación Misionera Vida Abundante</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">
+                Inscripción a Convención
+              </h1>
+              <p className="text-white/70 text-sm sm:text-base">
+                Asociación Misionera Vida Abundante
+              </p>
             </div>
           </div>
 
@@ -179,9 +195,13 @@ function ConvencionInscripcionPageContent() {
           <div className="flex items-center justify-center gap-2 sm:gap-4 max-w-2xl mx-auto">
             {steps.map((step, index) => {
               // Si hay inscripción existente, ambos pasos están completados
-              const isCompleted = inscripcionExistente ? true : pasosCompletados.includes(step.number)
-              const isActive = inscripcionExistente ? step.number === 2 : step.number === currentStep
-              
+              const isCompleted = inscripcionExistente
+                ? true
+                : pasosCompletados.includes(step.number)
+              const isActive = inscripcionExistente
+                ? step.number === 2
+                : step.number === currentStep
+
               return (
                 <div key={step.number} className="flex items-center flex-1">
                   <div className="flex flex-col items-center flex-1">
@@ -190,7 +210,10 @@ function ConvencionInscripcionPageContent() {
                         // Si hay inscripción existente, no permitir cambiar de paso
                         if (inscripcionExistente) return
                         // Solo permitir ir a steps anteriores o al siguiente
-                        if (step.number <= currentStep || (step.number === currentStep + 1 && isAuthenticated)) {
+                        if (
+                          step.number <= currentStep ||
+                          (step.number === currentStep + 1 && isAuthenticated)
+                        ) {
                           setCurrentStep(step.number)
                         }
                       }}
@@ -199,10 +222,12 @@ function ConvencionInscripcionPageContent() {
                         isCompleted
                           ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                           : isActive
-                          ? 'bg-emerald-500 text-white ring-4 ring-emerald-500/30 scale-110'
-                          : 'bg-white/10 text-white/50 border border-white/20'
+                            ? 'bg-emerald-500 text-white ring-4 ring-emerald-500/30 scale-110'
+                            : 'bg-white/10 text-white/50 border border-white/20'
                       )}
-                      disabled={(step.number > currentStep && !isAuthenticated) || inscripcionExistente}
+                      disabled={
+                        (step.number > currentStep && !isAuthenticated) || inscripcionExistente
+                      }
                     >
                       {isCompleted ? (
                         <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -242,10 +267,7 @@ function ConvencionInscripcionPageContent() {
       {/* Content */}
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {currentStep === 1 && !inscripcionExistente && (
-          <Step1Auth
-            onComplete={(userData) => handleStepComplete(1, userData)}
-            onBack={handleBack}
-          />
+          <Step1Auth onComplete={userData => handleStepComplete(1, userData)} onBack={handleBack} />
         )}
 
         {/* Si ya está inscrito, mostrar el wizard completo con información - PRIORIDAD ALTA */}
@@ -268,10 +290,7 @@ function ConvencionInscripcionPageContent() {
 
         {/* Formulario unificado de inscripción - Solo si NO hay inscripción existente */}
         {isAuthenticated && currentStep === 2 && convencion && user && !inscripcionExistente && (
-          <UnifiedInscriptionForm
-            convencion={convencion}
-            user={user}
-          />
+          <UnifiedInscriptionForm convencion={convencion} user={user} />
         )}
       </div>
     </div>
@@ -285,4 +304,3 @@ export default function ConvencionInscripcionPage() {
     </QueryProvider>
   )
 }
-

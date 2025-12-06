@@ -5,18 +5,18 @@ import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Play, 
-  Pause, 
-  Scissors, 
-  Clock, 
-  CheckCircle2, 
+import {
+  Play,
+  Pause,
+  Scissors,
+  Clock,
+  CheckCircle2,
   AlertCircle,
   RotateCcw,
   Volume2,
   VolumeX,
   Image as ImageIcon,
-  Camera
+  Camera,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -48,8 +48,8 @@ function formatDuration(seconds: number): string {
   return `${secs}s`
 }
 
-export function VideoTrimmer({ 
-  file, 
+export function VideoTrimmer({
+  file,
   videoUrl: externalVideoUrl,
   initialStartTime,
   initialEndTime,
@@ -57,27 +57,27 @@ export function VideoTrimmer({
   maxDuration = 120, // 2 minutos por defecto
   onTrimChange,
   onThumbnailChange,
-  className 
+  className,
 }: VideoTrimmerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
-  
+
   const [videoUrl, setVideoUrl] = useState<string>(externalVideoUrl || '')
   const [duration, setDuration] = useState<number>(0)
   const [currentTime, setCurrentTime] = useState<number>(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
-  
+
   // Trim range
   const [startTime, setStartTime] = useState<number>(initialStartTime || 0)
   const [endTime, setEndTime] = useState<number>(initialEndTime || 0)
-  
+
   // Thumbnail
   const [thumbnailTime, setThumbnailTime] = useState<number>(initialThumbnailTime || 0)
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('')
-  
+
   // Preview mode
   const [isPreviewMode, setIsPreviewMode] = useState(false)
 
@@ -86,7 +86,7 @@ export function VideoTrimmer({
     if (file) {
       const url = URL.createObjectURL(file)
       setVideoUrl(url)
-      
+
       return () => {
         URL.revokeObjectURL(url)
       }
@@ -100,58 +100,61 @@ export function VideoTrimmer({
     if (videoRef.current) {
       const videoDuration = videoRef.current.duration
       setDuration(videoDuration)
-      
+
       // Use initial values or defaults
       const newEndTime = initialEndTime || Math.min(videoDuration, maxDuration)
       const newStartTime = initialStartTime || 0
       const newThumbnailTime = initialThumbnailTime || newStartTime
-      
+
       setStartTime(newStartTime)
       setEndTime(newEndTime)
       setThumbnailTime(newThumbnailTime)
       setIsLoaded(true)
-      
+
       onTrimChange(newStartTime, newEndTime)
-      
+
       // Generate initial thumbnail
       setTimeout(() => captureThumbnail(newThumbnailTime), 100)
     }
   }, [maxDuration, onTrimChange, initialStartTime, initialEndTime, initialThumbnailTime])
 
   // Capture thumbnail at specific time
-  const captureThumbnail = useCallback((time: number) => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current
-      const canvas = canvasRef.current
-      const ctx = canvas.getContext('2d')
-      
-      if (ctx) {
-        // Set canvas size
-        canvas.width = 320
-        canvas.height = 180
-        
-        // Save current time
-        const savedTime = video.currentTime
-        
-        // Seek to thumbnail time
-        video.currentTime = time
-        
-        // Wait for seek to complete
-        const handleSeeked = () => {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
-          setThumbnailPreview(dataUrl)
-          video.removeEventListener('seeked', handleSeeked)
-          // Restore time if not playing
-          if (!isPlaying) {
-            video.currentTime = savedTime
+  const captureThumbnail = useCallback(
+    (time: number) => {
+      if (videoRef.current && canvasRef.current) {
+        const video = videoRef.current
+        const canvas = canvasRef.current
+        const ctx = canvas.getContext('2d')
+
+        if (ctx) {
+          // Set canvas size
+          canvas.width = 320
+          canvas.height = 180
+
+          // Save current time
+          const savedTime = video.currentTime
+
+          // Seek to thumbnail time
+          video.currentTime = time
+
+          // Wait for seek to complete
+          const handleSeeked = () => {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+            setThumbnailPreview(dataUrl)
+            video.removeEventListener('seeked', handleSeeked)
+            // Restore time if not playing
+            if (!isPlaying) {
+              video.currentTime = savedTime
+            }
           }
+
+          video.addEventListener('seeked', handleSeeked)
         }
-        
-        video.addEventListener('seeked', handleSeeked)
       }
-    }
-  }, [isPlaying])
+    },
+    [isPlaying]
+  )
 
   // Set current frame as thumbnail
   const setCurrentFrameAsThumbnail = useCallback(() => {
@@ -168,7 +171,7 @@ export function VideoTrimmer({
     if (videoRef.current) {
       const time = videoRef.current.currentTime
       setCurrentTime(time)
-      
+
       // If in preview mode and reached end time, pause and loop
       if (isPreviewMode && time >= endTime) {
         videoRef.current.currentTime = startTime
@@ -204,18 +207,21 @@ export function VideoTrimmer({
   }, [isMuted])
 
   // Handle trim range change
-  const handleTrimChange = useCallback((values: number[]) => {
-    const [start, end] = values
-    setStartTime(start)
-    setEndTime(end)
-    onTrimChange(start, end)
-    
-    // Seek to start time to preview
-    if (videoRef.current) {
-      videoRef.current.currentTime = start
-      setCurrentTime(start)
-    }
-  }, [onTrimChange])
+  const handleTrimChange = useCallback(
+    (values: number[]) => {
+      const [start, end] = values
+      setStartTime(start)
+      setEndTime(end)
+      onTrimChange(start, end)
+
+      // Seek to start time to preview
+      if (videoRef.current) {
+        videoRef.current.currentTime = start
+        setCurrentTime(start)
+      }
+    },
+    [onTrimChange]
+  )
 
   // Preview the selected clip
   const previewClip = useCallback(() => {
@@ -241,25 +247,28 @@ export function VideoTrimmer({
   }, [duration, maxDuration, onTrimChange])
 
   // Click on progress bar to seek
-  const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (progressRef.current && videoRef.current) {
-      const rect = progressRef.current.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const percentage = x / rect.width
-      const seekTime = percentage * duration
-      videoRef.current.currentTime = seekTime
-      setCurrentTime(seekTime)
-    }
-  }, [duration])
+  const handleProgressClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (progressRef.current && videoRef.current) {
+        const rect = progressRef.current.getBoundingClientRect()
+        const x = e.clientX - rect.left
+        const percentage = x / rect.width
+        const seekTime = percentage * duration
+        videoRef.current.currentTime = seekTime
+        setCurrentTime(seekTime)
+      }
+    },
+    [duration]
+  )
 
   const clipDuration = endTime - startTime
   const isValidDuration = clipDuration <= maxDuration && clipDuration > 0
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn('space-y-4', className)}>
       {/* Hidden canvas for thumbnail capture */}
       <canvas ref={canvasRef} className="hidden" />
-      
+
       {/* Video Player */}
       <div className="relative aspect-video rounded-lg overflow-hidden bg-black border border-white/10">
         {videoUrl ? (
@@ -281,7 +290,7 @@ export function VideoTrimmer({
             Cargando video...
           </div>
         )}
-        
+
         {/* Play/Pause Overlay */}
         <button
           onClick={togglePlay}
@@ -306,11 +315,7 @@ export function VideoTrimmer({
           onClick={toggleMute}
           className="absolute bottom-2 right-2 p-2 rounded bg-black/70 text-white hover:bg-black/90 transition-colors"
         >
-          {isMuted ? (
-            <VolumeX className="w-4 h-4" />
-          ) : (
-            <Volume2 className="w-4 h-4" />
-          )}
+          {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
         </button>
 
         {/* Preview mode indicator */}
@@ -324,7 +329,7 @@ export function VideoTrimmer({
 
       {/* Progress Bar with Trim Markers */}
       <div className="space-y-2">
-        <div 
+        <div
           ref={progressRef}
           onClick={handleProgressClick}
           className="relative h-2 rounded-full bg-white/10 cursor-pointer overflow-hidden"
@@ -337,13 +342,13 @@ export function VideoTrimmer({
               width: `${((endTime - startTime) / duration) * 100}%`,
             }}
           />
-          
+
           {/* Current progress */}
           <div
             className="absolute h-full bg-white/50"
             style={{ width: `${(currentTime / duration) * 100}%` }}
           />
-          
+
           {/* Current time indicator */}
           <div
             className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white shadow-lg"
@@ -406,14 +411,14 @@ export function VideoTrimmer({
                 Duración del clip: <strong>{formatDuration(clipDuration)}</strong>
               </span>
             </div>
-            
-            <Badge 
-              variant={isValidDuration ? "default" : "destructive"}
+
+            <Badge
+              variant={isValidDuration ? 'default' : 'destructive'}
               className={cn(
-                "flex items-center gap-1",
-                isValidDuration 
-                  ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" 
-                  : "bg-rose-500/20 text-rose-400 border-rose-500/30"
+                'flex items-center gap-1',
+                isValidDuration
+                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                  : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
               )}
             >
               {isValidDuration ? (
@@ -460,9 +465,9 @@ export function VideoTrimmer({
             {/* Thumbnail Preview */}
             <div className="relative w-32 h-20 rounded-lg overflow-hidden bg-black/50 border border-white/10 flex-shrink-0">
               {thumbnailPreview ? (
-                <img 
-                  src={thumbnailPreview} 
-                  alt="Thumbnail preview" 
+                <img
+                  src={thumbnailPreview}
+                  alt="Thumbnail preview"
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -515,8 +520,8 @@ export function VideoTrimmer({
           <div>
             <p className="font-medium">Video muy largo</p>
             <p className="text-amber-400/70 text-xs mt-1">
-              El video original dura {formatDuration(duration)}. 
-              Usa los controles para seleccionar un segmento de máximo {formatDuration(maxDuration)}.
+              El video original dura {formatDuration(duration)}. Usa los controles para seleccionar
+              un segmento de máximo {formatDuration(maxDuration)}.
             </p>
           </div>
         </div>

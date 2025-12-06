@@ -18,12 +18,42 @@ import type { Pastor } from '@/lib/api/pastores'
 
 // Colores para los acentos (se rotan)
 const accentColors = [
-  { gradient: 'from-sky-400 to-blue-500', ring: 'ring-sky-400/50', glow: 'bg-sky-500/20', text: 'text-sky-400' },
-  { gradient: 'from-emerald-400 to-teal-500', ring: 'ring-emerald-400/50', glow: 'bg-emerald-500/20', text: 'text-emerald-400' },
-  { gradient: 'from-amber-400 to-orange-500', ring: 'ring-amber-400/50', glow: 'bg-amber-500/20', text: 'text-amber-400' },
-  { gradient: 'from-purple-400 to-pink-500', ring: 'ring-purple-400/50', glow: 'bg-purple-500/20', text: 'text-purple-400' },
-  { gradient: 'from-rose-400 to-red-500', ring: 'ring-rose-400/50', glow: 'bg-rose-500/20', text: 'text-rose-400' },
-  { gradient: 'from-cyan-400 to-blue-500', ring: 'ring-cyan-400/50', glow: 'bg-cyan-500/20', text: 'text-cyan-400' },
+  {
+    gradient: 'from-sky-400 to-blue-500',
+    ring: 'ring-sky-400/50',
+    glow: 'bg-sky-500/20',
+    text: 'text-sky-400',
+  },
+  {
+    gradient: 'from-emerald-400 to-teal-500',
+    ring: 'ring-emerald-400/50',
+    glow: 'bg-emerald-500/20',
+    text: 'text-emerald-400',
+  },
+  {
+    gradient: 'from-amber-400 to-orange-500',
+    ring: 'ring-amber-400/50',
+    glow: 'bg-amber-500/20',
+    text: 'text-amber-400',
+  },
+  {
+    gradient: 'from-purple-400 to-pink-500',
+    ring: 'ring-purple-400/50',
+    glow: 'bg-purple-500/20',
+    text: 'text-purple-400',
+  },
+  {
+    gradient: 'from-rose-400 to-red-500',
+    ring: 'ring-rose-400/50',
+    glow: 'bg-rose-500/20',
+    text: 'text-rose-400',
+  },
+  {
+    gradient: 'from-cyan-400 to-blue-500',
+    ring: 'ring-cyan-400/50',
+    glow: 'bg-cyan-500/20',
+    text: 'text-cyan-400',
+  },
 ]
 
 export function LeadershipSection() {
@@ -42,7 +72,7 @@ export function LeadershipSection() {
           <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-sky-500/10 rounded-full blur-[120px]" />
         </div>
         {/* Subtle pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.015]"
           style={{
             backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)`,
@@ -77,13 +107,19 @@ export function LeadershipSection() {
         ) : (
           <>
             {/* Leaders Grid - Modern Cards */}
-            <div className={`grid gap-4 max-w-6xl mx-auto ${
-              pastores.length === 1 ? 'grid-cols-1 max-w-sm' :
-              pastores.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl' :
-              pastores.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl' :
-              pastores.length === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' :
-              'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-            }`}>
+            <div
+              className={`grid gap-4 max-w-6xl mx-auto ${
+                pastores.length === 1
+                  ? 'grid-cols-1 max-w-sm'
+                  : pastores.length === 2
+                    ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl'
+                    : pastores.length === 3
+                      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl'
+                      : pastores.length === 4
+                        ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+                        : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+              }`}
+            >
               {pastores.map((pastor: Pastor, index: number) => {
                 const accent = accentColors[index % accentColors.length]
                 return (
@@ -120,27 +156,36 @@ export function LeadershipSection() {
 }
 
 // Modern Pastor Card Component
-function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: typeof accentColors[0]; index: number }) {
+function ModernPastorCard({
+  pastor,
+  accent,
+  index,
+}: {
+  pastor: Pastor
+  accent: (typeof accentColors)[0]
+  index: number
+}) {
   const fullName = `${pastor.nombre} ${pastor.apellido}`
   const location = pastor.sede || pastor.region || pastor.pais || ''
   const initials = `${pastor.nombre?.[0] || ''}${pastor.apellido?.[0] || ''}`
 
   return (
-    <div 
-      className="group relative h-full"
-      style={{ animationDelay: `${index * 100}ms` }}
-    >
+    <div className="group relative h-full" style={{ animationDelay: `${index * 100}ms` }}>
       {/* Animated border gradient */}
       <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-[0.5px]" />
-      
+
       {/* Glow effect on hover */}
-      <div className={`absolute -inset-3 ${accent.glow} rounded-3xl blur-2xl opacity-0 group-hover:opacity-60 transition-all duration-500`} />
-      
+      <div
+        className={`absolute -inset-3 ${accent.glow} rounded-3xl blur-2xl opacity-0 group-hover:opacity-60 transition-all duration-500`}
+      />
+
       {/* Card - Tamaño fijo y compacto */}
       <div className="relative rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] overflow-hidden hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-500 h-full flex flex-col">
         {/* Top accent line */}
-        <div className={`h-[2px] bg-gradient-to-r ${accent.gradient} opacity-60 group-hover:opacity-100 transition-opacity`} />
-        
+        <div
+          className={`h-[2px] bg-gradient-to-r ${accent.gradient} opacity-60 group-hover:opacity-100 transition-opacity`}
+        />
+
         {/* Content - Altura fija */}
         <div className="p-4 flex flex-col h-full">
           {/* Header with avatar */}
@@ -148,13 +193,19 @@ function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: t
             {/* Avatar */}
             <div className="relative flex-shrink-0">
               {/* Avatar glow */}
-              <div className={`absolute -inset-1 bg-gradient-to-br ${accent.gradient} rounded-full blur-md opacity-40 group-hover:opacity-70 transition-opacity`} />
-              
-              <div className={`relative w-14 h-14 rounded-full overflow-hidden ring-2 ${accent.ring} ring-offset-2 ring-offset-[#0d1f35]`}>
+              <div
+                className={`absolute -inset-1 bg-gradient-to-br ${accent.gradient} rounded-full blur-md opacity-40 group-hover:opacity-70 transition-opacity`}
+              />
+
+              <div
+                className={`relative w-14 h-14 rounded-full overflow-hidden ring-2 ${accent.ring} ring-offset-2 ring-offset-[#0d1f35]`}
+              >
                 {pastor.fotoUrl ? (
                   <>
                     {/* Fondo según tipo */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${accent.gradient} opacity-30`} />
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br ${accent.gradient} opacity-30`}
+                    />
                     <Image
                       src={pastor.fotoUrl}
                       alt={fullName}
@@ -165,24 +216,30 @@ function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: t
                     />
                   </>
                 ) : (
-                  <div className={`w-full h-full bg-gradient-to-br ${accent.gradient} flex items-center justify-center`}>
+                  <div
+                    className={`w-full h-full bg-gradient-to-br ${accent.gradient} flex items-center justify-center`}
+                  >
                     <span className="text-base font-bold text-white">{initials}</span>
                   </div>
                 )}
               </div>
-              
+
               {/* Status indicator */}
-              <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-gradient-to-br ${accent.gradient} border-2 border-[#0d1f35] flex items-center justify-center`}>
+              <div
+                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-gradient-to-br ${accent.gradient} border-2 border-[#0d1f35] flex items-center justify-center`}
+              >
                 <Sparkles className="w-1.5 h-1.5 text-white" />
               </div>
             </div>
-            
+
             {/* Info */}
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-bold text-white mb-0.5 truncate group-hover:text-white/90">
                 {fullName}
               </h3>
-              <p className={`text-xs font-medium bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent truncate`}>
+              <p
+                className={`text-xs font-medium bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent truncate`}
+              >
                 {pastor.cargo || pastor.ministerio || 'Pastor'}
               </p>
               {location && (
@@ -197,7 +254,9 @@ function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: t
           {/* Bio preview if exists - Altura fija */}
           {pastor.biografia && (
             <div className="relative mb-3 flex-1 min-h-[36px]">
-              <div className={`absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b ${accent.gradient} rounded-full opacity-40`} />
+              <div
+                className={`absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b ${accent.gradient} rounded-full opacity-40`}
+              />
               <p className="text-white/50 text-[10px] leading-relaxed pl-2.5 line-clamp-2 italic">
                 "{pastor.biografia}"
               </p>
@@ -207,8 +266,8 @@ function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: t
           {/* Action Button */}
           <Dialog>
             <DialogTrigger asChild>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 className={`w-full bg-gradient-to-r from-white/[0.03] to-white/[0.06] hover:from-white/[0.08] hover:to-white/[0.12] text-white/80 hover:text-white border border-white/[0.08] hover:border-white/[0.15] gap-1.5 group/btn transition-all duration-300 rounded-xl h-8 mt-auto`}
               >
@@ -217,17 +276,21 @@ function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: t
                 <ChevronRight className="h-3 w-3 opacity-0 -ml-2 group-hover/btn:opacity-100 group-hover/btn:ml-0 transition-all duration-300" />
               </Button>
             </DialogTrigger>
-            
+
             {/* Modal Content */}
             <DialogContent className="max-w-lg bg-[#0d1f35]/95 backdrop-blur-2xl border-white/10 text-white">
               <DialogHeader className="pb-4">
                 <div className="flex items-center gap-4">
                   {/* Avatar in modal con fondo según tipo */}
-                  <div className={`relative w-20 h-20 rounded-2xl overflow-hidden ring-2 ${accent.ring}`}>
+                  <div
+                    className={`relative w-20 h-20 rounded-2xl overflow-hidden ring-2 ${accent.ring}`}
+                  >
                     {pastor.fotoUrl ? (
                       <>
                         {/* Fondo según tipo */}
-                        <div className={`absolute inset-0 bg-gradient-to-br ${accent.gradient} opacity-30`} />
+                        <div
+                          className={`absolute inset-0 bg-gradient-to-br ${accent.gradient} opacity-30`}
+                        />
                         <Image
                           src={pastor.fotoUrl}
                           alt={fullName}
@@ -236,20 +299,24 @@ function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: t
                         />
                       </>
                     ) : (
-                      <div className={`w-full h-full bg-gradient-to-br ${accent.gradient} flex items-center justify-center`}>
+                      <div
+                        className={`w-full h-full bg-gradient-to-br ${accent.gradient} flex items-center justify-center`}
+                      >
                         <span className="text-2xl font-bold text-white">{initials}</span>
                       </div>
                     )}
                   </div>
                   <div>
                     <DialogTitle className="text-xl text-white">{fullName}</DialogTitle>
-                    <DialogDescription className={`text-sm bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent font-medium`}>
+                    <DialogDescription
+                      className={`text-sm bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent font-medium`}
+                    >
                       {pastor.cargo || pastor.ministerio || 'Pastor'}
                     </DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
-              
+
               <div className="space-y-5">
                 {/* Contact info */}
                 <div className="flex flex-wrap gap-3">
@@ -266,11 +333,13 @@ function ModernPastorCard({ pastor, accent, index }: { pastor: Pastor; accent: t
                     </div>
                   )}
                 </div>
-                
+
                 {/* Biography */}
                 {pastor.biografia && (
                   <div className="relative">
-                    <Quote className={`absolute -top-1 -left-1 w-6 h-6 ${accent.text} opacity-30`} />
+                    <Quote
+                      className={`absolute -top-1 -left-1 w-6 h-6 ${accent.text} opacity-30`}
+                    />
                     <p className="text-white/70 text-sm leading-relaxed pl-5 italic">
                       {pastor.biografia}
                     </p>

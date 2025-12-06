@@ -1,13 +1,13 @@
-"use client"
+'use client'
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { convencionesApi, type Convencion } from "@/lib/api/convenciones"
-import { toast } from "sonner"
-import { useSmartSync, useSmartPolling } from "./use-smart-sync"
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { convencionesApi, type Convencion } from '@/lib/api/convenciones'
+import { toast } from 'sonner'
+import { useSmartSync, useSmartPolling } from './use-smart-sync'
 
 export function useConvenciones() {
   return useQuery({
-    queryKey: ["convenciones"],
+    queryKey: ['convenciones'],
     queryFn: convencionesApi.getAll,
   })
 }
@@ -15,19 +15,19 @@ export function useConvenciones() {
 export function useConvencionActiva() {
   // Usar sincronización inteligente
   useSmartSync()
-  
+
   // Polling inteligente que se pausa cuando la pestaña no está visible
-  const pollingInterval = useSmartPolling(["convencion", "active"], 30000)
-  
+  const pollingInterval = useSmartPolling(['convencion', 'active'], 30000)
+
   return useQuery({
-    queryKey: ["convencion", "active"],
+    queryKey: ['convencion', 'active'],
     queryFn: convencionesApi.getActive,
     refetchOnWindowFocus: true,
     staleTime: 30000, // Los datos son válidos por 30 segundos (reduce refetches innecesarios)
     gcTime: 5 * 60 * 1000, // Mantener en caché por 5 minutos
     refetchInterval: pollingInterval, // Se pausa automáticamente cuando la pestaña no está visible
     // Mantener los datos anteriores mientras se refetch para evitar parpadeos
-    placeholderData: (previousData) => previousData,
+    placeholderData: previousData => previousData,
     // No reintentar automáticamente si hay error 500 (problema de base de datos)
     retry: (failureCount, error: any) => {
       // Si es un error 500, no reintentar (probablemente problema de base de datos)
@@ -43,7 +43,7 @@ export function useConvencionActiva() {
 
 export function useConvencion(id: string) {
   return useQuery({
-    queryKey: ["convencion", id],
+    queryKey: ['convencion', id],
     queryFn: () => convencionesApi.getById(id),
     enabled: !!id,
   })
@@ -56,13 +56,13 @@ export function useCreateConvencion() {
   return useMutation({
     mutationFn: convencionesApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["convenciones"] })
-      queryClient.invalidateQueries({ queryKey: ["convencion"] })
-      notifyChange("convencion")
-      toast.success("Convención creada exitosamente")
+      queryClient.invalidateQueries({ queryKey: ['convenciones'] })
+      queryClient.invalidateQueries({ queryKey: ['convencion'] })
+      notifyChange('convencion')
+      toast.success('Convención creada exitosamente')
     },
     onError: () => {
-      toast.error("Error al crear la convención")
+      toast.error('Error al crear la convención')
     },
   })
 }
@@ -72,22 +72,23 @@ export function useUpdateConvencion() {
   const { notifyChange } = useSmartSync()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Convencion> }) => convencionesApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<Convencion> }) =>
+      convencionesApi.update(id, data),
     onSuccess: async () => {
       // Invalidar y refetch todas las queries relacionadas con convenciones
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["convenciones"] }),
-        queryClient.invalidateQueries({ queryKey: ["convencion"] }),
+        queryClient.invalidateQueries({ queryKey: ['convenciones'] }),
+        queryClient.invalidateQueries({ queryKey: ['convencion'] }),
       ])
-      
+
       // Forzar refetch de la convención activa
-      await queryClient.refetchQueries({ queryKey: ["convencion", "active"] })
-      
+      await queryClient.refetchQueries({ queryKey: ['convencion', 'active'] })
+
       // Notificar a otras pestañas via BroadcastChannel + localStorage
-      notifyChange("convencion")
+      notifyChange('convencion')
     },
     onError: () => {
-      toast.error("Error al actualizar la convención")
+      toast.error('Error al actualizar la convención')
     },
   })
 }
@@ -99,13 +100,13 @@ export function useArchivarConvencion() {
   return useMutation({
     mutationFn: convencionesApi.archivar,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["convenciones"] })
-      queryClient.invalidateQueries({ queryKey: ["convencion"] })
-      notifyChange("convencion")
-      toast.success("Convención archivada exitosamente")
+      queryClient.invalidateQueries({ queryKey: ['convenciones'] })
+      queryClient.invalidateQueries({ queryKey: ['convencion'] })
+      notifyChange('convencion')
+      toast.success('Convención archivada exitosamente')
     },
     onError: () => {
-      toast.error("Error al archivar la convención")
+      toast.error('Error al archivar la convención')
     },
   })
 }
@@ -117,13 +118,13 @@ export function useDesarchivarConvencion() {
   return useMutation({
     mutationFn: convencionesApi.desarchivar,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["convenciones"] })
-      queryClient.invalidateQueries({ queryKey: ["convencion"] })
-      notifyChange("convencion")
-      toast.success("Convención desarchivada exitosamente")
+      queryClient.invalidateQueries({ queryKey: ['convenciones'] })
+      queryClient.invalidateQueries({ queryKey: ['convencion'] })
+      notifyChange('convencion')
+      toast.success('Convención desarchivada exitosamente')
     },
     onError: () => {
-      toast.error("Error al desarchivar la convención")
+      toast.error('Error al desarchivar la convención')
     },
   })
 }
@@ -135,13 +136,13 @@ export function useDeleteConvencion() {
   return useMutation({
     mutationFn: convencionesApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["convenciones"] })
-      queryClient.invalidateQueries({ queryKey: ["convencion"] })
-      notifyChange("convencion")
-      toast.success("Convención eliminada exitosamente")
+      queryClient.invalidateQueries({ queryKey: ['convenciones'] })
+      queryClient.invalidateQueries({ queryKey: ['convencion'] })
+      notifyChange('convencion')
+      toast.success('Convención eliminada exitosamente')
     },
     onError: () => {
-      toast.error("Error al eliminar la convención")
+      toast.error('Error al eliminar la convención')
     },
   })
 }

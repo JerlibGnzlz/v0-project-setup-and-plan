@@ -1,27 +1,33 @@
-import { Controller, Post, UseGuards, Get, Request, Body } from "@nestjs/common"
-import { AuthService } from "./auth.service"
-import { UnifiedAuthService } from "./unified-auth.service"
-import { LoginDto, RegisterDto, RefreshTokenDto, RegisterDeviceDto } from "./dto/auth.dto"
-import { JwtAuthGuard } from "./guards/jwt-auth.guard"
-import { ThrottleAuth, ThrottleRegister, ThrottlePasswordReset } from "../../common/decorators/throttle-auth.decorator"
+import { Controller, Post, UseGuards, Get, Request, Body } from '@nestjs/common'
+import { AuthService } from './auth.service'
+import { UnifiedAuthService } from './unified-auth.service'
+import { LoginDto, RegisterDto, RefreshTokenDto, RegisterDeviceDto } from './dto/auth.dto'
+import { JwtAuthGuard } from './guards/jwt-auth.guard'
+import {
+  ThrottleAuth,
+  ThrottleRegister,
+  ThrottlePasswordReset,
+} from '../../common/decorators/throttle-auth.decorator'
 
-@Controller("auth")
+@Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
-    private unifiedAuthService: UnifiedAuthService,
-  ) { }
+    private unifiedAuthService: UnifiedAuthService
+  ) {}
 
   @ThrottleRegister()
-  @Post("register")
+  @Post('register')
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto)
   }
 
   @ThrottleAuth()
-  @Post("login")
-  async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto)
+  @Post('login')
+  async login(@Body() dto: LoginDto, @Request() req) {
+    // Obtener IP del cliente para logs de seguridad
+    const clientIp = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    return this.authService.login(dto, clientIp as string)
   }
 
   /**
@@ -29,7 +35,7 @@ export class AuthController {
    * Útil para la app móvil que necesita autenticar cualquier tipo de usuario
    */
   @ThrottleAuth()
-  @Post("login/unified")
+  @Post('login/unified')
   async loginUnified(@Body() dto: LoginDto) {
     // Primero intentar como admin
     try {
@@ -41,26 +47,26 @@ export class AuthController {
   }
 
   // Endpoint para mobile: login con refresh token
-  @Post("login/mobile")
+  @Post('login/mobile')
   async loginMobile(@Body() dto: LoginDto) {
     return this.authService.loginMobile(dto)
   }
 
   // Endpoint para refresh token (mobile)
-  @Post("refresh")
+  @Post('refresh')
   async refreshToken(@Body() dto: RefreshTokenDto) {
     return this.authService.refreshAccessToken(dto.refreshToken)
   }
 
   // Endpoint para registrar dispositivo (notificaciones push)
   @UseGuards(JwtAuthGuard)
-  @Post("device/register")
+  @Post('device/register')
   async registerDevice(@Request() req, @Body() dto: RegisterDeviceDto) {
     return this.authService.registerDevice(req.user.id, dto)
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get("me")
+  @Get('me')
   async getProfile(@Request() req) {
     return {
       id: req.user.id,
@@ -75,7 +81,7 @@ export class AuthController {
    * Logout: invalidar tokens actuales
    */
   @UseGuards(JwtAuthGuard)
-  @Post("logout")
+  @Post('logout')
   async logout(@Request() req, @Body() body?: { refreshToken?: string }) {
     // Extraer token del header
     const authHeader = req.headers.authorization
@@ -84,7 +90,7 @@ export class AuthController {
     await this.authService.logout(accessToken, body?.refreshToken)
 
     return {
-      message: "Logout exitoso",
+      message: 'Logout exitoso',
       success: true,
     }
   }

@@ -72,6 +72,7 @@ BullModule.registerQueue({
 ### Pago Validado/Rechazado
 
 Mismo flujo con templates específicos:
+
 - `pago_validado` → Template verde con ✅
 - `pago_rechazado` → Template rojo con ❌
 - `pago_rehabilitado` → Template amarillo con 🔄
@@ -120,20 +121,24 @@ SMTP_PASSWORD=iswisphueoxplwvp
 ## 📊 Características de Bull
 
 ### Reintentos Automáticos
+
 - **Intentos:** 3
 - **Backoff:** Exponencial (empieza con 2 segundos)
 - **Estrategia:** `exponential`
 
 ### Limpieza Automática
+
 - **Trabajos completados:** Se mantienen 24 horas o máximo 1000
 - **Trabajos fallidos:** Se mantienen 7 días
 
 ### Prioridades
+
 - **High:** 10 (pagos validados, inscripciones confirmadas)
 - **Normal:** 5 (inscripciones creadas, recordatorios)
 - **Low:** 1 (actualizaciones menores)
 
 ### Concurrencia
+
 - **Procesamiento simultáneo:** 5 trabajos
 - **Rate limiting:** Gmail limita a 100 emails/hora
 
@@ -142,12 +147,14 @@ SMTP_PASSWORD=iswisphueoxplwvp
 ## 🚀 Ventajas del Sistema
 
 ### ✅ Antes (Sin Cola)
+
 - Emails síncronos bloqueaban el proceso
 - Sin reintentos automáticos
 - Sin manejo de errores robusto
 - No escalable para emails masivos
 
 ### ✅ Ahora (Con Bull + Redis)
+
 - Emails asíncronos (no bloquean)
 - Reintentos automáticos con backoff
 - Manejo robusto de errores
@@ -160,10 +167,12 @@ SMTP_PASSWORD=iswisphueoxplwvp
 ## 📧 Límites de Gmail
 
 ### Cuenta Estándar
+
 - **Por hora:** 100 emails
 - **Por día:** 500 emails
 
 ### Recomendaciones
+
 - Bull procesa automáticamente con rate limiting
 - Para más volumen, considerar:
   - SendGrid (100 emails/día gratis)
@@ -199,6 +208,7 @@ LLEN bull:notifications:failed
 ### Logs del Backend
 
 Los logs muestran:
+
 - `📬 Evento recibido: INSCRIPCION_CREADA`
 - `✅ Notificación encolada para email@example.com`
 - `📬 Procesando notificación inscripcion_creada`
@@ -210,6 +220,7 @@ Los logs muestran:
 ## 🐛 Troubleshooting
 
 ### Redis no conecta
+
 ```bash
 # Verificar Redis está corriendo
 redis-cli ping
@@ -221,12 +232,14 @@ echo $REDIS_PORT
 ```
 
 ### Emails no se envían
+
 1. Verificar credenciales SMTP en `.env`
 2. Verificar logs del EmailService
 3. Verificar que Gmail App Password sea válido
 4. Verificar límites de Gmail (100/hora)
 
 ### Eventos no se procesan
+
 1. Verificar que NotificationListener esté registrado
 2. Verificar logs de EventEmitter2
 3. Verificar que Bull Queue esté conectada a Redis
@@ -251,4 +264,3 @@ echo $REDIS_PORT
 - [NestJS Bull Module](https://docs.nestjs.com/techniques/queues)
 - [Gmail SMTP Setup](https://support.google.com/mail/answer/7126229)
 - [Redis Documentation](https://redis.io/docs/)
-

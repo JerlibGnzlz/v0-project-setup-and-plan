@@ -4,7 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service'
 
 /**
  * Servicio para limpieza automática de notificaciones antiguas
- * 
+ *
  * Ejecuta tareas programadas para mantener la base de datos limpia:
  * - Elimina notificaciones leídas más antiguas de 30 días (diariamente a las 2 AM)
  * - Mantiene las no leídas indefinidamente hasta que el usuario las marque como leídas
@@ -85,6 +85,3 @@ export class NotificationsCleanupService {
     }
   }
 }
-
-
-

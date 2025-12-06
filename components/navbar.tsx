@@ -31,7 +31,17 @@ export function Navbar() {
       // Aumentar el umbral para que no cambie tan rápido
       setScrolled(window.scrollY > 50)
 
-      const sections = ['inicio', 'sedes', 'mision', 'directiva', 'noticias', 'convenciones', 'galeria', 'educacion', 'inscripcion']
+      const sections = [
+        'inicio',
+        'sedes',
+        'mision',
+        'directiva',
+        'noticias',
+        'convenciones',
+        'galeria',
+        'educacion',
+        'inscripcion',
+      ]
       const scrollPosition = window.scrollY + 100
 
       for (const section of sections) {
@@ -59,12 +69,12 @@ export function Navbar() {
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault()
     const targetId = href.replace('#', '')
-    
+
     // Guardar la sección activa
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('amva_last_section', targetId)
     }
-    
+
     const element = document.getElementById(targetId)
 
     if (element) {
@@ -80,9 +90,7 @@ export function Navbar() {
         const progress = Math.min(timeElapsed / duration, 1)
 
         const easeInOutCubic = (t: number) => {
-          return t < 0.5
-            ? 4 * t * t * t
-            : 1 - Math.pow(-2 * t + 2, 3) / 2
+          return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
         }
 
         window.scrollTo(0, startPosition + distance * easeInOutCubic(progress))
@@ -114,9 +122,7 @@ export function Navbar() {
       {/* Floating Navbar */}
       <nav
         className={`fixed z-50 ${
-          scrolled
-            ? 'top-4 left-4 right-4 mx-auto max-w-7xl'
-            : 'top-0 left-0 right-0'
+          scrolled ? 'top-4 left-4 right-4 mx-auto max-w-7xl' : 'top-0 left-0 right-0'
         }`}
         style={{
           transition: 'all 1s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -132,7 +138,7 @@ export function Navbar() {
             transition: 'all 1s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
-          <div 
+          <div
             className={`container mx-auto px-4 sm:px-6 flex items-center justify-between ${
               scrolled ? 'h-16' : 'h-[72px]'
             }`}
@@ -141,8 +147,8 @@ export function Navbar() {
             }}
           >
             {/* Logo */}
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               onClick={() => {
                 if (typeof window !== 'undefined') {
                   sessionStorage.setItem('amva_last_section', 'inicio')
@@ -167,7 +173,7 @@ export function Navbar() {
                 <div className="absolute inset-0 bg-emerald-500/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
               <div className="flex flex-col">
-                <span 
+                <span
                   className={`font-bold text-white leading-tight ${
                     scrolled ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
                   }`}
@@ -178,7 +184,7 @@ export function Navbar() {
                   <span className="hidden sm:inline">Asociación Misionera</span>
                   <span className="sm:hidden">A.M.V.A</span>
                 </span>
-                <span 
+                <span
                   className={`hidden sm:block font-bold bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent leading-tight ${
                     scrolled ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
                   }`}
@@ -214,12 +220,12 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    ref={(el) => { navLinksRef.current[sectionId] = el }}
-                    onClick={(e) => handleNavClick(e, link.href)}
+                    ref={el => {
+                      navLinksRef.current[sectionId] = el
+                    }}
+                    onClick={e => handleNavClick(e, link.href)}
                     className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
-                      isActive
-                        ? 'text-white'
-                        : 'text-white/60 hover:text-white hover:bg-white/5'
+                      isActive ? 'text-white' : 'text-white/60 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     {link.label}
@@ -250,7 +256,11 @@ export function Navbar() {
                 asChild
                 className="ml-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 hover:scale-105 border-0"
               >
-                <Link href="#inscripcion" onClick={(e) => handleNavClick(e, '#inscripcion')} className="flex items-center gap-2">
+                <Link
+                  href="#inscripcion"
+                  onClick={e => handleNavClick(e, '#inscripcion')}
+                  className="flex items-center gap-2"
+                >
                   <Sparkles className="w-4 h-4" />
                   Inscríbete
                 </Link>
@@ -301,7 +311,7 @@ export function Navbar() {
         }`}
         style={{
           top: scrolled ? '76px' : '72px',
-          height: scrolled ? 'calc(100vh - 76px)' : 'calc(100vh - 72px)'
+          height: scrolled ? 'calc(100vh - 76px)' : 'calc(100vh - 72px)',
         }}
       >
         <nav className="flex flex-col p-6 gap-2 overflow-y-auto h-full">
@@ -331,7 +341,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={(e) => handleNavClick(e, link.href)}
+                onClick={e => handleNavClick(e, link.href)}
                 className={`group flex items-center justify-between py-3 px-4 text-lg font-medium rounded-xl transition-all duration-200 ${
                   isActive
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
@@ -342,9 +352,13 @@ export function Navbar() {
                 }}
               >
                 <span>{link.label}</span>
-                <ChevronRight className={`w-5 h-5 transition-all duration-200 ${
-                  isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-hover:translate-x-1'
-                }`} />
+                <ChevronRight
+                  className={`w-5 h-5 transition-all duration-200 ${
+                    isActive
+                      ? 'opacity-100'
+                      : 'opacity-0 group-hover:opacity-100 group-hover:translate-x-1'
+                  }`}
+                />
               </Link>
             )
           })}
@@ -359,7 +373,11 @@ export function Navbar() {
               animationDelay: isOpen ? `${navLinks.length * 50}ms` : '0ms',
             }}
           >
-            <Link href="#inscripcion" onClick={(e) => handleNavClick(e, '#inscripcion')} className="flex items-center justify-center gap-2">
+            <Link
+              href="#inscripcion"
+              onClick={e => handleNavClick(e, '#inscripcion')}
+              className="flex items-center justify-center gap-2"
+            >
               <Sparkles className="w-4 h-4" />
               Inscríbete Ahora
             </Link>

@@ -3,6 +3,7 @@
 ## 🏗️ ARQUITECTURA DEL PROYECTO
 
 ### Estructura General
+
 ```
 v0-project-setup-and-plan/
 ├── app/                    # Frontend Next.js (Landing + Dashboard)
@@ -20,6 +21,7 @@ v0-project-setup-and-plan/
 ### URL: `http://localhost:3000`
 
 **Secciones implementadas:**
+
 1. ✅ **Hero Section** - Sección principal con imagen del mundo
 2. ✅ **Marquee Ticker** - Ticker de noticias
 3. ✅ **Sedes Section** - Información de sedes
@@ -32,6 +34,7 @@ v0-project-setup-and-plan/
 10. ✅ **Footer** - Pie de página
 
 **Funcionalidades:**
+
 - ✅ Navegación suave entre secciones
 - ✅ Scroll restoration (restaura posición al volver)
 - ✅ Tema claro/oscuro
@@ -42,6 +45,7 @@ v0-project-setup-and-plan/
 - ✅ Formulario de inscripción a convenciones (4 pasos)
 
 **Rutas públicas:**
+
 - `/` - Landing page
 - `/noticias` - Lista de noticias
 - `/noticias/[slug]` - Detalle de noticia
@@ -55,6 +59,7 @@ v0-project-setup-and-plan/
 ### URL: `http://localhost:3000/admin`
 
 **Rutas protegidas:**
+
 - `/admin` - Dashboard principal
 - `/admin/login` - Login de administrador
 - `/admin/pastores` - Gestión de pastores (Estructura Organizacional)
@@ -64,6 +69,7 @@ v0-project-setup-and-plan/
 - `/admin/inscripciones` - Gestión de inscripciones
 
 **Funcionalidades:**
+
 - ✅ Autenticación JWT con validación en backend
 - ✅ Sidebar con navegación
 - ✅ Notificaciones en tiempo real (WebSockets)
@@ -80,6 +86,7 @@ v0-project-setup-and-plan/
 - ✅ Validación de formularios con Zod
 
 **Autenticación:**
+
 - ✅ Login con email/password
 - ✅ Validación de JWT en cada carga
 - ✅ Refresh automático si token expirado
@@ -92,6 +99,7 @@ v0-project-setup-and-plan/
 ### URL: `http://localhost:4000/api`
 
 **Módulos implementados:**
+
 1. ✅ **Auth Module** - Autenticación admin
    - POST `/auth/login`
    - POST `/auth/register`
@@ -154,6 +162,7 @@ v0-project-setup-and-plan/
     - Eventos: `notification`, `unread-count`
 
 **Base de datos (Prisma):**
+
 - ✅ PostgreSQL (Neon)
 - ✅ Modelos: User, Pastor, Noticia, Convencion, Inscripcion, Pago, etc.
 - ✅ Relaciones configuradas
@@ -166,6 +175,7 @@ v0-project-setup-and-plan/
 ### Ubicación: `amva-mobile/`
 
 **Tecnologías:**
+
 - ✅ React Native (Expo)
 - ✅ TypeScript
 - ✅ React Navigation
@@ -175,6 +185,7 @@ v0-project-setup-and-plan/
 - ✅ Expo Image Picker (documentos)
 
 **Pantallas implementadas:**
+
 1. ✅ **LoginScreen** - Login de pastores
 2. ✅ **RegisterScreen** - Registro de pastores
 3. ✅ **HomeScreen** - Pantalla principal con cards
@@ -184,6 +195,7 @@ v0-project-setup-and-plan/
 7. ✅ **ProfileScreen** - Perfil del pastor
 
 **Funcionalidades:**
+
 - ✅ Autenticación con JWT
 - ✅ Refresh tokens
 - ✅ Navegación por tabs
@@ -198,6 +210,7 @@ v0-project-setup-and-plan/
 - ✅ Logout funcional
 
 **Navegación:**
+
 - Tab Navigator con 4 tabs:
   - Inicio
   - Noticias
@@ -210,6 +223,7 @@ v0-project-setup-and-plan/
 ## 🔧 CONFIGURACIÓN NECESARIA
 
 ### Variables de entorno (Backend)
+
 ```env
 DATABASE_URL=postgresql://...
 JWT_SECRET=tu-secret-key
@@ -224,11 +238,13 @@ SMTP_PASSWORD=tu-app-password
 ```
 
 ### Variables de entorno (Frontend)
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
 ```
 
 ### Variables de entorno (Mobile)
+
 ```env
 EXPO_PUBLIC_API_URL=http://192.168.0.33:4000/api
 ```
@@ -238,6 +254,7 @@ EXPO_PUBLIC_API_URL=http://192.168.0.33:4000/api
 ## 🚀 COMANDOS PARA INICIAR
 
 ### Backend
+
 ```bash
 cd backend
 pnpm install
@@ -247,12 +264,14 @@ pnpm start:dev
 ```
 
 ### Frontend
+
 ```bash
 pnpm install
 pnpm dev
 ```
 
 ### Mobile App
+
 ```bash
 cd amva-mobile
 npm install
@@ -264,6 +283,7 @@ npm start
 ## ✅ ESTADO ACTUAL
 
 ### ✅ Funcionando:
+
 - Landing page completa
 - Dashboard administrativo
 - Autenticación JWT (validación en backend)
@@ -275,6 +295,7 @@ npm start
 - Subida de archivos a Cloudinary
 
 ### ⚠️ Pendiente:
+
 - Agregar `amva-mobile/` a Git (actualmente no rastreada)
 - Configurar SMTP para emails
 - Probar notificaciones push en dispositivo físico

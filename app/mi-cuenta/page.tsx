@@ -8,20 +8,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  CreditCard, 
-  CheckCircle2, 
-  Clock, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  CreditCard,
+  CheckCircle2,
+  Clock,
   FileText,
   LogOut,
   ArrowLeft,
   Copy,
-  Check
+  Check,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -86,7 +86,11 @@ function MiCuentaContent() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Link href="/">
-              <Button variant="ghost" size="icon" className="text-white/70 hover:text-white hover:bg-white/5">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white/70 hover:text-white hover:bg-white/5"
+              >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
@@ -164,7 +168,8 @@ function MiCuentaContent() {
                   Mis Inscripciones
                 </CardTitle>
                 <CardDescription className="text-white/70">
-                  {misInscripciones.length} inscripción{misInscripciones.length !== 1 ? 'es' : ''} registrada{misInscripciones.length !== 1 ? 's' : ''}
+                  {misInscripciones.length} inscripción{misInscripciones.length !== 1 ? 'es' : ''}{' '}
+                  registrada{misInscripciones.length !== 1 ? 's' : ''}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -188,7 +193,9 @@ function MiCuentaContent() {
                     {misInscripciones.map((inscripcion: any) => {
                       const pagos = inscripcion.pagos || []
                       const numeroCuotas = inscripcion.numeroCuotas || 3
-                      const cuotasPagadas = pagos.filter((p: any) => p.estado === 'COMPLETADO').length
+                      const cuotasPagadas = pagos.filter(
+                        (p: any) => p.estado === 'COMPLETADO'
+                      ).length
                       const cuotasPendientes = numeroCuotas - cuotasPagadas
                       const estaConfirmado = inscripcion.estado === 'confirmado'
                       const progreso = (cuotasPagadas / numeroCuotas) * 100
@@ -202,7 +209,12 @@ function MiCuentaContent() {
                                   {inscripcion.convencion?.titulo || 'Convención'}
                                 </h3>
                                 <p className="text-sm text-white/70">
-                                  Inscrito el {format(new Date(inscripcion.fechaInscripcion), "d 'de' MMMM, yyyy", { locale: es })}
+                                  Inscrito el{' '}
+                                  {format(
+                                    new Date(inscripcion.fechaInscripcion),
+                                    "d 'de' MMMM, yyyy",
+                                    { locale: es }
+                                  )}
                                 </p>
                               </div>
                               <Badge
@@ -231,7 +243,9 @@ function MiCuentaContent() {
                               <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
                                 <div className="flex items-center justify-between">
                                   <div>
-                                    <p className="text-xs text-emerald-300 mb-1">🔖 Código de Referencia</p>
+                                    <p className="text-xs text-emerald-300 mb-1">
+                                      🔖 Código de Referencia
+                                    </p>
                                     <p className="text-lg font-mono font-bold text-emerald-400">
                                       {inscripcion.codigoReferencia}
                                     </p>
@@ -242,7 +256,12 @@ function MiCuentaContent() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => copyToClipboard(inscripcion.codigoReferencia, inscripcion.codigoReferencia)}
+                                    onClick={() =>
+                                      copyToClipboard(
+                                        inscripcion.codigoReferencia,
+                                        inscripcion.codigoReferencia
+                                      )
+                                    }
                                     className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
                                   >
                                     {copiedCode === inscripcion.codigoReferencia ? (
@@ -279,14 +298,17 @@ function MiCuentaContent() {
                               </div>
                               {cuotasPendientes > 0 && (
                                 <p className="text-xs text-amber-300 mt-1">
-                                  {cuotasPendientes} cuota{cuotasPendientes > 1 ? 's' : ''} pendiente{cuotasPendientes > 1 ? 's' : ''}
+                                  {cuotasPendientes} cuota{cuotasPendientes > 1 ? 's' : ''}{' '}
+                                  pendiente{cuotasPendientes > 1 ? 's' : ''}
                                 </p>
                               )}
                             </div>
 
                             {/* Detalles de Pagos */}
                             <div className="space-y-2">
-                              <p className="text-sm font-semibold text-white/90 mb-2">Detalles de pagos:</p>
+                              <p className="text-sm font-semibold text-white/90 mb-2">
+                                Detalles de pagos:
+                              </p>
                               {pagos.length > 0 ? (
                                 <div className="space-y-2">
                                   {pagos.map((pago: any) => (
@@ -300,7 +322,10 @@ function MiCuentaContent() {
                                           Cuota {pago.numeroCuota || 'N/A'}
                                         </span>
                                         <span className="text-sm text-white/70">
-                                          - ${typeof pago.monto === 'number' ? pago.monto.toFixed(2) : parseFloat(pago.monto || 0).toFixed(2)}
+                                          - $
+                                          {typeof pago.monto === 'number'
+                                            ? pago.monto.toFixed(2)
+                                            : parseFloat(pago.monto || 0).toFixed(2)}
                                         </span>
                                       </div>
                                       <Badge
@@ -337,8 +362,17 @@ function MiCuentaContent() {
                                   <div>
                                     <p className="text-white/50 mb-1">Fechas</p>
                                     <p className="text-white">
-                                      {format(new Date(inscripcion.convencion.fechaInicio), "d MMM", { locale: es })} -{' '}
-                                      {format(new Date(inscripcion.convencion.fechaFin), "d MMM, yyyy", { locale: es })}
+                                      {format(
+                                        new Date(inscripcion.convencion.fechaInicio),
+                                        'd MMM',
+                                        { locale: es }
+                                      )}{' '}
+                                      -{' '}
+                                      {format(
+                                        new Date(inscripcion.convencion.fechaFin),
+                                        'd MMM, yyyy',
+                                        { locale: es }
+                                      )}
                                     </p>
                                   </div>
                                   <div>
@@ -370,4 +404,3 @@ export default function MiCuentaPage() {
     </QueryProvider>
   )
 }
-

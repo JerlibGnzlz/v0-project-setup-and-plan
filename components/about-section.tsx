@@ -29,7 +29,7 @@ export function AboutSection() {
     <section id="nosotros" className="relative py-24 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-[#0a1628]">
-        <div 
+        <div
           className="absolute inset-0 opacity-50"
           style={{
             background: `
@@ -40,7 +40,7 @@ export function AboutSection() {
           }}
         />
         {/* Grid */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `
@@ -66,21 +66,23 @@ export function AboutSection() {
             </span>
           </h2>
           <p className="text-lg text-white/60 max-w-3xl mx-auto leading-relaxed">
-            Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino
+            Una organización misionera comprometida con la formación integral de líderes pastorales
+            para el servicio del Reino
           </p>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-20 max-w-5xl mx-auto">
           {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="relative group"
-            >
+            <div key={index} className="relative group">
               {/* Glow effect - applies gradient colors from stat.color */}
-              <div className={`absolute -inset-1 bg-gradient-to-r ${stat.color} rounded-2xl blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500`} />
+              <div
+                className={`absolute -inset-1 bg-gradient-to-r ${stat.color} rounded-2xl blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500`}
+              />
               <div className="relative p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 text-center hover:border-white/20 transition-all duration-300 hover:transform hover:scale-105">
-                <div className={`text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+                <div
+                  className={`text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}
+                >
                   <AnimatedCounter end={stat.end} suffix={stat.suffix} />
                 </div>
                 <div className="text-white/60 text-sm">{stat.label}</div>
@@ -102,7 +104,9 @@ export function AboutSection() {
                 <h3 className="text-2xl font-bold text-white">Nuestra Misión</h3>
               </div>
               <p className="text-white/70 leading-relaxed">
-                Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.
+                Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a
+                través de convenciones, seminarios y recursos de formación continua, promoviendo el
+                crecimiento espiritual y ministerial efectivo.
               </p>
             </div>
           </div>
@@ -118,7 +122,9 @@ export function AboutSection() {
                 <h3 className="text-2xl font-bold text-white">Nuestra Visión</h3>
               </div>
               <p className="text-white/70 leading-relaxed">
-                Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.
+                Ser una red global de formación pastoral reconocida por su excelencia e impacto,
+                transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de
+                habla hispana.
               </p>
             </div>
           </div>

@@ -1,10 +1,34 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException, Inject, forwardRef, Optional } from "@nestjs/common"
-import { EventEmitter2 } from "@nestjs/event-emitter"
-import { PrismaService } from "../../prisma/prisma.service"
-import { CreateInscripcionDto, UpdateInscripcionDto, CreatePagoDto, UpdatePagoDto, EstadoPago } from "./dto/inscripcion.dto"
-import { Inscripcion, Pago } from "@prisma/client"
-import { InscripcionFilterDto, PagoFilterDto } from "../../common/dto/search-filter.dto"
-import { Prisma } from "@prisma/client"
+import {
+    Injectable,
+    Logger,
+    NotFoundException,
+    BadRequestException,
+    ConflictException,
+    Inject,
+    forwardRef,
+    Optional,
+} from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
+import { PrismaService } from '../../prisma/prisma.service'
+import {
+    CreateInscripcionDto,
+    UpdateInscripcionDto,
+    CreatePagoDto,
+    UpdatePagoDto,
+    EstadoPago,
+} from './dto/inscripcion.dto'
+import { Inscripcion, Pago, Convencion } from '@prisma/client'
+import { InscripcionFilterDto, PagoFilterDto } from '../../common/dto/search-filter.dto'
+import { Prisma } from '@prisma/client'
+import {
+    InscripcionWithRelations,
+    InscripcionWithConvencion,
+    PagoWithInscripcionAndConvencion,
+    PagoWithInscripcion,
+    PagosInfo,
+    InscripcionSearchFilters,
+    PagoSearchFilters,
+} from './types/inscripcion.types'
 import {
     PagoValidadoEvent,
     PagoRechazadoEvent,
@@ -14,29 +38,29 @@ import {
     InscripcionConfirmadaEvent,
     InscripcionCanceladaEvent,
     NotificationEventType,
-} from "../notifications/events/notification.events"
-import { NotificationsService } from "../notifications/notifications.service"
-import { AuditService } from "../../common/services/audit.service"
+} from '../notifications/events/notification.events'
+import { NotificationsService } from '../notifications/notifications.service'
+import { AuditService } from '../../common/services/audit.service'
 
 /**
  * Servicio para gestión de Inscripciones y Pagos
- * 
+ *
  * IMPORTANTE: Este servicio gestiona SOLO inscripciones a convenciones.
  * NO gestiona pastores de la estructura organizacional (ver PastoresService).
- * 
+ *
  * Separación de conceptos:
  * - Inscripciones: Participantes de convenciones (esta tabla)
  * - Pastores: Estructura organizacional del ministerio (tabla separada)
- * 
+ *
  * Las inscripciones se crean desde:
  * - Landing page (origenRegistro: 'web')
  * - Admin dashboard (origenRegistro: 'dashboard')
  * - App móvil (origenRegistro: 'mobile')
- * 
+ *
  * Este servicio maneja dos entidades relacionadas:
  * - Inscripciones: Registro de participantes a convenciones
  * - Pagos: Transacciones asociadas a inscripciones
- * 
+ *
  * Nota: No usa BaseService directamente porque maneja dos modelos
  * pero sigue los mismos patrones de diseño
  */
@@ -62,8 +86,9 @@ export class InscripcionesService {
         private prisma: PrismaService,
         private eventEmitter: EventEmitter2,
         private auditService: AuditService,
-        @Optional() @Inject(forwardRef(() => NotificationsService))
-        private notificationsService?: NotificationsService,
+        @Optional()
+        @Inject(forwardRef(() => NotificationsService))
+        private notificationsService?: NotificationsService
     ) { }
 
     // ==================== INSCRIPCIONES ====================
@@ -76,7 +101,7 @@ export class InscripcionesService {
         limit: number = 20,
         filters?: InscripcionFilterDto
     ): Promise<{
-        data: (Inscripcion & { convencion: any; pagos: any[] })[]
+        data: InscripcionWithRelations[]
         meta: {
             page: number
             limit: number
@@ -125,7 +150,7 @@ export class InscripcionesService {
             this.prisma.inscripcion.findMany({
                 where,
                 include: this.inscripcionIncludes,
-                orderBy: { fechaInscripcion: "desc" },
+                orderBy: { fechaInscripcion: 'desc' },
                 skip,
                 take,
             }),
@@ -150,7 +175,7 @@ export class InscripcionesService {
     /**
      * Obtiene una inscripción por ID
      */
-    async findOneInscripcion(id: string): Promise<Inscripcion & { convencion: any; pagos: any[] }> {
+    async findOneInscripcion(id: string): Promise<InscripcionWithRelations> {
         const inscripcion = await this.prisma.inscripcion.findUnique({
             where: { id },
             include: this.inscripcionIncludes,
@@ -181,29 +206,33 @@ export class InscripcionesService {
 
     /**
      * Crea una nueva inscripción
-     * 
+     *
      * IMPORTANTE: Este método SOLO crea inscripciones en la tabla 'inscripciones'.
      * NO crea pastores en la tabla 'pastores' (estructura organizacional).
-     * 
+     *
      * Separación de conceptos:
      * - Pastores: Solo se crean desde la gestión de pastores (app/admin/pastores)
      * - Inscripciones: Se crean desde aquí (landing page, admin, o mobile app)
-     * 
+     *
      * Origen de registro:
      * - 'web': Desde la landing page (formulario público)
      * - 'dashboard': Desde el admin dashboard (inscripción manual)
      * - 'mobile': Desde la app móvil (cuando esté disponible)
-     * 
+     *
      * Si el origen es 'web' o 'mobile', crea automáticamente los pagos según numeroCuotas
      */
     async createInscripcion(dto: CreateInscripcionDto): Promise<Inscripcion> {
-        this.logger.log(`📝 Creando inscripción para: ${dto.nombre} (origen: ${dto.origenRegistro || 'web'})`)
+        this.logger.log(
+            `📝 Creando inscripción para: ${dto.nombre} (origen: ${dto.origenRegistro || 'web'})`
+        )
 
         const origenRegistro = dto.origenRegistro || 'web'
 
         // Validar que el origen de registro sea válido
         if (origenRegistro && !['web', 'mobile', 'dashboard'].includes(origenRegistro)) {
-            throw new BadRequestException(`Origen de registro inválido: ${origenRegistro}. Debe ser: web, mobile o dashboard`)
+            throw new BadRequestException(
+                `Origen de registro inválido: ${origenRegistro}. Debe ser: web, mobile o dashboard`
+            )
         }
         const numeroCuotas = dto.numeroCuotas || 3
 
@@ -241,7 +270,9 @@ export class InscripcionesService {
             const cuposDisponibles = convencion.cupoMaximo - inscripcionesConfirmadas
 
             if (cuposDisponibles <= 0) {
-                this.logger.warn(`⚠️ No hay cupos disponibles para convención ${convencion.titulo}. Cupos: ${convencion.cupoMaximo}, Inscritos: ${inscripcionesConfirmadas}`)
+                this.logger.warn(
+                    `⚠️ No hay cupos disponibles para convención ${convencion.titulo}. Cupos: ${convencion.cupoMaximo}, Inscritos: ${inscripcionesConfirmadas}`
+                )
                 throw new BadRequestException(
                     `Lo sentimos, no hay cupos disponibles para esta convención. ` +
                     `Cupos totales: ${convencion.cupoMaximo}, Inscritos: ${inscripcionesConfirmadas}`
@@ -252,9 +283,10 @@ export class InscripcionesService {
         }
 
         // Calcular el costo (puede venir como Decimal de Prisma)
-        const costoTotal = typeof convencion.costo === 'number'
-            ? convencion.costo
-            : parseFloat(String(convencion.costo || 0))
+        const costoTotal =
+            typeof convencion.costo === 'number'
+                ? convencion.costo
+                : parseFloat(String(convencion.costo || 0))
 
         const montoPorCuota = costoTotal / numeroCuotas
 
@@ -272,7 +304,7 @@ export class InscripcionesService {
                 codigo = `AMVA-${año}-${randomPart}`
 
                 const codigoExistente = await this.prisma.inscripcion.findFirst({
-                    where: { codigoReferencia: codigo } as any,
+                    where: { codigoReferencia: codigo },
                 })
 
                 existe = !!codigoExistente
@@ -292,7 +324,7 @@ export class InscripcionesService {
         this.logger.log(`🔖 Código de referencia generado: ${codigoReferencia}`)
 
         // Usar transacción para crear inscripción y pagos de forma atómica
-        const inscripcion = await this.prisma.$transaction(async (tx) => {
+        const inscripcion = await this.prisma.$transaction(async tx => {
             // Verificar nuevamente email duplicado dentro de la transacción (evitar race conditions)
             const emailDuplicado = await tx.inscripcion.findFirst({
                 where: {
@@ -326,7 +358,7 @@ export class InscripcionesService {
             // Esto permite que los invitados puedan usar la app móvil después de inscribirse
             // IMPORTANTE: Usamos el modelo 'invitado' de Prisma, NO 'pastor'
             // El cast es necesario porque Prisma TransactionClient tiene tipos específicos
-            const txInvitado = (tx as any).invitado
+            const txInvitado = tx.invitado
             let invitado = await txInvitado.findUnique({
                 where: { email: dto.email.toLowerCase() },
             })
@@ -341,7 +373,9 @@ export class InscripcionesService {
                         sede: dto.sede,
                     },
                 })
-                this.logger.log(`✅ Invitado creado automáticamente en tabla 'invitados': ${invitado.email}`)
+                this.logger.log(
+                    `✅ Invitado creado automáticamente en tabla 'invitados': ${invitado.email}`
+                )
                 this.logger.log(`📋 NOTA: Este invitado NO se guarda en tabla 'pastores'`)
             } else {
                 this.logger.log(`✅ Invitado ya existe: ${invitado.email}`)
@@ -349,7 +383,7 @@ export class InscripcionesService {
 
             // Crear la inscripción vinculada al invitado
             // IMPORTANTE: Esta acción NO crea un registro en la tabla 'pastores'
-            // 
+            //
             // Separación clara:
             // - Invitados desde web: Inscripción + Invitado (NO pastor organizacional)
             // - Pastores organizacionales: Se crean desde /admin/pastores
@@ -360,7 +394,7 @@ export class InscripcionesService {
                     origenRegistro,
                     codigoReferencia,
                     invitadoId: invitado.id, // Vincular con invitado
-                } as any,
+                } as unknown as Prisma.InscripcionCreateInput,
                 include: this.inscripcionIncludes,
             })
 
@@ -375,13 +409,17 @@ export class InscripcionesService {
 
             if (pastorCreadoPorError && pastorCreadoPorError.createdAt > new Date(Date.now() - 5000)) {
                 // Si se creó un pastor en los últimos 5 segundos, es un error
-                this.logger.error(`⚠️ ERROR: Se detectó un pastor creado recientemente con el mismo email. Esto NO debería pasar.`)
+                this.logger.error(
+                    `⚠️ ERROR: Se detectó un pastor creado recientemente con el mismo email. Esto NO debería pasar.`
+                )
                 this.logger.error(`⚠️ Email: ${dto.email}, Pastor ID: ${pastorCreadoPorError.id}`)
             }
 
             // Crear automáticamente los pagos para TODOS los orígenes (web, mobile, dashboard)
             // Esto asegura que siempre haya pagos asociados a la inscripción
-            this.logger.log(`💰 Creando ${numeroCuotas} pago(s) automático(s) para inscripción ${nuevaInscripcion.id} (origen: ${origenRegistro})`)
+            this.logger.log(
+                `💰 Creando ${numeroCuotas} pago(s) automático(s) para inscripción ${nuevaInscripcion.id} (origen: ${origenRegistro})`
+            )
 
             // Si hay un documentoUrl en la inscripción, asignarlo al primer pago como comprobanteUrl
             const comprobanteUrl = dto.documentoUrl || null
@@ -426,13 +464,18 @@ export class InscripcionesService {
                 },
             })
 
-            const origenTexto = origenRegistro === 'web' ? 'formulario web' : origenRegistro === 'mobile' ? 'app móvil' : 'dashboard'
+            const origenTexto =
+                origenRegistro === 'web'
+                    ? 'formulario web'
+                    : origenRegistro === 'mobile'
+                        ? 'app móvil'
+                        : 'dashboard'
             const titulo = '📝 Nueva Inscripción Recibida'
 
             // Obtener información de pagos para la notificación
             const pagosInfo = inscripcion.pagos || []
-            const cuotasPendientes = pagosInfo.filter((p: any) => p.estado === 'PENDIENTE').length
-            const cuotasPagadas = pagosInfo.filter((p: any) => p.estado === 'COMPLETADO').length
+            const cuotasPendientes = pagosInfo.filter((p: Pago) => p.estado === 'PENDIENTE').length
+            const cuotasPagadas = pagosInfo.filter((p: Pago) => p.estado === 'COMPLETADO').length
             const numeroCuotas = inscripcion.numeroCuotas || 3
 
             // Construir mensaje con información de pagos
@@ -446,24 +489,19 @@ export class InscripcionesService {
             if (this.notificationsService) {
                 try {
                     for (const admin of admins) {
-                        await this.notificationsService.sendNotificationToAdmin(
-                            admin.email,
-                            titulo,
-                            mensaje,
-                            {
-                                type: 'nueva_inscripcion',
-                                inscripcionId: inscripcion.id,
-                                convencionId: convencion.id,
-                                convencionTitulo: convencion.titulo,
-                                nombre: inscripcion.nombre,
-                                apellido: inscripcion.apellido,
-                                email: inscripcion.email,
-                                origenRegistro: origenRegistro,
-                                numeroCuotas: numeroCuotas,
-                                cuotasPendientes: cuotasPendientes,
-                                cuotasPagadas: cuotasPagadas,
-                            }
-                        )
+                        await this.notificationsService.sendNotificationToAdmin(admin.email, titulo, mensaje, {
+                            type: 'nueva_inscripcion',
+                            inscripcionId: inscripcion.id,
+                            convencionId: convencion.id,
+                            convencionTitulo: convencion.titulo,
+                            nombre: inscripcion.nombre,
+                            apellido: inscripcion.apellido,
+                            email: inscripcion.email,
+                            origenRegistro: origenRegistro,
+                            numeroCuotas: numeroCuotas,
+                            cuotasPendientes: cuotasPendientes,
+                            cuotasPagadas: cuotasPagadas,
+                        })
                     }
                 } catch (error) {
                     this.logger.error(`Error enviando notificaciones a admins:`, error)
@@ -505,7 +543,7 @@ export class InscripcionesService {
             const inscripcionCompleta = await this.prisma.inscripcion.findUnique({
                 where: { id: inscripcion.id },
             })
-            const codigoRef = (inscripcionCompleta as any)?.codigoReferencia || 'Pendiente'
+            const codigoRef = inscripcionCompleta?.codigoReferencia || 'Pendiente'
             const cuerpoEmail = `
 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
     <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
@@ -694,20 +732,28 @@ export class InscripcionesService {
     /**
      * Actualiza una inscripción
      */
-    async updateInscripcion(id: string, dto: UpdateInscripcionDto, userId?: string, userEmail?: string): Promise<Inscripcion> {
+    async updateInscripcion(
+        id: string,
+        dto: UpdateInscripcionDto,
+        userId?: string,
+        userEmail?: string
+    ): Promise<Inscripcion> {
         try {
             const inscripcionExistente = await this.findOneInscripcion(id) // Verifica existencia
 
             // Si se está actualizando el email, validar que no esté duplicado en la misma convención
             if (dto.email && dto.email.toLowerCase() !== inscripcionExistente.email.toLowerCase()) {
-                const emailDuplicado = await this.checkInscripcionByEmail(dto.email, inscripcionExistente.convencionId)
+                const emailDuplicado = await this.checkInscripcionByEmail(
+                    dto.email,
+                    inscripcionExistente.convencionId
+                )
                 if (emailDuplicado && emailDuplicado.id !== id) {
                     throw new ConflictException(`El correo ${dto.email} ya está inscrito en esta convención`)
                 }
             }
 
             // Preparar datos para actualizar (filtrar undefined y null innecesarios)
-            const dataToUpdate: any = {}
+            const dataToUpdate: Prisma.InscripcionUpdateInput = {}
             if (dto.nombre !== undefined) dataToUpdate.nombre = dto.nombre
             if (dto.apellido !== undefined) dataToUpdate.apellido = dto.apellido
             if (dto.email !== undefined) dataToUpdate.email = dto.email.toLowerCase()
@@ -740,7 +786,7 @@ export class InscripcionesService {
                     id,
                     'UPDATE',
                     inscripcionExistente,
-                    dataToUpdate,
+                    dataToUpdate as Record<string, unknown>,
                     userId,
                     userEmail
                 )
@@ -777,7 +823,7 @@ export class InscripcionesService {
         return this.prisma.inscripcion.findMany({
             where: { convencionId },
             include: this.inscripcionIncludes,
-            orderBy: { fechaInscripcion: "desc" },
+            orderBy: { fechaInscripcion: 'desc' },
         })
     }
 
@@ -800,7 +846,7 @@ export class InscripcionesService {
         limit: number = 20,
         filters?: PagoFilterDto
     ): Promise<{
-        data: any[]
+        data: PagoWithInscripcionAndConvencion[]
         meta: {
             page: number
             limit: number
@@ -816,7 +862,9 @@ export class InscripcionesService {
         const skip = (pageNum - 1) * limitNum
         const take = limitNum
 
-        this.logger.log(`🔍 findAllPagos llamado - página: ${pageNum}, límite: ${limitNum}, filtros: ${JSON.stringify(filters)}`)
+        this.logger.log(
+            `🔍 findAllPagos llamado - página: ${pageNum}, límite: ${limitNum}, filtros: ${JSON.stringify(filters)}`
+        )
 
         // Construir condiciones WHERE
         const where: Prisma.PagoWhereInput = {}
@@ -840,7 +888,7 @@ export class InscripcionesService {
         // NOTA: Si ya hay inscripcionId, no agregar filtros adicionales de inscripción
         // para evitar conflictos
         if (!filters?.inscripcionId) {
-            const inscripcionFilter: any = {}
+            const inscripcionFilter: Prisma.InscripcionWhereInput = {}
 
             if (filters?.convencionId) {
                 inscripcionFilter.convencionId = filters.convencionId
@@ -867,13 +915,13 @@ export class InscripcionesService {
                 const inscripcionFilter = where.inscripcion
 
                 // Construir el OR para la búsqueda
-                const searchOR: any[] = [
+                const searchOR: Prisma.PagoWhereInput[] = [
                     { referencia: { contains: searchTerm, mode: 'insensitive' } },
                     { notas: { contains: searchTerm, mode: 'insensitive' } },
                 ]
 
                 // Agregar búsqueda en inscripción
-                const inscripcionSearch: any = {
+                const inscripcionSearch: Prisma.InscripcionWhereInput = {
                     OR: [
                         { nombre: { contains: searchTerm, mode: 'insensitive' } },
                         { apellido: { contains: searchTerm, mode: 'insensitive' } },
@@ -888,21 +936,20 @@ export class InscripcionesService {
 
                 // Si hay inscripcionId, también agregarlo al filtro de inscripción
                 if (inscripcionIdPreservado) {
-                    if (inscripcionSearch.AND) {
-                        inscripcionSearch.AND.push({ id: inscripcionIdPreservado })
-                    } else {
-                        inscripcionSearch.AND = [{ id: inscripcionIdPreservado }]
-                    }
+                    const andArray = Array.isArray(inscripcionSearch.AND)
+                        ? inscripcionSearch.AND
+                        : inscripcionSearch.AND
+                            ? [inscripcionSearch.AND]
+                            : []
+                    andArray.push({ id: inscripcionIdPreservado as string })
+                    inscripcionSearch.AND = andArray
                 }
 
                 searchOR.push({ inscripcion: inscripcionSearch })
 
                 // Si ya hay un OR, combinarlo con AND
                 if (where.OR) {
-                    where.AND = [
-                        { OR: where.OR },
-                        { OR: searchOR },
-                    ]
+                    where.AND = [{ OR: where.OR }, { OR: searchOR }]
                     delete where.OR
                 } else {
                     where.OR = searchOR
@@ -924,7 +971,7 @@ export class InscripcionesService {
         const findManyOptions: Prisma.PagoFindManyArgs = {
             where: whereClause,
             include: this.pagoIncludes,
-            orderBy: { createdAt: "desc" },
+            orderBy: { createdAt: 'desc' },
             skip,
             take,
         }
@@ -940,7 +987,9 @@ export class InscripcionesService {
         } catch (e) {
             this.logger.log(`📋 WHERE clause (no serializable): ${Object.keys(whereClause).join(', ')}`)
         }
-        this.logger.log(`📋 FindManyOptions - skip: ${findManyOptions.skip}, take: ${findManyOptions.take}`)
+        this.logger.log(
+            `📋 FindManyOptions - skip: ${findManyOptions.skip}, take: ${findManyOptions.take}`
+        )
 
         try {
             const [data, total] = await Promise.all([
@@ -950,21 +999,27 @@ export class InscripcionesService {
 
             this.logger.log(`✅ Encontrados ${data.length} pagos de ${total} totales`)
             if (data.length > 0) {
-                this.logger.log(`📋 Primer pago encontrado - id: ${data[0].id}, inscripcionId: ${data[0].inscripcionId}, estado: ${data[0].estado}`)
+                this.logger.log(
+                    `📋 Primer pago encontrado - id: ${data[0].id}, inscripcionId: ${data[0].inscripcionId}, estado: ${data[0].estado}`
+                )
             } else if (filters?.inscripcionId) {
                 // Si no se encontraron pagos pero hay filtro de inscripción, verificar si la inscripción existe
                 try {
                     const inscripcionExiste = await this.prisma.inscripcion.findUnique({
                         where: { id: filters.inscripcionId },
-                        select: { id: true, nombre: true, apellido: true }
+                        select: { id: true, nombre: true, apellido: true },
                     })
-                    this.logger.log(`🔍 Inscripción ${filters.inscripcionId} existe: ${inscripcionExiste ? `${inscripcionExiste.nombre} ${inscripcionExiste.apellido}` : 'NO'}`)
+                    this.logger.log(
+                        `🔍 Inscripción ${filters.inscripcionId} existe: ${inscripcionExiste ? `${inscripcionExiste.nombre} ${inscripcionExiste.apellido}` : 'NO'}`
+                    )
 
                     // Verificar si hay pagos para esa inscripción sin filtros
                     const pagosSinFiltros = await this.prisma.pago.count({
-                        where: { inscripcionId: filters.inscripcionId }
+                        where: { inscripcionId: filters.inscripcionId },
                     })
-                    this.logger.log(`🔍 Pagos sin filtros para inscripción ${filters.inscripcionId}: ${pagosSinFiltros}`)
+                    this.logger.log(
+                        `🔍 Pagos sin filtros para inscripción ${filters.inscripcionId}: ${pagosSinFiltros}`
+                    )
                 } catch (debugError) {
                     this.logger.error(`❌ Error en debug de inscripción:`, debugError)
                 }
@@ -973,7 +1028,7 @@ export class InscripcionesService {
             const totalPages = Math.ceil(total / limitNum)
 
             return {
-                data: data as any[],
+                data: data as PagoWithInscripcionAndConvencion[],
                 meta: {
                     page: pageNum,
                     limit: limitNum,
@@ -983,15 +1038,20 @@ export class InscripcionesService {
                     hasPreviousPage: pageNum > 1,
                 },
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            const errorCode = this.getErrorCode(error)
+            const errorMeta = this.getErrorProperty(error, 'meta')
+            const errorStack = error instanceof Error ? error.stack : undefined
+
             this.logger.error(`❌ Error al buscar pagos:`, error)
             this.logger.error(`WHERE clause que causó el error:`, JSON.stringify(whereClause, null, 2))
             this.logger.error(`Filtros recibidos:`, JSON.stringify(filters, null, 2))
             this.logger.error(`Error completo:`, {
-                message: error.message,
-                code: error.code,
-                meta: error.meta,
-                stack: error.stack?.substring(0, 1000),
+                message: errorMessage,
+                code: errorCode,
+                meta: errorMeta,
+                stack: errorStack,
             })
             // Re-lanzar el error para que el controlador lo maneje
             throw error
@@ -1001,7 +1061,7 @@ export class InscripcionesService {
     /**
      * Obtiene un pago por ID
      */
-    async findOnePago(id: string): Promise<Pago & { inscripcion: any }> {
+    async findOnePago(id: string): Promise<PagoWithInscripcionAndConvencion> {
         const pago = await this.prisma.pago.findUnique({
             where: { id },
             include: this.pagoIncludes,
@@ -1040,12 +1100,16 @@ export class InscripcionesService {
             if (typeof dto.monto === 'string') {
                 monto = parseFloat(dto.monto)
                 if (isNaN(monto) || monto <= 0) {
-                    throw new BadRequestException(`Monto inválido: ${dto.monto}. Debe ser un número positivo.`)
+                    throw new BadRequestException(
+                        `Monto inválido: ${dto.monto}. Debe ser un número positivo.`
+                    )
                 }
             } else if (typeof dto.monto === 'number') {
                 monto = dto.monto
                 if (monto <= 0 || !isFinite(monto)) {
-                    throw new BadRequestException(`Monto inválido: ${dto.monto}. Debe ser un número positivo.`)
+                    throw new BadRequestException(
+                        `Monto inválido: ${dto.monto}. Debe ser un número positivo.`
+                    )
                 }
             } else {
                 throw new BadRequestException('El monto es requerido y debe ser un número válido')
@@ -1054,13 +1118,17 @@ export class InscripcionesService {
             // Validar método de pago
             const metodosValidos = ['transferencia', 'mercadopago', 'efectivo', 'otro']
             if (!dto.metodoPago || !metodosValidos.includes(dto.metodoPago)) {
-                throw new BadRequestException(`Método de pago inválido: ${dto.metodoPago}. Debe ser uno de: ${metodosValidos.join(', ')}`)
+                throw new BadRequestException(
+                    `Método de pago inválido: ${dto.metodoPago}. Debe ser uno de: ${metodosValidos.join(', ')}`
+                )
             }
 
             // Validar número de cuota si se proporciona
             if (dto.numeroCuota !== undefined) {
                 if (!Number.isInteger(dto.numeroCuota) || dto.numeroCuota < 1 || dto.numeroCuota > 3) {
-                    throw new BadRequestException(`Número de cuota inválido: ${dto.numeroCuota}. Debe ser un entero entre 1 y 3.`)
+                    throw new BadRequestException(
+                        `Número de cuota inválido: ${dto.numeroCuota}. Debe ser un entero entre 1 y 3.`
+                    )
                 }
             }
 
@@ -1098,8 +1166,10 @@ export class InscripcionesService {
             }
 
             // Preparar datos del pago
-            const pagoData: any = {
-                inscripcionId: dto.inscripcionId,
+            const pagoData: Prisma.PagoCreateInput = {
+                inscripcion: {
+                    connect: { id: dto.inscripcionId },
+                },
                 monto: monto,
                 metodoPago: dto.metodoPago,
                 estado: dto.estado || EstadoPago.PENDIENTE, // Por defecto PENDIENTE
@@ -1118,7 +1188,9 @@ export class InscripcionesService {
                 pagoData.fechaPago = new Date()
             }
 
-            this.logger.log(`📝 Datos del pago a crear: ${JSON.stringify({ ...pagoData, monto: monto }, null, 2)}`)
+            this.logger.log(
+                `📝 Datos del pago a crear: ${JSON.stringify({ ...pagoData, monto: monto }, null, 2)}`
+            )
 
             const pagoCreado = await this.prisma.pago.create({
                 data: pagoData,
@@ -1141,7 +1213,7 @@ export class InscripcionesService {
                 if (inscripcionCompleta) {
                     const numeroCuotas = inscripcionCompleta.numeroCuotas || 3
                     const pagosCompletados = inscripcionCompleta.pagos.filter(
-                        (p: any) => p.estado === EstadoPago.COMPLETADO
+                        (p: Pago) => p.estado === EstadoPago.COMPLETADO
                     ).length
 
                     // Si todas las cuotas están completadas, confirmar la inscripción
@@ -1150,23 +1222,29 @@ export class InscripcionesService {
                             where: { id: inscripcion.id },
                             data: { estado: 'confirmado' },
                         })
-                        this.logger.log(`✅ Inscripción ${inscripcion.id} confirmada automáticamente (todas las cuotas pagadas)`)
+                        this.logger.log(
+                            `✅ Inscripción ${inscripcion.id} confirmada automáticamente (todas las cuotas pagadas)`
+                        )
                     }
                 }
             }
 
             return pagoCreado
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            const errorCode = this.getErrorCode(error)
+            const errorStack = error instanceof Error ? error.stack : undefined
+
             this.logger.error(`❌ Error creando pago:`, {
-                message: error.message,
-                code: error.code,
-                stack: error.stack?.substring(0, 500),
+                message: errorMessage,
+                code: errorCode,
+                stack: errorStack,
                 dto: {
                     inscripcionId: dto.inscripcionId,
                     monto: dto.monto,
                     metodoPago: dto.metodoPago,
                     numeroCuota: dto.numeroCuota,
-                }
+                },
             })
             throw error
         }
@@ -1175,10 +1253,14 @@ export class InscripcionesService {
     /**
      * Actualiza un pago
      */
-    async updatePago(id: string, dto: UpdatePagoDto, userId?: string): Promise<Pago & { advertenciaMonto?: string }> {
+    async updatePago(
+        id: string,
+        dto: UpdatePagoDto,
+        userId?: string
+    ): Promise<Pago & { advertenciaMonto?: string }> {
         const pago = await this.findOnePago(id) // Verifica existencia
 
-        const data: any = { ...dto }
+        const data: Prisma.PagoUpdateInput = { ...dto }
         if (dto.monto) {
             data.monto = parseFloat(dto.monto)
         }
@@ -1192,12 +1274,17 @@ export class InscripcionesService {
             })
 
             if (inscripcionCompleta?.convencion) {
-                const costoTotal = typeof inscripcionCompleta.convencion.costo === 'number'
-                    ? inscripcionCompleta.convencion.costo
-                    : parseFloat(String(inscripcionCompleta.convencion.costo || 0))
+                const costoTotal =
+                    typeof inscripcionCompleta.convencion.costo === 'number'
+                        ? inscripcionCompleta.convencion.costo
+                        : parseFloat(String(inscripcionCompleta.convencion.costo || 0))
                 const numeroCuotas = inscripcionCompleta.numeroCuotas || 3
                 const montoEsperadoPorCuota = costoTotal / numeroCuotas
-                const montoPago = dto.monto ? parseFloat(dto.monto) : (typeof pago.monto === 'number' ? pago.monto : parseFloat(String(pago.monto || 0)))
+                const montoPago = dto.monto
+                    ? parseFloat(dto.monto)
+                    : typeof pago.monto === 'number'
+                        ? pago.monto
+                        : parseFloat(String(pago.monto || 0))
 
                 // Calcular diferencia porcentual
                 const diferencia = Math.abs(montoPago - montoEsperadoPorCuota)
@@ -1236,7 +1323,12 @@ export class InscripcionesService {
             await this.registrarAuditoriaPago({
                 pagoId: id,
                 inscripcionId: pago.inscripcionId,
-                accion: dto.estado === EstadoPago.COMPLETADO ? 'VALIDAR' : dto.estado === EstadoPago.CANCELADO ? 'RECHAZAR' : 'ACTUALIZAR',
+                accion:
+                    dto.estado === EstadoPago.COMPLETADO
+                        ? 'VALIDAR'
+                        : dto.estado === EstadoPago.CANCELADO
+                            ? 'RECHAZAR'
+                            : 'ACTUALIZAR',
                 estadoAnterior: pago.estado,
                 estadoNuevo: dto.estado,
                 usuarioId: userId,
@@ -1248,13 +1340,16 @@ export class InscripcionesService {
         // Nota: En validación masiva, las notificaciones se envían pero no bloquean el proceso
         if (dto.estado === EstadoPago.COMPLETADO && pagoActualizado.inscripcionId) {
             // Enviar notificación de pago individual validado (no bloqueante)
-            this.enviarNotificacionPagoValidado(pagoActualizado).catch((error) => {
+            this.enviarNotificacionPagoValidado(pagoActualizado).catch(error => {
                 this.logger.warn(`No se pudo enviar notificación para pago ${pagoActualizado.id}:`, error)
             })
 
             // Verificar si todas las cuotas están pagadas (no bloqueante)
-            this.verificarYActualizarEstadoInscripcion(pagoActualizado.inscripcionId).catch((error) => {
-                this.logger.warn(`No se pudo verificar estado de inscripción ${pagoActualizado.inscripcionId}:`, error)
+            this.verificarYActualizarEstadoInscripcion(pagoActualizado.inscripcionId).catch(error => {
+                this.logger.warn(
+                    `No se pudo verificar estado de inscripción ${pagoActualizado.inscripcionId}:`,
+                    error
+                )
             })
         }
 
@@ -1264,7 +1359,7 @@ export class InscripcionesService {
     /**
      * Emite evento cuando se valida un pago individual (cuota)
      */
-    private async enviarNotificacionPagoValidado(pago: Pago & { inscripcion: any }): Promise<void> {
+    private async enviarNotificacionPagoValidado(pago: PagoWithInscripcion): Promise<void> {
         try {
             const inscripcion = pago.inscripcion
             if (!inscripcion || !inscripcion.email) {
@@ -1283,12 +1378,11 @@ export class InscripcionesService {
 
             const numeroCuotas = inscripcionCompleta.numeroCuotas || 3
             const cuotasPagadas = inscripcionCompleta.pagos.filter(
-                (p) => p.estado === EstadoPago.COMPLETADO
+                p => p.estado === EstadoPago.COMPLETADO
             ).length
 
-            const monto = typeof pago.monto === 'number'
-                ? pago.monto
-                : parseFloat(String(pago.monto || 0))
+            const monto =
+                typeof pago.monto === 'number' ? pago.monto : parseFloat(String(pago.monto || 0))
 
             const numeroCuota = pago.numeroCuota || 1
             const convencion = inscripcionCompleta.convencion
@@ -1330,7 +1424,7 @@ export class InscripcionesService {
 
         // Contar cuotas completadas (pagos con numeroCuota y estado COMPLETADO)
         const cuotasCompletadas = inscripcion.pagos.filter(
-            (p) => p.numeroCuota && p.estado === EstadoPago.COMPLETADO
+            p => p.numeroCuota && p.estado === EstadoPago.COMPLETADO
         ).length
 
         // Si todas las cuotas están completadas, actualizar el estado de la inscripción a "confirmado"
@@ -1339,7 +1433,9 @@ export class InscripcionesService {
                 where: { id: inscripcionId },
                 data: { estado: 'confirmado' },
             })
-            this.logger.log(`✅ Inscripción ${inscripcionId} marcada como confirmada (${cuotasCompletadas}/${numeroCuotas} cuotas pagadas)`)
+            this.logger.log(
+                `✅ Inscripción ${inscripcionId} marcada como confirmada (${cuotasCompletadas}/${numeroCuotas} cuotas pagadas)`
+            )
 
             // Obtener información completa de la convención para el mensaje
             const convencion = await this.prisma.convencion.findUnique({
@@ -1465,7 +1561,9 @@ export class InscripcionesService {
                     })
 
                     this.eventEmitter.emit(NotificationEventType.INSCRIPCION_CONFIRMADA, event)
-                    this.logger.log(`📬 Evento INSCRIPCION_CONFIRMADA emitido para ${inscripcionCompleta.email}`)
+                    this.logger.log(
+                        `📬 Evento INSCRIPCION_CONFIRMADA emitido para ${inscripcionCompleta.email}`
+                    )
                 }
             } catch (error) {
                 this.logger.error(`Error emitiendo evento de inscripción confirmada:`, error)
@@ -1554,7 +1652,9 @@ export class InscripcionesService {
             where: { id },
             data: {
                 estado: EstadoPago.PENDIENTE,
-                notas: pago.notas ? `${pago.notas}\nRehabilitado: ${new Date().toLocaleString()}` : `Rehabilitado: ${new Date().toLocaleString()}`,
+                notas: pago.notas
+                    ? `${pago.notas}\nRehabilitado: ${new Date().toLocaleString()}`
+                    : `Rehabilitado: ${new Date().toLocaleString()}`,
                 comprobanteUrl: null, // Limpiar comprobante para que suba uno nuevo
                 referencia: null, // Limpiar referencia
             },
@@ -1590,7 +1690,7 @@ export class InscripcionesService {
         estadoNuevo?: string
         usuarioId?: string
         motivo?: string
-        metadata?: any
+        metadata?: Prisma.InputJsonValue
     }): Promise<void> {
         try {
             await this.prisma.auditoriaPago.create({
@@ -1615,8 +1715,8 @@ export class InscripcionesService {
     /**
      * Obtiene el historial de auditoría de un pago
      */
-    async getHistorialAuditoriaPago(pagoId: string): Promise<any[]> {
-        return (this.prisma as any).auditoriaPago.findMany({
+    async getHistorialAuditoriaPago(pagoId: string): Promise<Prisma.AuditoriaPagoGetPayload<{}>[]> {
+        return this.prisma.auditoriaPago.findMany({
             where: { pagoId },
             orderBy: { createdAt: 'desc' },
         })
@@ -1625,8 +1725,8 @@ export class InscripcionesService {
     /**
      * Obtiene el historial de auditoría de una inscripción
      */
-    async getHistorialAuditoriaInscripcion(inscripcionId: string): Promise<any[]> {
-        return (this.prisma as any).auditoriaPago.findMany({
+    async getHistorialAuditoriaInscripcion(inscripcionId: string): Promise<Prisma.AuditoriaPagoGetPayload<{ include: { pago: { select: { id: true; numeroCuota: true; monto: true; metodoPago: true } } } }>[]> {
+        return this.prisma.auditoriaPago.findMany({
             where: { inscripcionId },
             include: {
                 pago: {
@@ -1645,7 +1745,10 @@ export class InscripcionesService {
     /**
      * Valida múltiples pagos en lote
      */
-    async validarPagosMasivos(ids: string[], userId?: string): Promise<{
+    async validarPagosMasivos(
+        ids: string[],
+        userId?: string
+    ): Promise<{
         exitosos: number
         fallidos: number
         advertencias: number
@@ -1676,7 +1779,9 @@ export class InscripcionesService {
 
                 // Validar que el pago esté en estado PENDIENTE
                 if (pagoExistente.estado !== EstadoPago.PENDIENTE) {
-                    throw new BadRequestException(`El pago ${id} no está en estado PENDIENTE (estado actual: ${pagoExistente.estado})`)
+                    throw new BadRequestException(
+                        `El pago ${id} no está en estado PENDIENTE (estado actual: ${pagoExistente.estado})`
+                    )
                 }
 
                 const resultado = await this.updatePago(id, { estado: EstadoPago.COMPLETADO }, userId)
@@ -1688,9 +1793,9 @@ export class InscripcionesService {
                     exitosos++
                     detalles.push({ id, exito: true })
                 }
-            } catch (error: any) {
+            } catch (error: unknown) {
                 fallidos++
-                const errorMessage = error?.message || error?.response?.message || 'Error desconocido'
+                const errorMessage = error instanceof Error ? error.message : this.getErrorProperty(error, 'response') ? (this.getErrorProperty(error, 'response') as { message?: string })?.message : 'Error desconocido'
                 detalles.push({
                     id,
                     exito: false,
@@ -1700,7 +1805,9 @@ export class InscripcionesService {
             }
         }
 
-        this.logger.log(`✅ Validación masiva completada: ${exitosos} exitosos, ${advertencias} con advertencias, ${fallidos} fallidos`)
+        this.logger.log(
+            `✅ Validación masiva completada: ${exitosos} exitosos, ${advertencias} con advertencias, ${fallidos} fallidos`
+        )
 
         return { exitosos, fallidos, advertencias, detalles }
     }
@@ -1708,7 +1815,10 @@ export class InscripcionesService {
     /**
      * Emite evento cuando se rechaza un pago
      */
-    private async enviarNotificacionPagoRechazado(pago: Pago & { inscripcion: any }, motivo?: string): Promise<void> {
+    private async enviarNotificacionPagoRechazado(
+        pago: PagoWithInscripcion,
+        motivo?: string
+    ): Promise<void> {
         try {
             const inscripcion = pago.inscripcion
             if (!inscripcion || !inscripcion.email) {
@@ -1740,7 +1850,9 @@ export class InscripcionesService {
     /**
      * Emite evento cuando se rehabilita un pago
      */
-    private async enviarNotificacionPagoRehabilitado(pago: Pago & { inscripcion: any }): Promise<void> {
+    private async enviarNotificacionPagoRehabilitado(
+        pago: PagoWithInscripcion
+    ): Promise<void> {
         try {
             const inscripcion = pago.inscripcion
             if (!inscripcion || !inscripcion.email) {
@@ -1775,7 +1887,7 @@ export class InscripcionesService {
         return this.prisma.pago.findMany({
             where: { estado },
             include: this.pagoIncludes,
-            orderBy: { createdAt: "desc" },
+            orderBy: { createdAt: 'desc' },
         })
     }
 
@@ -1786,7 +1898,7 @@ export class InscripcionesService {
         return this.prisma.pago.findMany({
             where: { inscripcionId },
             include: this.pagoIncludes,
-            orderBy: { createdAt: "desc" },
+            orderBy: { createdAt: 'desc' },
         })
     }
 
@@ -1802,19 +1914,14 @@ export class InscripcionesService {
         pagosCompletados: number
         pagosCancelados: number
     }> {
-        const [
-            totalInscripciones,
-            totalPagos,
-            pagosPendientes,
-            pagosCompletados,
-            pagosCancelados,
-        ] = await Promise.all([
-            this.prisma.inscripcion.count(),
-            this.prisma.pago.count(),
-            this.prisma.pago.count({ where: { estado: EstadoPago.PENDIENTE } }),
-            this.prisma.pago.count({ where: { estado: EstadoPago.COMPLETADO } }),
-            this.prisma.pago.count({ where: { estado: EstadoPago.CANCELADO } }),
-        ])
+        const [totalInscripciones, totalPagos, pagosPendientes, pagosCompletados, pagosCancelados] =
+            await Promise.all([
+                this.prisma.inscripcion.count(),
+                this.prisma.pago.count(),
+                this.prisma.pago.count({ where: { estado: EstadoPago.PENDIENTE } }),
+                this.prisma.pago.count({ where: { estado: EstadoPago.COMPLETADO } }),
+                this.prisma.pago.count({ where: { estado: EstadoPago.CANCELADO } }),
+            ])
 
         return {
             totalInscripciones,
@@ -1860,9 +1967,8 @@ export class InscripcionesService {
 
         for (const inscripcion of inscripciones) {
             for (const pago of inscripcion.pagos) {
-                const monto = typeof pago.monto === 'number'
-                    ? pago.monto
-                    : parseFloat(String(pago.monto || 0))
+                const monto =
+                    typeof pago.monto === 'number' ? pago.monto : parseFloat(String(pago.monto || 0))
 
                 if (pago.estado === EstadoPago.COMPLETADO) {
                     totalRecaudado += monto
@@ -1928,7 +2034,9 @@ export class InscripcionesService {
                 })
             } catch (dbError) {
                 this.logger.error('❌ Error consultando inscripciones:', dbError)
-                throw new Error(`Error al consultar inscripciones: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`)
+                throw new Error(
+                    `Error al consultar inscripciones: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`
+                )
             }
 
             this.logger.log(`📋 Encontradas ${inscripciones.length} inscripciones pendientes`)
@@ -1938,12 +2046,15 @@ export class InscripcionesService {
             for (const inscripcion of inscripciones) {
                 // Si no tiene pagos, crearlos automáticamente
                 if (!inscripcion.pagos || inscripcion.pagos.length === 0) {
-                    this.logger.warn(`⚠️ Inscripción ${inscripcion.id} no tiene pagos, creándolos automáticamente...`)
+                    this.logger.warn(
+                        `⚠️ Inscripción ${inscripcion.id} no tiene pagos, creándolos automáticamente...`
+                    )
                     try {
                         const numeroCuotas = inscripcion.numeroCuotas || 3
-                        const costoTotal = typeof inscripcion.convencion?.costo === 'number'
-                            ? inscripcion.convencion.costo
-                            : parseFloat(String(inscripcion.convencion?.costo || 0))
+                        const costoTotal =
+                            typeof inscripcion.convencion?.costo === 'number'
+                                ? inscripcion.convencion.costo
+                                : parseFloat(String(inscripcion.convencion?.costo || 0))
                         const montoPorCuota = costoTotal / numeroCuotas
 
                         const pagosCreados = []
@@ -1960,7 +2071,9 @@ export class InscripcionesService {
                             pagosCreados.push(pago)
                         }
                         inscripcion.pagos = pagosCreados
-                        this.logger.log(`✅ Creados ${pagosCreados.length} pagos para inscripción ${inscripcion.id}`)
+                        this.logger.log(
+                            `✅ Creados ${pagosCreados.length} pagos para inscripción ${inscripcion.id}`
+                        )
                     } catch (error) {
                         this.logger.error(`❌ Error creando pagos para inscripción ${inscripcion.id}:`, error)
                         continue // Saltar esta inscripción
@@ -1974,17 +2087,26 @@ export class InscripcionesService {
                 }
             }
 
-            this.logger.log(`📋 ${inscripcionesConPagosPendientes.length} inscripciones con pagos pendientes listas para recordatorio`)
+            this.logger.log(
+                `📋 ${inscripcionesConPagosPendientes.length} inscripciones con pagos pendientes listas para recordatorio`
+            )
             inscripciones = inscripcionesConPagosPendientes
 
             let enviados = 0
             let fallidos = 0
-            const detalles: { email: string; nombre: string; cuotasPendientes: number; exito: boolean }[] = []
+            const detalles: {
+                email: string
+                nombre: string
+                cuotasPendientes: number
+                exito: boolean
+            }[] = []
 
             // Procesar cada inscripción de forma secuencial para evitar saturar la cola
             for (let i = 0; i < inscripciones.length; i++) {
                 const inscripcion = inscripciones[i]
-                this.logger.log(`📧 [${i + 1}/${inscripciones.length}] Procesando recordatorio para ${inscripcion.email} (ID: ${inscripcion.id})...`)
+                this.logger.log(
+                    `📧 [${i + 1}/${inscripciones.length}] Procesando recordatorio para ${inscripcion.email} (ID: ${inscripcion.id})...`
+                )
 
                 try {
                     // Función helper para detectar si una nota indica explícitamente que no asistirán
@@ -1995,19 +2117,19 @@ export class InscripcionesService {
 
                         // Patrones más específicos que indican claramente que no asistirán
                         const patronesExcluyentes = [
-                            /no\s+vendr[áa]/i,           // "no vendrá" o "no vendra"
-                            /no\s+asistir[áa]/i,        // "no asistirá" o "no asistira"
-                            /no\s+asistir\b/i,          // "no asistir" (palabra completa)
-                            /no\s+viene\b/i,            // "no viene" (palabra completa)
-                            /no\s+participar[áa]/i,     // "no participará" o "no participara"
-                            /no\s+participa\b/i,        // "no participa" (palabra completa)
-                            /no\s+ir[áa]\b/i,           // "no irá" o "no ira" (palabra completa)
-                            /no\s+va\b/i,               // "no va" (palabra completa)
-                            /no\s+asistencia\b/i,       // "no asistencia" (palabra completa)
-                            /^cancelado\s*$/i,          // Solo "cancelado" (exacto)
-                            /^cancelada\s*$/i,          // Solo "cancelada" (exacto)
-                            /no\s+vendr[áa]\s+al/i,     // "no vendrá al" o "no vendra al"
-                            /no\s+asistir[áa]\s+al/i,   // "no asistirá al" o "no asistira al"
+                            /no\s+vendr[áa]/i, // "no vendrá" o "no vendra"
+                            /no\s+asistir[áa]/i, // "no asistirá" o "no asistira"
+                            /no\s+asistir\b/i, // "no asistir" (palabra completa)
+                            /no\s+viene\b/i, // "no viene" (palabra completa)
+                            /no\s+participar[áa]/i, // "no participará" o "no participara"
+                            /no\s+participa\b/i, // "no participa" (palabra completa)
+                            /no\s+ir[áa]\b/i, // "no irá" o "no ira" (palabra completa)
+                            /no\s+va\b/i, // "no va" (palabra completa)
+                            /no\s+asistencia\b/i, // "no asistencia" (palabra completa)
+                            /^cancelado\s*$/i, // Solo "cancelado" (exacto)
+                            /^cancelada\s*$/i, // Solo "cancelada" (exacto)
+                            /no\s+vendr[áa]\s+al/i, // "no vendrá al" o "no vendra al"
+                            /no\s+asistir[áa]\s+al/i, // "no asistirá al" o "no asistira al"
                         ]
 
                         // Verificar si alguno de los patrones coincide
@@ -2017,7 +2139,9 @@ export class InscripcionesService {
                     // Verificar si la inscripción tiene notas que indiquen explícitamente que no asistirán
                     // Solo excluimos si es muy claro, de lo contrario enviamos el recordatorio
                     if (notaIndicaNoAsistencia(inscripcion.notas)) {
-                        this.logger.warn(`⚠️ Inscripción ${inscripcion.id} tiene nota indicando que no asistirá: "${inscripcion.notas}", saltando...`)
+                        this.logger.warn(
+                            `⚠️ Inscripción ${inscripcion.id} tiene nota indicando que no asistirá: "${inscripcion.notas}", saltando...`
+                        )
                         continue
                     }
 
@@ -2031,7 +2155,9 @@ export class InscripcionesService {
 
                         // Excluir solo si la nota es muy clara sobre no asistir
                         if (notaIndicaNoAsistencia(p.notas)) {
-                            this.logger.warn(`⚠️ Pago ${p.id} tiene nota indicando que no asistirá: "${p.notas}", excluyendo del recordatorio`)
+                            this.logger.warn(
+                                `⚠️ Pago ${p.id} tiene nota indicando que no asistirá: "${p.notas}", excluyendo del recordatorio`
+                            )
                             return false
                         }
 
@@ -2040,7 +2166,9 @@ export class InscripcionesService {
 
                     // Si no hay pagos pendientes válidos (después de filtrar), saltar esta inscripción
                     if (pagosPendientes.length === 0) {
-                        this.logger.warn(`⚠️ Inscripción ${inscripcion.id} no tiene pagos pendientes válidos para recordatorio, saltando...`)
+                        this.logger.warn(
+                            `⚠️ Inscripción ${inscripcion.id} no tiene pagos pendientes válidos para recordatorio, saltando...`
+                        )
                         continue
                     }
 
@@ -2053,9 +2181,13 @@ export class InscripcionesService {
                         return sum + monto
                     }, 0)
 
-                    this.logger.log(`💰 Inscripción ${inscripcion.email}: ${cuotasPendientes} cuota(s) pendiente(s), monto: $${montoPendiente}`)
+                    this.logger.log(
+                        `💰 Inscripción ${inscripcion.email}: ${cuotasPendientes} cuota(s) pendiente(s), monto: $${montoPendiente}`
+                    )
 
-                    this.logger.log(`💰 Inscripción ${inscripcion.email}: ${cuotasPendientes} cuota(s) pendiente(s), monto: $${montoPendiente}`)
+                    this.logger.log(
+                        `💰 Inscripción ${inscripcion.email}: ${cuotasPendientes} cuota(s) pendiente(s), monto: $${montoPendiente}`
+                    )
 
                     // Emitir evento de recordatorio de pago
                     // Si el eventEmitter está disponible, usarlo (con cola)
@@ -2075,7 +2207,9 @@ export class InscripcionesService {
                             // Usar emitAsync para esperar a que el listener procese el evento
                             // Esto asegura que cada evento se procese antes de continuar
                             await this.eventEmitter.emitAsync(NotificationEventType.PAGO_RECORDATORIO, event)
-                            this.logger.log(`📬 Evento PAGO_RECORDATORIO emitido y procesado para ${inscripcion.email}`)
+                            this.logger.log(
+                                `📬 Evento PAGO_RECORDATORIO emitido y procesado para ${inscripcion.email}`
+                            )
                             // Asumimos éxito si el evento se emitió correctamente (el listener se encargará)
                             emailEnviado = true
 
@@ -2084,13 +2218,27 @@ export class InscripcionesService {
                         } catch (eventError) {
                             this.logger.error(`❌ Error emitiendo evento para ${inscripcion.email}:`, eventError)
                             // Fallback a envío directo
-                            this.logger.warn(`⚠️ Intentando envío directo como fallback para ${inscripcion.email}`)
-                            emailEnviado = await this.enviarEmailRecordatorioDirecto(inscripcion, cuotasPendientes, montoPendiente, convencion)
+                            this.logger.warn(
+                                `⚠️ Intentando envío directo como fallback para ${inscripcion.email}`
+                            )
+                            emailEnviado = await this.enviarEmailRecordatorioDirecto(
+                                inscripcion,
+                                cuotasPendientes,
+                                montoPendiente,
+                                convencion
+                            )
                         }
                     } else {
                         // Fallback: enviar directamente por email si no hay eventEmitter
-                        this.logger.warn(`⚠️ EventEmitter no disponible, enviando email directamente a ${inscripcion.email}`)
-                        emailEnviado = await this.enviarEmailRecordatorioDirecto(inscripcion, cuotasPendientes, montoPendiente, convencion)
+                        this.logger.warn(
+                            `⚠️ EventEmitter no disponible, enviando email directamente a ${inscripcion.email}`
+                        )
+                        emailEnviado = await this.enviarEmailRecordatorioDirecto(
+                            inscripcion,
+                            cuotasPendientes,
+                            montoPendiente,
+                            convencion
+                        )
                     }
 
                     if (emailEnviado) {
@@ -2114,7 +2262,9 @@ export class InscripcionesService {
                     }
                 } catch (error) {
                     fallidos++
-                    const nombreCompleto = inscripcion ? `${inscripcion.nombre} ${inscripcion.apellido}` : 'Desconocido'
+                    const nombreCompleto = inscripcion
+                        ? `${inscripcion.nombre} ${inscripcion.apellido}`
+                        : 'Desconocido'
                     const email = inscripcion?.email || 'desconocido'
                     detalles.push({
                         email,
@@ -2142,10 +2292,10 @@ export class InscripcionesService {
      * Envía email de recordatorio directamente (fallback cuando no hay eventEmitter/cola)
      */
     private async enviarEmailRecordatorioDirecto(
-        inscripcion: any,
+        inscripcion: InscripcionWithRelations,
         cuotasPendientes: number,
         montoPendiente: number,
-        convencion: any,
+        convencion: Convencion
     ): Promise<boolean> {
         try {
             this.logger.log(`📧 Enviando email directo a ${inscripcion.email}...`)
@@ -2158,7 +2308,9 @@ export class InscripcionesService {
 
             // Verificar que el servicio esté configurado
             if (!emailService['transporter']) {
-                this.logger.error(`❌ EmailService no está configurado. Verifica SMTP_USER y SMTP_PASSWORD en .env`)
+                this.logger.error(
+                    `❌ EmailService no está configurado. Verifica SMTP_USER y SMTP_PASSWORD en .env`
+                )
                 return false
             }
 
@@ -2180,7 +2332,7 @@ export class InscripcionesService {
                     cuotasPendientes,
                     montoPendiente,
                     convencionTitulo: convencion?.titulo || 'Convención',
-                },
+                }
             )
 
             if (resultado) {
@@ -2202,7 +2354,12 @@ export class InscripcionesService {
     /**
      * Cancela una inscripción y sus pagos pendientes
      */
-    async cancelarInscripcion(id: string, motivo?: string, userId?: string, userEmail?: string): Promise<Inscripcion> {
+    async cancelarInscripcion(
+        id: string,
+        motivo?: string,
+        userId?: string,
+        userEmail?: string
+    ): Promise<Inscripcion> {
         this.logger.log(`❌ Cancelando inscripción: ${id}`)
 
         const inscripcion = await this.findOneInscripcion(id)
@@ -2214,7 +2371,7 @@ export class InscripcionesService {
         const estadoAnterior = inscripcion.estado
 
         // Cancelar la inscripción y sus pagos pendientes
-        const inscripcionCancelada = await this.prisma.$transaction(async (tx) => {
+        const inscripcionCancelada = await this.prisma.$transaction(async tx => {
             // Cancelar pagos pendientes
             await tx.pago.updateMany({
                 where: {
@@ -2247,11 +2404,13 @@ export class InscripcionesService {
             action: 'CANCELAR',
             userId,
             userEmail,
-            changes: [{
-                field: 'estado',
-                oldValue: estadoAnterior,
-                newValue: 'cancelado',
-            }],
+            changes: [
+                {
+                    field: 'estado',
+                    oldValue: estadoAnterior,
+                    newValue: 'cancelado',
+                },
+            ],
             metadata: {
                 motivo,
                 inscripcionId: id,
@@ -2267,7 +2426,11 @@ export class InscripcionesService {
     /**
      * Rehabilita una inscripción cancelada, restaurándola al estado pendiente
      */
-    async rehabilitarInscripcion(id: string, userId?: string, userEmail?: string): Promise<Inscripcion> {
+    async rehabilitarInscripcion(
+        id: string,
+        userId?: string,
+        userEmail?: string
+    ): Promise<Inscripcion> {
         this.logger.log(`🔄 Rehabilitando inscripción: ${id}`)
 
         const inscripcion = await this.findOneInscripcion(id)
@@ -2279,7 +2442,7 @@ export class InscripcionesService {
         const estadoAnterior = inscripcion.estado
 
         // Rehabilitar la inscripción y sus pagos cancelados
-        const inscripcionRehabilitada = await this.prisma.$transaction(async (tx) => {
+        const inscripcionRehabilitada = await this.prisma.$transaction(async tx => {
             // Obtener pagos cancelados para rehabilitarlos
             const pagosCancelados = await tx.pago.findMany({
                 where: {
@@ -2333,18 +2496,22 @@ export class InscripcionesService {
             action: 'REHABILITAR',
             userId,
             userEmail,
-            changes: [{
-                field: 'estado',
-                oldValue: estadoAnterior,
-                newValue: 'pendiente',
-            }],
+            changes: [
+                {
+                    field: 'estado',
+                    oldValue: estadoAnterior,
+                    newValue: 'pendiente',
+                },
+            ],
             metadata: {
                 inscripcionId: id,
             },
         })
 
         // Log de rehabilitación
-        this.logger.log(`✅ Inscripción ${id} rehabilitada exitosamente, estado restaurado a 'pendiente'`)
+        this.logger.log(
+            `✅ Inscripción ${id} rehabilitada exitosamente, estado restaurado a 'pendiente'`
+        )
 
         return inscripcionRehabilitada
     }
@@ -2352,7 +2519,10 @@ export class InscripcionesService {
     /**
      * Emite evento de cancelación de inscripción
      */
-    private async enviarNotificacionCancelacion(inscripcion: Inscripcion & { convencion: any }, motivo?: string): Promise<void> {
+    private async enviarNotificacionCancelacion(
+        inscripcion: InscripcionWithConvencion,
+        motivo?: string
+    ): Promise<void> {
         try {
             if (!inscripcion.email) return
 
@@ -2368,5 +2538,25 @@ export class InscripcionesService {
         } catch (error) {
             this.logger.error(`Error emitiendo evento de cancelación:`, error)
         }
+    }
+
+    /**
+     * Helper para obtener el código de error de forma segura
+     */
+    private getErrorCode(error: unknown): string | undefined {
+        if (error && typeof error === 'object' && 'code' in error) {
+            return typeof error.code === 'string' ? error.code : undefined
+        }
+        return undefined
+    }
+
+    /**
+     * Helper para obtener propiedades de error de forma segura
+     */
+    private getErrorProperty(error: unknown, property: string): unknown {
+        if (error && typeof error === 'object' && property in error) {
+            return (error as Record<string, unknown>)[property]
+        }
+        return undefined
     }
 }

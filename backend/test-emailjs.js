@@ -13,7 +13,10 @@ envContent.split('\n').forEach(line => {
     const key = match[1].trim()
     let value = match[2].trim()
     // Remover comillas si las tiene
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
       value = value.slice(1, -1)
     }
     envVars[key] = value
@@ -33,14 +36,18 @@ const templateId = getEnv('EMAILJS_TEMPLATE_ID', '')
 const apiKey = privateKey || publicKey
 
 console.log('📧 Configuración EmailJS:')
-console.log(`   ${privateKey ? 'Private Key' : 'Public Key'}: ${apiKey ? '***' + apiKey.slice(-4) : 'NO CONFIGURADO'}`)
+console.log(
+  `   ${privateKey ? 'Private Key' : 'Public Key'}: ${apiKey ? '***' + apiKey.slice(-4) : 'NO CONFIGURADO'}`
+)
 console.log(`   Service ID: ${serviceId || 'NO CONFIGURADO'}`)
 console.log(`   Template ID: ${templateId || 'NO CONFIGURADO'}`)
 console.log('')
 
 if (!apiKey || !serviceId || !templateId) {
   console.error('❌ ERROR: Faltan credenciales de EmailJS')
-  console.error('   Configura EMAILJS_PRIVATE_KEY (o EMAILJS_PUBLIC_KEY), EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID en .env')
+  console.error(
+    '   Configura EMAILJS_PRIVATE_KEY (o EMAILJS_PUBLIC_KEY), EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID en .env'
+  )
   console.error('   Obtén tus credenciales en: https://dashboard.emailjs.com/')
   console.error('')
   console.error('   IMPORTANTE: Para usar desde servidor, necesitas:')
@@ -68,7 +75,7 @@ emailjs
   .send(serviceId, templateId, templateParams, {
     publicKey: apiKey, // Puede ser private o public key
   })
-  .then((response) => {
+  .then(response => {
     console.log('✅ Email enviado exitosamente!')
     console.log(`   Status: ${response.status}`)
     console.log(`   Text: ${response.text}`)
@@ -76,7 +83,7 @@ emailjs
     console.log('')
     console.log('📬 Revisa el correo mariacarrillocastro81@gmail.com')
   })
-  .catch((error) => {
+  .catch(error => {
     console.error('❌ Error enviando email:')
     console.error(`   Status: ${error.status || 'N/A'}`)
     console.error(`   Text: ${error.text || error.message}`)
@@ -85,4 +92,3 @@ emailjs
     }
     process.exit(1)
   })
-

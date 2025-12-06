@@ -2,13 +2,18 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { ImageWithSkeleton } from './image-with-skeleton'
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog'
 import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { ZoomIn, Loader2, ImageIcon, Video, Camera, VideoOff, ChevronLeft, ChevronRight, X } from 'lucide-react'
+  ZoomIn,
+  Loader2,
+  ImageIcon,
+  Video,
+  Camera,
+  VideoOff,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from 'lucide-react'
 import { VideoCardModern } from './video-card-modern'
 import { useGaleria } from '@/lib/hooks/use-galeria'
 import type { GaleriaImagen } from '@/lib/api/galeria'
@@ -35,7 +40,9 @@ function TiltCard({ children, className = '' }: { children: React.ReactNode; cla
     const rotateX = (y - centerY) / 20
     const rotateY = (centerX - x) / 20
 
-    setTransform(`perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`)
+    setTransform(
+      `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`
+    )
     setGlare({ x: (x / rect.width) * 100, y: (y / rect.height) * 100, opacity: 0.15 })
   }
 
@@ -102,12 +109,10 @@ export function GallerySection() {
   const [playingVideo, setPlayingVideo] = useState<string | null>(null)
   const { data: galeria = [], isLoading } = useGaleria()
 
-  const imagenes = galeria.filter((item: GaleriaImagen) =>
-    (item.tipo === 'IMAGEN' || !item.tipo) && item.activa
+  const imagenes = galeria.filter(
+    (item: GaleriaImagen) => (item.tipo === 'IMAGEN' || !item.tipo) && item.activa
   )
-  const videos = galeria.filter((item: GaleriaImagen) =>
-    item.tipo === 'VIDEO' && item.activa
-  )
+  const videos = galeria.filter((item: GaleriaImagen) => item.tipo === 'VIDEO' && item.activa)
 
   const openLightbox = (index: number) => {
     setSelectedImageIndex(index)
@@ -233,24 +238,24 @@ export function GallerySection() {
                           >
                             {/* Glow on hover */}
                             <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 rounded-xl blur opacity-0 group-hover:opacity-50 transition-all duration-500" />
-                            
+
                             <div className="relative h-full rounded-xl overflow-hidden border border-white/10 group-hover:border-emerald-500/50 transition-all duration-500">
                               <ImageWithSkeleton
-                                src={image.imagenUrl || "/placeholder.svg"}
+                                src={image.imagenUrl || '/placeholder.svg'}
                                 alt={image.titulo}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                               />
-                              
+
                               {/* Gradient overlay */}
                               <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-transparent to-transparent opacity-70 group-hover:opacity-40 transition-opacity duration-300" />
-                              
+
                               {/* Hover overlay */}
                               <div className="absolute inset-0 bg-emerald-500/0 group-hover:bg-emerald-500/20 transition-all duration-300 flex items-center justify-center">
                                 <div className="p-4 rounded-full bg-white/10 backdrop-blur-md opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100 transition-all duration-300">
                                   <ZoomIn className="w-6 h-6 text-white" />
                                 </div>
                               </div>
-                              
+
                               {/* Title */}
                               {image.titulo && (
                                 <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
@@ -311,29 +316,37 @@ export function GallerySection() {
 
                       const isCloudinary = video.imagenUrl.includes('cloudinary.com')
                       const isPlaying = playingVideo === video.id
-                      
+
                       // Generar thumbnail para videos de Cloudinary
                       let thumbnailUrl = '/placeholder.svg'
                       if (isCloudinary) {
-                        const cloudMatch = video.imagenUrl.match(/cloudinary\.com\/([^/]+)\/video\/upload\//)
+                        const cloudMatch = video.imagenUrl.match(
+                          /cloudinary\.com\/([^/]+)\/video\/upload\//
+                        )
                         if (cloudMatch) {
                           const cloudName = cloudMatch[1]
                           const afterUpload = video.imagenUrl.split('/video/upload/')[1]
                           if (afterUpload) {
                             const parts = afterUpload.split('/')
                             const filteredParts = parts.filter(part => {
-                              if (part.includes('_') && (part.includes(',') || part.match(/^[a-z]+_[\d.]+$/))) return false
+                              if (
+                                part.includes('_') &&
+                                (part.includes(',') || part.match(/^[a-z]+_[\d.]+$/))
+                              )
+                                return false
                               if (part.match(/^v\d+$/)) return false
                               return true
                             })
                             const publicId = filteredParts.join('/').replace(/\.[^.]+$/, '')
-                            
-                            const thumbnailOffset = video.thumbnailTime !== undefined && video.thumbnailTime !== null
-                              ? video.thumbnailTime.toFixed(1)
-                              : video.videoStartTime !== undefined && video.videoStartTime !== null
-                                ? video.videoStartTime.toFixed(1)
-                                : '0'
-                            
+
+                            const thumbnailOffset =
+                              video.thumbnailTime !== undefined && video.thumbnailTime !== null
+                                ? video.thumbnailTime.toFixed(1)
+                                : video.videoStartTime !== undefined &&
+                                    video.videoStartTime !== null
+                                  ? video.videoStartTime.toFixed(1)
+                                  : '0'
+
                             thumbnailUrl = `https://res.cloudinary.com/${cloudName}/video/upload/so_${thumbnailOffset},w_640,h_360,c_fill,f_jpg/${publicId}.jpg`
                           }
                         }
@@ -402,13 +415,19 @@ export function GallerySection() {
           {imagenes.length > 1 && (
             <>
               <button
-                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                onClick={e => {
+                  e.stopPropagation()
+                  prevImage()
+                }}
                 className="absolute left-4 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-50"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                onClick={e => {
+                  e.stopPropagation()
+                  nextImage()
+                }}
                 className="absolute right-4 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-50"
               >
                 <ChevronRight className="w-6 h-6" />
@@ -417,18 +436,17 @@ export function GallerySection() {
           )}
 
           {/* Image */}
-          <div
-            className="max-w-5xl max-h-[85vh] px-4"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="max-w-5xl max-h-[85vh] px-4" onClick={e => e.stopPropagation()}>
             <img
-              src={imagenes[selectedImageIndex].imagenUrl || "/placeholder.svg"}
+              src={imagenes[selectedImageIndex].imagenUrl || '/placeholder.svg'}
               alt={imagenes[selectedImageIndex].titulo}
               className="w-full h-full object-contain rounded-xl"
             />
             {/* Caption */}
             <div className="text-center mt-4">
-              <p className="text-white font-medium text-lg">{imagenes[selectedImageIndex].titulo}</p>
+              <p className="text-white font-medium text-lg">
+                {imagenes[selectedImageIndex].titulo}
+              </p>
               {imagenes[selectedImageIndex].descripcion && (
                 <p className="text-white/60 mt-2">{imagenes[selectedImageIndex].descripcion}</p>
               )}
@@ -444,7 +462,10 @@ export function GallerySection() {
               {imagenes.map((img: GaleriaImagen, idx: number) => (
                 <button
                   key={img.id}
-                  onClick={(e) => { e.stopPropagation(); setSelectedImageIndex(idx); }}
+                  onClick={e => {
+                    e.stopPropagation()
+                    setSelectedImageIndex(idx)
+                  }}
                   className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
                     idx === selectedImageIndex
                       ? 'border-emerald-500 scale-110'
@@ -452,7 +473,7 @@ export function GallerySection() {
                   }`}
                 >
                   <img
-                    src={img.imagenUrl || "/placeholder.svg"}
+                    src={img.imagenUrl || '/placeholder.svg'}
                     alt=""
                     className="w-full h-full object-cover"
                   />

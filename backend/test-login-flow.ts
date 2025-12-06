@@ -7,8 +7,8 @@ const API_URL = 'http://localhost:4000/api'
 
 async function testLoginFlow() {
   console.log('🔍 PROBANDO FLUJO DE LOGIN COMPLETO\n')
-  console.log('=' .repeat(60))
-  
+  console.log('='.repeat(60))
+
   try {
     // PASO 1: Verificar usuario en base de datos
     console.log('\n📊 PASO 1: Verificando usuario en base de datos...')
@@ -51,12 +51,16 @@ async function testLoginFlow() {
     // PASO 3: Probar endpoint del backend
     console.log('\n🌐 PASO 3: Probando endpoint del backend...')
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
-        email: user.email,
-        password: testPassword,
-      }, {
-        timeout: 5000,
-      })
+      const response = await axios.post(
+        `${API_URL}/auth/login`,
+        {
+          email: user.email,
+          password: testPassword,
+        },
+        {
+          timeout: 5000,
+        }
+      )
 
       console.log('✅ Login exitoso en el backend:')
       console.log(`   Status: ${response.status}`)
@@ -66,7 +70,9 @@ async function testLoginFlow() {
         console.log(`   User email: ${response.data.user.email}`)
         console.log(`   User nombre: ${response.data.user.nombre}`)
       }
-      console.log(`   Token (primeros 20 chars): ${response.data.access_token?.substring(0, 20)}...`)
+      console.log(
+        `   Token (primeros 20 chars): ${response.data.access_token?.substring(0, 20)}...`
+      )
 
       // PASO 4: Verificar token con /auth/me
       console.log('\n🔑 PASO 4: Verificando token con /auth/me...')
@@ -85,7 +91,6 @@ async function testLoginFlow() {
         console.log(`   Status: ${meError.response?.status}`)
         console.log(`   Message: ${meError.response?.data?.message || meError.message}`)
       }
-
     } catch (apiError: any) {
       console.log('❌ Error en el endpoint del backend:')
       if (apiError.code === 'ECONNREFUSED') {
@@ -97,7 +102,6 @@ async function testLoginFlow() {
         console.log(`   Data: ${JSON.stringify(apiError.response?.data, null, 2)}`)
       }
     }
-
   } catch (error: any) {
     console.error('❌ Error general:', error.message)
   } finally {
@@ -109,4 +113,3 @@ async function testLoginFlow() {
 }
 
 testLoginFlow()
-

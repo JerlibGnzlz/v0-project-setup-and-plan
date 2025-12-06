@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert } from 'react-native'
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
@@ -31,7 +39,7 @@ export function ConventionInscripcionScreen() {
   // Cargar convención activa (solo una vez al montar)
   useEffect(() => {
     let isMounted = true
-    
+
     const loadConvencion = async (showLoading = true) => {
       try {
         if (!isMounted) return
@@ -51,7 +59,7 @@ export function ConventionInscripcionScreen() {
               archivada: normalizeBoolean(activa.archivada),
             }
             setConvencion(convencionNormalizada)
-            
+
             // Verificar si el usuario ya está inscrito (silenciosamente)
             if (pastor?.email) {
               try {
@@ -87,15 +95,15 @@ export function ConventionInscripcionScreen() {
         }
       }
     }
-    
+
     // Cargar inmediatamente con loading
     void loadConvencion(true)
-    
+
     // Recargar silenciosamente cada 30 segundos (sin mostrar loading)
     const interval = setInterval(() => {
       void loadConvencion(false)
     }, 30000)
-    
+
     return () => {
       isMounted = false
       clearInterval(interval)
@@ -175,94 +183,88 @@ export function ConventionInscripcionScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Inscripción a Convención</Text>
-        <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
-      </View>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Inscripción a Convención</Text>
+          <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
+        </View>
 
-      {/* Progress Steps */}
-      <View style={styles.stepsContainer}>
-        {steps.map((step, index) => (
-          <View key={step.number} style={styles.stepRow}>
-            <View style={styles.stepItem}>
-              <TouchableOpacity
-                style={[
-                  styles.stepCircle,
-                  step.number < currentStep && styles.stepCircleCompleted,
-                  step.number === currentStep && styles.stepCircleActive,
-                ]}
-                disabled={step.number > currentStep && !inscripcionCompleta}
-              >
-                <Text
+        {/* Progress Steps */}
+        <View style={styles.stepsContainer}>
+          {steps.map((step, index) => (
+            <View key={step.number} style={styles.stepRow}>
+              <View style={styles.stepItem}>
+                <TouchableOpacity
                   style={[
-                    styles.stepNumber,
-                    step.number < currentStep && styles.stepNumberCompleted,
-                    step.number === currentStep && styles.stepNumberActive,
+                    styles.stepCircle,
+                    step.number < currentStep && styles.stepCircleCompleted,
+                    step.number === currentStep && styles.stepCircleActive,
                   ]}
+                  disabled={step.number > currentStep && !inscripcionCompleta}
                 >
-                  {step.number < currentStep ? '✓' : step.number}
-                </Text>
-              </TouchableOpacity>
-              <View style={styles.stepTextContainer}>
-                <Text
-                  style={[
-                    styles.stepTitle,
-                    step.number <= currentStep && styles.stepTitleActive,
-                  ]}
-                >
-                  {step.title}
-                </Text>
-                <Text style={styles.stepDescription}>{step.description}</Text>
+                  <Text
+                    style={[
+                      styles.stepNumber,
+                      step.number < currentStep && styles.stepNumberCompleted,
+                      step.number === currentStep && styles.stepNumberActive,
+                    ]}
+                  >
+                    {step.number < currentStep ? '✓' : step.number}
+                  </Text>
+                </TouchableOpacity>
+                <View style={styles.stepTextContainer}>
+                  <Text
+                    style={[styles.stepTitle, step.number <= currentStep && styles.stepTitleActive]}
+                  >
+                    {step.title}
+                  </Text>
+                  <Text style={styles.stepDescription}>{step.description}</Text>
+                </View>
               </View>
+              {index < steps.length - 1 && (
+                <View
+                  style={[styles.stepLine, step.number < currentStep && styles.stepLineCompleted]}
+                />
+              )}
             </View>
-            {index < steps.length - 1 && (
-              <View
-                style={[
-                  styles.stepLine,
-                  step.number < currentStep && styles.stepLineCompleted,
-                ]}
-              />
-            )}
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
 
-      {/* Content */}
-      <View style={styles.content}>
-        {currentStep === 2 && convencion && (
-          <Step2ConvencionInfo
-            convencion={convencion}
-            yaInscrito={yaInscrito}
-            inscripcionExistente={inscripcionExistente}
-            onComplete={() => handleStepComplete(2)}
-            onBack={handleBack}
-          />
-        )}
+        {/* Content */}
+        <View style={styles.content}>
+          {currentStep === 2 && convencion && (
+            <Step2ConvencionInfo
+              convencion={convencion}
+              yaInscrito={yaInscrito}
+              inscripcionExistente={inscripcionExistente}
+              onComplete={() => handleStepComplete(2)}
+              onBack={handleBack}
+            />
+          )}
 
-        {currentStep === 3 && convencion && pastor && (
-          <Step3Formulario
-            convencion={convencion}
-            pastor={pastor}
-            initialData={formData}
-            onComplete={() => handleStepComplete(3)}
-            onBack={handleBack}
-          />
-        )}
+          {currentStep === 3 && convencion && pastor && (
+            <Step3Formulario
+              convencion={convencion}
+              pastor={pastor}
+              initialData={formData}
+              onComplete={() => handleStepComplete(3)}
+              onBack={handleBack}
+            />
+          )}
 
-        {currentStep === 4 && (
-          <Step4Confirmacion
-            onBack={() => {
-              setInscripcionCompleta(false)
-              setCurrentStep(2)
-              setFormData(null)
-              // Navegar al HomeScreen usando el Tab Navigator
-              navigation.navigate('Inicio')
-            }}
-          />
-        )}
-      </View>
-    </ScrollView>
+          {currentStep === 4 && (
+            <Step4Confirmacion
+              onBack={() => {
+                setInscripcionCompleta(false)
+                setCurrentStep(2)
+                setFormData(null)
+                // Navegar al HomeScreen usando el Tab Navigator
+                navigation.navigate('Inicio')
+              }}
+            />
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
@@ -486,4 +488,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 })
-

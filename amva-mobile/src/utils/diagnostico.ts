@@ -58,7 +58,8 @@ export async function diagnosticarConexion(apiUrl: string): Promise<DiagnosticoR
     resultado.backendReachable = false
 
     if (error.code === 'ECONNREFUSED') {
-      resultado.error = 'Conexión rechazada. El backend no está corriendo o no está escuchando en esa IP/puerto.'
+      resultado.error =
+        'Conexión rechazada. El backend no está corriendo o no está escuchando en esa IP/puerto.'
     } else if (error.code === 'ENOTFOUND' || error.code === 'EAI_AGAIN') {
       resultado.error = 'No se pudo resolver el hostname. Verifica que la IP sea correcta.'
     } else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
@@ -107,15 +108,9 @@ export function generarReporteDiagnostico(resultado: DiagnosticoResult): string 
     reporte += '   Debe decir: "Backend running on http://localhost:4000/api"\n\n'
     reporte += '4. Verifica que el firewall no esté bloqueando el puerto 4000:\n'
     reporte += '   sudo ufw allow 4000 (Linux)\n\n'
-    reporte += '5. Verifica que el dispositivo móvil y la computadora estén en la misma red WiFi\n\n'
+    reporte +=
+      '5. Verifica que el dispositivo móvil y la computadora estén en la misma red WiFi\n\n'
   }
 
   return reporte
 }
-
-
-
-
-
-
-

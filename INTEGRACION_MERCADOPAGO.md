@@ -29,12 +29,15 @@ He creado una guía completa paso a paso para integrar MercadoPago:
 ## 🎯 Inicio Rápido
 
 ### Paso 1: Obtener Access Token
+
 1. Ve a: https://www.mercadopago.com.mx/developers/panel
 2. Crea una aplicación
 3. Copia el Access Token de prueba
 
 ### Paso 2: Configurar Variables
+
 Edita `backend/.env`:
+
 ```env
 MERCADOPAGO_ACCESS_TOKEN=TEST-tu_token_aqui
 BACKEND_URL=http://localhost:4000
@@ -42,13 +45,16 @@ FRONTEND_URL=http://localhost:3000
 ```
 
 ### Paso 3: Reiniciar Backend
+
 ```bash
 cd backend
 pnpm run start:dev
 ```
 
 ### Paso 4: Verificar
+
 Deberías ver en los logs:
+
 ```
 ✅ MercadoPago inicializado
 ```

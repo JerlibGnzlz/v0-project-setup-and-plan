@@ -3,6 +3,7 @@
 ## 🎉 Resumen de lo Implementado
 
 ### ✅ 1. Base de Datos
+
 - **Tabla `PastorAuth`** creada en Prisma
 - Relación con `Pastor` (uno a uno)
 - Campos: `email`, `password`, `googleId` (futuro), `emailVerificado`, `ultimoLogin`
@@ -11,6 +12,7 @@
 ### ✅ 2. Backend - Autenticación de Pastores
 
 #### Endpoints Implementados:
+
 1. **POST `/api/auth/pastor/register`**
    - Registra pastor con email + password
    - Valida que el email existe en `Pastores`
@@ -34,6 +36,7 @@
 6. **POST `/api/auth/pastor/reset-password`** (preparado)
 
 #### Archivos Creados:
+
 - `backend/src/modules/auth/pastor-auth.service.ts`
 - `backend/src/modules/auth/pastor-auth.controller.ts`
 - `backend/src/modules/auth/dto/pastor-auth.dto.ts`
@@ -43,6 +46,7 @@
 ### ✅ 3. Frontend - Botón de Descarga de App
 
 #### Componente Creado:
+
 - `components/download-app-button.tsx`
   - Detecta dispositivo (iOS/Android/Desktop)
   - Deep linking a la app móvil
@@ -50,10 +54,12 @@
   - QR code para desktop
 
 #### Integración:
+
 - Agregado al `Navbar` (visible en desktop)
 - Botón "Confirmar Asistencia" mejorado con deep linking
 
 ### ✅ 4. Deep Linking
+
 - Implementado en `components/conventions-section.tsx`
 - URL: `amva-app://convencion/{id}/inscripcion`
 - Funciona en móvil y desktop
@@ -63,6 +69,7 @@
 ## 🔐 Seguridad Implementada
 
 ### Validaciones:
+
 1. ✅ Email debe existir en tabla `Pastores`
 2. ✅ Pastor debe estar activo
 3. ✅ Password mínimo 8 caracteres
@@ -71,6 +78,7 @@
 6. ✅ Separación de autenticación (pastores vs admins)
 
 ### Tokens:
+
 - **Access Token:** 15 minutos
 - **Refresh Token:** 30 días
 - Payload incluye: `sub`, `email`, `role`, `type`
@@ -80,12 +88,14 @@
 ## 📱 Preparación para App Móvil
 
 ### Estructura Lista:
+
 1. ✅ Endpoints de autenticación funcionando
 2. ✅ Deep linking configurado
 3. ✅ Botón de descarga en landing page
 4. ✅ Tracking de origen (`origenRegistro: 'mobile'`)
 
 ### Próximos Pasos para App Móvil:
+
 1. Crear proyecto React Native
 2. Implementar pantalla de login
 3. Integrar con endpoints `/api/auth/pastor/*`
@@ -115,11 +125,13 @@
 ## 🧪 Testing
 
 ### Endpoints Probados:
+
 - ✅ Build exitoso (sin errores)
 - ✅ Prisma migration aplicada
 - ✅ TypeScript sin errores
 
 ### Pendiente:
+
 - [ ] Probar registro de pastor
 - [ ] Probar login de pastor
 - [ ] Probar refresh token
@@ -132,6 +144,7 @@
 ### Para Pastores (App Móvil):
 
 1. **Registro:**
+
    ```bash
    POST /api/auth/pastor/register
    {
@@ -141,6 +154,7 @@
    ```
 
 2. **Login:**
+
    ```bash
    POST /api/auth/pastor/login
    {
@@ -205,10 +219,3 @@
 - ✅ Preparado para app móvil
 
 **El sistema está listo para que los pastores se registren y usen la app móvil cuando esté disponible.**
-
-
-
-
-
-
-
