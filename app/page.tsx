@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Navbar } from '@/components/navbar'
 import { toast } from 'sonner'
@@ -19,7 +19,7 @@ import { SectionIndicator } from '@/components/section-indicator'
 import { QueryProvider } from '@/lib/providers/query-provider'
 import { restoreScrollPosition } from '@/lib/utils/scroll-restore'
 
-function HomePageContent() {
+function InscripcionSuccessHandler() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -36,6 +36,11 @@ function HomePageContent() {
       window.history.replaceState({}, '', url.toString())
     }
   }, [searchParams])
+
+  return null
+}
+
+function HomePageContent() {
 
   useEffect(() => {
     // Restaurar la posición de scroll cuando se carga la página
@@ -119,6 +124,9 @@ function HomePageContent() {
 export default function HomePage() {
   return (
     <QueryProvider>
+      <Suspense fallback={null}>
+        <InscripcionSuccessHandler />
+      </Suspense>
       <HomePageContent />
     </QueryProvider>
   )

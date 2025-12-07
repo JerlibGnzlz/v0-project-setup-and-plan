@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import {
@@ -27,7 +27,7 @@ import {
   PagosStatsDashboard,
 } from '@/components/admin/pagos'
 
-export default function PagosPage() {
+function PagosPageContent() {
   const searchParams = useSearchParams()
   const inscripcionIdFromUrl = searchParams.get('inscripcionId')
 
@@ -528,6 +528,20 @@ export default function PagosPage() {
         />
       </div>
     </TooltipProvider>
+  )
+}
+
+export default function PagosPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-6">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    }>
+      <PagosPageContent />
+    </Suspense>
   )
 }
 
