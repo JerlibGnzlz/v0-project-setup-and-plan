@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
 import { Navbar } from '@/components/navbar'
 import { toast } from 'sonner'
 import { HeroSection } from '@/components/hero-section'
@@ -20,11 +19,13 @@ import { QueryProvider } from '@/lib/providers/query-provider'
 import { restoreScrollPosition } from '@/lib/utils/scroll-restore'
 
 function InscripcionSuccessHandler() {
-  const searchParams = useSearchParams()
-
   useEffect(() => {
+    // Solo ejecutar en el cliente
+    if (typeof window === 'undefined') return
+
     // Mostrar mensaje de éxito si viene de una inscripción exitosa
-    if (searchParams.get('inscripcion') === 'exito') {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('inscripcion') === 'exito') {
       toast.success('¡Inscripción exitosa!', {
         description: 'Tu inscripción ha sido registrada correctamente. Te contactaremos pronto.',
         duration: 5000,
@@ -35,7 +36,7 @@ function InscripcionSuccessHandler() {
       url.searchParams.delete('inscripcion')
       window.history.replaceState({}, '', url.toString())
     }
-  }, [searchParams])
+  }, [])
 
   return null
 }
@@ -124,9 +125,7 @@ function HomePageContent() {
 export default function HomePage() {
   return (
     <QueryProvider>
-      <Suspense fallback={null}>
-        <InscripcionSuccessHandler />
-      </Suspense>
+      <InscripcionSuccessHandler />
       <HomePageContent />
     </QueryProvider>
   )
