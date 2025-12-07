@@ -34,12 +34,14 @@ export class EmailTestController {
           message: 'No se pudo enviar el email. Verifica la configuración SMTP.',
         }
       }
-    } catch (error: any) {
-      this.logger.error('Error en test de email:', error)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorString = error instanceof Error ? error.toString() : String(error)
+      this.logger.error('Error en test de email:', errorMessage)
       return {
         success: false,
-        message: error.message || 'Error desconocido',
-        error: error.toString(),
+        message: errorMessage,
+        error: errorString,
       }
     }
   }

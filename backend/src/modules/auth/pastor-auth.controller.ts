@@ -14,6 +14,7 @@ import {
   ThrottleRegister,
   ThrottlePasswordReset,
 } from '../../common/decorators/throttle-auth.decorator'
+import { AuthenticatedPastorRequest } from './types/request.types'
 
 @Controller('auth/pastor')
 export class PastorAuthController {
@@ -57,7 +58,7 @@ export class PastorAuthController {
 
   @UseGuards(PastorJwtAuthGuard)
   @Get('me')
-  async getProfile(@Request() req) {
+  async getProfile(@Request() req: AuthenticatedPastorRequest) {
     return {
       id: req.user.id,
       nombre: req.user.nombre,
@@ -78,7 +79,7 @@ export class PastorAuthController {
    */
   @UseGuards(PastorJwtAuthGuard)
   @Post('logout')
-  async logout(@Request() req, @Body() body?: { refreshToken?: string }) {
+  async logout(@Request() req: AuthenticatedPastorRequest, @Body() body?: { refreshToken?: string }) {
     const authHeader = req.headers.authorization
     const accessToken = authHeader?.replace('Bearer ', '') || ''
 

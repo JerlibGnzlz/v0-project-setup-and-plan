@@ -7,6 +7,7 @@ export { PagoRow } from './pago-row'
 export { PagoValidarDialog } from './pago-validar-dialog'
 export { PagoRechazarDialog } from './pago-rechazar-dialog'
 export { PagoRehabilitarDialog } from './pago-rehabilitar-dialog'
+export { PagosStatsDashboard } from './pagos-stats-dashboard'
 
 
 

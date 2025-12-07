@@ -1,0 +1,547 @@
+---
+alwaysApply: true
+---
+**Última actualización**: Diciembre 2024
+**Versión del proyecto**: v0.1.1
+
+
+---
+alwaysApply: true
+---
+# Reglas del Proyecto AMVA Digital
+
+## 📋 Estructura del Proyecto
+
+Este es un monorepo con:
+- **Frontend**: Next.js 16 (App Router) + React 19 + TypeScript
+- **Backend**: NestJS + Prisma + PostgreSQL (Neon)
+- **Mobile**: React Native (Expo) - en `amva-mobile/`
+
+### Estructura de Carpetas
+
+```
+/
+├── app/                    # Next.js App Router (páginas)
+│   ├── admin/             # Panel administrativo
+│   ├── convencion/        # Páginas públicas de convenciones
+│   └── noticias/          # Páginas públicas de noticias
+├── components/            # Componentes React reutilizables
+│   ├── admin/            # Componentes del panel admin (modularizados)
+│   ├── ui/               # Componentes UI base (shadcn/ui)
+│   └── [feature]/        # Componentes por feature
+├── lib/                  # Utilidades y configuraciones
+│   ├── api/              # Clientes API (axios)
+│   ├── hooks/            # Custom React hooks
+│   └── utils/            # Funciones utilitarias
+├── backend/              # Backend NestJS
+│   ├── src/
+│   │   ├── modules/      # Módulos NestJS (auth, inscripciones, etc.)
+│   │   ├── common/       # Servicios y utilidades compartidas
+│   │   └── prisma/       # Configuración Prisma
+│   └── prisma/           # Schema y migraciones
+└── amva-mobile/          # App móvil React Native
+```
+
+## 🎯 Stack Tecnológico
+
+### Frontend
+- **Framework**: Next.js 16 (App Router)
+- **UI**: React 19, Tailwind CSS, shadcn/ui (Radix UI)
+- **Estado**: Zustand (auth), React Query (data fetching)
+- **Formularios**: React Hook Form + Zod
+- **Notificaciones**: Sonner (toast)
+- **Iconos**: Lucide React
+
+### Backend
+- **Framework**: NestJS 10
+- **ORM**: Prisma 5
+- **Base de Datos**: PostgreSQL (Neon)
+- **Autenticación**: JWT (Passport.js)
+- **Validación**: class-validator + class-transformer
+- **Colas**: Bull + Redis (notificaciones)
+- **WebSockets**: Socket.io (notificaciones en tiempo real)
+- **Upload**: Cloudinary + Multer
+- **Email**: Nodemailer + SendGrid
+
+## 📝 Convenciones de Código
+
+### TypeScript
+
+1. **Strict Mode Gradual**: Habilitar opciones estrictas gradualmente
+   - ✅ `strictNullChecks: true`
+   - ✅ `noImplicitAny: true`
+   - ✅ `strictFunctionTypes: true`
+   - ✅ `noImplicitReturns: true`
+   - ⚠️ `strictPropertyInitialization: false` (temporal)
+   - ⚠️ `noUnusedLocals: false` (temporal)
+
+2. **Eliminar `any`**: Siempre usar tipos específicos o `unknown` con type guards
+   ```typescript
+   // ❌ MAL
+   function process(data: any) { }
+   
+   // ✅ BIEN
+   function process(data: unknown) {
+     if (typeof data === 'string') { }
+   }
+   ```
+
+3. **Tipos Prisma**: Usar tipos generados de Prisma
+   ```typescript
+   import { Inscripcion, Pago } from '@prisma/client'
+   import { Prisma } from '@prisma/client'
+   ```
+
+4. **Request Types**: Usar tipos específicos para requests autenticados
+   ```typescript
+   import { AuthenticatedRequest } from '../auth/types/request.types'
+   ```
+
+### React/Next.js
+
+1. **Componentes**: Usar `'use client'` solo cuando sea necesario
+   - Páginas del admin: `'use client'`
+   - Componentes UI: `'use client'` si usan hooks
+   - Layouts: Sin `'use client'` si es posible
+
+2. **Modularización**: Componentes grandes deben dividirse
+   - Máximo ~300-400 líneas por componente
+   - Extraer lógica a custom hooks
+   - Usar barrel exports (`index.ts`)
+
+3. **Hooks Personalizados**: 
+   - Prefijo `use` (ej: `useInscripciones`, `usePagos`)
+   - Encapsular lógica de React Query
+   - Usar `useSmartSync` para sincronización entre pestañas
+
+4. **Nombres de Componentes**: PascalCase
+   ```typescript
+   // ✅ BIEN
+   export function PagosStatsDashboard() { }
+   export function EditarInscripcionDialog() { }
+   ```
+
+5. **Props**: Usar interfaces para props
+   ```typescript
+   interface ComponentProps {
+     id: string
+     onUpdate?: (data: Data) => void
+   }
+   ```
+
+### NestJS
+
+1. **Estructura de Módulos**:
+   ```
+   modules/
+   ├── [feature]/
+   │   ├── [feature].module.ts
+   │   ├── [feature].controller.ts
+   │   ├── [feature].service.ts
+   │   ├── dto/
+   │   │   └── [feature].dto.ts
+   │   └── types/
+   │       └── [feature].types.ts
+   ```
+
+2. **DTOs**: 
+   - Usar `class-validator` para validación
+   - Usar `@IsOptional()` para campos opcionales
+   - Usar `@ValidateIf()` para validaciones condicionales
+   - Agregar `!` (definite assignment) si es necesario
+
+3. **Servicios**:
+   - Inyectar `PrismaService` y otros servicios
+   - Usar `Logger` para logs
+   - Manejar errores con try/catch
+   - Usar `unknown` para errores, no `any`
+
+4. **Controladores**:
+   - Usar guards (`@UseGuards(JwtAuthGuard)`)
+   - Usar decoradores de validación (`@Body()`, `@Param()`)
+   - Tipar `req` con `AuthenticatedRequest`
+
+5. **Eventos**: Usar EventEmitter2 para eventos asíncronos
+   ```typescript
+   this.eventEmitter.emit(NotificationEventType.PAGO_VALIDADO, event)
+   ```
+
+## 🎨 Estilo y Formato
+
+### Prettier
+- Sin punto y coma (`semi: false`)
+- Comillas simples (`singleQuote: true`)
+- 2 espacios de indentación
+- 100 caracteres de ancho máximo
+- `proseWrap: "preserve"` (no agregar líneas en blanco innecesarias)
+
+### Nombres de Archivos
+- **Componentes**: kebab-case (ej: `pagos-stats-dashboard.tsx`)
+- **Hooks**: kebab-case (ej: `use-inscripciones.ts`)
+- **Servicios Backend**: kebab-case (ej: `inscripciones.service.ts`)
+- **DTOs**: kebab-case (ej: `inscripcion.dto.ts`)
+
+### Nombres de Variables/Funciones
+- **Variables**: camelCase
+- **Funciones**: camelCase
+- **Constantes**: UPPER_SNAKE_CASE
+- **Tipos/Interfaces**: PascalCase
+- **Enums**: PascalCase
+
+## 🔐 Autenticación y Autorización
+
+1. **Tres tipos de usuarios**:
+   - **Admin**: Panel administrativo (`/admin/*`)
+   - **Pastor**: App móvil (endpoints `/auth/pastor/*`)
+   - **Invitado**: Web pública (endpoints `/auth/invitado/*`)
+
+2. **Guards**:
+   - `JwtAuthGuard`: Para admins
+   - `PastorJwtAuthGuard`: Para pastores
+   - `InvitadoJwtAuthGuard`: Para invitados
+
+3. **Refresh Tokens**:
+   - Admins: `/api/auth/refresh`
+   - Pastores: `/api/auth/pastor/refresh` (IMPORTANTE: no `/api/auth/refresh`)
+   - Invitados: `/api/auth/invitado/refresh`
+
+## 📊 Base de Datos (Prisma)
+
+1. **Modelos principales**:
+   - `User`: Administradores
+   - `Pastor`: Estructura organizacional
+   - `Invitado`: Participantes de convenciones
+   - `Convencion`: Eventos/convenciones
+   - `Inscripcion`: Registros a convenciones
+   - `Pago`: Pagos de inscripciones
+   - `NotificationHistory`: Historial de notificaciones
+
+2. **Relaciones importantes**:
+   - `Inscripcion` → `Convencion` (many-to-one)
+   - `Inscripcion` → `Pago` (one-to-many)
+   - `Inscripcion` → `Invitado` (many-to-one)
+
+3. **Origen de Registro**: Campo `origenRegistro` en `Inscripcion`
+   - `'web'`: Desde landing page
+   - `'dashboard'`: Desde panel admin
+   - `'mobile'`: Desde app móvil
+
+## 🔔 Notificaciones
+
+1. **Sistema de Notificaciones**:
+   - Eventos asíncronos con EventEmitter2
+   - Cola de procesamiento con Bull
+   - WebSockets para tiempo real (Socket.io)
+   - Email con templates personalizados
+   - Push notifications (Expo)
+
+2. **Notificaciones para Admins**:
+   - Se guardan en `NotificationHistory` (búsqueda por email)
+   - Se envían vía `sendNotificationToAdmin()` en `NotificationsService`
+   - Aparecen en la campanita del header (`NotificationsBell`)
+   - WebSocket se conecta automáticamente al autenticarse
+   - Contador de no leídas se actualiza en tiempo real
+
+3. **Tipos de Notificaciones**:
+   - `nueva_inscripcion`: Cuando se crea una inscripción nueva
+   - `pago_validado`: Cuando un admin valida un pago
+   - `pago_rechazado`: Cuando un admin rechaza un pago
+   - `pago_rehabilitado`: Cuando se rehabilita un pago rechazado
+   - `inscripcion_confirmada`: Cuando todas las cuotas están pagadas
+   - `pago_recordatorio`: Recordatorio de pagos pendientes
+
+4. **Eventos de Notificaciones**:
+   - Todos los eventos deben incluir `nombre` y `apellido` en `data`
+   - El constructor genera `inscripcionNombre` automáticamente
+   - Ejemplo: `PagoValidadoEvent`, `InscripcionCreadaEvent`, `InscripcionConfirmadaEvent`
+
+5. **Templates de Email Personalizados**:
+   - Todos los templates usan el nombre real del usuario
+   - Lógica: `inscripcionNombre` → `nombre + apellido` → `nombre` → `'Estimado/a participante'`
+   - Templates personalizados: `getPagoValidadoTemplate`, `getInscripcionCreadaTemplate`, `getInscripcionConfirmadaTemplate`, `getPagoRecordatorioTemplate`
+
+6. **WebSocket Notifications**:
+   - Hook: `useWebSocketNotifications()` en frontend
+   - Gateway: `NotificationsGateway` en backend
+   - Token: Se obtiene de `localStorage.getItem('auth_token')`
+   - Eventos: `notification`, `unread-count`, `connect`, `disconnect`
+   - Invalidación automática de queries al conectar/reconectar
+
+7. **getUnreadCount**:
+   - Busca primero si es admin (por email en `NotificationHistory`)
+   - Luego busca si es pastor (por `pastorId`)
+   - Retorna 0 si no encuentra usuario
+   - Logging para debugging
+
+## 🎯 Patrones de Diseño
+
+### Frontend
+1. **Barrel Exports**: Usar `index.ts` para exportar componentes
+   ```typescript
+   // components/admin/pagos/index.ts
+   export { PagosHeader } from './pagos-header'
+   export { PagosStatsDashboard } from './pagos-stats-dashboard'
+   ```
+
+2. **Custom Hooks**: Encapsular lógica de React Query
+   ```typescript
+   export function usePagos(page, limit, filters) {
+     return useQuery({
+       queryKey: ['pagos', page, limit, filters],
+       queryFn: () => pagosApi.getAllPagos(page, limit, filters),
+     })
+   }
+   ```
+
+3. **Smart Sync**: Sincronización entre pestañas
+   ```typescript
+   useSmartSync() // En hooks que necesitan sincronización
+   ```
+
+### Backend
+1. **BaseService**: Servicios CRUD genéricos
+   ```typescript
+   export class PastoresService extends BaseService<Pastor, CreatePastorDto, UpdatePastorDto>
+   ```
+
+2. **Repository Pattern**: Para acceso a datos complejos
+   ```typescript
+   export class ConvencionRepository { }
+   ```
+
+3. **Event-Driven**: Usar eventos para acciones asíncronas
+   ```typescript
+   @OnEvent(NotificationEventType.PAGO_VALIDADO)
+   async handlePagoValidado(event: PagoValidadoEvent) { }
+   ```
+
+## 🚫 Reglas de NO Hacer
+
+1. **NO usar `any`**: Siempre usar tipos específicos o `unknown`
+2. **NO crear archivos temporales**: Eliminar `.original.tsx`, `.refactored.tsx`
+3. **NO crear docs innecesarios**: Solo documentación esencial
+4. **NO mezclar lógica de negocio en componentes**: Usar hooks o servicios
+5. **NO hardcodear valores**: Usar variables de entorno
+6. **NO ignorar errores**: Siempre manejar con try/catch y logging
+7. **NO crear componentes > 400 líneas**: Modularizar
+
+## ✅ Mejores Prácticas
+
+1. **Error Handling**:
+   ```typescript
+   try {
+     // código
+   } catch (error: unknown) {
+     const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+     this.logger.error('Error:', errorMessage)
+     throw error
+   }
+   ```
+
+2. **Null Checks**:
+   ```typescript
+   if (!inscripcion || !inscripcion.email) {
+     return
+   }
+   ```
+
+3. **Type Guards**:
+   ```typescript
+   function isString(value: unknown): value is string {
+     return typeof value === 'string'
+   }
+   ```
+
+4. **Logging**: Usar Logger de NestJS en backend
+   ```typescript
+   this.logger.log('✅ Operación exitosa')
+   this.logger.error('❌ Error:', error)
+   ```
+
+5. **Validación**: Validar en frontend Y backend
+   - Frontend: React Hook Form + Zod
+   - Backend: class-validator
+
+## 📦 Imports
+
+1. **Orden de imports**:
+   ```typescript
+   // 1. React/Next.js
+   import { useState, useEffect } from 'react'
+   
+   // 2. Librerías externas
+   import { toast } from 'sonner'
+   
+   // 3. Componentes UI
+   import { Button } from '@/components/ui/button'
+   
+   // 4. Componentes del proyecto
+   import { PagosHeader } from '@/components/admin/pagos'
+   
+   // 5. Hooks
+   import { usePagos } from '@/lib/hooks/use-pagos'
+   
+   // 6. Utilidades
+   import { cn } from '@/lib/utils'
+   ```
+
+2. **Path Aliases**: Usar `@/` para imports absolutos
+   - `@/components` → `components/`
+   - `@/lib` → `lib/`
+   - `@/app` → `app/`
+
+## 🔄 Flujos Importantes
+
+### Inscripciones
+1. Usuario se inscribe desde web → `origenRegistro: 'web'`
+2. Se crea `Inscripcion` y `Invitado` (si no existe)
+3. Se crean pagos automáticamente (3 cuotas por defecto)
+4. Se envía notificación a admins
+5. Admin valida pagos → se envía notificación al usuario
+
+### Pagos
+1. Usuario sube comprobante (drag & drop mejorado)
+2. Admin valida/rechaza pago
+3. Se envía notificación al usuario Y a todos los admins (vía `sendNotificationToAdmin`)
+4. Notificaciones aparecen en la campanita del header
+5. Si todas las cuotas pagadas → inscripción confirmada (con email personalizado)
+
+## 🎨 UI/UX
+
+1. **Componentes UI**: Usar shadcn/ui como base
+2. **Temas**: Soporte dark/light mode
+3. **Responsive**: Mobile-first approach
+4. **Loading States**: Siempre mostrar skeletons o spinners
+5. **Error States**: Mostrar mensajes claros con toast (Sonner)
+6. **Feedback Visual**: Usar badges, icons, colores semánticos
+7. **Tablas Optimizadas**:
+   - Usar `table-auto` o `table-fixed` con `<colgroup>` para control de anchos
+   - Padding reducido (`p-2` en lugar de `p-3`) para tablas compactas
+   - Tamaños de fuente reducidos (`text-xs`, `text-[10px]`) para más información
+   - Sin scroll lateral: ajustar anchos de columnas para que quepan en el viewport
+   - Badges y botones compactos para tablas con muchas columnas
+
+## 📝 Comentarios y Documentación
+
+1. **JSDoc**: Para funciones complejas
+   ```typescript
+   /**
+    * Actualiza una inscripción
+    * @param id - ID de la inscripción
+    * @param dto - Datos a actualizar
+    * @returns Inscripción actualizada
+    */
+   ```
+
+2. **Comentarios**: Explicar el "por qué", no el "qué"
+3. **README**: Mantener actualizado en cada módulo importante
+
+## 🔍 Debugging
+
+1. **Console Logs**: Usar prefijos descriptivos
+   ```typescript
+   console.log('[PagosPage] Respuesta recibida:', data)
+   this.logger.log('✅ Pago validado:', id)
+   ```
+
+2. **Error Messages**: Ser específicos y útiles
+   ```typescript
+   throw new BadRequestException('El correo ya está inscrito en esta convención')
+   ```
+
+## 🚀 Performance
+
+1. **React Query**: Usar `placeholderData` para evitar parpadeos
+2. **Lazy Loading**: Cargar componentes pesados con `dynamic()`
+3. **Image Optimization**: Usar `next/image` siempre
+4. **Code Splitting**: Next.js lo hace automáticamente
+
+## 🔒 Seguridad
+
+1. **Validación**: Siempre validar en backend, frontend es UX
+2. **Sanitización**: Sanitizar inputs antes de guardar
+3. **Rate Limiting**: Usar ThrottlerModule en NestJS
+4. **JWT Secrets**: Mínimo 32 caracteres en producción
+5. **CORS**: Configurado en `main.ts`
+
+## 📋 Checklist para Nuevas Features
+
+- [ ] Crear tipos TypeScript apropiados
+- [ ] Validar en frontend (Zod) y backend (class-validator)
+- [ ] Manejar errores apropiadamente
+- [ ] Agregar logging
+- [ ] Agregar notificaciones si aplica
+- [ ] Modularizar componentes grandes
+- [ ] Usar barrel exports
+- [ ] Agregar loading/error states
+- [ ] Probar en dark/light mode
+- [ ] Verificar responsive
+
+## 🎯 Prioridades del Proyecto
+
+1. **TypeScript Strict**: Habilitar gradualmente opciones estrictas ✅
+2. **Modularización**: Dividir componentes grandes ✅
+3. **Eliminar `any`**: Reemplazar con tipos específicos ✅ (en progreso)
+4. **Notificaciones**: Sistema de notificaciones mejorado ✅
+   - Campanita funcionando con WebSocket
+   - Notificaciones para: inscripciones, pagos validados, pagos rechazados
+   - Templates de email personalizados con nombres reales
+5. **Mercado Pago**: Integración opcional (Fase 2)
+
+---
+
+## 📧 Templates de Email
+
+1. **Personalización con Nombres Reales**:
+   - Todos los templates deben usar el nombre real del usuario
+   - Lógica de fallback: `inscripcionNombre` → `nombre + apellido` → `nombre` → `'Estimado/a participante'`
+   - Eventos deben incluir `nombre` y `apellido` en `data`
+
+2. **Templates Disponibles**:
+   - `getPagoValidadoTemplate`: Pago validado exitosamente
+   - `getPagoRechazadoTemplate`: Pago rechazado con motivo
+   - `getPagoRehabilitadoTemplate`: Pago rehabilitado
+   - `getPagoRecordatorioTemplate`: Recordatorio de pagos pendientes (diseño urgente con alertas)
+   - `getInscripcionCreadaTemplate`: Inscripción recibida exitosamente
+   - `getInscripcionConfirmadaTemplate`: Inscripción confirmada (todas las cuotas pagadas)
+   - `getInscripcionCanceladaTemplate`: Inscripción cancelada
+   - `getInscripcionActualizadaTemplate`: Inscripción actualizada
+
+3. **Tipos de Notificaciones en Templates**:
+   - `pago_validado`: Tipo correcto (no `pagoValidado`)
+   - `pago_rechazado`: Tipo correcto (no `pagoRechazado`)
+   - `pago_recordatorio`: Tipo correcto (no `recordatorio_pago`)
+   - `inscripcion_creada`: Tipo correcto
+   - `inscripcion_confirmada`: Tipo correcto
+
+## 🎨 Optimización de Tablas
+
+1. **Tablas sin Scroll Lateral**:
+   - Usar `<colgroup>` con anchos específicos para cada columna
+   - Padding reducido: `p-2` en lugar de `p-3`
+   - Tamaños de fuente: `text-xs` o `text-[10px]` para contenido compacto
+   - Badges compactos: `text-[10px] px-1.5 py-0.5`
+   - Botones pequeños: `h-7 text-[10px] px-2`
+   - Iconos reducidos: `size-3` o `size-4`
+
+2. **Ejemplo de Tabla Optimizada**:
+   ```tsx
+   <table className="w-full table-auto">
+     <colgroup>
+       <col className="w-[40px]" />
+       <col className="w-[160px]" />
+       {/* más columnas */}
+     </colgroup>
+     <thead>
+       <tr>
+         <th className="p-2 text-xs font-medium">Columna</th>
+       </tr>
+     </thead>
+   </table>
+   ```
+
+---
+
+**Última actualización**: Diciembre 2024
+**Versión del proyecto**: v0.1.1
+

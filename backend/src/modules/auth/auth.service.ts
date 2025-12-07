@@ -236,8 +236,10 @@ export class AuthService {
       // Decodificar token para obtener expiración
       let expiresIn = 900 // 15 minutos por defecto
       try {
-        const payload = this.jwtService.decode(accessToken) as any
-        if (payload && payload.exp) {
+        const payload = this.jwtService.decode(accessToken) as
+          | { exp?: number; [key: string]: unknown }
+          | null
+        if (payload && typeof payload.exp === 'number') {
           const now = Math.floor(Date.now() / 1000)
           expiresIn = Math.max(payload.exp - now, 0)
         }

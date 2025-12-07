@@ -64,13 +64,13 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
       // Validar que el perfil tenga los datos necesarios
       if (!profile || !profile.id) {
         this.logger.error('❌ Perfil de Google inválido: falta ID')
-        return done(new UnauthorizedException('Perfil de Google inválido'), null)
+        return done(new UnauthorizedException('Perfil de Google inválido'), undefined)
       }
 
       // Validar email
       if (!profile.emails || !profile.emails[0] || !profile.emails[0].value) {
         this.logger.error('❌ Perfil de Google inválido: falta email')
-        return done(new UnauthorizedException('Email no disponible en el perfil de Google'), null)
+        return done(new UnauthorizedException('Email no disponible en el perfil de Google'), undefined)
       }
 
       const email = profile.emails[0].value
@@ -120,7 +120,7 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
       done(null, user)
     } catch (error) {
       this.logger.error('❌ Error al validar perfil de Google:', error)
-      done(error instanceof Error ? error : new Error('Error al procesar perfil de Google'), null)
+      done(error instanceof Error ? error : new Error('Error al procesar perfil de Google'), undefined)
     }
   }
 }

@@ -14,6 +14,7 @@ import {
   InscripcionActualizadaEvent,
   NotificationEventType,
 } from '../events/notification.events'
+import { NotificationType } from '../types/notification.types'
 
 @Injectable()
 export class NotificationListener {
@@ -174,13 +175,13 @@ export class NotificationListener {
       const getEmailTemplate = templatesModule.getEmailTemplate
 
       const emailService = new EmailService()
-      const template = getEmailTemplate(this.getEventType(event.type), event.data)
+      const template = getEmailTemplate(this.getEventType(event.type), event.data || {})
 
       const emailSent = await emailService.sendNotificationEmail(
         event.email,
         template.title,
         template.body,
-        { ...event.data, type: this.getEventType(event.type) }
+        { ...(event.data || {}), type: this.getEventType(event.type) }
       )
 
       if (emailSent) {
@@ -197,18 +198,18 @@ export class NotificationListener {
   }
 
   /**
-   * Convierte el tipo de evento a string para el template
+   * Convierte el tipo de evento a NotificationType para el template
    */
-  private getEventType(eventType: NotificationEventType): string {
-    const typeMap: Record<NotificationEventType, string> = {
+  private getEventType(eventType: NotificationEventType): NotificationType {
+    const typeMap: Record<NotificationEventType, NotificationType> = {
       [NotificationEventType.PAGO_VALIDADO]: 'pago_validado',
       [NotificationEventType.PAGO_RECHAZADO]: 'pago_rechazado',
       [NotificationEventType.PAGO_REHABILITADO]: 'pago_rehabilitado',
       [NotificationEventType.PAGO_RECORDATORIO]: 'pago_recordatorio',
       [NotificationEventType.INSCRIPCION_CREADA]: 'inscripcion_creada',
       [NotificationEventType.INSCRIPCION_CONFIRMADA]: 'inscripcion_confirmada',
-      [NotificationEventType.INSCRIPCION_CANCELADA]: 'inscripcion_cancelada',
-      [NotificationEventType.INSCRIPCION_ACTUALIZADA]: 'inscripcion_actualizada',
+      [NotificationEventType.INSCRIPCION_CANCELADA]: 'otro', // No hay tipo específico para cancelada
+      [NotificationEventType.INSCRIPCION_ACTUALIZADA]: 'otro', // No hay tipo específico para actualizada
     }
     return typeMap[eventType] || 'general'
   }

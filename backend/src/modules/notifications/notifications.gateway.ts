@@ -79,7 +79,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   /**
    * Emite una notificación a un usuario específico
    */
-  async emitToUser(email: string, notification: any) {
+  async emitToUser(email: string, notification: Record<string, unknown>) {
     const clients = Array.from(this.connectedClients.values()).filter(
       client => client.email === email
     )
@@ -115,20 +115,48 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   private async getUnreadCount(email: string): Promise<number> {
-    const pastorAuth = await this.prisma.pastorAuth.findUnique({
-      where: { email },
-    })
+    try {
+      // Verificar si es un usuario admin
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+      })
 
-    if (!pastorAuth) {
+      // Si es admin, buscar por email directamente
+      if (user) {
+        const count = await this.prisma.notificationHistory.count({
+          where: {
+            email,
+            read: false,
+          },
+        })
+        this.logger.debug(`[Gateway] Conteo de no leídas para admin ${email}: ${count}`)
+        return count
+      }
+
+      // Verificar si es un pastor
+      const pastorAuth = await this.prisma.pastorAuth.findUnique({
+        where: { email },
+      })
+
+      // Si es pastor, buscar por pastorId
+      if (pastorAuth) {
+        const count = await this.prisma.notificationHistory.count({
+          where: {
+            pastorId: pastorAuth.pastorId,
+            read: false,
+          },
+        })
+        this.logger.debug(`[Gateway] Conteo de no leídas para pastor ${email}: ${count}`)
+        return count
+      }
+
+      // Si no es ni admin ni pastor, retornar 0
+      this.logger.warn(`[Gateway] No se encontró usuario ni pastor para email: ${email}`)
+      return 0
+    } catch (error) {
+      this.logger.error(`[Gateway] Error obteniendo conteo de no leídas para ${email}:`, error)
       return 0
     }
-
-    return this.prisma.notificationHistory.count({
-      where: {
-        pastorId: pastorAuth.pastorId,
-        read: false,
-      },
-    })
   }
 }
 

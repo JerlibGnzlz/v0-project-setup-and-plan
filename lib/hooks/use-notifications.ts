@@ -16,15 +16,23 @@ export function useUnreadCount() {
   return useQuery({
     queryKey: ['notifications', 'unread-count'],
     queryFn: async () => {
-      const count = await notificationsApi.getUnreadCount()
-      // Asegurar que siempre retorne un número válido
-      return typeof count === 'number' ? count : 0
+      try {
+        const count = await notificationsApi.getUnreadCount()
+        // Asegurar que siempre retorne un número válido
+        const safeCount = typeof count === 'number' ? count : 0
+        console.log('[useUnreadCount] Conteo obtenido:', safeCount)
+        return safeCount
+      } catch (error) {
+        console.error('[useUnreadCount] Error obteniendo conteo:', error)
+        return 0
+      }
     },
     refetchInterval: 30000, // Actualizar cada 30 segundos
     refetchOnWindowFocus: true,
     // Valor por defecto para evitar undefined
     initialData: 0,
     placeholderData: 0,
+    staleTime: 10000, // Considerar datos frescos por 10 segundos
   })
 }
 

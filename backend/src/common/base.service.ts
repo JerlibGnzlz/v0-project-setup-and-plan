@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common'
+import type { PrismaModelDelegate } from './types/prisma.types'
 
 /**
  * Interfaz genérica para operaciones CRUD básicas
@@ -41,8 +42,7 @@ export abstract class BaseService<T, CreateDto, UpdateDto> implements IBaseServi
   protected readonly entityName: string
 
   constructor(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    protected readonly model: any, // Prisma model delegate - difícil de tipar estrictamente
+    protected readonly model: PrismaModelDelegate<T>,
     options: BaseServiceOptions
   ) {
     this.entityName = options.entityName
@@ -86,9 +86,8 @@ export abstract class BaseService<T, CreateDto, UpdateDto> implements IBaseServi
    * Crea un nuevo registro
    */
   async create(dto: CreateDto): Promise<T> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return this.model.create({
-      data: dto as any, // Prisma requiere casting aquí
+      data: dto as Parameters<PrismaModelDelegate<T>['create']>[0]['data'],
     })
   }
 
@@ -100,10 +99,9 @@ export abstract class BaseService<T, CreateDto, UpdateDto> implements IBaseServi
     // Verificar que existe antes de actualizar
     await this.findOne(id)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return this.model.update({
       where: { id },
-      data: dto as any, // Prisma requiere casting aquí
+      data: dto as Parameters<PrismaModelDelegate<T>['update']>[0]['data'],
     })
   }
 

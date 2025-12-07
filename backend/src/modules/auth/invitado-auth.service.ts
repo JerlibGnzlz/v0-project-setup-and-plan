@@ -381,12 +381,19 @@ export class InvitadoAuthService {
       })
 
       // Obtener el auth con la relación invitado incluida
+      if (!invitado.auth) {
+        throw new Error('Error al crear autenticación para invitado')
+      }
       invitadoAuth = await this.prisma.invitadoAuth.findUnique({
         where: { id: invitado.auth.id },
         include: {
           invitado: true,
         },
       })
+
+      if (!invitadoAuth) {
+        throw new Error('Error al obtener autenticación del invitado')
+      }
 
       this.logger.log(`✅ Invitado creado con Google OAuth: ${email}`, {
         invitadoId: invitadoAuth.invitado.id,
@@ -395,6 +402,10 @@ export class InvitadoAuthService {
         fotoUrlGuardada: invitadoAuth.invitado.fotoUrl,
       })
     } else {
+      if (!invitadoAuth) {
+        throw new Error('InvitadoAuth no encontrado')
+      }
+
       // Actualizar último login
       await this.prisma.invitadoAuth.update({
         where: { id: invitadoAuth.id },
@@ -404,6 +415,7 @@ export class InvitadoAuthService {
       // Actualizar foto si Google proporciona una nueva o si no hay foto actual
       if (
         fotoUrl &&
+        invitadoAuth.invitado &&
         (!invitadoAuth.invitado.fotoUrl || invitadoAuth.invitado.fotoUrl !== fotoUrl)
       ) {
         await this.prisma.invitado.update({
@@ -421,6 +433,10 @@ export class InvitadoAuthService {
         })
       }
 
+      if (!invitadoAuth || !invitadoAuth.invitado) {
+        throw new Error('Error al obtener datos del invitado')
+      }
+
       this.logger.log(`✅ Invitado logueado con Google OAuth: ${email}`, {
         invitadoId: invitadoAuth.invitado.id,
         email,
@@ -431,6 +447,10 @@ export class InvitadoAuthService {
     }
 
     // 4. Generar tokens
+    if (!invitadoAuth || !invitadoAuth.invitado) {
+      throw new Error('Error al generar tokens: datos del invitado no disponibles')
+    }
+
     const { accessToken, refreshToken } = this.generateTokenPair(
       invitadoAuth.invitado.id,
       invitadoAuth.email,
@@ -460,8 +480,10 @@ export class InvitadoAuthService {
       // Decodificar token para obtener expiración
       let expiresIn = 900 // 15 minutos por defecto
       try {
-        const payload = this.jwtService.decode(accessToken) as any
-        if (payload && payload.exp) {
+        const payload = this.jwtService.decode(accessToken) as
+          | { exp?: number; [key: string]: unknown }
+          | null
+        if (payload && typeof payload.exp === 'number') {
           const now = Math.floor(Date.now() / 1000)
           expiresIn = Math.max(payload.exp - now, 0)
         }

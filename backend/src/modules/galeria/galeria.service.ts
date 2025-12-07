@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service'
 import { CreateGaleriaDto, UpdateGaleriaDto, TipoGaleria } from './dto/galeria.dto'
 import { BaseService } from '../../common/base.service'
 import { GaleriaImagen } from '@prisma/client'
+import { PrismaModelDelegate } from '../../common/types/prisma.types'
 
 /**
  * Servicio para gestión de Galería (imágenes y videos)
@@ -19,7 +20,7 @@ export class GaleriaService extends BaseService<GaleriaImagen, CreateGaleriaDto,
   static readonly MAX_VIDEOS = 2
 
   constructor(private prisma: PrismaService) {
-    super(prisma.galeriaImagen, { entityName: 'Elemento de Galería' })
+    super(prisma.galeriaImagen as unknown as PrismaModelDelegate<GaleriaImagen>, { entityName: 'Elemento de Galería' })
   }
 
   /**

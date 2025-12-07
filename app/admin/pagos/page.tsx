@@ -24,6 +24,7 @@ import {
   PagoValidarDialog,
   PagoRechazarDialog,
   PagoRehabilitarDialog,
+  PagosStatsDashboard,
 } from '@/components/admin/pagos'
 
 export default function PagosPage() {
@@ -428,6 +429,11 @@ export default function PagosPage() {
     <TooltipProvider>
       <div className="space-y-6">
         <PagosHeader inscripcionFiltrada={inscripcionFiltrada} />
+
+        {/* Dashboard de Estadísticas */}
+        <ScrollReveal>
+          <PagosStatsDashboard />
+        </ScrollReveal>
 
         <ScrollReveal>
           <Card className="border-emerald-200/50 dark:border-emerald-500/20 bg-gradient-to-br from-white to-emerald-50/30 dark:from-background dark:to-emerald-950/20 overflow-hidden">

@@ -4,12 +4,13 @@ import { Logger } from '@nestjs/common'
 import { NotificationsService } from '../notifications.service'
 import { EmailService } from '../email.service'
 import { getEmailTemplate } from '../templates/email.templates'
+import { NotificationData, NotificationType } from '../types/notification.types'
 
 export interface NotificationJobData {
   type: string
   email: string
   userId?: string
-  data: any
+  data: NotificationData
   priority?: 'low' | 'normal' | 'high'
   channels?: ('email' | 'push' | 'web')[]
 }
@@ -26,12 +27,13 @@ export class NotificationProcessor {
   @Process({ name: 'send-notification', concurrency: 10 })
   async handleNotification(job: Job<NotificationJobData>) {
     const { type, email, data, channels = ['email', 'push', 'web'] } = job.data
+    const notificationType: NotificationType = type as NotificationType
 
-    this.logger.log(`📬 Procesando notificación ${type} para ${email} (Job ID: ${job.id})`)
+    this.logger.log(`📬 Procesando notificación ${notificationType} para ${email} (Job ID: ${job.id})`)
 
     try {
       // Obtener template de email
-      const template = getEmailTemplate(type, data)
+      const template = getEmailTemplate(notificationType, data)
 
       // Enviar notificación según los canales especificados
       const results: { email?: boolean; push?: boolean; web?: boolean } = {}
@@ -43,7 +45,7 @@ export class NotificationProcessor {
             email,
             template.title,
             template.body,
-            { ...data, type }
+            { ...data, type: notificationType }
           )
           results.email = emailSent
           this.logger.log(`📧 Email ${emailSent ? 'enviado' : 'falló'} para ${email}`)
@@ -60,7 +62,7 @@ export class NotificationProcessor {
             email,
             template.title,
             template.body.replace(/<[^>]*>/g, ''), // Texto plano para push
-            { ...data, type }
+            { ...data, type: notificationType }
           )
           results.push = pushResult.pushSuccess
           this.logger.log(`📱 Push ${pushResult.pushSuccess ? 'enviado' : 'falló'} para ${email}`)
@@ -77,7 +79,7 @@ export class NotificationProcessor {
             email,
             template.title,
             template.body.replace(/<[^>]*>/g, ''), // Texto plano para web
-            { ...data, type }
+            { ...data, type: notificationType }
           )
           results.web = true
           this.logger.log(`🌐 Notificación web enviada para ${email}`)

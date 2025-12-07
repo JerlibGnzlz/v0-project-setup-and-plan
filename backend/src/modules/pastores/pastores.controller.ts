@@ -15,6 +15,7 @@ import { CreatePastorDto, UpdatePastorDto } from './dto/pastor.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { PaginationDto } from '../../common/dto/pagination.dto'
 import { PastorFilterDto } from '../../common/dto/search-filter.dto'
+import { AuthenticatedRequest } from '../auth/types/request.types'
 
 @Controller('pastores')
 export class PastoresController {
@@ -69,8 +70,8 @@ export class PastoresController {
     const filters: PastorFilterDto = {
       search: query.search,
       q: query.q,
-      status: query.status as any, // Aceptar 'todos', 'activos', 'inactivos' o undefined
-      tipo: query.tipo as any,
+      status: query.status as PastorFilterDto['status'],
+      tipo: query.tipo as PastorFilterDto['tipo'],
       mostrarEnLanding: query.mostrarEnLanding,
     }
     return this.pastoresService.findAllPaginated(page, limit, filters)
@@ -92,19 +93,19 @@ export class PastoresController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Request() req, @Body() dto: CreatePastorDto) {
+  create(@Request() req: AuthenticatedRequest, @Body() dto: CreatePastorDto) {
     return this.pastoresService.createWithAudit(dto, req.user?.id, req.user?.email)
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Request() req, @Param('id') id: string, @Body() dto: UpdatePastorDto) {
+  update(@Request() req: AuthenticatedRequest, @Param('id') id: string, @Body() dto: UpdatePastorDto) {
     return this.pastoresService.updateWithAudit(id, dto, req.user?.id, req.user?.email)
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Request() req, @Param('id') id: string) {
+  remove(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
     return this.pastoresService.removeWithAudit(id, req.user?.id, req.user?.email)
   }
 }

@@ -96,6 +96,12 @@ export function NotificationsBell() {
         router.push('/admin/inscripciones')
         break
 
+      case 'pago_rechazado':
+        // Navegar a la página de pagos
+        setOpen(false)
+        router.push('/admin/pagos')
+        break
+
       case 'nuevo_pastor_registrado':
         // Navegar a la página de pastores
         setOpen(false)
@@ -117,6 +123,8 @@ export function NotificationsBell() {
         return 'Ver inscripción'
       case 'pago_validado':
         return 'Ver detalles'
+      case 'pago_rechazado':
+        return 'Ver pagos'
       case 'inscripcion_confirmada':
         return 'Ver inscripción'
       case 'nuevo_pastor_registrado':

@@ -10,7 +10,7 @@ import {
   Res,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { Response } from 'express'
+import { Response, Request as ExpressRequest } from 'express'
 import { InvitadoAuthService } from './invitado-auth.service'
 import {
   InvitadoRegisterDto,
@@ -20,6 +20,7 @@ import {
 import { RefreshTokenDto } from './dto/auth.dto'
 import { InvitadoJwtAuthGuard } from './guards/invitado-jwt-auth.guard'
 import { ThrottleAuth, ThrottleRegister } from '../../common/decorators/throttle-auth.decorator'
+import { AuthenticatedInvitadoRequest } from './types/request.types'
 
 @Controller('auth/invitado')
 export class InvitadoAuthController {
@@ -45,9 +46,13 @@ export class InvitadoAuthController {
 
   @UseGuards(InvitadoJwtAuthGuard)
   @Get('me')
-  async getProfile(@Request() req) {
+  async getProfile(@Request() req: AuthenticatedInvitadoRequest) {
     // Obtener invitado completo con fotoUrl
     const invitado = await this.invitadoAuthService.validateInvitado(req.user.id)
+
+    if (!invitado) {
+      throw new Error('Invitado no encontrado')
+    }
 
     console.log('[InvitadoAuthController] Perfil solicitado:', {
       invitadoId: invitado.id,
@@ -73,7 +78,7 @@ export class InvitadoAuthController {
    */
   @UseGuards(InvitadoJwtAuthGuard)
   @Post('logout')
-  async logout(@Request() req, @Body() body?: { refreshToken?: string }) {
+  async logout(@Request() req: AuthenticatedInvitadoRequest, @Body() body?: { refreshToken?: string }) {
     const authHeader = req.headers.authorization
     const accessToken = authHeader?.replace('Bearer ', '') || ''
 
@@ -100,7 +105,7 @@ export class InvitadoAuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   @UseInterceptors(ClassSerializerInterceptor)
-  async googleAuthCallback(@Request() req, @Res() res: Response) {
+  async googleAuthCallback(@Request() req: ExpressRequest & { user?: unknown }, @Res() res: Response) {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
 
     try {

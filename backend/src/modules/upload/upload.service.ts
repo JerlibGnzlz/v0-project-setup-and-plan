@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
 import { cloudinary } from './cloudinary.config'
 import { FileValidatorService } from './file-validator.service'
-import * as streamifier from 'streamifier'
+import { createReadStream } from 'streamifier'
 import * as fs from 'fs'
 import * as path from 'path'
 import type { Express } from 'express'
@@ -84,7 +84,7 @@ export class UploadService {
         }
       )
 
-      streamifier.createReadStream(file.buffer).pipe(uploadStream)
+      createReadStream(file.buffer).pipe(uploadStream)
     })
   }
 
@@ -158,7 +158,11 @@ export class UploadService {
 
     return new Promise((resolve, reject) => {
       // Construir transformaciones
-      const transformations: any[] = []
+      type CloudinaryTransformation =
+        | { start_offset: string; end_offset: string }
+        | { quality: string }
+        | { format: string }
+      const transformations: CloudinaryTransformation[] = []
 
       // Agregar recorte si se especificó
       if (hasTrim) {
@@ -220,7 +224,7 @@ export class UploadService {
         }
       )
 
-      streamifier.createReadStream(file.buffer).pipe(uploadStream)
+      createReadStream(file.buffer).pipe(uploadStream)
     })
   }
 

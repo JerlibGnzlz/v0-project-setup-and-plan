@@ -21,9 +21,13 @@ export function useWebSocketNotifications() {
       return
     }
 
-    // Obtener token del localStorage
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    // Obtener token del localStorage o sessionStorage
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+        : null
     if (!token) {
+      console.log('[WebSocket] No se encontró token de autenticación')
       return
     }
 
@@ -43,11 +47,19 @@ export function useWebSocketNotifications() {
     socket.on('connect', () => {
       setIsConnected(true)
       console.log('✅ Conectado a WebSocket de notificaciones')
+      // Invalidar queries al conectar para obtener datos frescos
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
     })
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', (reason) => {
       setIsConnected(false)
-      console.log('❌ Desconectado de WebSocket')
+      console.log('❌ Desconectado de WebSocket:', reason)
+    })
+
+    socket.on('reconnect', (attemptNumber) => {
+      console.log(`🔄 Reconectado a WebSocket después de ${attemptNumber} intentos`)
+      // Invalidar queries al reconectar
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
     })
 
     socket.on('notification', (notification: any) => {
@@ -55,6 +67,9 @@ export function useWebSocketNotifications() {
 
       // Invalidar queries para refrescar datos
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      
+      // Actualizar el conteo de no leídas inmediatamente
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
 
       // Mostrar toast solo si el usuario está en el dashboard
       if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
@@ -66,7 +81,7 @@ export function useWebSocketNotifications() {
     })
 
     socket.on('unread-count', (data: { count: number }) => {
-      console.log('📊 Conteo de no leídas actualizado:', data.count)
+      console.log('📊 Conteo de no leídas actualizado vía WebSocket:', data.count)
       // Asegurar que siempre sea un número válido
       const count = typeof data?.count === 'number' ? data.count : 0
       queryClient.setQueryData(['notifications', 'unread-count'], count)

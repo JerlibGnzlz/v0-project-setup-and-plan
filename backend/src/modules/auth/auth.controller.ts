@@ -8,6 +8,7 @@ import {
   ThrottleRegister,
   ThrottlePasswordReset,
 } from '../../common/decorators/throttle-auth.decorator'
+import { AuthenticatedRequest } from './types/request.types'
 
 @Controller('auth')
 export class AuthController {
@@ -24,10 +25,13 @@ export class AuthController {
 
   @ThrottleAuth()
   @Post('login')
-  async login(@Body() dto: LoginDto, @Request() req) {
+  async login(@Body() dto: LoginDto, @Request() req: { ip?: string; headers: Record<string, string | string[] | undefined> }) {
     // Obtener IP del cliente para logs de seguridad
-    const clientIp = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress
-    return this.authService.login(dto, clientIp as string)
+    const forwardedFor = Array.isArray(req.headers['x-forwarded-for']) 
+      ? req.headers['x-forwarded-for'][0] 
+      : req.headers['x-forwarded-for']
+    const clientIp = req.ip || forwardedFor || ''
+    return this.authService.login(dto, clientIp)
   }
 
   /**
@@ -61,13 +65,13 @@ export class AuthController {
   // Endpoint para registrar dispositivo (notificaciones push)
   @UseGuards(JwtAuthGuard)
   @Post('device/register')
-  async registerDevice(@Request() req, @Body() dto: RegisterDeviceDto) {
+  async registerDevice(@Request() req: AuthenticatedRequest, @Body() dto: RegisterDeviceDto) {
     return this.authService.registerDevice(req.user.id, dto)
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getProfile(@Request() req) {
+  async getProfile(@Request() req: AuthenticatedRequest) {
     return {
       id: req.user.id,
       email: req.user.email,
@@ -82,7 +86,7 @@ export class AuthController {
    */
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@Request() req, @Body() body?: { refreshToken?: string }) {
+  async logout(@Request() req: AuthenticatedRequest, @Body() body?: { refreshToken?: string }) {
     // Extraer token del header
     const authHeader = req.headers.authorization
     const accessToken = authHeader?.replace('Bearer ', '') || ''

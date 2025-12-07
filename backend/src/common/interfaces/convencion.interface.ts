@@ -1,4 +1,4 @@
-import { ICrudService, IPaginatedResult } from './crud.interface'
+import { ICrudService } from './crud.interface'
 import { Convencion } from '@prisma/client'
 import {
   CreateConvencionDto,

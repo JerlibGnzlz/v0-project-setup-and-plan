@@ -4,7 +4,8 @@ import { Logger } from '@nestjs/common'
  * Utilidad para exportar datos a CSV
  */
 export class CsvExportUtil {
-  private static readonly logger = new Logger(CsvExportUtil.name)
+  // Logger disponible para uso futuro si es necesario
+  // private static readonly logger = new Logger(CsvExportUtil.name)
 
   /**
    * Convierte un array de objetos a formato CSV

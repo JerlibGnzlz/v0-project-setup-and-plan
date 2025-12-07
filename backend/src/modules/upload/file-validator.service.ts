@@ -281,8 +281,11 @@ export class FileValidatorService {
     try {
       // Usar sharp si está disponible, sino usar una validación básica
       const sharp = await this.tryImportSharp()
-      if (sharp) {
-        const metadata = await sharp(file.buffer).metadata()
+      if (sharp && typeof sharp === 'function') {
+        const sharpInstance = sharp as (input: Buffer) => {
+          metadata: () => Promise<{ width?: number; height?: number }>
+        }
+        const metadata = await sharpInstance(file.buffer).metadata()
         const width = metadata.width || 0
         const height = metadata.height || 0
 
@@ -298,12 +301,13 @@ export class FileValidatorService {
           )
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof BadRequestException) {
         throw error
       }
       // Si falla la validación de dimensiones, solo loguear pero no fallar
-      this.logger.warn(`No se pudieron validar las dimensiones: ${error.message}`)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      this.logger.warn(`No se pudieron validar las dimensiones: ${errorMessage}`)
     }
   }
 
@@ -311,7 +315,7 @@ export class FileValidatorService {
    * Intenta importar sharp dinámicamente (opcional)
    * Nota: Sharp no está instalado por defecto, esta función retorna null
    */
-  private async tryImportSharp(): Promise<any> {
+  private async tryImportSharp(): Promise<unknown> {
     // Sharp no está instalado, retornar null
     // Si se necesita validación de dimensiones, instalar: pnpm add sharp
     return null

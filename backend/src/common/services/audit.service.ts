@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
+import { Prisma } from '@prisma/client'
 
 export type AuditEntityType =
   | 'INSCRIPCION'
@@ -106,42 +107,41 @@ export class AuditService {
       else if (data.action === 'REHABILITAR') accion = 'REHABILITAR'
       else if (data.action === 'UPDATE') accion = 'ACTUALIZAR'
 
-      await (this.prisma as any).auditoriaPago.create({
+      await this.prisma.auditoriaPago.create({
         data: {
           pagoId,
-          inscripcionId,
+          inscripcionId: typeof inscripcionId === 'string' ? inscripcionId : '',
           accion,
-          estadoAnterior,
-          estadoNuevo,
+          estadoAnterior: estadoAnterior as string | null,
+          estadoNuevo: estadoNuevo as string | null,
           usuarioId: data.userId,
-          motivo: data.metadata?.motivo,
+          motivo: (data.metadata?.motivo as string | undefined) || null,
           metadata: {
             ...data.metadata,
             changes: data.changes,
             ipAddress: data.ipAddress,
             userAgent: data.userAgent,
-          },
+          } as Prisma.InputJsonValue,
         },
       })
 
       this.logger.log(`📝 Auditoría de pago registrada: ${accion} en ${pagoId}`)
-    } catch (error: any) {
-      this.logger.error(`Error registrando auditoría de pago: ${error.message}`)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      this.logger.error(`Error registrando auditoría de pago: ${errorMessage}`)
     }
   }
 
   /**
    * Obtiene el historial de auditoría de una entidad
    */
-  async getAuditHistory(entityType: AuditEntityType, entityId: string): Promise<any[]> {
+  async getAuditHistory(
+    entityType: AuditEntityType,
+    entityId: string
+  ): Promise<Array<Record<string, unknown>>> {
     try {
       if (entityType === 'PAGO') {
-        const auditoriaPagoModel = (this.prisma as any).auditoriaPago
-        if (!auditoriaPagoModel) {
-          this.logger.warn('Modelo auditoriaPago no disponible en Prisma')
-          return []
-        }
-        return auditoriaPagoModel.findMany({
+        return this.prisma.auditoriaPago.findMany({
           where: { pagoId: entityId },
           orderBy: { createdAt: 'desc' },
         })
@@ -151,8 +151,9 @@ export class AuditService {
       // TODO: Implementar cuando se cree tabla genérica
       this.logger.warn(`Historial de auditoría no implementado para ${entityType}`)
       return []
-    } catch (error: any) {
-      this.logger.error(`Error obteniendo historial de auditoría: ${error.message}`)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      this.logger.error(`Error obteniendo historial de auditoría: ${errorMessage}`)
       return []
     }
   }

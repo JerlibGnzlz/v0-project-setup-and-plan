@@ -140,4 +140,27 @@ export const pagosApi = {
     const response = await apiClient.get(`/pagos/${id}/auditoria`)
     return response.data
   },
+
+  getStats: async (): Promise<{
+    totalInscripciones: number
+    totalPagos: number
+    pagosPendientes: number
+    pagosCompletados: number
+    pagosCancelados: number
+    totalRecaudado: number
+    totalPendiente: number
+    promedioPorPago: number
+    pagosConComprobante: number
+    pagosSinComprobante: number
+    ultimosPagos: Array<{
+      id: string
+      monto: number
+      estado: string
+      fechaPago: string | null
+      inscripcion: { nombre: string; apellido: string; email: string }
+    }>
+  }> => {
+    const response = await apiClient.get('/pagos/stats')
+    return response.data
+  },
 }

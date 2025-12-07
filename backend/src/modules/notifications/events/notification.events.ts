@@ -3,6 +3,8 @@
  * Estos eventos se emiten cuando ocurren acciones que requieren notificaciones
  */
 
+import { NotificationData } from '../types/notification.types'
+
 export enum NotificationEventType {
   // Eventos de pagos
   PAGO_VALIDADO = 'pago.validado',
@@ -24,7 +26,7 @@ export interface BaseNotificationEvent {
   type: NotificationEventType
   userId?: string
   email: string
-  data?: any
+  data?: NotificationData
   priority?: 'low' | 'normal' | 'high'
   channels?: ('email' | 'push' | 'web')[]
 }
@@ -45,13 +47,19 @@ export class PagoValidadoEvent implements BaseNotificationEvent {
     cuotasPagadas: number
     convencionTitulo: string
     metodoPago?: string
+    nombre?: string
+    apellido?: string
+    inscripcionNombre?: string
   }
   priority: 'high' = 'high'
   channels?: ('email' | 'push' | 'web')[]
 
-  constructor(data: PagoValidadoEvent['data'] & { email: string; userId?: string }) {
+  constructor(data: PagoValidadoEvent['data'] & { email: string; userId?: string; nombre?: string; apellido?: string }) {
     this.email = data.email
     this.userId = data.userId
+    const nombreCompleto = data.nombre && data.apellido 
+      ? `${data.nombre} ${data.apellido}` 
+      : data.inscripcionNombre || ''
     this.data = {
       pagoId: data.pagoId,
       inscripcionId: data.inscripcionId,
@@ -61,6 +69,9 @@ export class PagoValidadoEvent implements BaseNotificationEvent {
       cuotasPagadas: data.cuotasPagadas,
       convencionTitulo: data.convencionTitulo,
       metodoPago: data.metodoPago,
+      nombre: data.nombre,
+      apellido: data.apellido,
+      inscripcionNombre: nombreCompleto,
     }
   }
 }
@@ -77,18 +88,29 @@ export class PagoRechazadoEvent implements BaseNotificationEvent {
     inscripcionId: string
     motivo?: string
     convencionTitulo: string
+    monto?: number
+    nombre?: string
+    apellido?: string
+    inscripcionNombre?: string
   }
   priority: 'high' = 'high'
   channels?: ('email' | 'push' | 'web')[]
 
-  constructor(data: PagoRechazadoEvent['data'] & { email: string; userId?: string }) {
+  constructor(data: PagoRechazadoEvent['data'] & { email: string; userId?: string; nombre?: string; apellido?: string }) {
     this.email = data.email
     this.userId = data.userId
+    const nombreCompleto = data.nombre && data.apellido 
+      ? `${data.nombre} ${data.apellido}` 
+      : data.inscripcionNombre || ''
     this.data = {
       pagoId: data.pagoId,
       inscripcionId: data.inscripcionId,
       motivo: data.motivo,
       convencionTitulo: data.convencionTitulo,
+      monto: data.monto,
+      nombre: data.nombre,
+      apellido: data.apellido,
+      inscripcionNombre: nombreCompleto,
     }
   }
 }
@@ -104,17 +126,28 @@ export class PagoRehabilitadoEvent implements BaseNotificationEvent {
     pagoId: string
     inscripcionId: string
     convencionTitulo: string
+    monto?: number
+    nombre?: string
+    apellido?: string
+    inscripcionNombre?: string
   }
   priority: 'normal' = 'normal'
   channels?: ('email' | 'push' | 'web')[]
 
-  constructor(data: PagoRehabilitadoEvent['data'] & { email: string; userId?: string }) {
+  constructor(data: PagoRehabilitadoEvent['data'] & { email: string; userId?: string; nombre?: string; apellido?: string }) {
     this.email = data.email
     this.userId = data.userId
+    const nombreCompleto = data.nombre && data.apellido 
+      ? `${data.nombre} ${data.apellido}` 
+      : data.inscripcionNombre || ''
     this.data = {
       pagoId: data.pagoId,
       inscripcionId: data.inscripcionId,
       convencionTitulo: data.convencionTitulo,
+      monto: data.monto,
+      nombre: data.nombre,
+      apellido: data.apellido,
+      inscripcionNombre: nombreCompleto,
     }
   }
 }
@@ -132,19 +165,28 @@ export class PagoRecordatorioEvent implements BaseNotificationEvent {
     montoPendiente: number
     convencionTitulo: string
     fechaLimite?: Date
+    nombre?: string
+    apellido?: string
+    inscripcionNombre?: string
   }
   priority: 'normal' = 'normal'
   channels?: ('email' | 'push' | 'web')[]
 
-  constructor(data: PagoRecordatorioEvent['data'] & { email: string; userId?: string }) {
+  constructor(data: PagoRecordatorioEvent['data'] & { email: string; userId?: string; nombre?: string; apellido?: string }) {
     this.email = data.email
     this.userId = data.userId
+    const nombreCompleto = data.nombre && data.apellido 
+      ? `${data.nombre} ${data.apellido}` 
+      : data.inscripcionNombre || ''
     this.data = {
       inscripcionId: data.inscripcionId,
       cuotasPendientes: data.cuotasPendientes,
       montoPendiente: data.montoPendiente,
       convencionTitulo: data.convencionTitulo,
       fechaLimite: data.fechaLimite,
+      nombre: data.nombre,
+      apellido: data.apellido,
+      inscripcionNombre: nombreCompleto,
     }
   }
 }
@@ -162,19 +204,28 @@ export class InscripcionCreadaEvent implements BaseNotificationEvent {
     numeroCuotas: number
     montoTotal: number
     origenRegistro: string
+    nombre?: string
+    apellido?: string
+    inscripcionNombre?: string
   }
   priority: 'normal' = 'normal'
   channels?: ('email' | 'push' | 'web')[]
 
-  constructor(data: InscripcionCreadaEvent['data'] & { email: string; userId?: string }) {
+  constructor(data: InscripcionCreadaEvent['data'] & { email: string; userId?: string; nombre?: string; apellido?: string }) {
     this.email = data.email
     this.userId = data.userId
+    const nombreCompleto = data.nombre && data.apellido 
+      ? `${data.nombre} ${data.apellido}` 
+      : data.inscripcionNombre || ''
     this.data = {
       inscripcionId: data.inscripcionId,
       convencionTitulo: data.convencionTitulo,
       numeroCuotas: data.numeroCuotas,
       montoTotal: data.montoTotal,
       origenRegistro: data.origenRegistro,
+      nombre: data.nombre,
+      apellido: data.apellido,
+      inscripcionNombre: nombreCompleto,
     }
   }
 }
@@ -191,18 +242,27 @@ export class InscripcionConfirmadaEvent implements BaseNotificationEvent {
     convencionTitulo: string
     fechaInicio: Date
     ubicacion: string
+    nombre?: string
+    apellido?: string
+    inscripcionNombre?: string
   }
   priority: 'high' = 'high'
   channels?: ('email' | 'push' | 'web')[]
 
-  constructor(data: InscripcionConfirmadaEvent['data'] & { email: string; userId?: string }) {
+  constructor(data: InscripcionConfirmadaEvent['data'] & { email: string; userId?: string; nombre?: string; apellido?: string }) {
     this.email = data.email
     this.userId = data.userId
+    const nombreCompleto = data.nombre && data.apellido 
+      ? `${data.nombre} ${data.apellido}` 
+      : data.inscripcionNombre || ''
     this.data = {
       inscripcionId: data.inscripcionId,
       convencionTitulo: data.convencionTitulo,
       fechaInicio: data.fechaInicio,
       ubicacion: data.ubicacion,
+      nombre: data.nombre,
+      apellido: data.apellido,
+      inscripcionNombre: nombreCompleto,
     }
   }
 }

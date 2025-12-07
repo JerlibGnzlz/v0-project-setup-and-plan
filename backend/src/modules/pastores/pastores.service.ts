@@ -6,6 +6,7 @@ import { Pastor, TipoPastor } from '@prisma/client'
 import { AuditService } from '../../common/services/audit.service'
 import { PastorFilterDto } from '../../common/dto/search-filter.dto'
 import { Prisma } from '@prisma/client'
+import { PrismaModelDelegate } from '../../common/types/prisma.types'
 
 /**
  * Servicio para gestión de Pastores (Estructura Organizacional)
@@ -36,7 +37,7 @@ export class PastoresService extends BaseService<Pastor, CreatePastorDto, Update
     private prisma: PrismaService,
     private auditService: AuditService
   ) {
-    super(prisma.pastor, { entityName: 'Pastor' })
+    super(prisma.pastor as unknown as PrismaModelDelegate<Pastor>, { entityName: 'Pastor' })
   }
 
   /**
@@ -256,7 +257,7 @@ export class PastoresService extends BaseService<Pastor, CreatePastorDto, Update
 
     // Verificar si ya existe un pastor con el mismo email (si se proporciona)
     if (data.email) {
-      const existingPastor = await this.model.findUnique({
+      const existingPastor = await this.prisma.pastor.findUnique({
         where: { email: data.email },
       })
 
@@ -324,6 +325,11 @@ export class PastoresService extends BaseService<Pastor, CreatePastorDto, Update
    */
   async removeWithAudit(id: string, userId?: string, userEmail?: string): Promise<Pastor> {
     const currentPastor = await this.findOne(id)
+    
+    if (!currentPastor) {
+      throw new NotFoundException('Pastor no encontrado')
+    }
+    
     this.logger.log(`🗑️ Desactivando pastor: ${id}`)
 
     const updated = await this.remove(id)

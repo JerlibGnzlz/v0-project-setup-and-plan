@@ -440,28 +440,48 @@ export class NotificationsService {
    * Obtiene el conteo de notificaciones no leídas
    */
   async getUnreadCount(email: string): Promise<number> {
-    // Verificar si es un pastor
-    const pastorAuth = await this.prisma.pastorAuth.findUnique({
-      where: { email },
-    })
-
-    // Si es pastor, buscar por pastorId
-    if (pastorAuth) {
-      return this.prisma.notificationHistory.count({
-        where: {
-          pastorId: pastorAuth.pastorId,
-          read: false,
-        },
+    try {
+      // Verificar si es un usuario admin
+      const user = await this.prisma.user.findUnique({
+        where: { email },
       })
-    }
 
-    // Si es admin, buscar por email directamente
-    return this.prisma.notificationHistory.count({
-      where: {
-        email,
-        read: false,
-      },
-    })
+      // Si es admin, buscar por email directamente (las notificaciones de admin se guardan con email)
+      if (user) {
+        const count = await this.prisma.notificationHistory.count({
+          where: {
+            email,
+            read: false,
+          },
+        })
+        this.logger.debug(`Conteo de no leídas para admin ${email}: ${count}`)
+        return count
+      }
+
+      // Verificar si es un pastor
+      const pastorAuth = await this.prisma.pastorAuth.findUnique({
+        where: { email },
+      })
+
+      // Si es pastor, buscar por pastorId
+      if (pastorAuth) {
+        const count = await this.prisma.notificationHistory.count({
+          where: {
+            pastorId: pastorAuth.pastorId,
+            read: false,
+          },
+        })
+        this.logger.debug(`Conteo de no leídas para pastor ${email}: ${count}`)
+        return count
+      }
+
+      // Si no es ni admin ni pastor, retornar 0
+      this.logger.warn(`No se encontró usuario ni pastor para email: ${email}`)
+      return 0
+    } catch (error) {
+      this.logger.error(`Error obteniendo conteo de no leídas para ${email}:`, error)
+      return 0
+    }
   }
 
   /**

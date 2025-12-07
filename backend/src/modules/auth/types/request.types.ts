@@ -50,3 +50,19 @@ export interface AuthenticatedPastorRequest extends Request {
   user: AuthenticatedPastor
 }
 
+/**
+ * Usuario autenticado (invitado)
+ * Retornado por InvitadoJwtStrategy.validate() -> InvitadoAuthService.validateInvitado()
+ */
+export interface AuthenticatedInvitado {
+  id: string
+  email: string
+}
+
+/**
+ * Request con usuario autenticado (invitado)
+ */
+export interface AuthenticatedInvitadoRequest extends Request {
+  user: AuthenticatedInvitado
+}
+

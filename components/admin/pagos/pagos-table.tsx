@@ -81,11 +81,24 @@ export function PagosTable({
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="overflow-x-auto -mx-6 px-6">
+        <table className="w-full table-auto">
+          <colgroup>
+            <col className="w-[40px]" />
+            <col className="w-[160px]" />
+            <col className="w-[70px]" />
+            <col className="w-[80px]" />
+            <col className="w-[90px]" />
+            <col className="w-[100px]" />
+            <col className="w-[90px]" />
+            <col className="w-[100px]" />
+            <col className="w-[100px]" />
+            <col className="w-[130px]" />
+            <col className="w-[90px]" />
+          </colgroup>
           <thead className="border-b bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/30 dark:to-teal-950/30">
             <tr className="text-left">
-              <th className="p-3 text-sm font-medium w-12">
+              <th className="p-2 text-xs font-medium">
                 <button
                   onClick={onToggleSeleccionarTodos}
                   className="flex items-center justify-center hover:opacity-70 transition-opacity"
@@ -93,22 +106,22 @@ export function PagosTable({
                   disabled={pagosPendientes.length === 0}
                 >
                   {todosSeleccionados ? (
-                    <CheckSquare className="size-5 text-emerald-600 dark:text-emerald-400" />
+                    <CheckSquare className="size-4 text-emerald-600 dark:text-emerald-400" />
                   ) : (
-                    <Square className="size-5 text-muted-foreground" />
+                    <Square className="size-4 text-muted-foreground" />
                   )}
                 </button>
               </th>
-              <th className="p-3 text-sm font-medium">Inscrito</th>
-              <th className="p-3 text-sm font-medium">Origen</th>
-              <th className="p-3 text-sm font-medium">Tipo</th>
-              <th className="p-3 text-sm font-medium">Fecha</th>
-              <th className="p-3 text-sm font-medium">Monto</th>
-              <th className="p-3 text-sm font-medium">Método</th>
-              <th className="p-3 text-sm font-medium">Estado</th>
-              <th className="p-3 text-sm font-medium">Comprobante</th>
-              <th className="p-3 text-sm font-medium">Notas</th>
-              <th className="p-3 text-sm font-medium">Acciones</th>
+              <th className="p-2 text-xs font-medium">Inscrito</th>
+              <th className="p-2 text-xs font-medium">Origen</th>
+              <th className="p-2 text-xs font-medium">Tipo</th>
+              <th className="p-2 text-xs font-medium">Fecha</th>
+              <th className="p-2 text-xs font-medium">Monto</th>
+              <th className="p-2 text-xs font-medium">Método</th>
+              <th className="p-2 text-xs font-medium">Estado</th>
+              <th className="p-2 text-xs font-medium">Comprobante</th>
+              <th className="p-2 text-xs font-medium">Notas</th>
+              <th className="p-2 text-xs font-medium">Acciones</th>
             </tr>
           </thead>
           <tbody>

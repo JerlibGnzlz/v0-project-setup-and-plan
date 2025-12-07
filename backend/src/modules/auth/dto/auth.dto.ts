@@ -2,27 +2,27 @@ import { IsEmail, IsString, MinLength, IsOptional, Matches } from 'class-validat
 
 export class LoginDto {
   @IsEmail({}, { message: 'El correo electrónico debe ser válido' })
-  email: string
+  email!: string
 
   @IsString()
   @MinLength(1, { message: 'La contraseña es requerida' })
-  password: string
+  password!: string
 }
 
 export class RegisterDto {
   @IsEmail({}, { message: 'El correo electrónico debe ser válido' })
-  email: string
+  email!: string
 
   @IsString()
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
     message: 'La contraseña debe contener al menos una mayúscula, una minúscula y un número',
   })
-  password: string
+  password!: string
 
   @IsString()
   @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
-  name: string
+  name!: string
 }
 
 // DTO para refresh token (compartido entre admin y mobile)

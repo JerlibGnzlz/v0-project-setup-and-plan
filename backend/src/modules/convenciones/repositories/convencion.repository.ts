@@ -82,7 +82,7 @@ export class ConvencionRepository
       where.id = { not: exceptId }
     }
 
-    return this.updateMany(where as unknown, { activa: false } as unknown)
+    return this.updateMany(where, { activa: false })
   }
 
   /**

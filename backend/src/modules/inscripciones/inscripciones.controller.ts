@@ -25,6 +25,7 @@ import { Throttle } from '@nestjs/throttler'
 import { PaginationDto } from '../../common/dto/pagination.dto'
 import { InscripcionFilterDto, PagoFilterDto } from '../../common/dto/search-filter.dto'
 import { CsvExportUtil } from '../../common/utils/csv-export.util'
+import { AuthenticatedRequest } from '../auth/types/request.types'
 
 @Controller('inscripciones')
 export class InscripcionesController {
@@ -65,7 +66,7 @@ export class InscripcionesController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateInscripcionDto, @Request() req) {
+  async update(@Param('id') id: string, @Body() dto: UpdateInscripcionDto, @Request() req: AuthenticatedRequest) {
     try {
       return await this.inscripcionesService.updateInscripcion(
         id,
@@ -81,7 +82,7 @@ export class InscripcionesController {
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/cancelar')
-  cancelar(@Request() req, @Param('id') id: string, @Body() body: { motivo?: string }) {
+  cancelar(@Request() req: AuthenticatedRequest, @Param('id') id: string, @Body() body: { motivo?: string }) {
     return this.inscripcionesService.cancelarInscripcion(
       id,
       body.motivo,
@@ -92,8 +93,8 @@ export class InscripcionesController {
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/rehabilitar')
-  rehabilitar(@Request() req, @Param('id') id: string) {
-    return this.inscripcionesService.rehabilitarInscripcion(id, req.user?.id, req.user?.email)
+  rehabilitar(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
+    return this.inscripcionesService.rehabilitarInscripcion(id, req.user.id, req.user.email)
   }
 
   @UseGuards(JwtAuthGuard)
@@ -190,17 +191,23 @@ export class PagosController {
 
       if (query.search) filters.search = query.search
       if (query.q) filters.q = query.q
-      if (query.estado && query.estado !== 'todos') filters.estado = query.estado as any
-      if (query.metodoPago && query.metodoPago !== 'todos')
-        filters.metodoPago = query.metodoPago as any
-      if (query.origen && query.origen !== 'todos') filters.origen = query.origen as any
+      if (query.estado && query.estado !== 'todos') {
+        filters.estado = query.estado as PagoFilterDto['estado']
+      }
+      if (query.metodoPago && query.metodoPago !== 'todos') {
+        filters.metodoPago = query.metodoPago as PagoFilterDto['metodoPago']
+      }
+      if (query.origen && query.origen !== 'todos') {
+        filters.origen = query.origen as PagoFilterDto['origen']
+      }
       if (query.inscripcionId) filters.inscripcionId = query.inscripcionId
       if (query.convencionId) filters.convencionId = query.convencionId
 
       return this.inscripcionesService.findAllPagos(page, limit, filters)
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Log del error para depuración
-      console.error('[PagosController] Error en findAll:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      console.error('[PagosController] Error en findAll:', errorMessage)
       throw error
     }
   }
@@ -238,6 +245,12 @@ export class PagosController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('stats')
+  async getPagosStats() {
+    return this.inscripcionesService.getStats()
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.inscripcionesService.findOnePago(id)
@@ -252,7 +265,7 @@ export class PagosController {
   // IMPORTANTE: Las rutas específicas deben ir ANTES de las rutas con parámetros dinámicos
   @UseGuards(JwtAuthGuard)
   @Post('acciones/validar-masivo')
-  validarMasivo(@Request() req, @Body() body: { ids: string[] }) {
+  validarMasivo(@Request() req: AuthenticatedRequest, @Body() body: { ids: string[] }) {
     if (!body.ids || !Array.isArray(body.ids) || body.ids.length === 0) {
       throw new BadRequestException('Se requiere un array de IDs de pagos para validar')
     }
@@ -261,20 +274,20 @@ export class PagosController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Request() req, @Param('id') id: string, @Body() dto: UpdatePagoDto) {
+  update(@Request() req: AuthenticatedRequest, @Param('id') id: string, @Body() dto: UpdatePagoDto) {
     return this.inscripcionesService.updatePago(id, dto, req.user?.id)
   }
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/rechazar')
-  rechazar(@Request() req, @Param('id') id: string, @Body() body: { motivo?: string }) {
+  rechazar(@Request() req: AuthenticatedRequest, @Param('id') id: string, @Body() body: { motivo?: string }) {
     return this.inscripcionesService.rejectPago(id, body.motivo, req.user?.id)
   }
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/rehabilitar')
-  rehabilitar(@Request() req, @Param('id') id: string) {
-    return this.inscripcionesService.rehabilitarPago(id, req.user?.id)
+  rehabilitarPago(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
+    return this.inscripcionesService.rehabilitarPago(id, req.user.id)
   }
 
   @UseGuards(JwtAuthGuard)

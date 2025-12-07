@@ -17,7 +17,7 @@ export type NotificationType =
     | 'pago_validado'
     | 'pago_rechazado'
     | 'pago_rehabilitado'
-    | 'recordatorio_pago'
+    | 'pago_recordatorio'
     | 'convencion_proxima'
     | 'nuevo_invitado'
     | 'nuevo_pastor_auth'
@@ -87,7 +87,7 @@ export interface PagoRehabilitadoData extends BaseNotificationData {
  * Datos específicos para recordatorio de pago
  */
 export interface RecordatorioPagoData extends BaseNotificationData {
-    type: 'recordatorio_pago'
+    type: 'pago_recordatorio'
     inscripcionId: string
     convencionId?: string
     montoPendiente?: number

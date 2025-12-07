@@ -4,6 +4,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { pagosApi, type Pago } from '@/lib/api/pagos'
 import { toast } from 'sonner'
 
+export function usePagosStats() {
+  return useQuery({
+    queryKey: ['pagos', 'stats'],
+    queryFn: () => pagosApi.getStats(),
+    refetchInterval: 30000, // Refrescar cada 30 segundos
+  })
+}
+
 export function usePagos(
   page?: number,
   limit?: number,
