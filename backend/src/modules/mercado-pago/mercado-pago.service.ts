@@ -25,18 +25,45 @@ export class MercadoPagoService {
         private inscripcionesService: InscripcionesService
     ) {
         this.accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN || null
-        this.isTestMode = process.env.MERCADO_PAGO_TEST_MODE === 'true' || !this.accessToken
+
+        // Determinar modo: Si el token empieza con TEST- o MERCADO_PAGO_TEST_MODE es 'true', es TEST
+        // Si el token empieza con PROD- y MERCADO_PAGO_TEST_MODE es 'false', es PRODUCCIÓN
+        if (!this.accessToken) {
+            this.isTestMode = true // Por defecto TEST si no hay token
+        } else if (this.accessToken.startsWith('TEST-')) {
+            this.isTestMode = true
+        } else if (this.accessToken.startsWith('PROD-')) {
+            // En producción, verificar que MERCADO_PAGO_TEST_MODE no sea 'true'
+            this.isTestMode = process.env.MERCADO_PAGO_TEST_MODE === 'true'
+        } else {
+            // Token con formato desconocido, usar MERCADO_PAGO_TEST_MODE o asumir TEST
+            this.isTestMode = process.env.MERCADO_PAGO_TEST_MODE !== 'false'
+        }
 
         if (!this.accessToken) {
             this.logger.warn('⚠️ MERCADO_PAGO_ACCESS_TOKEN no configurado. Mercado Pago deshabilitado.')
             this.preferenceClient = null
             this.paymentClient = null
         } else {
+            // Validar token en producción
+            if (process.env.NODE_ENV === 'production' && this.accessToken.startsWith('TEST-')) {
+                this.logger.error('❌ ERROR CRÍTICO: Usando token de TEST en producción!')
+                this.logger.error('   El token debe empezar con PROD- en producción')
+                throw new Error('MERCADO_PAGO_ACCESS_TOKEN de TEST no puede usarse en producción')
+            }
+
+            if (process.env.NODE_ENV === 'production' && !this.accessToken.startsWith('PROD-')) {
+                this.logger.warn('⚠️ ADVERTENCIA: Token no parece ser de producción (no empieza con PROD-)')
+            }
+
             // Inicializar cliente de Mercado Pago
             const config = new MercadoPagoConfig({ accessToken: this.accessToken })
             this.preferenceClient = new Preference(config)
             this.paymentClient = new Payment(config)
             this.logger.log(`✅ Mercado Pago inicializado (modo: ${this.isTestMode ? 'TEST' : 'PRODUCCIÓN'})`)
+            if (process.env.NODE_ENV === 'production') {
+                this.logger.log(`   Token: ${this.accessToken.substring(0, 10)}... (${this.accessToken.length} caracteres)`)
+            }
         }
     }
 
@@ -85,9 +112,25 @@ export class MercadoPagoService {
         }
 
         // Construir URL base para callbacks (asegurar que sea una URL válida)
+        // En producción, FRONTEND_URL es obligatorio
         const baseUrl = (process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').trim()
-        const backendUrl = (process.env.BACKEND_URL || 'http://localhost:4000').trim()
+        const backendUrl = (process.env.BACKEND_URL || process.env.FRONTEND_URL?.replace(/\/$/, '') || 'http://localhost:4000').trim()
         const webhookUrl = `${backendUrl}/api/mercado-pago/webhook`
+
+        // Validación crítica en producción
+        if (process.env.NODE_ENV === 'production') {
+            if (!process.env.FRONTEND_URL) {
+                this.logger.error('❌ ERROR: FRONTEND_URL no está configurado en producción')
+                throw new BadRequestException('FRONTEND_URL debe estar configurado en producción')
+            }
+            if (baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1')) {
+                this.logger.error('❌ ERROR: FRONTEND_URL no puede ser localhost en producción')
+                throw new BadRequestException('FRONTEND_URL no puede ser localhost en producción')
+            }
+            if (!baseUrl.startsWith('https://')) {
+                this.logger.warn('⚠️ ADVERTENCIA: FRONTEND_URL debería usar HTTPS en producción')
+            }
+        }
 
         // Validar que baseUrl sea una URL válida
         if (!baseUrl || (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://'))) {
