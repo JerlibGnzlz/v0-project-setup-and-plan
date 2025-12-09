@@ -68,3 +68,18 @@ export class GetPaymentStatusDto {
   paymentId!: string
 }
 
+export class ProcessPaymentManuallyDto {
+  @IsString()
+  paymentId!: string
+}
+
+export class ProcessPaymentByPreferenceDto {
+  @IsString()
+  preferenceId!: string
+}
+
+export class ProcessPaymentByPagoIdDto {
+  @IsString()
+  pagoId!: string
+}
+

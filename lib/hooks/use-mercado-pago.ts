@@ -61,3 +61,51 @@ export function useMercadoPagoStatus() {
   })
 }
 
+/**
+ * Hook para procesar el webhook manualmente desde el frontend
+ * Útil cuando el webhook no llega automáticamente (localhost)
+ */
+export function useProcessPayment() {
+  return useMutation({
+    mutationFn: (paymentId: string) => mercadoPagoApi.processPayment(paymentId),
+    onSuccess: () => {
+      toast.success('Pago procesado correctamente', {
+        description: 'El estado del pago ha sido actualizado.',
+      })
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error('Error al procesar el pago', {
+        description: errorMessage,
+      })
+    },
+  })
+}
+
+/**
+ * Hook para procesar el pago basándose en el preference_id
+ * Útil cuando Mercado Pago redirige con preference_id en lugar de payment_id
+ */
+export function useProcessPaymentByPreference() {
+  return useMutation({
+    mutationFn: (preferenceId: string) => mercadoPagoApi.processPaymentByPreference(preferenceId),
+    onSuccess: (data) => {
+      if (data.payments.length > 0) {
+        toast.success('Pago procesado correctamente', {
+          description: `Se procesaron ${data.payments.length} pago(s) correctamente.`,
+        })
+      } else {
+        toast.info('Pago pendiente', {
+          description: 'El pago aún no se ha completado en Mercado Pago.',
+        })
+      }
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error('Error al procesar el pago', {
+        description: errorMessage,
+      })
+    },
+  })
+}
+

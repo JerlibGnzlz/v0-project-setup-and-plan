@@ -75,6 +75,13 @@ export class MercadoPagoService {
     }
 
     /**
+     * Obtiene el modo de prueba (TEST o PRODUCCIÓN)
+     */
+    getTestMode(): boolean {
+        return this.isTestMode
+    }
+
+    /**
      * Crea una preferencia de pago en Mercado Pago
      */
     async createPaymentPreference(dto: CreatePaymentPreferenceDto): Promise<MercadoPagoPreference> {
@@ -163,15 +170,42 @@ export class MercadoPagoService {
             throw new BadRequestException('URLs de callback inválidas. Verifica FRONTEND_URL en tu .env')
         }
 
+        // Validar datos del pagador antes de crear la preferencia
+        const payerEmail = dto.emailPayer || inscripcion.email
+        const payerName = dto.nombrePayer || inscripcion.nombre || ''
+        const payerSurname = dto.apellidoPayer || inscripcion.apellido || ''
+
+        // Validaciones críticas para evitar rechazos de Mercado Pago
+        if (!payerEmail || !payerEmail.includes('@')) {
+            this.logger.error('❌ Email del pagador inválido:', payerEmail)
+            throw new BadRequestException('El email del pagador es inválido o está vacío')
+        }
+
+        if (!payerName || payerName.trim().length < 2) {
+            this.logger.error('❌ Nombre del pagador inválido:', payerName)
+            throw new BadRequestException('El nombre del pagador debe tener al menos 2 caracteres')
+        }
+
+        if (!payerSurname || payerSurname.trim().length < 2) {
+            this.logger.error('❌ Apellido del pagador inválido:', payerSurname)
+            throw new BadRequestException('El apellido del pagador debe tener al menos 2 caracteres')
+        }
+
         // Logging de información importante antes de crear la preferencia
         this.logger.log('📋 Información de la Preferencia:')
         this.logger.log(`   • Inscripción ID: ${dto.inscripcionId}`)
         this.logger.log(`   • Pago ID: ${dto.pagoId}`)
-        this.logger.log(`   • Monto: ${monto}`)
+        this.logger.log(`   • Monto: ${monto} ARS`)
         this.logger.log(`   • Moneda: ARS`)
         this.logger.log(`   • Modo Test: ${this.isTestMode ? 'SÍ' : 'NO'}`)
-        this.logger.log(`   • Email: ${dto.emailPayer || inscripcion.email}`)
-        this.logger.log(`   • Nombre: ${dto.nombrePayer || inscripcion.nombre} ${dto.apellidoPayer || inscripcion.apellido}`)
+        this.logger.log(`   • Email: ${payerEmail}`)
+        this.logger.log(`   • Nombre: ${payerName} ${payerSurname}`)
+
+        if (this.isTestMode) {
+            this.logger.log('   ⚠️ MODO TEST: Usa solo tarjetas de prueba')
+            this.logger.log('   💳 Tarjetas de prueba: 5031 7557 3453 0604 (CVV: 123, Nombre: APRO)')
+            this.logger.log('   🔗 URL debe ser: https://sandbox.mercadopago.com.ar/checkout/...')
+        }
 
         const preferenceRequest: PreferenceRequest = {
             items: [
@@ -284,12 +318,16 @@ export class MercadoPagoService {
                 })),
                 payer: preferenceRequest.payer
                     ? {
-                        name: preferenceRequest.payer.name ? String(preferenceRequest.payer.name) : undefined,
-                        surname: preferenceRequest.payer.surname ? String(preferenceRequest.payer.surname) : undefined,
-                        email: String(preferenceRequest.payer.email || ''),
+                        name: String(preferenceRequest.payer.name || payerName).trim(),
+                        surname: String(preferenceRequest.payer.surname || payerSurname).trim(),
+                        email: String(preferenceRequest.payer.email || payerEmail).trim(),
                         phone: preferenceRequest.payer.phone,
                     }
-                    : undefined,
+                    : {
+                        name: payerName.trim(),
+                        surname: payerSurname.trim(),
+                        email: payerEmail.trim(),
+                    },
                 // CRÍTICO: En desarrollo local (localhost), NO incluimos URLs de redirección
                 // Mercado Pago las rechaza en modo sandbox, pero el webhook SÍ funciona
                 // El usuario tendrá que hacer clic en "Volver al sitio" manualmente después del pago
@@ -459,7 +497,26 @@ export class MercadoPagoService {
         this.logger.log(`🔍 Obteniendo estado de pago: ${paymentId}`)
 
         try {
-            const payment = await this.paymentClient.get({ id: parseInt(paymentId, 10) })
+            // El payment_id puede ser un número o un string numérico
+            // Si tiene guiones, es un preference_id, no un payment_id
+            // Los payment_ids de Mercado Pago son números enteros
+            let paymentIdNumber: number
+            if (paymentId.includes('-')) {
+                // Si tiene guiones, intentar extraer el número del inicio
+                const firstPart = paymentId.split('-')[0]
+                paymentIdNumber = parseInt(firstPart, 10)
+                if (isNaN(paymentIdNumber)) {
+                    throw new BadRequestException(`Payment ID inválido: ${paymentId}. Los payment_ids deben ser números.`)
+                }
+                this.logger.warn(`⚠️ Payment ID tiene guiones, usando primera parte: ${paymentIdNumber}`)
+            } else {
+                paymentIdNumber = parseInt(paymentId, 10)
+                if (isNaN(paymentIdNumber)) {
+                    throw new BadRequestException(`Payment ID inválido: ${paymentId}. Debe ser un número.`)
+                }
+            }
+
+            const payment = await this.paymentClient.get({ id: paymentIdNumber })
 
             // Logging detallado del estado del pago
             this.logger.log(`📊 Estado del Pago ${paymentId}:`)
@@ -487,6 +544,191 @@ export class MercadoPagoService {
                 } : error,
             })
             throw new BadRequestException(`Error al obtener estado de pago: ${errorMessage}`)
+        }
+    }
+
+    /**
+     * Busca pagos de Mercado Pago por external_reference (pagoId)
+     * Usa la API REST de Mercado Pago para buscar pagos
+     */
+    async findPaymentsByExternalReference(pagoId: string): Promise<MercadoPagoPayment[]> {
+        if (!this.accessToken) {
+            throw new BadRequestException('Mercado Pago no está configurado')
+        }
+
+        this.logger.log(`🔍 Buscando pagos por external_reference: ${pagoId}`)
+
+        try {
+            // Usar la API REST de Mercado Pago para buscar pagos
+            // La URL de búsqueda es: https://api.mercadopago.com/v1/payments/search
+            const baseUrl = this.isTestMode
+                ? 'https://api.mercadopago.com/v1/payments/search'
+                : 'https://api.mercadopago.com/v1/payments/search'
+
+            const searchParams = new URLSearchParams({
+                external_reference: pagoId,
+                sort: 'date_created',
+                criteria: 'desc',
+            })
+
+            const response = await fetch(`${baseUrl}?${searchParams.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+
+            if (!response.ok) {
+                const errorText = await response.text()
+                this.logger.error(`❌ Error en la API de Mercado Pago: ${response.status} - ${errorText}`)
+                throw new BadRequestException(`Error buscando pagos: ${response.status}`)
+            }
+
+            const data = await response.json()
+            const payments: MercadoPagoPayment[] = []
+
+            if (data && 'results' in data && Array.isArray(data.results)) {
+                for (const payment of data.results) {
+                    payments.push(payment as unknown as MercadoPagoPayment)
+                }
+            }
+
+            this.logger.log(`✅ Encontrados ${payments.length} pago(s) para external_reference: ${pagoId}`)
+            return payments
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            this.logger.error(`❌ Error buscando pagos por external_reference ${pagoId}: ${errorMessage}`)
+            throw new BadRequestException(`Error buscando pagos: ${errorMessage}`)
+        }
+    }
+
+    /**
+     * Procesa un pago basándose en el preference_id
+     * Busca el pago en nuestra BD y luego busca los pagos de Mercado Pago asociados
+     */
+    async processPaymentByPreferenceId(preferenceId: string): Promise<{ status: string; message: string; payments: MercadoPagoPayment[] }> {
+        this.logger.log(`🔍 Procesando pago por preference_id: ${preferenceId}`)
+
+        try {
+            // Buscar el pago en nuestra BD usando el preference_id como referencia
+            const pago = await this.prisma.pago.findFirst({
+                where: {
+                    referencia: preferenceId,
+                    metodoPago: 'Mercado Pago',
+                },
+                include: {
+                    inscripcion: true,
+                },
+            })
+
+            if (!pago) {
+                throw new NotFoundException(`No se encontró un pago con preference_id: ${preferenceId}`)
+            }
+
+            this.logger.log(`✅ Pago encontrado en BD: ${pago.id}`)
+
+            // Buscar pagos de Mercado Pago asociados a este pago usando external_reference
+            const payments = await this.findPaymentsByExternalReference(pago.id)
+
+            if (payments.length === 0) {
+                this.logger.warn(`⚠️ No se encontraron pagos en Mercado Pago para preference_id: ${preferenceId}`)
+                return {
+                    status: 'pending',
+                    message: 'No se encontraron pagos en Mercado Pago. El pago puede estar pendiente.',
+                    payments: [],
+                }
+            }
+
+            // Procesar cada pago encontrado
+            for (const payment of payments) {
+                const notification = {
+                    id: typeof payment.id === 'number' ? payment.id : parseInt(String(payment.id), 10) || 0,
+                    live_mode: true,
+                    type: 'payment' as const,
+                    date_created: payment.date_created || new Date().toISOString(),
+                    application_id: 0,
+                    user_id: '',
+                    version: 1,
+                    api_version: 'v1',
+                    action: 'payment.updated',
+                    data: {
+                        id: String(payment.id),
+                    },
+                }
+
+                await this.processWebhook(notification)
+            }
+
+            return {
+                status: 'ok',
+                message: `Procesados ${payments.length} pago(s) correctamente`,
+                payments,
+            }
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            this.logger.error(`❌ Error procesando pago por preference_id ${preferenceId}: ${errorMessage}`)
+            throw new BadRequestException(`Error procesando pago: ${errorMessage}`)
+        }
+    }
+
+    /**
+     * Procesa un pago basándose en el pagoId (external_reference)
+     */
+    async processPaymentByPagoId(pagoId: string): Promise<{ status: string; message: string; payments: MercadoPagoPayment[] }> {
+        this.logger.log(`🔍 Procesando pago por pagoId: ${pagoId}`)
+
+        try {
+            // Verificar que el pago existe en nuestra BD
+            const pago = await this.prisma.pago.findUnique({
+                where: { id: pagoId },
+            })
+
+            if (!pago) {
+                throw new NotFoundException(`Pago con ID "${pagoId}" no encontrado`)
+            }
+
+            // Buscar pagos de Mercado Pago asociados usando external_reference
+            const payments = await this.findPaymentsByExternalReference(pagoId)
+
+            if (payments.length === 0) {
+                this.logger.warn(`⚠️ No se encontraron pagos en Mercado Pago para pagoId: ${pagoId}`)
+                return {
+                    status: 'pending',
+                    message: 'No se encontraron pagos en Mercado Pago. El pago puede estar pendiente.',
+                    payments: [],
+                }
+            }
+
+            // Procesar cada pago encontrado
+            for (const payment of payments) {
+                const notification = {
+                    id: typeof payment.id === 'number' ? payment.id : parseInt(String(payment.id), 10) || 0,
+                    live_mode: true,
+                    type: 'payment' as const,
+                    date_created: payment.date_created || new Date().toISOString(),
+                    application_id: 0,
+                    user_id: '',
+                    version: 1,
+                    api_version: 'v1',
+                    action: 'payment.updated',
+                    data: {
+                        id: String(payment.id),
+                    },
+                }
+
+                await this.processWebhook(notification)
+            }
+
+            return {
+                status: 'ok',
+                message: `Procesados ${payments.length} pago(s) correctamente`,
+                payments,
+            }
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            this.logger.error(`❌ Error procesando pago por pagoId ${pagoId}: ${errorMessage}`)
+            throw new BadRequestException(`Error procesando pago: ${errorMessage}`)
         }
     }
 

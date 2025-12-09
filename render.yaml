@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: ministerio-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install --legacy-peer-deps && npm run build && npx prisma generate
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+

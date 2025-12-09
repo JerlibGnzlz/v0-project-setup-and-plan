@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
-import { usePaymentStatus } from '@/lib/hooks/use-mercado-pago'
+import { usePaymentStatus, useProcessPayment, useProcessPaymentByPreference } from '@/lib/hooks/use-mercado-pago'
 import { toast } from 'sonner'
 
 function PagoPendienteContent() {
@@ -18,6 +18,45 @@ function PagoPendienteContent() {
   
   // Obtener estado del pago desde el backend (se actualiza automáticamente cada 5 segundos si está pendiente)
   const { data: paymentData, isLoading } = usePaymentStatus(paymentId)
+  const processPayment = useProcessPayment()
+  const processPaymentByPreference = useProcessPaymentByPreference()
+
+  // Procesar webhook automáticamente cuando se detecta payment_id o preference_id
+  useEffect(() => {
+    if (!paymentId) return
+
+    // Si es un payment_id válido (número, no preference_id con guiones)
+    if (!paymentId.includes('-') && !isNaN(Number(paymentId))) {
+      console.log('[PagoPendiente] Procesando webhook automáticamente para payment_id:', paymentId)
+      
+      // Procesar el webhook automáticamente
+      processPayment.mutate(paymentId, {
+        onSuccess: () => {
+          console.log('[PagoPendiente] Webhook procesado exitosamente')
+        },
+        onError: (error) => {
+          console.error('[PagoPendiente] Error procesando webhook:', error)
+          // No mostrar error al usuario, el estado se actualizará con el polling
+        },
+      })
+    } else if (paymentId.includes('-')) {
+      // Si es un preference_id (tiene guiones), procesar por preference_id
+      console.log('[PagoPendiente] Procesando webhook automáticamente para preference_id:', paymentId)
+      
+      processPaymentByPreference.mutate(paymentId, {
+        onSuccess: (data) => {
+          console.log('[PagoPendiente] Webhook procesado exitosamente:', data)
+          if (data.payments.length === 0) {
+            console.log('[PagoPendiente] No se encontraron pagos en Mercado Pago. El pago puede estar pendiente.')
+          }
+        },
+        onError: (error) => {
+          console.error('[PagoPendiente] Error procesando webhook por preference_id:', error)
+          // No mostrar error al usuario, el estado se actualizará con el polling
+        },
+      })
+    }
+  }, [paymentId]) // Solo ejecutar una vez cuando se detecta el payment_id
 
   useEffect(() => {
     // Si el pago fue aprobado, redirigir a página de éxito

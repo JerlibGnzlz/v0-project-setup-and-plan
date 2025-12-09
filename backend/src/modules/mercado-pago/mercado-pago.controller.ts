@@ -10,7 +10,7 @@ import {
     Logger,
 } from '@nestjs/common'
 import { MercadoPagoService } from './mercado-pago.service'
-import { CreatePaymentPreferenceDto, GetPaymentStatusDto, ProcessWebhookDto } from './dto/mercado-pago.dto'
+import { CreatePaymentPreferenceDto, GetPaymentStatusDto, ProcessWebhookDto, ProcessPaymentManuallyDto, ProcessPaymentByPreferenceDto, ProcessPaymentByPagoIdDto } from './dto/mercado-pago.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import type { MercadoPagoPreference, MercadoPagoPayment } from './types/mercado-pago.types'
 
@@ -119,8 +119,74 @@ export class MercadoPagoController {
     getStatus(): { configured: boolean; testMode: boolean } {
         return {
             configured: this.mercadoPagoService.isConfigured(),
-            testMode: process.env.MERCADO_PAGO_TEST_MODE === 'true',
+            testMode: this.mercadoPagoService.getTestMode(),
         }
+    }
+
+    /**
+     * Procesa el webhook manualmente desde el frontend
+     * POST /api/mercado-pago/process-payment
+     * Útil cuando el webhook no llega automáticamente (localhost)
+     */
+    @Post('process-payment')
+    async processPaymentManually(@Body() dto: ProcessPaymentManuallyDto): Promise<{ status: string; message: string; payment?: MercadoPagoPayment }> {
+        this.logger.log(`Procesando pago manualmente: ${dto.paymentId}`)
+
+        try {
+            // Obtener estado del pago desde Mercado Pago
+            const payment = await this.mercadoPagoService.getPaymentStatus(dto.paymentId)
+
+            // Crear estructura de notificación para procesar como webhook
+            const notification = {
+                id: typeof payment.id === 'number' ? payment.id : parseInt(String(payment.id), 10) || 0,
+                live_mode: true,
+                type: 'payment' as const,
+                date_created: payment.date_created || new Date().toISOString(),
+                application_id: 0,
+                user_id: '',
+                version: 1,
+                api_version: 'v1',
+                action: 'payment.updated',
+                data: {
+                    id: String(payment.id),
+                },
+            }
+
+            // Procesar el webhook
+            await this.mercadoPagoService.processWebhook(notification)
+
+            return {
+                status: 'ok',
+                message: 'Pago procesado correctamente',
+                payment,
+            }
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            this.logger.error(`Error procesando pago manualmente para ${dto.paymentId}: ${errorMessage}`)
+            throw new BadRequestException(`Error procesando pago: ${errorMessage}`)
+        }
+    }
+
+    /**
+     * Procesa el pago basándose en el preference_id
+     * POST /api/mercado-pago/process-by-preference
+     * Útil cuando Mercado Pago redirige con preference_id en lugar de payment_id
+     */
+    @Post('process-by-preference')
+    async processPaymentByPreference(@Body() dto: ProcessPaymentByPreferenceDto): Promise<{ status: string; message: string; payments: MercadoPagoPayment[] }> {
+        this.logger.log(`Procesando pago por preference_id: ${dto.preferenceId}`)
+        return this.mercadoPagoService.processPaymentByPreferenceId(dto.preferenceId)
+    }
+
+    /**
+     * Procesa el pago basándose en el pagoId (external_reference)
+     * POST /api/mercado-pago/process-by-pago-id
+     * Útil cuando se conoce el pagoId de nuestra BD
+     */
+    @Post('process-by-pago-id')
+    async processPaymentByPagoId(@Body() dto: ProcessPaymentByPagoIdDto): Promise<{ status: string; message: string; payments: MercadoPagoPayment[] }> {
+        this.logger.log(`Procesando pago por pagoId: ${dto.pagoId}`)
+        return this.mercadoPagoService.processPaymentByPagoId(dto.pagoId)
     }
 
     /**

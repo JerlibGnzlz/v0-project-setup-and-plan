@@ -77,5 +77,41 @@ export const mercadoPagoApi = {
     const response = await apiClient.get<{ configured: boolean; testMode: boolean }>('/mercado-pago/status')
     return response.data
   },
+
+  /**
+   * Procesa el webhook manualmente desde el frontend
+   * Útil cuando el webhook no llega automáticamente (localhost)
+   */
+  processPayment: async (paymentId: string): Promise<{ status: string; message: string; payment?: MercadoPagoPayment }> => {
+    const response = await apiClient.post<{ status: string; message: string; payment?: MercadoPagoPayment }>(
+      '/mercado-pago/process-payment',
+      { paymentId }
+    )
+    return response.data
+  },
+
+  /**
+   * Procesa el pago basándose en el preference_id
+   * Útil cuando Mercado Pago redirige con preference_id en lugar de payment_id
+   */
+  processPaymentByPreference: async (preferenceId: string): Promise<{ status: string; message: string; payments: MercadoPagoPayment[] }> => {
+    const response = await apiClient.post<{ status: string; message: string; payments: MercadoPagoPayment[] }>(
+      '/mercado-pago/process-by-preference',
+      { preferenceId }
+    )
+    return response.data
+  },
+
+  /**
+   * Procesa el pago basándose en el pagoId (external_reference)
+   * Útil cuando se conoce el pagoId de nuestra BD
+   */
+  processPaymentByPagoId: async (pagoId: string): Promise<{ status: string; message: string; payments: MercadoPagoPayment[] }> => {
+    const response = await apiClient.post<{ status: string; message: string; payments: MercadoPagoPayment[] }>(
+      '/mercado-pago/process-by-pago-id',
+      { pagoId }
+    )
+    return response.data
+  },
 }
 
