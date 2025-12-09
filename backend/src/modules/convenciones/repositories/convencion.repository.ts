@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { BaseRepository } from '../../../common/base.repository'
+import { PrismaModelDelegate } from '../../../common/types/prisma.types'
 import { Convencion, Prisma } from '@prisma/client'
 
 /**
@@ -26,7 +27,7 @@ export class ConvencionRepository
   implements IConvencionRepository
 {
   constructor(private prisma: PrismaService) {
-    super(prisma.convencion, 'Convención')
+    super(prisma.convencion as unknown as PrismaModelDelegate<Convencion>, 'Convención')
   }
 
   /**

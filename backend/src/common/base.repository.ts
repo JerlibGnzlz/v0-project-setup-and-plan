@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common'
+import type { PrismaModelDelegate } from './types/prisma.types'
 
 /**
  * Interfaz genérica para repositorios
@@ -59,8 +60,7 @@ export abstract class BaseRepository<
   protected readonly entityName: string
 
   constructor(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    protected readonly model: any, // Prisma model delegate - difícil de tipar estrictamente
+    protected readonly model: PrismaModelDelegate<T>,
     entityName: string
   ) {
     this.entityName = entityName

@@ -924,7 +924,7 @@ export class InscripcionesService {
         if (filters?.search || filters?.q) {
             const searchTerm = (filters.search || filters.q || '').trim()
             if (searchTerm) {
-                // Si hay inscripcionId, preservarlo en el filtro
+                // Si hay inscripcionId, preservarlo pero NO duplicarlo en el OR
                 const inscripcionIdPreservado = where.inscripcionId
 
                 // Guardar el filtro de inscripción existente si existe
@@ -950,7 +950,8 @@ export class InscripcionesService {
                     inscripcionSearch.AND = [inscripcionFilter]
                 }
 
-                // Si hay inscripcionId, también agregarlo al filtro de inscripción
+                // Si hay inscripcionId, agregarlo al filtro de inscripción para buscar dentro de esa inscripción
+                // PERO NO duplicarlo en el where principal
                 if (inscripcionIdPreservado) {
                     const andArray = Array.isArray(inscripcionSearch.AND)
                         ? inscripcionSearch.AND
@@ -959,6 +960,8 @@ export class InscripcionesService {
                             : []
                     andArray.push({ id: inscripcionIdPreservado as string })
                     inscripcionSearch.AND = andArray
+                    // Eliminar inscripcionId del where principal para evitar duplicación
+                    delete where.inscripcionId
                 }
 
                 searchOR.push({ inscripcion: inscripcionSearch })
@@ -973,10 +976,6 @@ export class InscripcionesService {
 
                 // Eliminar el filtro de inscripción del where principal ya que está en OR
                 delete where.inscripcion
-                // Preservar inscripcionId si existe (aunque también esté en el OR)
-                if (inscripcionIdPreservado) {
-                    where.inscripcionId = inscripcionIdPreservado
-                }
             }
         }
 

@@ -1,10 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, Logger } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
 import { CreateNoticiaDto, UpdateNoticiaDto } from './dto/noticia.dto'
 import { Noticia, CategoriaNoticia } from '@prisma/client'
 
 @Injectable()
 export class NoticiasService {
+  private readonly logger = new Logger(NoticiasService.name)
+
   constructor(private prisma: PrismaService) {}
 
   // Generar slug desde el título
@@ -187,7 +189,7 @@ export class NoticiasService {
 
   // Incrementar vistas (optimizado - no bloquea, no espera respuesta)
   async incrementarVista(slug: string): Promise<void> {
-    console.log(`📊 [Backend] incrementarVista llamado para slug: "${slug}"`)
+    this.logger.debug(`Incrementar vista llamado para slug: "${slug}"`)
 
     try {
       // Usamos updateMany para evitar errores si la noticia no existe
@@ -196,15 +198,16 @@ export class NoticiasService {
         data: { vistas: { increment: 1 } },
       })
 
-      console.log(
-        `✅ [Backend] Vista incrementada para "${slug}". Filas afectadas: ${result.count}`
+      this.logger.debug(
+        `Vista incrementada para "${slug}". Filas afectadas: ${result.count}`
       )
 
       if (result.count === 0) {
-        console.warn(`⚠️ [Backend] No se encontró noticia con slug "${slug}" o no está publicada`)
+        this.logger.warn(`No se encontró noticia con slug "${slug}" o no está publicada`)
       }
-    } catch (error) {
-      console.error(`❌ [Backend] Error al incrementar vista para "${slug}":`, error)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error al incrementar vista para "${slug}": ${errorMessage}`)
       throw error // Re-lanzar para que el controller pueda manejarlo
     }
   }

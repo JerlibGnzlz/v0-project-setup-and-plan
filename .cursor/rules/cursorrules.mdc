@@ -1,7 +1,7 @@
 ---
 alwaysApply: true
 ---
-**Última actualización**: Diciembre 2024
+**Última actualización**: Diciembre 2025
 **Versión del proyecto**: v0.1.1
 
 
@@ -542,6 +542,598 @@ Este es un monorepo con:
 
 ---
 
-**Última actualización**: Diciembre 2024
+## 🔍 AUDITORÍA Y CALIDAD DE CÓDIGO
+
+### Auditoría del Service Layer (CRÍTICO)
+
+1. **BaseService Obligatorio**:
+   - ✅ Todos los servicios deben extender `BaseService<T, CreateDto, UpdateDto>` cuando sea posible
+   - ✅ Servicios que no extienden BaseService deben tener justificación clara
+   - ✅ Usar `PrismaModelDelegate<T>` para tipado del modelo
+   - ✅ Ejemplo: `PastoresService extends BaseService<Pastor, CreatePastorDto, UpdatePastorDto>`
+
+2. **Logger Obligatorio**:
+   - ✅ Todos los servicios deben inyectar `Logger` de NestJS
+   - ✅ Usar `this.logger.log()`, `this.logger.error()`, `this.logger.warn()`
+   - ❌ NUNCA usar `console.log()`, `console.error()`, `console.warn()` en servicios backend
+   - ✅ En frontend, usar `console.log()` solo para debugging temporal (marcar con `// TODO: remove`)
+
+3. **Validación de Servicios**:
+   ```bash
+   # Buscar console.log en servicios backend
+   grep -r "console\." backend/src/modules/
+   
+   # Verificar que todos extienden BaseService
+   grep -r "extends BaseService" backend/src/modules/
+   ```
+
+4. **Tipos Explícitos**:
+   - ✅ Todos los métodos de servicios deben tener tipos explícitos de parámetros y retornos
+   - ✅ No usar `any`, usar `unknown` con type guards si es necesario
+   - ✅ Usar tipos generados de Prisma: `import { Inscripcion, Pago } from '@prisma/client'`
+
+5. **Exportación de Servicios**:
+   - ✅ Todos los servicios deben estar exportados desde el módulo correspondiente
+   - ✅ Usar barrel exports cuando sea apropiado
+
+### Auditoría de Patrones de Componentes
+
+1. **Detección de Duplicaciones**:
+   - ✅ Buscar componentes duplicados con nombres similares
+   - ✅ Revisar tablas, formularios, dialogs, cards y detail views
+   - ✅ Marcar duplicaciones como P1 (prioridad alta)
+   - ✅ Consolidar componentes similares en componentes reutilizables
+
+2. **Comandos de Auditoría**:
+   ```bash
+   # Buscar componentes duplicados
+   find components -name "*table*.tsx" -o -name "*form*.tsx" -o -name "*dialog*.tsx"
+   
+   # Buscar archivos con nombres similares
+   find components -type f | sort | uniq -d
+   ```
+
+3. **Modularización**:
+   - ✅ Componentes > 400 líneas deben dividirse
+   - ✅ Extraer lógica a custom hooks
+   - ✅ Usar barrel exports (`index.ts`)
+
+### Revisión de Hooks
+
+1. **No usar console.log**:
+   - ⚠️ En hooks de producción, evitar `console.log()`
+   - ✅ Usar solo para debugging temporal (marcar con `// TODO: remove`)
+   - ✅ En desarrollo, usar prefijos descriptivos: `console.log('[HookName] Mensaje:', data)`
+
+2. **No usar API directa en hooks**:
+   - ✅ Usar servicios de `lib/api/` en lugar de llamadas directas
+   - ✅ Encapsular lógica de React Query en hooks personalizados
+   - ✅ Ejemplo: `usePagos()` usa `pagosApi.getAllPagos()`
+
+3. **Jerarquía de Query Keys**:
+   - ✅ Usar estructura consistente: `['feature', 'subfeature', id]`
+   - ✅ Ejemplo: `['pagos', page, limit, filters]`
+   - ✅ Usar `queryClient.invalidateQueries()` para invalidación
+
+4. **Tipos Retornados Explícitos**:
+   - ✅ Todos los hooks deben tener tipos explícitos de retorno
+   - ✅ Usar tipos de React Query: `UseQueryResult<T>`, `UseMutationResult<T>`
+
+5. **Manejo de Errores**:
+   - ✅ Usar `onError` en React Query mutations
+   - ✅ Mostrar errores con `toast.error()` de Sonner
+   - ✅ No silenciar errores
+
+### Revisión de Componentes
+
+1. **Interfaces de Props Obligatorias**:
+   - ✅ Todos los componentes deben tener interfaces para props
+   - ✅ Usar nombres descriptivos: `ComponentNameProps`
+   - ❌ NUNCA usar `any` en props
+
+2. **Optimización de Rendimiento**:
+   - ✅ Usar `useCallback` para funciones pasadas como props
+   - ✅ Usar `useMemo` para cálculos costosos
+   - ✅ Usar `React.memo` en componentes que reciben props que no cambian frecuentemente
+   - ✅ Ejemplo: `export const PagosTable = React.memo(PagosTableComponent)`
+
+3. **Estados de Loading y Empty**:
+   - ✅ Siempre mostrar estados de loading (skeletons o spinners)
+   - ✅ Mostrar estados vacíos con mensajes claros
+   - ✅ Usar componentes `Skeleton` de shadcn/ui
+
+4. **Validación de Componentes**:
+   ```bash
+   # Buscar componentes sin interfaces de props
+   grep -r "export.*function.*(" components --include="*.tsx" | grep -v "interface"
+   
+   # Buscar uso de any en props
+   grep -r ": any" components --include="*.tsx"
+   ```
+
+### Revisión Arquitectónica
+
+1. **Flujo Obligatorio**:
+   ```
+   Screen/Page → Component → Hook → Service (lib/api/) → Backend Endpoint → Database
+   ```
+   - ✅ Las páginas (`app/`) solo deben renderizar componentes
+   - ✅ Los componentes usan hooks para obtener datos
+   - ✅ Los hooks usan servicios de `lib/api/`
+   - ✅ Los servicios hacen llamadas HTTP al backend
+   - ✅ El backend accede a la base de datos con Prisma
+
+2. **Servicios Backend**:
+   - ✅ Deben extender `BaseService` cuando sea posible
+   - ✅ Usar `PrismaService` para acceso a datos
+   - ✅ Inyectar `Logger` para logging
+   - ✅ Usar DTOs para validación
+
+3. **Rutas API**:
+   - ✅ Backend: Usar estructura `/api/[feature]` (ej: `/api/pagos`, `/api/inscripciones`)
+   - ✅ Frontend: Clientes API en `lib/api/[feature].ts`
+   - ✅ Usar axios con configuración centralizada
+
+4. **Acceso a Base de Datos**:
+   - ✅ Usar Prisma ORM siempre (no SQL crudo)
+   - ✅ Usar tipos generados de Prisma
+   - ✅ Usar transacciones para operaciones complejas
+
+### Código No Usado
+
+1. **Imports Sin Usar**:
+   - ❌ NO dejar imports sin usar
+   - ✅ Ejecutar `npm run lint` para detectar
+   - ✅ Usar ESLint con regla `@typescript-eslint/no-unused-vars`
+
+2. **Variables Sin Usar**:
+   - ❌ NO dejar variables sin usar
+   - ✅ Prefijar con `_` si son necesarias pero no usadas: `const _unused = value`
+   - ✅ Eliminar código muerto
+
+3. **Código Comentado**:
+   - ❌ NO dejar código comentado sin propósito
+   - ✅ Si es temporal, marcar con `// TODO: remove` y fecha
+   - ✅ Si es documentación, usar JSDoc
+
+4. **Comandos de Verificación**:
+   ```bash
+   # Verificar TypeScript
+   npm run build
+   
+   # Verificar linting
+   npm run lint
+   
+   # Buscar código comentado
+   grep -r "^[[:space:]]*//.*[a-zA-Z]" --include="*.ts" --include="*.tsx" | grep -v "TODO\|FIXME\|NOTE"
+   ```
+
+### Checklist de Auditoría Periódica
+
+- [ ] Verificar que todos los servicios extienden BaseService (o tienen justificación)
+- [ ] Buscar y eliminar `console.log()` en producción
+- [ ] Verificar que todos los servicios usan `Logger`
+- [ ] Buscar componentes duplicados
+- [ ] Verificar interfaces de props en todos los componentes
+- [ ] Buscar uso de `any` en código
+- [ ] Verificar que hooks usan servicios, no llamadas directas
+- [ ] Ejecutar `npm run lint` y corregir errores
+- [ ] Ejecutar `npm run build` y corregir errores TypeScript
+- [ ] Eliminar código comentado sin propósito
+- [ ] Eliminar imports y variables sin usar
+
+---
+
+## 🏗️ ARQUITECTURA Y DISEÑO
+
+### Patrón en Capas (Obligatorio)
+
+El proyecto debe seguir estrictamente este patrón en capas:
+
+```
+Screen:     /app/[feature]/page.tsx
+Component:  /components/[feature]/
+Hook:       /lib/hooks/use-[feature].ts
+Service:    /lib/api/[feature].ts
+API:        Backend: /api/[feature] (NestJS controllers)
+Data:       Prisma ORM (backend/src/modules/[feature]/[feature].service.ts)
+```
+
+**Flujo de datos:**
+```
+Screen → Component → Hook → Service (lib/api/) → Backend Endpoint → Prisma Service → Database
+```
+
+### Estructura de Carpetas por Feature
+
+```
+app/
+└── [feature]/
+    └── page.tsx                    # Screen (página Next.js)
+
+components/
+└── [feature]/                     # Componentes del feature
+    ├── [feature]-header.tsx
+    ├── [feature]-table.tsx
+    ├── [feature]-form.tsx
+    └── index.ts                   # Barrel export
+
+lib/
+├── hooks/
+│   └── use-[feature].ts          # Custom hook con React Query
+└── api/
+    └── [feature].ts              # Cliente API (axios)
+
+backend/src/modules/
+└── [feature]/
+    ├── [feature].controller.ts  # Endpoint NestJS
+    ├── [feature].service.ts      # Lógica de negocio
+    └── dto/
+        └── [feature].dto.ts      # DTOs de validación
+```
+
+### Servicios Backend
+
+1. **BaseService Obligatorio**:
+   - ✅ Todos los servicios deben extender `BaseService<T, CreateDto, UpdateDto>`
+   - ✅ Usar generics: `<T, CreateInput, UpdateInput>`
+   - ✅ Ejemplo: `PastoresService extends BaseService<Pastor, CreatePastorDto, UpdatePastorDto>`
+
+2. **PrismaService**:
+   - ✅ Usar `PrismaService` para acceso a datos
+   - ✅ NO usar SQL crudo, siempre usar Prisma ORM
+   - ✅ Usar tipos generados de Prisma
+
+3. **Logger Obligatorio**:
+   - ✅ Inyectar `Logger` de NestJS
+   - ✅ Usar `this.logger.log()`, `this.logger.error()`, `this.logger.warn()`
+   - ❌ NUNCA usar `console.log()` en servicios backend
+
+4. **Exportación**:
+   - ✅ Servicios deben estar exportados desde el módulo correspondiente
+   - ✅ Usar barrel exports cuando sea apropiado
+
+### Servicios Frontend (lib/api/)
+
+1. **Estructura**:
+   - ✅ Un archivo por feature: `lib/api/[feature].ts`
+   - ✅ Usar axios con configuración centralizada
+   - ✅ Exportar funciones nombradas, no default
+
+2. **Ejemplo**:
+   ```typescript
+   // lib/api/pagos.ts
+   import { apiClient } from './client'
+   
+   export const pagosApi = {
+     getAllPagos: (page: number, limit: number, filters?: PagosFilters) =>
+       apiClient.get<PagosResponse>('/api/pagos', { params: { page, limit, ...filters } }),
+     
+     getById: (id: string) =>
+       apiClient.get<Pago>(`/api/pagos/${id}`),
+   }
+   ```
+
+### Principios SOLID
+
+1. **Single Responsibility (SRP)**:
+   - ✅ Cada archivo tiene UNA responsabilidad
+   - ✅ Componentes pequeños y enfocados
+   - ✅ Servicios con responsabilidad única
+
+2. **Open/Closed (OCP)**:
+   - ✅ `BaseService` como núcleo extensible
+   - ✅ Abierto para extensión, cerrado para modificación
+   - ✅ Usar herencia y composición
+
+3. **Liskov Substitution (LSP)**:
+   - ✅ Respetar interfaces y contratos
+   - ✅ Las clases hijas deben poder sustituir a las padres
+   - ✅ Ejemplo: Servicios que extienden `BaseService`
+
+4. **Interface Segregation (ISP)**:
+   - ✅ Interfaces pequeñas y específicas
+   - ✅ No forzar implementación de métodos no usados
+   - ✅ Ejemplo: `IBaseService<T, CreateDto, UpdateDto>`
+
+5. **Dependency Inversion (DIP)**:
+   - ✅ Depender de abstracciones, no de implementaciones
+   - ✅ Inyectar dependencias (DI de NestJS)
+   - ✅ Usar interfaces para contratos
+
+### Reusabilidad (DRY - Don't Repeat Yourself)
+
+1. **Nada Duplicado**:
+   - ✅ Extraer funciones repetidas a `lib/utils/`
+   - ✅ Crear componentes compartidos en `components/ui/`
+   - ✅ Usar hooks personalizados para lógica repetida
+
+2. **Componentes Genéricos**:
+   - ✅ Tablas genéricas cuando sea posible
+   - ✅ Formularios genéricos con configuración
+   - ✅ Dialogs genéricos reutilizables
+
+3. **Ejemplos de Reutilización**:
+   ```typescript
+   // ✅ BIEN: Componente genérico
+   <DataTable<T>
+     data={items}
+     columns={columns}
+     onRowClick={handleRowClick}
+   />
+   
+   // ❌ MAL: Duplicar código de tabla
+   <PagosTable />
+   <InscripcionesTable />
+   <PastoresTable />
+   ```
+
+4. **Utilidades Compartidas**:
+   - ✅ Funciones de formato en `lib/utils/format.ts`
+   - ✅ Validaciones en `lib/utils/validation.ts`
+   - ✅ Helpers de fecha en `lib/utils/date.ts`
+
+### Componentes Genéricos
+
+1. **Tablas**:
+   - ✅ Crear componente `DataTable<T>` genérico
+   - ✅ Configurar columnas mediante props
+   - ✅ Reutilizar para diferentes entidades
+
+2. **Formularios**:
+   - ✅ Usar React Hook Form con configuración
+   - ✅ Crear componentes de campo genéricos
+   - ✅ Validación con Zod schemas reutilizables
+
+3. **Dialogs**:
+   - ✅ Crear `ConfirmDialog` genérico
+   - ✅ Crear `FormDialog<T>` genérico
+   - ✅ Reutilizar para diferentes acciones
+
+### Validación de Arquitectura
+
+```bash
+# Verificar estructura de capas
+find app -name "page.tsx" | head -5
+find components -type d -maxdepth 1
+find lib/hooks -name "use-*.ts" | head -5
+find lib/api -name "*.ts" | head -5
+
+# Verificar que servicios extienden BaseService
+grep -r "extends BaseService" backend/src/modules/
+
+# Verificar uso de Prisma (no SQL crudo)
+grep -r "prisma\." backend/src/modules/ | head -10
+```
+
+---
+
+## 🔒 SEGURIDAD Y BUENAS PRÁCTICAS
+
+### Protección de Credenciales y Secretos
+
+1. **NUNCA Exponer Tokens, Claves o Secretos**:
+   - ❌ NUNCA hardcodear tokens, API keys, o secretos en el código
+   - ❌ NUNCA commitear archivos `.env` con credenciales reales
+   - ❌ NUNCA exponer tokens en URLs, logs, o respuestas HTTP
+   - ✅ Usar variables de entorno (`process.env`)
+   - ✅ Usar archivos `.env.example` para documentar variables necesarias
+   - ✅ Validar que variables de entorno estén configuradas en producción
+   - ✅ Usar servicios de gestión de secretos en producción (Vercel, AWS Secrets Manager)
+
+2. **Validación de Variables de Entorno**:
+   ```typescript
+   // ✅ BIEN: Validar en bootstrap
+   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+     logger.error('JWT_SECRET debe tener al menos 32 caracteres')
+     process.exit(1)
+   }
+   
+   // ❌ MAL: Usar directamente sin validar
+   const secret = process.env.JWT_SECRET
+   ```
+
+3. **Manejo de Tokens**:
+   - ✅ Almacenar tokens en `localStorage` o `sessionStorage` (frontend)
+   - ✅ Enviar tokens solo en headers HTTP (`Authorization: Bearer <token>`)
+   - ✅ NUNCA exponer tokens en URLs, query params, o respuestas
+   - ✅ Invalidar tokens al hacer logout
+   - ✅ Implementar refresh tokens para renovación segura
+
+### Logging y Debugging
+
+1. **NO usar console.log en Producción**:
+   - ❌ NUNCA usar `console.log()`, `console.error()`, `console.warn()` en servicios backend
+   - ✅ Usar `Logger` de NestJS en backend: `this.logger.log()`, `this.logger.error()`
+   - ✅ En frontend, usar `console.log()` solo para debugging temporal
+   - ✅ Marcar logs temporales con `// TODO: remove` y fecha
+   - ✅ Usar niveles de log apropiados: `log`, `error`, `warn`, `debug`
+
+2. **Logging Seguro**:
+   ```typescript
+   // ✅ BIEN: Usar Logger de NestJS
+   this.logger.log('Usuario autenticado:', { userId: user.id })
+   this.logger.error('Error al procesar pago:', error)
+   
+   // ❌ MAL: Usar console.log
+   console.log('Token:', token) // ⚠️ Expone token en logs
+   console.log('Password:', password) // ⚠️ Expone password
+   ```
+
+3. **Sanitización de Logs**:
+   - ✅ NUNCA loguear passwords, tokens, o datos sensibles
+   - ✅ Loguear solo IDs o información no sensible
+   - ✅ Usar máscaras para datos sensibles: `****-****-****-1234`
+
+### Validación de Inputs
+
+1. **Validación Obligatoria**:
+   - ✅ Validar TODOS los inputs en backend (nunca confiar en frontend)
+   - ✅ Usar `class-validator` en DTOs de NestJS
+   - ✅ Usar `Zod` schemas en frontend para UX
+   - ✅ Validar tipos, formatos, rangos, y longitud
+   - ✅ Sanitizar inputs antes de procesar
+
+2. **Ejemplo de Validación Backend**:
+   ```typescript
+   // ✅ BIEN: DTO con validación
+   export class CreateInscripcionDto {
+     @IsEmail()
+     @IsNotEmpty()
+     email!: string
+     
+     @IsString()
+     @MinLength(2)
+     @MaxLength(100)
+     nombre!: string
+     
+     @IsEnum(TipoPago)
+     metodoPago!: TipoPago
+   }
+   ```
+
+3. **Validación Frontend**:
+   ```typescript
+   // ✅ BIEN: Schema Zod
+   const inscripcionSchema = z.object({
+     email: z.string().email('Email inválido'),
+     nombre: z.string().min(2, 'Mínimo 2 caracteres'),
+   })
+   ```
+
+### Manejo de Tokens y Sesiones
+
+1. **Autenticación Segura**:
+   - ✅ Usar JWT con expiración corta (15-30 minutos)
+   - ✅ Implementar refresh tokens con expiración larga (7-30 días)
+   - ✅ Validar tokens en cada request protegido
+   - ✅ Invalidar tokens al hacer logout
+   - ✅ Implementar blacklist de tokens revocados
+
+2. **Almacenamiento de Tokens**:
+   ```typescript
+   // ✅ BIEN: Frontend - localStorage para tokens
+   localStorage.setItem('auth_token', token)
+   
+   // ✅ BIEN: Backend - Validar token en cada request
+   @UseGuards(JwtAuthGuard)
+   @Get('profile')
+   getProfile(@Request() req: AuthenticatedRequest) {
+     return req.user // Token ya validado por el guard
+   }
+   ```
+
+3. **Sesiones**:
+   - ✅ Implementar timeout de sesión
+   - ✅ Renovar tokens antes de expirar
+   - ✅ Manejar múltiples dispositivos si aplica
+   - ✅ Invalidar todas las sesiones al cambiar password
+
+### Prevención de SQL Injection
+
+1. **Usar Prisma ORM Siempre**:
+   - ✅ NUNCA usar SQL crudo con concatenación de strings
+   - ✅ Usar Prisma ORM para todas las queries
+   - ✅ Prisma previene SQL injection automáticamente
+   - ✅ Usar parámetros preparados si es necesario SQL crudo
+
+2. **Ejemplo Seguro**:
+   ```typescript
+   // ✅ BIEN: Usar Prisma (previene SQL injection)
+   await prisma.inscripcion.findMany({
+     where: {
+       email: userEmail, // Prisma sanitiza automáticamente
+       estado: 'ACTIVA',
+     },
+   })
+   
+   // ❌ MAL: SQL crudo vulnerable
+   const query = `SELECT * FROM inscripciones WHERE email = '${email}'`
+   // ⚠️ Vulnerable a SQL injection
+   ```
+
+3. **Si es Necesario SQL Crudo**:
+   ```typescript
+   // ✅ BIEN: Usar parámetros preparados
+   await prisma.$queryRaw`
+     SELECT * FROM inscripciones WHERE email = ${email}
+   `
+   ```
+
+### Protección de Datos Sensibles
+
+1. **No Exponer Datos Sensibles en Responses**:
+   - ❌ NUNCA retornar passwords en respuestas
+   - ❌ NUNCA retornar tokens completos
+   - ❌ NUNCA retornar información financiera completa
+   - ✅ Usar DTOs de respuesta que excluyan campos sensibles
+   - ✅ Usar `@Exclude()` de class-transformer
+   - ✅ Retornar solo datos necesarios para el cliente
+
+2. **Ejemplo de Response Seguro**:
+   ```typescript
+   // ✅ BIEN: DTO de respuesta sin password
+   export class UserResponseDto {
+     id!: string
+     email!: string
+     nombre!: string
+     @Exclude()
+     password!: string // No se incluye en la respuesta
+   }
+   
+   // En el controller
+   return plainToInstance(UserResponseDto, user)
+   ```
+
+3. **Datos Sensibles a Proteger**:
+   - ✅ Passwords (nunca exponer, ni hasheados)
+   - ✅ Tokens JWT completos
+   - ✅ API keys y secretos
+   - ✅ Información financiera (números de tarjeta completos)
+   - ✅ Información personal sensible (DNI completo, etc.)
+
+### Checklist de Seguridad
+
+- [ ] Verificar que no hay tokens/secretos hardcodeados
+- [ ] Validar que todas las variables de entorno están configuradas
+- [ ] Verificar que no hay `console.log()` en producción
+- [ ] Validar que todos los inputs están validados en backend
+- [ ] Verificar que tokens se manejan correctamente
+- [ ] Confirmar que se usa Prisma ORM (no SQL crudo)
+- [ ] Verificar que responses no exponen datos sensibles
+- [ ] Revisar logs para asegurar que no exponen información sensible
+- [ ] Validar que passwords nunca se retornan en responses
+- [ ] Verificar que tokens nunca se exponen en URLs o logs
+
+### Comandos de Verificación
+
+```bash
+# Buscar posibles secretos hardcodeados
+grep -r "password.*=" backend/src/ --include="*.ts" | grep -v "process.env"
+grep -r "secret.*=" backend/src/ --include="*.ts" | grep -v "process.env"
+grep -r "api.*key" backend/src/ --include="*.ts" | grep -v "process.env"
+
+# Buscar console.log en producción
+grep -r "console\." backend/src/modules/ --include="*.ts"
+
+# Buscar SQL crudo (debe ser mínimo)
+grep -r "\$queryRaw\|queryRawUnsafe" backend/src/ --include="*.ts"
+
+# Buscar passwords en responses
+grep -r "password" backend/src/modules/ --include="*.dto.ts" | grep -v "@Exclude\|@Expose"
+```
+
+---
+
+**Última actualización**: Diciembre 2025
 **Versión del proyecto**: v0.1.1
 
+No se permite any.
+
+Todos los componentes deben tener interface de props.
+
+Los servicios deben tener tipos explícitos de parámetros y retornos.
+
+Los servicios deben usar generics del BaseService.
+
+Usar unknown si se requiere, con type guards.

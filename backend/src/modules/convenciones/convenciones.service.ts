@@ -67,8 +67,7 @@ export class ConvencionesService {
       activa: dto.activa ?? false,
       archivada: dto.archivada ?? false,
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.repository.create(data as any)
+    return this.repository.create(data as unknown as Partial<Convencion>)
   }
 
   /**
@@ -97,8 +96,7 @@ export class ConvencionesService {
         await this.deactivateOthers(id)
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await this.repository.update(id, data as any)
+      const result = await this.repository.update(id, data as unknown as Partial<Convencion>)
 
       this.logger.log(`✅ Convención actualizada: ${result.titulo} (activa: ${result.activa})`)
       return result

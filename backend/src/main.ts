@@ -114,7 +114,7 @@ async function bootstrap() {
     })
   )
 
-  configureCloudinary()
+  configureCloudinary(logger)
 
   // CORS - Configurado para web y mobile
   const allowedOrigins = [

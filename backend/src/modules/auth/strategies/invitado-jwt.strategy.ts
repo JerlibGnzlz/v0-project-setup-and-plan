@@ -7,9 +7,15 @@ import { InvitadoJwtPayload } from '../types/jwt-payload.types'
 @Injectable()
 export class InvitadoJwtStrategy extends PassportStrategy(Strategy, 'invitado-jwt') {
   constructor(private invitadoAuthService: InvitadoAuthService) {
+    const jwtSecret = process.env.JWT_SECRET
+    if (!jwtSecret) {
+      throw new Error(
+        'JWT_SECRET no está configurado. Por favor, configura la variable de entorno JWT_SECRET.'
+      )
+    }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env.JWT_SECRET || 'your-secret-key',
+      secretOrKey: jwtSecret,
     })
   }
 

@@ -129,7 +129,6 @@ export class AuthService {
       }
 
       this.logger.error(`❌ Error en login (detalles completos):`, errorDetails)
-      console.error('Error completo:', error)
 
       // Lanzar error más descriptivo
       throw new UnauthorizedException(
@@ -141,8 +140,17 @@ export class AuthService {
   // Login para mobile con refresh token
   async loginMobile(dto: LoginDto) {
     try {
+      // Usar select para evitar cargar columnas que no existen
       const user = await this.prisma.user.findUnique({
         where: { email: dto.email },
+        select: {
+          id: true,
+          email: true,
+          password: true,
+          nombre: true,
+          rol: true,
+          avatar: true,
+        },
       })
 
       if (!user) {
@@ -168,11 +176,12 @@ export class AuthService {
           rol: user.rol,
         },
       }
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof UnauthorizedException) {
         throw error
       }
-      console.error('Error en login mobile:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en login mobile: ${errorMessage}`)
       throw new UnauthorizedException('Error al procesar el login')
     }
   }

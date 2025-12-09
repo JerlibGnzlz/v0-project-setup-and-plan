@@ -26,6 +26,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useUnifiedAuth } from '@/lib/hooks/use-unified-auth'
 import { useRouter } from 'next/navigation'
+import { MercadoPagoButton } from './mercado-pago-button'
 
 interface InscripcionExistenteCardProps {
   inscripcion: {
@@ -44,6 +45,7 @@ interface InscripcionExistenteCardProps {
       estado: string
       numeroCuota?: number
       monto: number | string
+      metodoPago?: string
     }>
     convencion?: {
       id: string
@@ -425,7 +427,16 @@ export function InscripcionExistenteCard({
               <div className="space-y-2">
                 {Array.from({ length: numeroCuotas }, (_, i) => i + 1).map(numero => {
                   const pago = pagos.find(p => p.numeroCuota === numero)
-                  const estaPagada = pago?.estado === 'COMPLETADO'
+                  const estaPagada = pago?.estado === 'COMPLETADO' || pago?.estado === 'Completado'
+                  const estaPendiente = !estaPagada && (pago?.estado === 'PENDIENTE' || pago?.estado === 'Pendiente' || !pago)
+
+                  // Logging para diagnóstico
+                  console.log(`[InscripcionExistenteCard] Cuota ${numero}:`, {
+                    tienePago: !!pago,
+                    estadoPago: pago?.estado,
+                    estaPagada,
+                    estaPendiente,
+                  })
 
                   return (
                     <div
@@ -455,7 +466,7 @@ export function InscripcionExistenteCard({
                           Cuota {numero}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
                         <span className="text-sm font-semibold text-white/70">
                           ${montoPorCuota.toLocaleString('es-AR')}
                         </span>
@@ -470,6 +481,39 @@ export function InscripcionExistenteCard({
                         >
                           {estaPagada ? 'Pagada' : 'Pendiente'}
                         </Badge>
+                        {estaPendiente && pago?.metodoPago === 'Mercado Pago' && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 border-blue-500/50 text-blue-400 bg-blue-500/10">
+                            En proceso Mercado Pago
+                          </Badge>
+                        )}
+                        {estaPendiente && (
+                          pago ? (
+                            <MercadoPagoButton
+                              pago={{
+                                ...pago,
+                                estado: (pago.estado === 'Pendiente' ? 'PENDIENTE' : pago.estado) as 'PENDIENTE' | 'COMPLETADO' | 'CANCELADO' | 'REEMBOLSADO',
+                                metodoPago: pago.metodoPago || 'MANUAL',
+                              }}
+                              inscripcionId={inscripcion.id}
+                              convencionTitulo={convencion.titulo}
+                              nombreCompleto={`${inscripcion.nombre} ${inscripcion.apellido}`}
+                              email={inscripcion.email}
+                              telefono={inscripcion.telefono}
+                              onSuccess={() => {
+                                // Refrescar la página para actualizar el estado
+                                window.location.reload()
+                              }}
+                            />
+                          ) : (
+                            <Button
+                              disabled
+                              className="w-full sm:w-auto bg-gray-500/20 text-gray-400 border-gray-500/30"
+                            >
+                              <CreditCard className="mr-2 h-4 w-4" />
+                              Crear pago primero
+                            </Button>
+                          )
+                        )}
                       </div>
                     </div>
                   )

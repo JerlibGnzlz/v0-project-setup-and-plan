@@ -17,9 +17,10 @@ model User {
   rol               UserRole             @default(ADMIN)
   avatar            String?
   passwordResets    PasswordResetToken[]
-  // Seguridad: Bloqueo por intentos fallidos
-  failedLoginAttempts Int                @default(0) @map("failed_login_attempts")
-  lockedUntil        DateTime?           @map("locked_until")
+  // NOTA: Columnas de seguridad removidas temporalmente porque no existen en la BD
+  // Si las necesitas, crea una migración para agregarlas:
+  // ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0;
+  // ALTER TABLE users ADD COLUMN locked_until TIMESTAMP;
 
   @@map("users")
 }

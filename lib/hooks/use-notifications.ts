@@ -5,14 +5,25 @@ import { notificationsApi, type NotificationHistory } from '@/lib/api/notificati
 import { toast } from 'sonner'
 
 export function useNotificationHistory(limit = 50, offset = 0) {
+  // Verificar si hay un token de autenticación disponible
+  const hasToken =
+    typeof window !== 'undefined' &&
+    (localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token'))
+
   return useQuery({
     queryKey: ['notifications', 'history', limit, offset],
     queryFn: () => notificationsApi.getHistory(limit, offset),
-    refetchOnWindowFocus: true,
+    enabled: !!hasToken, // Solo ejecutar si hay token
+    refetchOnWindowFocus: !!hasToken, // Solo refetch si hay token
   })
 }
 
 export function useUnreadCount() {
+  // Verificar si hay un token de autenticación disponible
+  const hasToken =
+    typeof window !== 'undefined' &&
+    (localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token'))
+
   return useQuery({
     queryKey: ['notifications', 'unread-count'],
     queryFn: async () => {
@@ -27,8 +38,9 @@ export function useUnreadCount() {
         return 0
       }
     },
-    refetchInterval: 30000, // Actualizar cada 30 segundos
-    refetchOnWindowFocus: true,
+    enabled: !!hasToken, // Solo ejecutar si hay token
+    refetchInterval: hasToken ? 30000 : false, // Actualizar cada 30 segundos solo si hay token
+    refetchOnWindowFocus: !!hasToken, // Solo refetch si hay token
     // Valor por defecto para evitar undefined
     initialData: 0,
     placeholderData: 0,

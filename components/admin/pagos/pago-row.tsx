@@ -187,6 +187,11 @@ export function PagoRow({
         <div className="flex items-center gap-1">
           <CreditCard className="size-3 text-muted-foreground" />
           <span className="text-xs capitalize truncate">{pago.metodoPago}</span>
+          {pago.metodoPago === 'Mercado Pago' && estadoEsPendiente && (
+            <Badge variant="outline" className="text-[9px] px-1 py-0 ml-1 border-blue-500/50 text-blue-400">
+              En proceso
+            </Badge>
+          )}
         </div>
       </td>
       <td className="p-2">

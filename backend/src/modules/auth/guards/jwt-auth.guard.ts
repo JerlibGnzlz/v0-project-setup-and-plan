@@ -1,9 +1,11 @@
-import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common'
+import { Injectable, ExecutionContext, UnauthorizedException, Logger } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { TokenBlacklistService } from '../services/token-blacklist.service'
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
+  private readonly logger = new Logger(JwtAuthGuard.name)
+
   constructor(private tokenBlacklist: TokenBlacklistService) {
     super()
   }
@@ -28,10 +30,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
           if (isBlacklisted) {
             throw new UnauthorizedException('Token revocado')
           }
-        } catch (error) {
+        } catch (error: unknown) {
           // Si hay un error al verificar blacklist (ej: Redis no disponible), permitir el acceso
           // pero loguear el error para debugging
-          console.warn('[JwtAuthGuard] Error al verificar blacklist:', error)
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+          this.logger.warn(`Error al verificar blacklist: ${errorMessage}`)
         }
       }
     }

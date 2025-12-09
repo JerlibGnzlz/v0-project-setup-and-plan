@@ -117,8 +117,15 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   private async getUnreadCount(email: string): Promise<number> {
     try {
       // Verificar si es un usuario admin
+      // Usar select para evitar cargar columnas que no existen
       const user = await this.prisma.user.findUnique({
         where: { email },
+        select: {
+          id: true,
+          email: true,
+          nombre: true,
+          rol: true,
+        },
       })
 
       // Si es admin, buscar por email directamente

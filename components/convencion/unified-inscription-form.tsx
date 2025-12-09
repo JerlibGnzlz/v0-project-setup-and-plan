@@ -548,17 +548,20 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                 </h3>
 
                 {/* Información de Convención */}
-                {convencion.imagenUrl && (
-                  <div className="mb-4 rounded-lg overflow-hidden">
-                    <Image
-                      src={convencion.imagenUrl}
-                      alt={convencion.titulo}
-                      width={400}
-                      height={200}
-                      className="w-full h-32 object-cover"
-                    />
-                  </div>
-                )}
+                {convencion.imagenUrl &&
+                  !convencion.imagenUrl.includes('via.placeholder.com') &&
+                  !convencion.imagenUrl.includes('placeholder.com') && (
+                    <div className="mb-4 rounded-lg overflow-hidden">
+                      <Image
+                        src={convencion.imagenUrl}
+                        alt={convencion.titulo}
+                        width={400}
+                        height={200}
+                        className="w-full h-32 object-cover"
+                        unoptimized={convencion.imagenUrl.includes('localhost')}
+                      />
+                    </div>
+                  )}
 
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">

@@ -24,7 +24,7 @@ import { ErrorResponse } from '../dto/api-response.dto'
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name)
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()
     const request = ctx.getRequest<Request>()
@@ -90,8 +90,28 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
     }
 
-    // Logging del error
-    this.logError(exception, request, status)
+    // Ignorar errores comunes de recursos que los navegadores buscan automáticamente
+    const ignoredPaths = ['/favicon.ico', '/robots.txt', '/apple-touch-icon.png', '/favicon-32x32.png', '/favicon-16x16.png']
+    const shouldIgnore = ignoredPaths.some(path => request.path === path || request.path.endsWith(path))
+
+    // Para recursos ignorados, retornar 204 (No Content) en lugar de error
+    if (shouldIgnore && status === HttpStatus.NOT_FOUND) {
+      response.status(HttpStatus.NO_CONTENT).send()
+      return
+    }
+
+    // No loguear errores 401 (Unauthorized) como warnings - son esperados cuando no hay token
+    // Solo loguear si es un error diferente o si es 401 pero no es un endpoint protegido común
+    const isExpected401 =
+      status === HttpStatus.UNAUTHORIZED &&
+      (request.path.includes('/notifications/') ||
+        request.path.includes('/auth/') ||
+        request.path.includes('/admin/'))
+
+    // Solo loguear si no es un recurso ignorado y no es un 401 esperado
+    if (!shouldIgnore && !isExpected401) {
+      this.logError(exception, request, status)
+    }
 
     // Crear respuesta de error estandarizada
     const errorResponse = new ErrorResponse(message, status, error, details)

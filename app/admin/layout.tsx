@@ -34,26 +34,18 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const publicPaths = ['/admin/login']
   const isPublicPath = publicPaths.some(path => pathname?.startsWith(path))
 
-  // Verificar autenticación al montar
+  // Verificar autenticación al montar (solo si no está hidratado)
   useEffect(() => {
-    const verifyAuth = async () => {
-      // Pequeño delay para asegurar que el storage esté disponible después de login
-      await new Promise(resolve => setTimeout(resolve, 50))
-      await checkAuth()
+    if (!isHydrated) {
+      const verifyAuth = async () => {
+        await checkAuth()
+      }
+      verifyAuth()
     }
-    verifyAuth()
-  }, [checkAuth])
+  }, [checkAuth, isHydrated])
 
   useEffect(() => {
-    console.log('[AdminLayout] Estado de autenticación:', {
-      isHydrated,
-      isAuthenticated,
-      isPublicPath,
-      pathname,
-    })
-
     // Solo redirigir después de que se haya verificado la autenticación
-    // Y dar un momento extra para que el estado se actualice después del login
     if (isHydrated && !isAuthenticated && !isPublicPath) {
       // Verificar también en storage como respaldo
       const storedToken =
@@ -62,14 +54,14 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           : null
 
       if (!storedToken) {
-        console.log('[AdminLayout] No autenticado y sin token en storage, redirigiendo a login')
         router.push('/admin/login')
       } else {
         // Si hay token en storage pero el estado no está actualizado, forzar verificación
-        console.log(
-          '[AdminLayout] Token encontrado en storage pero estado no actualizado, verificando...'
-        )
-        checkAuth()
+        // Pero solo una vez para evitar loops
+        const timeoutId = setTimeout(() => {
+          checkAuth()
+        }, 100)
+        return () => clearTimeout(timeoutId)
       }
     }
   }, [isAuthenticated, isHydrated, isPublicPath, router, pathname, checkAuth])
@@ -84,7 +76,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     return <>{children}</>
   }
 
-  // Mostrar loading mientras Zustand hidrata el estado
+  // Mostrar loading mientras Zustand hidrata el estado (con timeout de seguridad)
   if (!isHydrated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-sky-50/30 dark:to-sky-950/10">

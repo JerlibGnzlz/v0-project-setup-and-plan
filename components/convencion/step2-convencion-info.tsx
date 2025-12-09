@@ -124,7 +124,9 @@ export function Step2ConvencionInfo({
         </div>
 
         {/* Image */}
-        {convencion.imagenUrl && (
+        {convencion.imagenUrl && 
+         !convencion.imagenUrl.includes('via.placeholder.com') && 
+         !convencion.imagenUrl.includes('placeholder.com') && (
           <div className="mb-6 rounded-xl overflow-hidden">
             <Image
               src={convencion.imagenUrl}
@@ -132,6 +134,7 @@ export function Step2ConvencionInfo({
               width={800}
               height={400}
               className="w-full h-48 sm:h-64 object-cover"
+              unoptimized={convencion.imagenUrl.includes('localhost')}
             />
           </div>
         )}

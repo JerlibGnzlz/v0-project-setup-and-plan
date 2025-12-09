@@ -9,6 +9,7 @@ import {
   Param,
   Query,
   UseGuards,
+  Logger,
 } from '@nestjs/common'
 import { NoticiasService } from './noticias.service'
 import { CreateNoticiaDto, UpdateNoticiaDto } from './dto/noticia.dto'
@@ -17,6 +18,8 @@ import { CategoriaNoticia } from '@prisma/client'
 
 @Controller('noticias')
 export class NoticiasController {
+  private readonly logger = new Logger(NoticiasController.name)
+
   constructor(private readonly noticiasService: NoticiasService) {}
 
   // ========== RUTAS PÚBLICAS ==========
@@ -48,15 +51,16 @@ export class NoticiasController {
   // Incrementar vista (público, optimizado)
   @Post('slug/:slug/vista')
   async incrementarVista(@Param('slug') slug: string) {
-    console.log(`📥 [Controller] POST /noticias/slug/${slug}/vista recibido`)
+    this.logger.debug(`POST /noticias/slug/${slug}/vista recibido`)
 
     try {
       // Ahora esperamos la respuesta para poder manejar errores
       await this.noticiasService.incrementarVista(slug)
-      console.log(`✅ [Controller] Vista incrementada exitosamente para "${slug}"`)
+      this.logger.debug(`Vista incrementada exitosamente para "${slug}"`)
       return { success: true, message: 'Vista incrementada' }
-    } catch (error) {
-      console.error(`❌ [Controller] Error al incrementar vista para "${slug}":`, error)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error al incrementar vista para "${slug}": ${errorMessage}`)
       // Retornar éxito de todas formas para no afectar UX, pero loguear el error
       return { success: false, message: 'Error al incrementar vista' }
     }

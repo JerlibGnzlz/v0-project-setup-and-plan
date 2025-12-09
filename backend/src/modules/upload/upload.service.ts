@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common'
+import { Injectable, BadRequestException, Logger } from '@nestjs/common'
 import { cloudinary } from './cloudinary.config'
 import { FileValidatorService } from './file-validator.service'
 import { createReadStream } from 'streamifier'
@@ -13,6 +13,8 @@ export interface UploadResult {
 
 @Injectable()
 export class UploadService {
+  private readonly logger = new Logger(UploadService.name)
+
   constructor(private readonly fileValidator: FileValidatorService) {}
 
   private isCloudinaryConfigured(): boolean {
@@ -41,8 +43,9 @@ export class UploadService {
     if (this.isCloudinaryConfigured()) {
       try {
         return await this.uploadToCloudinary(file, folder)
-      } catch (error) {
-        console.log('⚠️ Cloudinary falló, usando guardado local como fallback')
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+        this.logger.warn(`Cloudinary falló, usando guardado local como fallback: ${errorMessage}`)
         return this.uploadLocally(file, folder)
       }
     }
@@ -55,7 +58,7 @@ export class UploadService {
     file: Express.Multer.File,
     folder: string
   ): Promise<UploadResult> {
-    console.log(`☁️ Subiendo a Cloudinary: ${file.originalname} (${file.size} bytes) -> ${folder}`)
+    this.logger.debug(`Subiendo a Cloudinary: ${file.originalname} (${file.size} bytes) -> ${folder}`)
 
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -70,10 +73,11 @@ export class UploadService {
         },
         (error, result) => {
           if (error) {
-            console.error('❌ Error de Cloudinary:', error)
-            reject(new BadRequestException('Error al subir imagen a Cloudinary: ' + error.message))
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            this.logger.error(`Error de Cloudinary: ${errorMessage}`)
+            reject(new BadRequestException(`Error al subir imagen a Cloudinary: ${errorMessage}`))
           } else if (result) {
-            console.log(`✅ Imagen subida a Cloudinary: ${result.secure_url}`)
+            this.logger.debug(`Imagen subida a Cloudinary: ${result.secure_url}`)
             resolve({
               url: result.secure_url,
               publicId: result.public_id,
@@ -107,8 +111,8 @@ export class UploadService {
     const publicId = `${folder}/${filename}`
     const url = `http://localhost:4000/uploads/${folder}/${filename}`
 
-    console.log(`📁 Imagen guardada localmente: ${filepath}`)
-    console.log(`🔗 URL: ${url}`)
+    this.logger.debug(`Imagen guardada localmente: ${filepath}`)
+    this.logger.debug(`URL: ${url}`)
 
     return { url, publicId }
   }
@@ -131,8 +135,9 @@ export class UploadService {
     if (this.isCloudinaryConfigured()) {
       try {
         return await this.uploadVideoToCloudinary(file, folder, trimOptions)
-      } catch (error) {
-        console.log('⚠️ Cloudinary falló, usando guardado local como fallback')
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+        this.logger.warn(`Cloudinary falló para video, usando guardado local como fallback: ${errorMessage}`)
         return this.uploadVideoLocally(file, folder)
       }
     }
@@ -150,10 +155,10 @@ export class UploadService {
       trimOptions && trimOptions.startTime !== undefined && trimOptions.endTime !== undefined
 
     if (hasTrim) {
-      console.log(`✂️ Recortando video: ${trimOptions.startTime}s - ${trimOptions.endTime}s`)
+      this.logger.debug(`Recortando video: ${trimOptions.startTime}s - ${trimOptions.endTime}s`)
     }
-    console.log(
-      `☁️ Subiendo video a Cloudinary: ${file.originalname} (${file.size} bytes) -> ${folder}`
+    this.logger.debug(
+      `Subiendo video a Cloudinary: ${file.originalname} (${file.size} bytes) -> ${folder}`
     )
 
     return new Promise((resolve, reject) => {
@@ -193,15 +198,16 @@ export class UploadService {
         },
         (error, result) => {
           if (error) {
-            console.error('❌ Error de Cloudinary:', error)
-            reject(new BadRequestException('Error al subir video a Cloudinary: ' + error.message))
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            this.logger.error(`Error de Cloudinary: ${errorMessage}`)
+            reject(new BadRequestException(`Error al subir video a Cloudinary: ${errorMessage}`))
           } else if (result) {
             // Si hay recorte, usar la URL del video procesado (eager)
             let finalUrl = result.secure_url
 
             if (hasTrim && result.eager && result.eager.length > 0) {
               finalUrl = result.eager[0].secure_url
-              console.log(`✅ Video recortado y subido: ${finalUrl}`)
+              this.logger.debug(`Video recortado y subido: ${finalUrl}`)
             } else if (hasTrim) {
               // Construir URL con transformaciones manualmente si eager no funcionó
               const baseUrl = result.secure_url
@@ -209,9 +215,9 @@ export class UploadService {
               if (parts.length === 2) {
                 finalUrl = `${parts[0]}/upload/so_${trimOptions.startTime.toFixed(1)},eo_${trimOptions.endTime.toFixed(1)},q_auto,f_mp4/${parts[1]}`
               }
-              console.log(`✅ Video subido con URL de recorte: ${finalUrl}`)
+              this.logger.debug(`Video subido con URL de recorte: ${finalUrl}`)
             } else {
-              console.log(`✅ Video subido a Cloudinary: ${finalUrl}`)
+              this.logger.debug(`Video subido a Cloudinary: ${finalUrl}`)
             }
 
             resolve({
@@ -250,8 +256,8 @@ export class UploadService {
     const publicId = `${folder}/${filename}`
     const url = `http://localhost:4000/uploads/${folder}/${filename}`
 
-    console.log(`📁 Video guardado localmente: ${filepath}`)
-    console.log(`🔗 URL: ${url}`)
+    this.logger.debug(`Video guardado localmente: ${filepath}`)
+    this.logger.debug(`URL: ${url}`)
 
     return { url, publicId }
   }
@@ -260,15 +266,16 @@ export class UploadService {
     if (this.isCloudinaryConfigured()) {
       try {
         await cloudinary.uploader.destroy(publicId)
-      } catch (error) {
-        console.error('Error al eliminar imagen de Cloudinary:', error)
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+        this.logger.error(`Error al eliminar imagen de Cloudinary: ${errorMessage}`)
       }
     } else {
       // Eliminar archivo local
       const filepath = path.join(process.cwd(), 'uploads', publicId)
       if (fs.existsSync(filepath)) {
         fs.unlinkSync(filepath)
-        console.log(`🗑️ Imagen eliminada: ${filepath}`)
+        this.logger.debug(`Imagen eliminada: ${filepath}`)
       }
     }
   }

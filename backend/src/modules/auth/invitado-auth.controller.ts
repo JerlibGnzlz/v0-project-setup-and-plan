@@ -8,6 +8,7 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Res,
+  Logger,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { Response, Request as ExpressRequest } from 'express'
@@ -24,6 +25,8 @@ import { AuthenticatedInvitadoRequest } from './types/request.types'
 
 @Controller('auth/invitado')
 export class InvitadoAuthController {
+  private readonly logger = new Logger(InvitadoAuthController.name)
+
   constructor(private invitadoAuthService: InvitadoAuthService) {}
 
   @ThrottleRegister()
@@ -54,12 +57,7 @@ export class InvitadoAuthController {
       throw new Error('Invitado no encontrado')
     }
 
-    console.log('[InvitadoAuthController] Perfil solicitado:', {
-      invitadoId: invitado.id,
-      email: invitado.email,
-      fotoUrl: invitado.fotoUrl,
-      tieneFotoUrl: !!invitado.fotoUrl,
-    })
+    this.logger.debug(`Perfil solicitado para invitado: ${invitado.id} (${invitado.email})`)
 
     return {
       id: invitado.id,
@@ -145,21 +143,22 @@ export class InvitadoAuthController {
       const redirectUrl = `${frontendUrl}/convencion/inscripcion?token=${result.access_token}&google=true&refresh_token=${result.refresh_token}`
 
       return res.redirect(redirectUrl)
-    } catch (error) {
+    } catch (error: unknown) {
       // Log del error para debugging
-      console.error('[InvitadoAuthController] Error en callback de Google OAuth:', error)
+      const errorLogMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en callback de Google OAuth: ${errorLogMessage}`)
 
       // Determinar el tipo de error para un mensaje más específico
-      let errorMessage = 'google_auth_failed'
+      let errorCode = 'google_auth_failed'
       if (error instanceof Error) {
         if (error.message.includes('email')) {
-          errorMessage = 'google_auth_email_error'
+          errorCode = 'google_auth_email_error'
         } else if (error.message.includes('token')) {
-          errorMessage = 'google_auth_token_error'
+          errorCode = 'google_auth_token_error'
         }
       }
 
-      const errorUrl = `${frontendUrl}/convencion/inscripcion?error=${errorMessage}`
+      const errorUrl = `${frontendUrl}/convencion/inscripcion?error=${errorCode}`
 
       return res.redirect(errorUrl)
     }

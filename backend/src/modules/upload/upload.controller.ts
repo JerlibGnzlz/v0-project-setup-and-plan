@@ -6,6 +6,7 @@ import {
   UploadedFile,
   BadRequestException,
   Body,
+  Logger,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
@@ -16,6 +17,8 @@ import { ThrottleUpload } from '../../common/decorators/throttle-auth.decorator'
 
 @Controller('upload')
 export class UploadController {
+  private readonly logger = new Logger(UploadController.name)
+
   constructor(private readonly uploadService: UploadService) {}
 
   @ThrottleUpload()
@@ -91,8 +94,8 @@ export class UploadController {
 
       if (!isNaN(start) && !isNaN(end) && end > start) {
         trimOptions = { startTime: start, endTime: end }
-        console.log(
-          `✂️ Opciones de recorte recibidas: ${start}s - ${end}s (duración: ${(end - start).toFixed(1)}s)`
+        this.logger.debug(
+          `Opciones de recorte recibidas: ${start}s - ${end}s (duración: ${(end - start).toFixed(1)}s)`
         )
       }
     }

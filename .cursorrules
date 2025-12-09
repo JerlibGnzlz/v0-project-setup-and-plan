@@ -532,6 +532,173 @@ Este es un monorepo con:
 
 ---
 
-**Última actualización**: Diciembre 2024
+## 🔍 AUDITORÍA Y CALIDAD DE CÓDIGO
+
+### Auditoría del Service Layer (CRÍTICO)
+
+1. **BaseService Obligatorio**: Todos los servicios deben extender `BaseService<T, CreateDto, UpdateDto>` cuando sea posible
+2. **Logger Obligatorio**: Usar `Logger` de NestJS, NUNCA `console.log()` en servicios backend
+3. **Tipos Explícitos**: Todos los métodos deben tener tipos explícitos de parámetros y retornos
+
+### Auditoría de Componentes
+
+1. **Interfaces de Props**: Todos los componentes deben tener interfaces para props
+2. **Optimización**: Usar `useCallback`, `useMemo`, `React.memo` donde corresponde
+3. **Estados**: Siempre mostrar estados de loading y empty
+
+### Revisión de Hooks
+
+1. **No console.log en producción**: Solo para debugging temporal (marcar con `// TODO: remove`)
+2. **Usar servicios**: Usar servicios de `lib/api/`, no llamadas directas
+3. **Query Keys**: Usar estructura consistente `['feature', 'subfeature', id]`
+
+### Revisión Arquitectónica
+
+1. **Flujo**: `Screen → Component → Hook → Service → Backend → Database`
+2. **Servicios**: Extender `BaseService`, usar `PrismaService`, inyectar `Logger`
+3. **Rutas API**: Backend `/api/[feature]`, Frontend `lib/api/[feature].ts`
+4. **Base de Datos**: Usar Prisma ORM siempre, no SQL crudo
+
+### Código No Usado
+
+1. **Imports/Variables**: NO dejar sin usar, ejecutar `npm run lint`
+2. **Código comentado**: NO dejar sin propósito, marcar con `// TODO: remove` si es temporal
+
+### Checklist de Auditoría Periódica
+
+- [ ] Verificar que todos los servicios extienden BaseService
+- [ ] Buscar y eliminar `console.log()` en producción
+- [ ] Verificar que todos los servicios usan `Logger`
+- [ ] Buscar componentes duplicados
+- [ ] Verificar interfaces de props en todos los componentes
+- [ ] Buscar uso de `any` en código
+- [ ] Ejecutar `npm run lint` y corregir errores
+- [ ] Ejecutar `npm run build` y corregir errores TypeScript
+
+---
+
+## 🏗️ ARQUITECTURA Y DISEÑO
+
+### Patrón en Capas (Obligatorio)
+
+```
+Screen:     /app/[feature]/page.tsx
+Component:  /components/[feature]/
+Hook:       /lib/hooks/use-[feature].ts
+Service:    /lib/api/[feature].ts
+API:        Backend: /api/[feature] (NestJS)
+Data:       Prisma ORM (backend/src/modules/[feature]/[feature].service.ts)
+```
+
+**Flujo:** `Screen → Component → Hook → Service → Backend → Prisma → Database`
+
+### Servicios Backend
+
+1. **BaseService Obligatorio**: Extender `BaseService<T, CreateDto, UpdateDto>`
+2. **Generics**: Usar `<T, CreateInput, UpdateInput>`
+3. **PrismaService**: Usar Prisma ORM siempre (no SQL crudo)
+4. **Logger**: Usar `Logger` de NestJS, nunca `console.log()`
+
+### Principios SOLID
+
+1. **Single Responsibility**: Cada archivo una responsabilidad
+2. **Open/Closed**: BaseService como núcleo extensible
+3. **Liskov**: Respetar interfaces y contratos
+4. **Interface Segregation**: Interfaces pequeñas y específicas
+5. **Dependency Inversion**: Depender de abstracciones (DI de NestJS)
+
+### Reusabilidad (DRY)
+
+1. **Nada Duplicado**: Extraer a `lib/utils/` o componentes compartidos
+2. **Componentes Genéricos**: Tablas, formularios y dialogs genéricos cuando sea posible
+3. **Utilidades**: Funciones compartidas en `lib/utils/`
+
+### Componentes Genéricos
+
+- ✅ Tablas: `DataTable<T>` genérico
+- ✅ Formularios: Con React Hook Form y configuración
+- ✅ Dialogs: `ConfirmDialog`, `FormDialog<T>` genéricos
+
+---
+
+## 🔒 SEGURIDAD Y BUENAS PRÁCTICAS
+
+### Protección de Credenciales
+
+1. **NUNCA Exponer Tokens, Claves o Secretos**:
+   - ❌ NUNCA hardcodear tokens, API keys, o secretos
+   - ❌ NUNCA commitear `.env` con credenciales reales
+   - ❌ NUNCA exponer tokens en URLs, logs, o responses
+   - ✅ Usar variables de entorno (`process.env`)
+   - ✅ Validar variables de entorno en producción
+
+2. **Manejo de Tokens**:
+   - ✅ Almacenar tokens en `localStorage`/`sessionStorage` (frontend)
+   - ✅ Enviar tokens solo en headers HTTP (`Authorization: Bearer <token>`)
+   - ✅ NUNCA exponer tokens en URLs o query params
+   - ✅ Invalidar tokens al hacer logout
+
+### Logging Seguro
+
+1. **NO usar console.log en Producción**:
+   - ❌ NUNCA usar `console.log()` en servicios backend
+   - ✅ Usar `Logger` de NestJS: `this.logger.log()`, `this.logger.error()`
+   - ✅ En frontend, solo para debugging temporal (marcar con `// TODO: remove`)
+   - ✅ NUNCA loguear passwords, tokens, o datos sensibles
+
+### Validación de Inputs
+
+1. **Validación Obligatoria**:
+   - ✅ Validar TODOS los inputs en backend (nunca confiar en frontend)
+   - ✅ Usar `class-validator` en DTOs de NestJS
+   - ✅ Usar `Zod` schemas en frontend para UX
+   - ✅ Validar tipos, formatos, rangos, y longitud
+
+### Manejo de Tokens y Sesiones
+
+1. **Autenticación Segura**:
+   - ✅ Usar JWT con expiración corta (15-30 minutos)
+   - ✅ Implementar refresh tokens con expiración larga
+   - ✅ Validar tokens en cada request protegido
+   - ✅ Invalidar tokens al hacer logout
+
+### Prevención de SQL Injection
+
+1. **Usar Prisma ORM Siempre**:
+   - ✅ NUNCA usar SQL crudo con concatenación de strings
+   - ✅ Usar Prisma ORM para todas las queries
+   - ✅ Prisma previene SQL injection automáticamente
+
+### Protección de Datos Sensibles
+
+1. **No Exponer en Responses**:
+   - ❌ NUNCA retornar passwords en respuestas
+   - ❌ NUNCA retornar tokens completos
+   - ✅ Usar DTOs de respuesta que excluyan campos sensibles
+   - ✅ Usar `@Exclude()` de class-transformer
+
+### Checklist de Seguridad
+
+- [ ] Verificar que no hay tokens/secretos hardcodeados
+- [ ] Validar variables de entorno configuradas
+- [ ] Verificar que no hay `console.log()` en producción
+- [ ] Validar que todos los inputs están validados
+- [ ] Verificar que tokens se manejan correctamente
+- [ ] Confirmar que se usa Prisma ORM (no SQL crudo)
+- [ ] Verificar que responses no exponen datos sensibles
+
+---
+
+**Última actualización**: Diciembre 2025
 **Versión del proyecto**: v0.1.1
+
+No se permite any.
+
+Todos los componentes deben tener interface de props.
+
+Los servicios deben tener tipos explícitos de parámetros y retornos.
+
+Los servicios deben usar generics del BaseService.
+
+Usar unknown si se requiere, con type guards.
 

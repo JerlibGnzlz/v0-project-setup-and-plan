@@ -7,9 +7,15 @@ import { PastorJwtPayload } from '../types/jwt-payload.types'
 @Injectable()
 export class PastorJwtStrategy extends PassportStrategy(Strategy, 'pastor-jwt') {
   constructor(private pastorAuthService: PastorAuthService) {
+    const jwtSecret = process.env.JWT_SECRET
+    if (!jwtSecret) {
+      throw new Error(
+        'JWT_SECRET no está configurado. Por favor, configura la variable de entorno JWT_SECRET.'
+      )
+    }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env.JWT_SECRET || 'your-secret-key',
+      secretOrKey: jwtSecret,
     })
   }
 

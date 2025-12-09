@@ -13,6 +13,7 @@ import { InscripcionesModule } from './modules/inscripciones/inscripciones.modul
 import { NoticiasModule } from './modules/noticias/noticias.module'
 import { UploadModule } from './modules/upload/upload.module'
 import { NotificationsModule } from './modules/notifications/notifications.module'
+import { MercadoPagoModule } from './modules/mercado-pago/mercado-pago.module'
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     NoticiasModule,
     UploadModule,
     NotificationsModule,
+    MercadoPagoModule,
   ],
   providers: [
     // Guard global para rate limiting

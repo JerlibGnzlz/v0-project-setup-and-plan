@@ -11,6 +11,7 @@ import {
   BadRequestException,
   Query,
   Res,
+  Logger,
 } from '@nestjs/common'
 import { Response } from 'express'
 import { InscripcionesService } from './inscripciones.service'
@@ -29,6 +30,8 @@ import { AuthenticatedRequest } from '../auth/types/request.types'
 
 @Controller('inscripciones')
 export class InscripcionesController {
+  private readonly logger = new Logger(InscripcionesController.name)
+
   constructor(private inscripcionesService: InscripcionesService) {}
 
   @Get()
@@ -74,8 +77,9 @@ export class InscripcionesController {
         req.user?.id,
         req.user?.email
       )
-    } catch (error) {
-      console.error('[InscripcionesController] Error en update:', error)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en update: ${errorMessage}`)
       throw error
     }
   }
@@ -148,21 +152,20 @@ export class InscripcionesController {
       const resultado = await this.inscripcionesService.enviarRecordatoriosPago(body.convencionId)
 
       // Log detallado del resultado
-      console.log('📊 Resultado de recordatorios:', {
-        enviados: resultado.enviados,
-        fallidos: resultado.fallidos,
-        total: resultado.detalles.length,
-      })
+      this.logger.log(
+        `Resultado de recordatorios: ${resultado.enviados} enviados, ${resultado.fallidos} fallidos, ${resultado.detalles.length} total`
+      )
 
       if (resultado.fallidos > 0) {
-        console.warn(
-          '⚠️ Algunos recordatorios fallaron. Revisa los logs del backend para más detalles.'
+        this.logger.warn(
+          'Algunos recordatorios fallaron. Revisa los logs del backend para más detalles.'
         )
       }
 
       return resultado
-    } catch (error) {
-      console.error('[InscripcionesController] Error en enviarRecordatorios:', error)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en enviarRecordatorios: ${errorMessage}`)
       throw error
     }
   }
@@ -176,6 +179,8 @@ export class InscripcionesController {
 
 @Controller('pagos')
 export class PagosController {
+  private readonly logger = new Logger(PagosController.name)
+
   constructor(private inscripcionesService: InscripcionesService) {}
 
   @UseGuards(JwtAuthGuard)
@@ -206,8 +211,8 @@ export class PagosController {
       return this.inscripcionesService.findAllPagos(page, limit, filters)
     } catch (error: unknown) {
       // Log del error para depuración
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      console.error('[PagosController] Error en findAll:', errorMessage)
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en findAll: ${errorMessage}`)
       throw error
     }
   }
