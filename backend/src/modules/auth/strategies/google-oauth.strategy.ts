@@ -22,6 +22,22 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
     const clientID = process.env.GOOGLE_CLIENT_ID
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET
 
+    // Construir callback URL completo con el backend URL
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
+    const callbackPath = process.env.GOOGLE_CALLBACK_URL || '/api/auth/invitado/google/callback'
+    const callbackURL = callbackPath.startsWith('http')
+      ? callbackPath
+      : `${backendUrl}${callbackPath}`
+
+    // Siempre llamar super() primero, con valores reales o dummy
+    super({
+      clientID: clientID || 'dummy-client-id',
+      clientSecret: clientSecret || 'dummy-client-secret',
+      callbackURL,
+      scope: ['email', 'profile'],
+    })
+
+    // Después de super(), validar y registrar warnings si es necesario
     if (!clientID || !clientSecret) {
       // No lanzar error, solo registrar warning
       // La estrategia se inicializará con valores dummy para evitar errores
@@ -31,32 +47,10 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
       this.logger.warn(
         '   Para habilitar Google OAuth, configura GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET en las variables de entorno.'
       )
-      // Inicializar con valores dummy para evitar errores de Passport
-      super({
-        clientID: 'dummy-client-id',
-        clientSecret: 'dummy-client-secret',
-        callbackURL: 'http://localhost:4000/api/auth/invitado/google/callback',
-        scope: ['email', 'profile'],
-      })
-      return
+    } else {
+      this.logger.log(`✅ Google OAuth Strategy inicializada`)
+      this.logger.debug(`Callback URL: ${callbackURL}`)
     }
-
-    // Construir callback URL completo con el backend URL
-    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
-    const callbackPath = process.env.GOOGLE_CALLBACK_URL || '/api/auth/invitado/google/callback'
-    const callbackURL = callbackPath.startsWith('http')
-      ? callbackPath
-      : `${backendUrl}${callbackPath}`
-
-    super({
-      clientID,
-      clientSecret,
-      callbackURL,
-      scope: ['email', 'profile'],
-    })
-
-    this.logger.log(`✅ Google OAuth Strategy inicializada`)
-    this.logger.debug(`Callback URL: ${callbackURL}`)
   }
 
   /**
