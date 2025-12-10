@@ -2450,10 +2450,19 @@ export class InscripcionesService {
                             // Esto asegura que cada evento se procese antes de continuar
                             await this.eventEmitter.emitAsync(NotificationEventType.PAGO_RECORDATORIO, event)
                             this.logger.log(
-                                `📬 Evento PAGO_RECORDATORIO emitido y procesado para ${inscripcion.email}`
+                                `📬 Evento PAGO_RECORDATORIO emitido para ${inscripcion.email}`
                             )
-                            // Asumimos éxito si el evento se emitió correctamente (el listener se encargará)
-                            emailEnviado = true
+                            
+                            // IMPORTANTE: No asumir éxito automáticamente
+                            // El listener procesará el email y puede fallar
+                            // Usar el método directo para tener control del resultado
+                            this.logger.log(`📧 Verificando envío de email para ${inscripcion.email}...`)
+                            emailEnviado = await this.enviarEmailRecordatorioDirecto(
+                                inscripcion,
+                                cuotasPendientes,
+                                montoPendiente,
+                                convencion
+                            )
 
                             // Pequeño delay para evitar saturar la cola de emails
                             await new Promise(resolve => setTimeout(resolve, 100))
@@ -2548,10 +2557,19 @@ export class InscripcionesService {
 
             const emailService = new EmailService()
 
-            // Verificar que el servicio esté configurado
-            if (!emailService['transporter']) {
+            // Verificar que el servicio esté configurado (SendGrid o SMTP)
+            const isSendGridConfigured = emailService['sendgridConfigured'] === true
+            const isSMTPConfigured = emailService['transporter'] !== null
+
+            if (!isSendGridConfigured && !isSMTPConfigured) {
                 this.logger.error(
-                    `❌ EmailService no está configurado. Verifica SMTP_USER y SMTP_PASSWORD en .env`
+                    `❌ EmailService no está configurado. Verifica SendGrid o SMTP en las variables de entorno`
+                )
+                this.logger.error(
+                    `   SendGrid: SENDGRID_API_KEY y SENDGRID_FROM_EMAIL`
+                )
+                this.logger.error(
+                    `   SMTP: SMTP_USER y SMTP_PASSWORD`
                 )
                 return false
             }

@@ -217,10 +217,20 @@ export class EmailService {
       
       const [response] = await Promise.race([sendPromise, timeoutPromise]) as [sgMail.ClientResponse, unknown]
       
-      this.logger.log(`✅ Email enviado exitosamente a ${to} (SendGrid)`)
-      this.logger.log(`   Status Code: ${response.statusCode}`)
-      this.logger.log(`   Message ID: ${response.headers['x-message-id'] || 'N/A'}`)
-      return true
+      // Verificar que el status code sea 202 (Accepted) o 200 (OK)
+      // SendGrid retorna 202 cuando acepta el email para envío
+      if (response.statusCode === 202 || response.statusCode === 200) {
+        this.logger.log(`✅ Email enviado exitosamente a ${to} (SendGrid)`)
+        this.logger.log(`   Status Code: ${response.statusCode}`)
+        this.logger.log(`   Message ID: ${response.headers['x-message-id'] || 'N/A'}`)
+        return true
+      } else {
+        // Si el status code no es 202 o 200, el email no se aceptó
+        this.logger.error(`❌ SendGrid rechazó el email para ${to}`)
+        this.logger.error(`   Status Code: ${response.statusCode} (esperado: 202 o 200)`)
+        this.logger.error(`   El email probablemente no se envió`)
+        return false
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       const errorStack = error instanceof Error ? error.stack : undefined
