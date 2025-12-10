@@ -42,13 +42,17 @@ export const useAuth = create<AuthState>()(set => ({
 
   login: async (data: LoginRequest & { rememberMe?: boolean }) => {
     console.log('[useAuth] Iniciando proceso de login...')
-    // Solo enviar email y password al backend, rememberMe es solo para el frontend
-    const { rememberMe, ...loginData } = data
-    const response = await authApi.login(loginData)
-    console.log('[useAuth] Respuesta del servidor recibida:', {
-      hasToken: !!response.access_token,
-      hasUser: !!response.user,
-    })
+    try {
+      // Solo enviar email y password al backend, rememberMe es solo para el frontend
+      const { rememberMe, ...loginData } = data
+      console.log('[useAuth] Llamando a authApi.login...')
+      const response = await authApi.login(loginData)
+      console.log('[useAuth] Respuesta del servidor recibida:', {
+        hasToken: !!response.access_token,
+        hasUser: !!response.user,
+        token: response.access_token?.substring(0, 20) + '...',
+        userEmail: response.user?.email,
+      })
 
     // Limpiar ambos storages primero
     if (typeof window !== 'undefined') {
@@ -87,8 +91,17 @@ export const useAuth = create<AuthState>()(set => ({
     set(newState)
     console.log('[useAuth] Estado actualizado:', newState)
 
-    // Retornar para que el login page pueda esperar
-    return Promise.resolve()
+      // Retornar para que el login page pueda esperar
+      return Promise.resolve()
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorStack = error instanceof Error ? error.stack : undefined
+      console.error('[useAuth] Error en login:', {
+        message: errorMessage,
+        stack: errorStack,
+      })
+      throw error
+    }
   },
 
   logout: () => {
