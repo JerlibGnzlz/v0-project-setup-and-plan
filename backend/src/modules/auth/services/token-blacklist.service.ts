@@ -18,37 +18,70 @@ export class TokenBlacklistService implements OnModuleInit {
     // Inicializar Redis si está configurado
     if (process.env.REDIS_HOST || process.env.REDIS_URL) {
       try {
-        this.redis = new Redis({
-          host: process.env.REDIS_HOST || 'localhost',
-          port: parseInt(process.env.REDIS_PORT || '6379'),
-          password: process.env.REDIS_PASSWORD || undefined,
-          db: parseInt(process.env.REDIS_DB || '0'),
-          // Deshabilitar reconexión automática después de varios intentos
-          retryStrategy: (times: number) => {
-            this.connectionAttempts = times
-            // Si ya intentamos muchas veces, detener la reconexión
-            if (times > this.MAX_CONNECTION_ATTEMPTS) {
-              this.logger.warn(
-                `⚠️  Redis no disponible después de ${times} intentos. Token blacklist deshabilitado.`
-              )
-              this.logger.warn(
-                '   La aplicación continuará funcionando sin blacklist de tokens.'
-              )
-              this.redis = null
-              return null // Detener reconexión
+        // Configurar opciones de Redis según si se usa URL o host/port
+        const redisOptions: Redis.RedisOptions = process.env.REDIS_URL
+          ? {
+              // Usar URL directamente (ioredis soporta URLs)
+              url: process.env.REDIS_URL,
+              tls: process.env.REDIS_URL?.startsWith('rediss://')
+                ? { rejectUnauthorized: false }
+                : undefined,
+              // Deshabilitar reconexión automática después de varios intentos
+              retryStrategy: (times: number) => {
+                this.connectionAttempts = times
+                if (times > this.MAX_CONNECTION_ATTEMPTS) {
+                  this.logger.warn(
+                    `⚠️  Redis no disponible después de ${times} intentos. Token blacklist deshabilitado.`
+                  )
+                  this.logger.warn(
+                    '   La aplicación continuará funcionando sin blacklist de tokens.'
+                  )
+                  this.redis = null
+                  return null // Detener reconexión
+                }
+                const delay = Math.min(times * 50, 2000)
+                return delay
+              },
+              enableOfflineQueue: false,
+              maxRetriesPerRequest: 1,
             }
-            const delay = Math.min(times * 50, 2000)
-            return delay
-          },
-          // Deshabilitar reconexión automática si falla
-          enableOfflineQueue: false,
-          maxRetriesPerRequest: 1,
-        })
+          : {
+              // Usar host/port tradicional
+              host: process.env.REDIS_HOST || 'localhost',
+              port: parseInt(process.env.REDIS_PORT || '6379'),
+              password: process.env.REDIS_PASSWORD || undefined,
+              db: parseInt(process.env.REDIS_DB || '0'),
+              // Deshabilitar reconexión automática después de varios intentos
+              retryStrategy: (times: number) => {
+                this.connectionAttempts = times
+                if (times > this.MAX_CONNECTION_ATTEMPTS) {
+                  this.logger.warn(
+                    `⚠️  Redis no disponible después de ${times} intentos. Token blacklist deshabilitado.`
+                  )
+                  this.logger.warn(
+                    '   La aplicación continuará funcionando sin blacklist de tokens.'
+                  )
+                  this.redis = null
+                  return null // Detener reconexión
+                }
+                const delay = Math.min(times * 50, 2000)
+                return delay
+              },
+              enableOfflineQueue: false,
+              maxRetriesPerRequest: 1,
+            }
 
+        this.redis = new Redis(redisOptions)
+
+        // Manejar eventos de Redis
         this.redis.on('error', (error: unknown) => {
-          // Solo loguear errores si aún estamos intentando conectar
+          // Solo loguear errores si aún estamos intentando conectar (primeros intentos)
+          // Después de MAX_CONNECTION_ATTEMPTS, no loguear más errores
           if (this.connectionAttempts <= this.MAX_CONNECTION_ATTEMPTS) {
-            this.logger.error('❌ Error de conexión a Redis:', error)
+            // Solo loguear el primer error, no todos
+            if (this.connectionAttempts === 1) {
+              this.logger.debug('⚠️  Intentando conectar a Redis...')
+            }
           }
           // No establecer redis = null aquí, dejar que retryStrategy lo maneje
         })
@@ -59,16 +92,20 @@ export class TokenBlacklistService implements OnModuleInit {
         })
 
         this.redis.on('close', () => {
-          this.logger.warn('⚠️  Conexión a Redis cerrada')
+          // Solo loguear si aún estamos intentando conectar
+          if (this.connectionAttempts <= this.MAX_CONNECTION_ATTEMPTS) {
+            this.logger.debug('⚠️  Conexión a Redis cerrada')
+          }
         })
-      } catch (error) {
-        this.logger.warn('⚠️  Redis no disponible, token blacklist deshabilitado')
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+        this.logger.warn(`⚠️  Redis no disponible: ${errorMessage}`)
         this.logger.warn('   La aplicación continuará funcionando sin blacklist de tokens.')
         this.redis = null
       }
     } else {
-      this.logger.warn('⚠️  Redis no configurado, token blacklist deshabilitado')
-      this.logger.warn('   La aplicación continuará funcionando sin blacklist de tokens.')
+      this.logger.log('ℹ️  Redis no configurado, token blacklist deshabilitado')
+      this.logger.log('   La aplicación continuará funcionando sin blacklist de tokens.')
     }
   }
 
