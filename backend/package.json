@@ -51,7 +51,7 @@
     "speakeasy": "^2.0.0",
     "streamifier": "^0.1.1"
   },
-  "devDependencies": {
+  "dependencies": {
     "@nestjs/cli": "^10.3.0",
     "@nestjs/schematics": "^10.1.0",
     "@types/bcrypt": "^5.0.2",

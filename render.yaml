@@ -5,6 +5,9 @@ services:
     rootDir: backend
     buildCommand: npm install --legacy-peer-deps && npm run build && npx prisma generate
     startCommand: npm run start:prod
+    # Alternativa si rootDir no funciona: usar buildCommand con cd
+    # buildCommand: cd backend && npm install --legacy-peer-deps && npm run build && npx prisma generate
+    # startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
