@@ -129,12 +129,14 @@ export function InscripcionExistenteCard({
         description: 'Has cerrado sesión correctamente',
       })
 
-      // Redirigir a la página de inscripción
-      router.push('/convencion/inscripcion')
+      // Redirigir a la landing page (página principal)
+      // Usar window.location.href para forzar una navegación completa y limpiar todo el estado
+      window.location.href = '/'
     } catch (error) {
       // Aún así continuar aunque haya error
       console.warn('[InscripcionExistenteCard] Error en logout:', error)
-      router.push('/convencion/inscripcion')
+      // Redirigir a la landing page incluso si hay error
+      window.location.href = '/'
     }
   }
   // Calcular estado de pagos
