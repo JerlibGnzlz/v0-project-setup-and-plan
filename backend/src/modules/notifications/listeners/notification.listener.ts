@@ -141,8 +141,14 @@ export class NotificationListener {
       }
 
       // Verificar que Redis esté realmente disponible intentando obtener el estado de la cola
+      // Con timeout para evitar que se quede colgado
       try {
-        await this.notificationsQueue.getJobCounts()
+        const checkPromise = this.notificationsQueue.getJobCounts()
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Timeout verificando Redis (5s)')), 5000)
+        })
+        await Promise.race([checkPromise, timeoutPromise])
+        this.logger.debug(`✅ Redis disponible - Cola funcionando para ${event.email}`)
       } catch (redisError: unknown) {
         const errorMessage = redisError instanceof Error ? redisError.message : 'Error desconocido'
         this.logger.warn(`⚠️ Redis no disponible (${errorMessage}), procesando notificación directamente para ${event.email}`)
