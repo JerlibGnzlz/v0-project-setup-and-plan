@@ -81,7 +81,9 @@ export class AuthService {
       })
 
       // Verificar contraseña
+      this.logger.debug(`🔐 Verificando contraseña para: ${dto.email}`)
       const isPasswordValid = await bcrypt.compare(dto.password, user.password)
+      this.logger.debug(`🔐 Resultado de verificación de contraseña: ${isPasswordValid}`)
 
       if (!isPasswordValid) {
         this.logger.warn(`❌ Login fallido: contraseña inválida`, {
@@ -94,7 +96,9 @@ export class AuthService {
       }
 
       // Generar token JWT
+      this.logger.debug(`🎫 Generando token JWT para: ${dto.email}`)
       const token = this.generateToken(user.id, user.email, user.rol)
+      this.logger.debug(`🎫 Token generado exitosamente (longitud: ${token.length})`)
 
       this.logger.log(`✅ Login exitoso`, {
         userId: user.id,
@@ -104,7 +108,7 @@ export class AuthService {
         timestamp: new Date().toISOString(),
       })
 
-      return {
+      const response = {
         access_token: token,
         user: {
           id: user.id,
@@ -114,6 +118,9 @@ export class AuthService {
           rol: user.rol,
         },
       }
+
+      this.logger.debug(`📤 Preparando respuesta de login para: ${dto.email}`)
+      return response
     } catch (error) {
       if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
         throw error
