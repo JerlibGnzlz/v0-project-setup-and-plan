@@ -11,6 +11,9 @@ export class TokenBlacklistService implements OnModuleInit {
   private readonly logger = new Logger(TokenBlacklistService.name)
   private redis: Redis | null = null
 
+  private connectionAttempts = 0
+  private readonly MAX_CONNECTION_ATTEMPTS = 3
+
   constructor() {
     // Inicializar Redis si está configurado
     if (process.env.REDIS_HOST || process.env.REDIS_URL) {
@@ -20,38 +23,81 @@ export class TokenBlacklistService implements OnModuleInit {
           port: parseInt(process.env.REDIS_PORT || '6379'),
           password: process.env.REDIS_PASSWORD || undefined,
           db: parseInt(process.env.REDIS_DB || '0'),
-          retryStrategy: times => {
+          // Deshabilitar reconexión automática después de varios intentos
+          retryStrategy: (times: number) => {
+            this.connectionAttempts = times
+            // Si ya intentamos muchas veces, detener la reconexión
+            if (times > this.MAX_CONNECTION_ATTEMPTS) {
+              this.logger.warn(
+                `⚠️  Redis no disponible después de ${times} intentos. Token blacklist deshabilitado.`
+              )
+              this.logger.warn(
+                '   La aplicación continuará funcionando sin blacklist de tokens.'
+              )
+              this.redis = null
+              return null // Detener reconexión
+            }
             const delay = Math.min(times * 50, 2000)
             return delay
           },
+          // Deshabilitar reconexión automática si falla
+          enableOfflineQueue: false,
+          maxRetriesPerRequest: 1,
         })
 
-        this.redis.on('error', error => {
-          this.logger.error('❌ Error de conexión a Redis:', error)
-          this.redis = null
+        this.redis.on('error', (error: unknown) => {
+          // Solo loguear errores si aún estamos intentando conectar
+          if (this.connectionAttempts <= this.MAX_CONNECTION_ATTEMPTS) {
+            this.logger.error('❌ Error de conexión a Redis:', error)
+          }
+          // No establecer redis = null aquí, dejar que retryStrategy lo maneje
         })
 
         this.redis.on('connect', () => {
           this.logger.log('✅ Conectado a Redis para token blacklist')
+          this.connectionAttempts = 0 // Resetear contador en conexión exitosa
+        })
+
+        this.redis.on('close', () => {
+          this.logger.warn('⚠️  Conexión a Redis cerrada')
         })
       } catch (error) {
         this.logger.warn('⚠️  Redis no disponible, token blacklist deshabilitado')
+        this.logger.warn('   La aplicación continuará funcionando sin blacklist de tokens.')
         this.redis = null
       }
     } else {
       this.logger.warn('⚠️  Redis no configurado, token blacklist deshabilitado')
+      this.logger.warn('   La aplicación continuará funcionando sin blacklist de tokens.')
     }
   }
 
   async onModuleInit() {
     if (this.redis) {
       try {
-        await this.redis.ping()
+        // Timeout para ping (5 segundos)
+        const pingPromise = this.redis.ping()
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Redis ping timeout')), 5000)
+        )
+
+        await Promise.race([pingPromise, timeoutPromise])
         this.logger.log('✅ Token blacklist service inicializado')
       } catch (error) {
         this.logger.warn('⚠️  Redis no disponible, continuando sin blacklist')
-        this.redis = null
+        this.logger.warn('   La aplicación continuará funcionando sin blacklist de tokens.')
+        // Cerrar conexión si existe
+        if (this.redis) {
+          try {
+            this.redis.disconnect(false) // false = no reconectar
+          } catch {
+            // Ignorar errores al desconectar
+          }
+          this.redis = null
+        }
       }
+    } else {
+      this.logger.log('ℹ️  Token blacklist service inicializado (modo sin Redis)')
     }
   }
 
