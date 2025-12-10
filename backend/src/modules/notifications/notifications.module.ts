@@ -1,4 +1,4 @@
-import { Module, forwardRef, Logger } from '@nestjs/common'
+import { Module, forwardRef, Logger, type DynamicModule } from '@nestjs/common'
 import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { EventEmitterModule } from '@nestjs/event-emitter'
@@ -19,7 +19,7 @@ const isRedisConfigured = !!(process.env.REDIS_HOST || process.env.REDIS_URL)
 const logger = new Logger('NotificationsModule')
 
 // Construir imports dinámicamente
-const dynamicImports = []
+const dynamicImports: DynamicModule[] = []
 
 // Solo configurar BullModule si Redis está configurado
 if (isRedisConfigured) {
