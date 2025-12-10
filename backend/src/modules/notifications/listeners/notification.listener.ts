@@ -66,10 +66,22 @@ export class NotificationListener {
     )
     try {
       await this.queueNotification(event)
-      this.logger.log(`✅ Recordatorio encolado exitosamente para ${event.email}`)
-    } catch (error) {
-      this.logger.error(`❌ Error procesando recordatorio para ${event.email}:`, error)
-      // No lanzar el error para que no detenga el procesamiento de otros eventos
+      // El logging de éxito se hace dentro de queueNotification
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorStack = error instanceof Error ? error.stack : undefined
+      this.logger.error(`❌ Error procesando recordatorio para ${event.email}:`, {
+        message: errorMessage,
+        stack: errorStack,
+      })
+      // Intentar procesar directamente como último recurso
+      try {
+        this.logger.warn(`⚠️ Intentando procesar recordatorio directamente para ${event.email}...`)
+        await this.processDirectly(event)
+      } catch (fallbackError: unknown) {
+        const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : 'Error desconocido'
+        this.logger.error(`❌ Error en fallback directo para ${event.email}:`, fallbackMessage)
+      }
     }
   }
 
@@ -117,18 +129,29 @@ export class NotificationListener {
     try {
       // Verificar que la cola esté disponible
       if (!this.notificationsQueue) {
-        this.logger.debug('⚠️ Cola de notificaciones no disponible (Redis no configurado), procesando directamente')
+        this.logger.warn(`⚠️ Cola de notificaciones no disponible (Redis no configurado), procesando directamente para ${event.email}`)
         // Fallback: procesar directamente sin cola
-        await this.processDirectly(event)
+        const result = await this.processDirectly(event)
+        if (result) {
+          this.logger.log(`✅ Notificación procesada directamente para ${event.email} (sin cola)`)
+        } else {
+          this.logger.warn(`⚠️ No se pudo procesar notificación directamente para ${event.email}`)
+        }
         return
       }
 
       // Verificar que Redis esté realmente disponible intentando obtener el estado de la cola
       try {
         await this.notificationsQueue.getJobCounts()
-      } catch (redisError) {
-        this.logger.warn('⚠️ Redis no disponible, procesando notificación directamente')
-        await this.processDirectly(event)
+      } catch (redisError: unknown) {
+        const errorMessage = redisError instanceof Error ? redisError.message : 'Error desconocido'
+        this.logger.warn(`⚠️ Redis no disponible (${errorMessage}), procesando notificación directamente para ${event.email}`)
+        const result = await this.processDirectly(event)
+        if (result) {
+          this.logger.log(`✅ Notificación procesada directamente para ${event.email} (Redis no disponible)`)
+        } else {
+          this.logger.warn(`⚠️ No se pudo procesar notificación directamente para ${event.email}`)
+        }
         return
       }
 
@@ -163,16 +186,32 @@ export class NotificationListener {
       )
 
       this.logger.log(`✅ Notificación encolada para ${event.email} (tipo: ${event.type})`)
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorStack = error instanceof Error ? error.stack : undefined
       this.logger.error(
         `❌ Error encolando notificación para ${event.email}, procesando directamente:`,
-        error
+        {
+          message: errorMessage,
+          stack: errorStack,
+        }
       )
       // Fallback: procesar directamente si la cola falla
       try {
-        await this.processDirectly(event)
-      } catch (fallbackError) {
-        this.logger.error(`❌ Error en fallback directo para ${event.email}:`, fallbackError)
+        this.logger.warn(`⚠️ Intentando procesar notificación directamente para ${event.email}...`)
+        const result = await this.processDirectly(event)
+        if (result) {
+          this.logger.log(`✅ Notificación procesada directamente para ${event.email} (fallback exitoso)`)
+        } else {
+          this.logger.error(`❌ No se pudo procesar notificación directamente para ${event.email}`)
+        }
+      } catch (fallbackError: unknown) {
+        const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : 'Error desconocido'
+        const fallbackStack = fallbackError instanceof Error ? fallbackError.stack : undefined
+        this.logger.error(`❌ Error en fallback directo para ${event.email}:`, {
+          message: fallbackMessage,
+          stack: fallbackStack,
+        })
         // No lanzar error para no interrumpir el flujo principal
       }
     }
@@ -183,6 +222,8 @@ export class NotificationListener {
    */
   private async processDirectly(event: BaseNotificationEvent): Promise<boolean> {
     try {
+      this.logger.log(`🔄 Procesando notificación directamente para ${event.email} (tipo: ${event.type})`)
+      
       // Importar dinámicamente para evitar dependencias circulares
       const emailServiceModule = await import('../email.service')
       const templatesModule = await import('../templates/email.templates')
@@ -193,6 +234,7 @@ export class NotificationListener {
       const emailService = new EmailService()
       const template = getEmailTemplate(this.getEventType(event.type), event.data || {})
 
+      this.logger.log(`📧 Preparando email para ${event.email}...`)
       const emailSent = await emailService.sendNotificationEmail(
         event.email,
         template.title,
@@ -207,8 +249,13 @@ export class NotificationListener {
         this.logger.warn(`⚠️ No se pudo enviar email directamente a ${event.email}`)
         return false
       }
-    } catch (error) {
-      this.logger.error(`❌ Error en processDirectly para ${event.email}:`, error)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorStack = error instanceof Error ? error.stack : undefined
+      this.logger.error(`❌ Error en processDirectly para ${event.email}:`, {
+        message: errorMessage,
+        stack: errorStack,
+      })
       return false
     }
   }
