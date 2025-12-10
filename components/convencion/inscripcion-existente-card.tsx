@@ -110,48 +110,32 @@ export function InscripcionExistenteCard({
     }
   }, [user?.fotoUrl])
 
-  const handleLogout = () => {
-    // Cerrar sesión en el hook de autenticación primero (limpia el estado de Zustand)
-    logout()
-
-    // Limpiar todos los tokens y datos de usuario inmediatamente
-    if (typeof window !== 'undefined') {
-      // Limpiar localStorage
-      localStorage.removeItem('invitado_token')
-      localStorage.removeItem('invitado_refresh_token')
-      localStorage.removeItem('invitado_user')
-      localStorage.removeItem('pastor_auth_token')
-      localStorage.removeItem('pastor_refresh_token')
-      localStorage.removeItem('pastor_auth_user')
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_user')
-
-      // Limpiar sessionStorage
-      sessionStorage.removeItem('invitado_token')
-      sessionStorage.removeItem('invitado_refresh_token')
-      sessionStorage.removeItem('invitado_user')
-      sessionStorage.removeItem('pastor_auth_token')
-      sessionStorage.removeItem('pastor_refresh_token')
-      sessionStorage.removeItem('pastor_auth_user')
-      sessionStorage.removeItem('auth_token')
-      sessionStorage.removeItem('auth_user')
+  const handleLogout = async () => {
+    try {
+      // Cerrar sesión en el hook de autenticación (invalida token en backend y limpia storage)
+      await logout()
 
       // Limpiar también cualquier parámetro de URL que pueda tener tokens
-      const url = new URL(window.location.href)
-      url.searchParams.delete('token')
-      url.searchParams.delete('refresh_token')
-      url.searchParams.delete('google')
-      window.history.replaceState({}, '', url.pathname)
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href)
+        url.searchParams.delete('token')
+        url.searchParams.delete('refresh_token')
+        url.searchParams.delete('google')
+        window.history.replaceState({}, '', url.pathname)
+      }
+
+      // Mostrar toast de éxito
+      toast.success('Sesión cerrada', {
+        description: 'Has cerrado sesión correctamente',
+      })
+
+      // Redirigir a la página de inscripción
+      router.push('/convencion/inscripcion')
+    } catch (error) {
+      // Aún así continuar aunque haya error
+      console.warn('[InscripcionExistenteCard] Error en logout:', error)
+      router.push('/convencion/inscripcion')
     }
-
-    // Mostrar toast de éxito
-    toast.success('Sesión cerrada', {
-      description: 'Has cerrado sesión correctamente',
-    })
-
-    // Redirigir inmediatamente a la landing page (página principal)
-    // Usar window.location.href para forzar una navegación completa y limpiar todo el estado
-    window.location.href = '/'
   }
   // Calcular estado de pagos
   const pagos = inscripcion.pagos || []
