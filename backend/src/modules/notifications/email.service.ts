@@ -170,18 +170,30 @@ export class EmailService {
       // Extraer texto plano del HTML
       const textContent = body.replace(/<[^>]*>/g, '').trim() || title
 
-      const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_USER
+      // Obtener email "from" - DEBE estar verificado en SendGrid
+      const fromEmail = process.env.SENDGRID_FROM_EMAIL
       const fromName = process.env.SENDGRID_FROM_NAME || 'AMVA Digital'
 
       if (!fromEmail) {
         this.logger.error('❌ SENDGRID_FROM_EMAIL no configurado')
-        this.logger.error('   Configura SENDGRID_FROM_EMAIL en las variables de entorno')
+        this.logger.error('   Configura SENDGRID_FROM_EMAIL en las variables de entorno de Render')
+        this.logger.error('   IMPORTANTE: El email DEBE estar verificado en SendGrid')
+        this.logger.error('   → Ve a SendGrid → Settings → Sender Authentication')
+        this.logger.error('   → Verifica el email antes de usarlo')
         // Intentar con SMTP si está disponible
         if (this.transporter) {
           this.logger.warn('⚠️ Intentando con SMTP como fallback...')
           return this.sendWithSMTP(to, title, body, data)
         }
         return false
+      }
+
+      // Validar que el email "from" no sea un Gmail personal (SendGrid requiere verificación)
+      if (fromEmail.includes('@gmail.com') && !fromEmail.includes('@ministerio')) {
+        this.logger.warn(`⚠️ Usando email Gmail personal: ${fromEmail}`)
+        this.logger.warn('   Asegúrate de que este email esté verificado en SendGrid')
+        this.logger.warn('   → Ve a SendGrid → Settings → Sender Authentication')
+        this.logger.warn('   → Verifica el email antes de continuar')
       }
 
       const msg = {
