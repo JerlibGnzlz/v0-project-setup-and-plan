@@ -317,11 +317,10 @@ export function InscripcionExistenteCard({
 
                   {/* Dropdown menu (aparece al hover en desktop, al click en móvil) */}
                   <div
-                    className={`absolute right-0 top-full mt-2 w-48 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl transition-all duration-200 z-50 ${
-                      isMenuOpen
+                    className={`absolute right-0 top-full mt-2 w-48 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl transition-all duration-200 z-50 ${isMenuOpen
                         ? 'opacity-100 visible'
                         : 'opacity-0 invisible lg:group-hover:opacity-100 lg:group-hover:visible'
-                    }`}
+                      }`}
                   >
                     <div className="p-2">
                       <div className="px-3 py-2 text-xs text-white/70 border-b border-white/10 mb-1">
