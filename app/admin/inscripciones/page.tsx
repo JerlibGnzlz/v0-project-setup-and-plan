@@ -312,15 +312,22 @@ export default function InscripcionesPage() {
 
   const handleEnviarRecordatorios = async () => {
     try {
-      const resultado = await enviarRecordatoriosMutation.mutateAsync()
+      // Obtener convencionId del filtro si está seleccionado
+      const convencionId = convencionSeleccionada?.id || undefined
+      
+      const resultado = await enviarRecordatoriosMutation.mutateAsync(convencionId)
       setResultadoRecordatorios(resultado)
-      toast.success('Recordatorios enviados', {
-        description: `${resultado.enviados} enviados, ${resultado.fallidos} fallidos`,
-      })
-    } catch (error: any) {
-      toast.error('Error al enviar recordatorios', {
-        description: error.response?.data?.message || error.message || 'Error desconocido',
-      })
+      
+      // El toast ya se muestra en el hook, no duplicar
+      // Solo actualizar el estado para mostrar el resultado
+    } catch (error: unknown) {
+      // El error ya se maneja en el hook, pero asegurarnos de resetear el estado
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('[InscripcionesPage] Error al enviar recordatorios:', errorMessage)
+      
+      // No mostrar toast duplicado, el hook ya lo maneja
+      // Pero asegurarnos de que el estado se resetee si hay error
+      setResultadoRecordatorios(null)
     }
   }
 

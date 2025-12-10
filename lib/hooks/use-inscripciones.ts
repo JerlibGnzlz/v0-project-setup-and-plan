@@ -190,10 +190,19 @@ export function useEnviarRecordatorios() {
       queryClient.invalidateQueries({ queryKey: ['inscripciones'] })
       toast.success(`📧 Recordatorios enviados`, {
         description: `${data.enviados} enviados, ${data.fallidos} fallidos`,
+        duration: 5000,
       })
     },
-    onError: () => {
-      toast.error('Error al enviar recordatorios')
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const responseData = (error as { response?: { data?: { message?: string } } })?.response?.data
+      const detailedMessage = responseData?.message || errorMessage
+      
+      console.error('[useEnviarRecordatorios] Error:', detailedMessage)
+      toast.error('Error al enviar recordatorios', {
+        description: detailedMessage,
+        duration: 5000,
+      })
     },
   })
 }
