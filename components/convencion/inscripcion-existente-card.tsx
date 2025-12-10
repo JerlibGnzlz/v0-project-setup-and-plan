@@ -320,26 +320,26 @@ export function InscripcionExistenteCard({
                       className="absolute right-0 top-full mt-2 w-48 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 duration-200"
                       onClick={(e) => e.stopPropagation()}
                     >
-                    <div className="p-2">
-                      <div className="px-3 py-2 text-xs text-white/70 border-b border-white/10 mb-1">
-                        <p className="font-semibold text-white">
-                          {user.nombre} {user.apellido}
-                        </p>
-                        <p className="text-xs truncate">{user.email}</p>
+                      <div className="p-2">
+                        <div className="px-3 py-2 text-xs text-white/70 border-b border-white/10 mb-1">
+                          <p className="font-semibold text-white">
+                            {user.nombre} {user.apellido}
+                          </p>
+                          <p className="text-xs truncate">{user.email}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setIsMenuOpen(false)
+                            handleLogout()
+                          }}
+                          className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10 text-xs"
+                        >
+                          <LogOut className="w-3 h-3 mr-2" />
+                          Cerrar sesión
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setIsMenuOpen(false)
-                          handleLogout()
-                        }}
-                        className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10 text-xs"
-                      >
-                        <LogOut className="w-3 h-3 mr-2" />
-                        Cerrar sesión
-                      </Button>
-                    </div>
                     </div>
                   )}
                 </div>
