@@ -23,9 +23,22 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET
 
     if (!clientID || !clientSecret) {
-      throw new Error(
-        'Google OAuth no está configurado. Por favor, configura GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET en las variables de entorno.'
+      // No lanzar error, solo registrar warning
+      // La estrategia se inicializará con valores dummy para evitar errores
+      this.logger.warn(
+        '⚠️  Google OAuth no está configurado. La autenticación con Google no estará disponible.'
       )
+      this.logger.warn(
+        '   Para habilitar Google OAuth, configura GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET en las variables de entorno.'
+      )
+      // Inicializar con valores dummy para evitar errores de Passport
+      super({
+        clientID: 'dummy-client-id',
+        clientSecret: 'dummy-client-secret',
+        callbackURL: 'http://localhost:4000/api/auth/invitado/google/callback',
+        scope: ['email', 'profile'],
+      })
+      return
     }
 
     // Construir callback URL completo con el backend URL
@@ -60,6 +73,20 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
     profile: Profile,
     done: VerifyCallback
   ): Promise<void> {
+    // Si Google OAuth no está configurado, rechazar la autenticación
+    const clientID = process.env.GOOGLE_CLIENT_ID
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET
+
+    if (!clientID || !clientSecret) {
+      this.logger.error('❌ Intento de autenticación con Google OAuth, pero no está configurado')
+      return done(
+        new UnauthorizedException(
+          'Google OAuth no está configurado. Por favor, contacta al administrador.'
+        ),
+        undefined
+      )
+    }
+
     try {
       // Validar que el perfil tenga los datos necesarios
       if (!profile || !profile.id) {
