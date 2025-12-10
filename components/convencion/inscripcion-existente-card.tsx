@@ -111,17 +111,15 @@ export function InscripcionExistenteCard({
     }
   }, [user?.fotoUrl])
 
-  // Cerrar el menú cuando se hace click fuera de él (solo en móvil)
+  // Cerrar el menú cuando se hace click fuera de él
   useEffect(() => {
     if (!isMenuOpen) return
 
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       const target = event.target as HTMLElement
       // Verificar si el click fue fuera del menú y del avatar
-      if (
-        !target.closest('[data-user-menu]') &&
-        !target.closest('[data-user-avatar]')
-      ) {
+      const userMenu = target.closest('[data-user-menu]')
+      if (!userMenu) {
         setIsMenuOpen(false)
       }
     }
@@ -129,11 +127,13 @@ export function InscripcionExistenteCard({
     // Agregar listener después de un pequeño delay para evitar que se cierre inmediatamente
     const timeoutId = setTimeout(() => {
       document.addEventListener('click', handleClickOutside)
+      document.addEventListener('touchstart', handleClickOutside)
     }, 100)
 
     return () => {
       clearTimeout(timeoutId)
       document.removeEventListener('click', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
     }
   }, [isMenuOpen])
 
@@ -268,24 +268,22 @@ export function InscripcionExistenteCard({
                 <div className="relative group" data-user-menu>
                   {/* Avatar con dropdown trigger */}
                   <div className="relative" data-user-avatar>
-                    <div
-                      className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/50 ring-2 ring-emerald-500/20 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center cursor-pointer hover:ring-emerald-500/40 active:ring-emerald-500/60 transition-all"
-                      onClick={() => setIsMenuOpen(!isMenuOpen)}
-                      role="button"
-                      aria-label="Menú de usuario"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          setIsMenuOpen(!isMenuOpen)
-                        }
+                    <button
+                      type="button"
+                      className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/50 ring-2 ring-emerald-500/20 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center cursor-pointer hover:ring-emerald-500/40 active:ring-emerald-500/60 transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setIsMenuOpen(!isMenuOpen)
                       }}
+                      aria-label="Menú de usuario"
+                      aria-expanded={isMenuOpen}
                     >
                       {user.fotoUrl && !imageError ? (
                         <img
                           src={normalizeGoogleImageUrl(user.fotoUrl)}
                           alt={`${user.nombre} ${user.apellido}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover pointer-events-none"
                           onError={e => {
                             if (process.env.NODE_ENV === 'development') {
                               console.warn(
@@ -302,26 +300,26 @@ export function InscripcionExistenteCard({
                             setImageError(false)
                           }}
                           loading="lazy"
+                          draggable="false"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-emerald-400 text-lg font-bold">
+                        <div className="w-full h-full flex items-center justify-center text-emerald-400 text-lg font-bold pointer-events-none">
                           {user.nombre?.[0]?.toUpperCase() || 'U'}
                           {user.apellido?.[0]?.toUpperCase() || ''}
                         </div>
                       )}
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full p-1">
+                    </button>
+                    <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full p-1 pointer-events-none">
                       <CheckCircle2 className="size-3 text-white" />
                     </div>
                   </div>
 
                   {/* Dropdown menu (aparece al hover en desktop, al click en móvil) */}
-                  <div
-                    className={`absolute right-0 top-full mt-2 w-48 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl transition-all duration-200 z-50 ${isMenuOpen
-                        ? 'opacity-100 visible'
-                        : 'opacity-0 invisible lg:group-hover:opacity-100 lg:group-hover:visible'
-                      }`}
-                  >
+                  {isMenuOpen && (
+                    <div
+                      className="absolute right-0 top-full mt-2 w-48 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 duration-200"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                     <div className="p-2">
                       <div className="px-3 py-2 text-xs text-white/70 border-b border-white/10 mb-1">
                         <p className="font-semibold text-white">
