@@ -340,7 +340,8 @@ export function InscripcionExistenteCard({
                         Cerrar sesión
                       </Button>
                     </div>
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
