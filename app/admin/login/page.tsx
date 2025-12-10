@@ -23,16 +23,19 @@ export default function AdminLogin() {
   // Si ya está autenticado, redirigir al dashboard
   useEffect(() => {
     if (isHydrated && isAuthenticated) {
-      router.push('/admin')
+      // Usar window.location.href para forzar recarga completa en producción
+      window.location.href = '/admin'
     }
-  }, [isAuthenticated, isHydrated, router])
+  }, [isAuthenticated, isHydrated])
 
   const handleSubmit = async (data: LoginFormData & { rememberMe: boolean }) => {
     setIsSubmitting(true)
     setLoginError(null)
     
     try {
+      console.log('[AdminLogin] Iniciando login...')
       await login(data)
+      console.log('[AdminLogin] Login exitoso, redirigiendo...')
 
       // Limpiar error solo cuando el login es exitoso
       setLoginError(null)
@@ -41,13 +44,19 @@ export default function AdminLogin() {
         description: 'Has iniciado sesión correctamente',
       })
 
+      // Pequeño delay para asegurar que el toast se muestre
+      await new Promise(resolve => setTimeout(resolve, 100))
+
       // Resetear isSubmitting antes de redirigir
       setIsSubmitting(false)
 
       // Usar window.location.href para forzar una navegación completa
       // Esto asegura que el layout del admin detecte correctamente la autenticación
+      // y evita problemas de estado en producción
       window.location.href = '/admin'
     } catch (error: unknown) {
+      console.error('[AdminLogin] Error en login:', error)
+      
       const errorData = (error as { response?: { data?: { message?: string }; message?: string } })?.response?.data
       let errorMessage = errorData?.message || (error as { message?: string })?.message || 'Credenciales inválidas'
 
@@ -59,6 +68,12 @@ export default function AdminLogin() {
       ) {
         errorMessage =
           'El correo electrónico o la contraseña son incorrectos. Por favor, verifica tus credenciales e intenta nuevamente.'
+      }
+
+      // Mensaje para errores de red
+      if (errorMessage.includes('Network') || errorMessage.includes('conexión') || errorMessage.includes('conectar')) {
+        errorMessage =
+          'No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet e intenta nuevamente.'
       }
 
       setLoginError(errorMessage)

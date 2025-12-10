@@ -54,17 +54,23 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           : null
 
       if (!storedToken) {
-        router.push('/admin/login')
+        // Usar window.location.href para forzar recarga completa en producción
+        window.location.href = '/admin/login'
       } else {
         // Si hay token en storage pero el estado no está actualizado, forzar verificación
         // Pero solo una vez para evitar loops
+        console.log('[AdminLayout] Token encontrado en storage, verificando...')
         const timeoutId = setTimeout(() => {
-          checkAuth()
+          checkAuth().catch((error: unknown) => {
+            console.error('[AdminLayout] Error en checkAuth:', error)
+            // Si falla la verificación, limpiar y redirigir
+            window.location.href = '/admin/login'
+          })
         }, 100)
         return () => clearTimeout(timeoutId)
       }
     }
-  }, [isAuthenticated, isHydrated, isPublicPath, router, pathname, checkAuth])
+  }, [isAuthenticated, isHydrated, isPublicPath, pathname, checkAuth])
 
   const handleLogout = () => {
     logout()
