@@ -75,6 +75,7 @@ export function InscripcionExistenteCard({
   const { logout, user } = useUnifiedAuth()
   const router = useRouter()
   const [imageError, setImageError] = useState(false) // Estado para manejar errores de imagen
+  const [isMenuOpen, setIsMenuOpen] = useState(false) // Estado para controlar el menú en móvil
 
   // Función helper para normalizar URLs de Google
   const normalizeGoogleImageUrl = (url: string | undefined): string | undefined => {
@@ -109,6 +110,32 @@ export function InscripcionExistenteCard({
       setImageError(false)
     }
   }, [user?.fotoUrl])
+
+  // Cerrar el menú cuando se hace click fuera de él (solo en móvil)
+  useEffect(() => {
+    if (!isMenuOpen) return
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      // Verificar si el click fue fuera del menú y del avatar
+      if (
+        !target.closest('[data-user-menu]') &&
+        !target.closest('[data-user-avatar]')
+      ) {
+        setIsMenuOpen(false)
+      }
+    }
+
+    // Agregar listener después de un pequeño delay para evitar que se cierre inmediatamente
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside)
+    }, 100)
+
+    return () => {
+      clearTimeout(timeoutId)
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [isMenuOpen])
 
   const handleLogout = async () => {
     try {
@@ -238,10 +265,22 @@ export function InscripcionExistenteCard({
             {/* Avatar y menú de usuario en el header (patrón profesional) */}
             {user && (
               <div className="flex flex-col items-end gap-2">
-                <div className="relative group">
+                <div className="relative group" data-user-menu>
                   {/* Avatar con dropdown trigger */}
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/50 ring-2 ring-emerald-500/20 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center cursor-pointer hover:ring-emerald-500/40 transition-all">
+                  <div className="relative" data-user-avatar>
+                    <div
+                      className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/50 ring-2 ring-emerald-500/20 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center cursor-pointer hover:ring-emerald-500/40 active:ring-emerald-500/60 transition-all"
+                      onClick={() => setIsMenuOpen(!isMenuOpen)}
+                      role="button"
+                      aria-label="Menú de usuario"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setIsMenuOpen(!isMenuOpen)
+                        }
+                      }}
+                    >
                       {user.fotoUrl && !imageError ? (
                         <img
                           src={normalizeGoogleImageUrl(user.fotoUrl)}
@@ -276,8 +315,14 @@ export function InscripcionExistenteCard({
                     </div>
                   </div>
 
-                  {/* Dropdown menu (aparece al hover) */}
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  {/* Dropdown menu (aparece al hover en desktop, al click en móvil) */}
+                  <div
+                    className={`absolute right-0 top-full mt-2 w-48 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl transition-all duration-200 z-50 ${
+                      isMenuOpen
+                        ? 'opacity-100 visible'
+                        : 'opacity-0 invisible lg:group-hover:opacity-100 lg:group-hover:visible'
+                    }`}
+                  >
                     <div className="p-2">
                       <div className="px-3 py-2 text-xs text-white/70 border-b border-white/10 mb-1">
                         <p className="font-semibold text-white">
@@ -288,7 +333,10 @@ export function InscripcionExistenteCard({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={handleLogout}
+                        onClick={() => {
+                          setIsMenuOpen(false)
+                          handleLogout()
+                        }}
                         className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10 text-xs"
                       >
                         <LogOut className="w-3 h-3 mr-2" />
