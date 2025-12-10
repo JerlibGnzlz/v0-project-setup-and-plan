@@ -124,7 +124,7 @@ export class NotificationsService {
       }
 
       // Guardar en historial
-      let notificationHistory = null
+      let notificationHistory: Awaited<ReturnType<typeof this.prisma.notificationHistory.create>> | null = null
       try {
         notificationHistory = await this.prisma.notificationHistory.create({
           data: {
@@ -244,7 +244,7 @@ export class NotificationsService {
       }
 
       // Guardar en historial
-      let notificationHistory = null
+      let notificationHistory: Awaited<ReturnType<typeof this.prisma.notificationHistory.create>> | null = null
       try {
         notificationHistory = await this.prisma.notificationHistory.create({
           data: {

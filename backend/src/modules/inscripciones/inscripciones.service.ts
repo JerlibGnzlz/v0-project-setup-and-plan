@@ -425,7 +425,7 @@ export class InscripcionesService {
             const comprobanteUrl = dto.documentoUrl || null
 
             // Crear los pagos según el número de cuotas
-            const pagos = []
+            const pagos: Pago[] = []
             for (let i = 1; i <= numeroCuotas; i++) {
                 const pago = await tx.pago.create({
                     data: {
@@ -2282,7 +2282,7 @@ export class InscripcionesService {
             this.logger.log(`📋 Encontradas ${inscripciones.length} inscripciones pendientes`)
 
             // Filtrar y crear pagos si no existen
-            const inscripcionesConPagosPendientes = []
+            const inscripcionesConPagosPendientes: Array<typeof inscripciones[0]> = []
             for (const inscripcion of inscripciones) {
                 // Si no tiene pagos, crearlos automáticamente
                 if (!inscripcion.pagos || inscripcion.pagos.length === 0) {
@@ -2297,7 +2297,7 @@ export class InscripcionesService {
                                 : parseFloat(String(inscripcion.convencion?.costo || 0))
                         const montoPorCuota = costoTotal / numeroCuotas
 
-                        const pagosCreados = []
+                        const pagosCreados: Pago[] = []
                         for (let i = 1; i <= numeroCuotas; i++) {
                             const pago = await this.prisma.pago.create({
                                 data: {
