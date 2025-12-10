@@ -24,19 +24,34 @@ const dynamicImports = []
 // Solo configurar BullModule si Redis está configurado
 if (isRedisConfigured) {
   logger.log('✅ Redis configurado - Habilitando cola de notificaciones con Bull')
-  dynamicImports.push(
-    BullModule.forRoot({
-      redis: {
+  
+  // Si hay REDIS_URL, usarla directamente (soporta rediss:// para SSL)
+  // Si no, usar variables separadas
+  const redisConfig = process.env.REDIS_URL
+    ? process.env.REDIS_URL // BullModule acepta URL directamente
+    : {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379'),
         password: process.env.REDIS_PASSWORD || undefined,
         db: parseInt(process.env.REDIS_DB || '0'),
-      },
+      }
+  
+  dynamicImports.push(
+    BullModule.forRoot({
+      redis: redisConfig,
     }),
     BullModule.registerQueue({
       name: 'notifications',
     })
   )
+  
+  // Log de configuración (sin exponer credenciales)
+  if (process.env.REDIS_URL) {
+    const url = new URL(process.env.REDIS_URL)
+    logger.log(`📡 Redis URL configurada: ${url.protocol}//${url.hostname}:${url.port}`)
+  } else {
+    logger.log(`📡 Redis configurado: ${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`)
+  }
 } else {
   logger.warn('⚠️ Redis no configurado - Las notificaciones se procesarán directamente (sin cola)')
   logger.warn('   Para habilitar la cola, configura REDIS_HOST o REDIS_URL en las variables de entorno')
