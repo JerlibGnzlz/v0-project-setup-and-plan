@@ -3,7 +3,7 @@ services:
     name: ministerio-backend
     env: node
     rootDir: backend
-    buildCommand: npm install --legacy-peer-deps && npm run build && npx prisma generate
+    buildCommand: npm install --legacy-peer-deps && npx prisma generate && npm run build
     startCommand: npm run start:prod
     # Alternativa si rootDir no funciona: usar buildCommand con cd
     # buildCommand: cd backend && npm install --legacy-peer-deps && npm run build && npx prisma generate
