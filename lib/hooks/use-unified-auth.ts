@@ -230,7 +230,28 @@ export function useUnifiedAuth() {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    // Intentar invalidar el token en el backend antes de limpiar el storage
+    // Esto es importante para que el token quede en la blacklist
+    try {
+      const userType = state.userType
+      const refreshToken = state.refreshToken
+
+      if (userType === 'INVITADO') {
+        await invitadoAuthApi.logout(refreshToken || undefined)
+      } else if (userType === 'PASTOR') {
+        // TODO: Agregar logout para pastores si existe
+        // await pastorAuthApi.logout(refreshToken || undefined)
+      } else if (userType === 'ADMIN') {
+        // TODO: Agregar logout para admins si existe
+        // await authApi.logout(refreshToken || undefined)
+      }
+    } catch (error) {
+      // No lanzar error, logout debe siempre tener éxito
+      // Incluso si el backend falla, limpiamos el storage localmente
+      console.warn('[useUnifiedAuth] Error al invalidar token en backend (continuando con logout local):', error)
+    }
+
     // Limpiar todo de forma síncrona y rápida
     if (typeof window !== 'undefined') {
       // Limpiar localStorage

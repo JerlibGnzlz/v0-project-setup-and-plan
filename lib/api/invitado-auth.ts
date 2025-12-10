@@ -156,4 +156,35 @@ export const invitadoAuthApi = {
       throw error
     }
   },
+
+  logout: async (refreshToken?: string): Promise<void> => {
+    try {
+      const token =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('invitado_token') || sessionStorage.getItem('invitado_token')
+          : null
+
+      if (!token) {
+        console.log('[invitadoAuthApi] No hay token para invalidar en logout')
+        return
+      }
+
+      console.log('[invitadoAuthApi] Invalidando token en backend...')
+      await apiClient.post(
+        '/auth/invitado/logout',
+        refreshToken ? { refreshToken } : {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      console.log('[invitadoAuthApi] Logout exitoso en backend')
+    } catch (error: unknown) {
+      // No lanzar error, logout debe siempre tener éxito
+      // Incluso si el backend falla, limpiamos el storage localmente
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.warn('[invitadoAuthApi] Error al invalidar token en backend (continuando con logout local):', errorMessage)
+    }
+  },
 }
