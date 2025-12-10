@@ -170,8 +170,19 @@ export class EmailService {
       // Extraer texto plano del HTML
       const textContent = body.replace(/<[^>]*>/g, '').trim() || title
 
-      const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ministerio-amva.org'
+      const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_USER
       const fromName = process.env.SENDGRID_FROM_NAME || 'AMVA Digital'
+
+      if (!fromEmail) {
+        this.logger.error('❌ SENDGRID_FROM_EMAIL no configurado')
+        this.logger.error('   Configura SENDGRID_FROM_EMAIL en las variables de entorno')
+        // Intentar con SMTP si está disponible
+        if (this.transporter) {
+          this.logger.warn('⚠️ Intentando con SMTP como fallback...')
+          return this.sendWithSMTP(to, title, body, data)
+        }
+        return false
+      }
 
       const msg = {
         to,
@@ -201,11 +212,42 @@ export class EmailService {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       const errorStack = error instanceof Error ? error.stack : undefined
+      
+      // Extraer información adicional del error de SendGrid
+      const sendgridError = error as { response?: { body?: { errors?: unknown[] }; statusCode?: number } }
+      const errorDetails = sendgridError?.response?.body?.errors || []
+      const statusCode = sendgridError?.response?.statusCode
 
       this.logger.error(`❌ Error enviando email con SendGrid a ${to}:`, {
         message: errorMessage,
+        statusCode,
+        errors: errorDetails,
         stack: errorStack,
       })
+
+      // Mensajes específicos según el tipo de error
+      if (errorMessage === 'Forbidden' || statusCode === 403) {
+        this.logger.error('   ⚠️ Error 403 Forbidden de SendGrid')
+        this.logger.error('   Posibles causas:')
+        this.logger.error('   1. El email "from" no está verificado en SendGrid')
+        this.logger.error('      → Ve a SendGrid → Settings → Sender Authentication')
+        this.logger.error('      → Verifica el email: ' + (process.env.SENDGRID_FROM_EMAIL || 'NO CONFIGURADO'))
+        this.logger.error('   2. La API Key no tiene permisos de "Mail Send"')
+        this.logger.error('      → Ve a SendGrid → Settings → API Keys')
+        this.logger.error('      → Verifica que la API Key tenga permisos de "Mail Send"')
+        this.logger.error('   3. La API Key es incorrecta o fue revocada')
+        this.logger.error('      → Verifica SENDGRID_API_KEY en Render')
+      } else if (statusCode === 401) {
+        this.logger.error('   ⚠️ Error 401 Unauthorized de SendGrid')
+        this.logger.error('   → La API Key es inválida o fue revocada')
+        this.logger.error('   → Verifica SENDGRID_API_KEY en Render')
+      } else if (errorDetails && Array.isArray(errorDetails) && errorDetails.length > 0) {
+        this.logger.error('   Detalles del error:')
+        errorDetails.forEach((err: unknown, index: number) => {
+          const errObj = err as { message?: string; field?: string }
+          this.logger.error(`   ${index + 1}. ${errObj.field || 'Error'}: ${errObj.message || 'N/A'}`)
+        })
+      }
 
       // Si SendGrid falla, intentar con SMTP como fallback
       if (this.transporter) {
