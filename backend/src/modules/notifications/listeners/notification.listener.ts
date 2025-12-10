@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Optional } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { InjectQueue } from '@nestjs/bull'
 import { Queue } from 'bull'
@@ -20,7 +20,14 @@ import { NotificationType } from '../types/notification.types'
 export class NotificationListener {
   private readonly logger = new Logger(NotificationListener.name)
 
-  constructor(@InjectQueue('notifications') private notificationsQueue: Queue) {}
+  constructor(@Optional() @InjectQueue('notifications') private notificationsQueue: Queue | null) {
+    if (!this.notificationsQueue) {
+      this.logger.warn('⚠️ Cola de notificaciones no disponible (Redis no configurado)')
+      this.logger.warn('   Las notificaciones se procesarán directamente sin cola')
+    } else {
+      this.logger.log('✅ Cola de notificaciones configurada (con Redis)')
+    }
+  }
 
   /**
    * Escucha eventos de pago validado
