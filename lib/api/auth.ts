@@ -21,7 +21,16 @@ export const authApi = {
     console.log('[authApi] Enviando petición de login:', { email: data.email })
     try {
       console.log('[authApi] Esperando respuesta del servidor...')
-      const response = await apiClient.post<LoginResponse>('/auth/login', data)
+      
+      // Agregar timeout explícito para evitar que se quede colgado
+      const timeout = 10000 // 10 segundos
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout: El servidor no respondió en 10 segundos')), timeout)
+      })
+      
+      const responsePromise = apiClient.post<LoginResponse>('/auth/login', data)
+      const response = await Promise.race([responsePromise, timeoutPromise])
+      
       console.log('[authApi] Respuesta recibida (raw):', response)
       console.log('[authApi] Respuesta data:', response.data)
       console.log('[authApi] Respuesta recibida:', {
@@ -57,11 +66,29 @@ export const authApi = {
       }
 
       console.error('[authApi] Error en login:', errorMessage)
+      console.error('[authApi] Error completo:', {
+        message: errorMessage,
+        status: errorStatus,
+        code: error?.code,
+        response: error?.response?.data,
+        config: error?.config?.url,
+      })
+      
       if (errorStatus) {
         console.error('[authApi] Status:', errorStatus)
       }
       if (errorDetail !== errorMessage) {
         console.error('[authApi] Detalle:', errorDetail)
+      }
+
+      // Si es timeout, proporcionar mensaje específico
+      if (errorMessage.includes('Timeout') || errorMessage.includes('timeout')) {
+        const timeoutError = new Error(
+          'El servidor tardó demasiado en responder. Por favor, verifica tu conexión e intenta nuevamente.'
+        )
+        ;(timeoutError as any).isNetworkError = true
+        ;(timeoutError as any).code = 'TIMEOUT'
+        throw timeoutError
       }
 
       // Si es un error de red, proporcionar mensaje más útil
