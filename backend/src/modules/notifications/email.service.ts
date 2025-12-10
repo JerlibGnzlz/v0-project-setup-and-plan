@@ -30,6 +30,24 @@ export class EmailService {
           ...emailConfig.auth,
           pass: cleanPassword,
         },
+        // Configuración de timeouts más robusta para evitar ETIMEDOUT
+        connectionTimeout: 30000, // 30 segundos para establecer conexión
+        greetingTimeout: 30000, // 30 segundos para recibir saludo del servidor
+        socketTimeout: 30000, // 30 segundos para operaciones de socket
+        // Opciones adicionales para mejorar la conexión
+        pool: true, // Usar pool de conexiones
+        maxConnections: 5, // Máximo de conexiones en el pool
+        maxMessages: 100, // Máximo de mensajes por conexión
+        rateDelta: 1000, // Intervalo para rate limiting
+        rateLimit: 5, // Máximo de mensajes por rateDelta
+        // Opciones de TLS/SSL
+        tls: {
+          rejectUnauthorized: false, // No rechazar certificados no autorizados (útil para algunos servidores)
+          ciphers: 'SSLv3', // Ciphers permitidos
+        },
+        // Debug (solo en desarrollo)
+        debug: process.env.NODE_ENV === 'development',
+        logger: process.env.NODE_ENV === 'development',
       })
       this.logger.log('✅ Servicio de email configurado (Gmail SMTP)')
       this.logger.log(`📧 SMTP: ${emailConfig.host}:${emailConfig.port}`)
@@ -87,7 +105,15 @@ export class EmailService {
       }
 
       this.logger.log(`📧 Enviando email a ${to} desde ${process.env.SMTP_USER}...`)
-      const info = await this.transporter.sendMail(mailOptions)
+      
+      // Agregar timeout adicional para la operación completa
+      const sendPromise = this.transporter.sendMail(mailOptions)
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout: El envío de email tardó más de 60 segundos')), 60000)
+      })
+      
+      const info = await Promise.race([sendPromise, timeoutPromise])
+      
       this.logger.log(`✅ Email enviado exitosamente a ${to}`)
       this.logger.log(`   Message ID: ${info.messageId}`)
       this.logger.log(`   Response: ${info.response || 'N/A'}`)
@@ -111,8 +137,14 @@ export class EmailService {
         this.logger.error('   ⚠️ Error de autenticación SMTP. Verifica SMTP_USER y SMTP_PASSWORD')
       } else if (errorCode === 'ECONNECTION') {
         this.logger.error('   ⚠️ Error de conexión SMTP. Verifica SMTP_HOST y SMTP_PORT')
-      } else if (errorCode === 'ETIMEDOUT') {
-        this.logger.error('   ⚠️ Timeout de conexión SMTP. Verifica tu conexión a internet')
+      } else if (errorCode === 'ETIMEDOUT' || errorMessage.includes('Timeout')) {
+        this.logger.error('   ⚠️ Timeout de conexión SMTP')
+        this.logger.error('   Posibles causas:')
+        this.logger.error('   - Firewall bloqueando conexión a Gmail SMTP')
+        this.logger.error('   - SMTP_HOST o SMTP_PORT incorrectos')
+        this.logger.error('   - Problemas de red en Render')
+        this.logger.error('   - Gmail bloqueando conexiones desde Render')
+        this.logger.error('   Solución: Verifica que SMTP_HOST=smtp.gmail.com y SMTP_PORT=587')
       }
 
       return false
