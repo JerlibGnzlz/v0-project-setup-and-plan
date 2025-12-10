@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { Inject } from '@nestjs/common'
-import Redis from 'ioredis'
+import Redis, { type RedisOptions } from 'ioredis'
 
 /**
  * Servicio para manejar blacklist de tokens
@@ -19,7 +19,7 @@ export class TokenBlacklistService implements OnModuleInit {
     if (process.env.REDIS_HOST || process.env.REDIS_URL) {
       try {
         // Configurar opciones de Redis según si se usa URL o host/port
-        const redisOptions: Redis.RedisOptions = process.env.REDIS_URL
+        const redisOptions: RedisOptions = process.env.REDIS_URL
           ? {
               // Usar URL directamente (ioredis soporta URLs)
               url: process.env.REDIS_URL,
