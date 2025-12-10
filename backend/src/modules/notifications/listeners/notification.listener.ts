@@ -110,8 +110,17 @@ export class NotificationListener {
     try {
       // Verificar que la cola esté disponible
       if (!this.notificationsQueue) {
-        this.logger.warn('⚠️ Cola de notificaciones no disponible, procesando directamente')
+        this.logger.debug('⚠️ Cola de notificaciones no disponible (Redis no configurado), procesando directamente')
         // Fallback: procesar directamente sin cola
+        await this.processDirectly(event)
+        return
+      }
+
+      // Verificar que Redis esté realmente disponible intentando obtener el estado de la cola
+      try {
+        await this.notificationsQueue.getJobCounts()
+      } catch (redisError) {
+        this.logger.warn('⚠️ Redis no disponible, procesando notificación directamente')
         await this.processDirectly(event)
         return
       }

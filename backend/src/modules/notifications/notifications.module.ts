@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common'
+import { Module, forwardRef, Logger } from '@nestjs/common'
 import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { EventEmitterModule } from '@nestjs/event-emitter'
@@ -14,15 +14,17 @@ import { NotificationProcessor } from './processors/notification.processor'
 import { PrismaModule } from '../../prisma/prisma.module'
 import { AuthModule } from '../auth/auth.module'
 
-@Module({
-  imports: [
-    PrismaModule,
-    PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-secret-key',
-    }),
-    EventEmitterModule.forRoot(),
-    // Configurar BullModule con Redis para cola de notificaciones
+// Verificar si Redis está configurado
+const isRedisConfigured = !!(process.env.REDIS_HOST || process.env.REDIS_URL)
+const logger = new Logger('NotificationsModule')
+
+// Construir imports dinámicamente
+const dynamicImports = []
+
+// Solo configurar BullModule si Redis está configurado
+if (isRedisConfigured) {
+  logger.log('✅ Redis configurado - Habilitando cola de notificaciones con Bull')
+  dynamicImports.push(
     BullModule.forRoot({
       redis: {
         host: process.env.REDIS_HOST || 'localhost',
@@ -31,10 +33,24 @@ import { AuthModule } from '../auth/auth.module'
         db: parseInt(process.env.REDIS_DB || '0'),
       },
     }),
-    // Registrar cola de notificaciones
     BullModule.registerQueue({
       name: 'notifications',
+    })
+  )
+} else {
+  logger.warn('⚠️ Redis no configurado - Las notificaciones se procesarán directamente (sin cola)')
+  logger.warn('   Para habilitar la cola, configura REDIS_HOST o REDIS_URL en las variables de entorno')
+}
+
+@Module({
+  imports: [
+    PrismaModule,
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'your-secret-key',
     }),
+    EventEmitterModule.forRoot(),
+    ...dynamicImports, // Agregar imports de Bull solo si Redis está configurado
     forwardRef(() => AuthModule),
   ],
   controllers: [NotificationsController, EmailTestController],
@@ -44,7 +60,7 @@ import { AuthModule } from '../auth/auth.module'
     NotificationsService,
     NotificationsCleanupService,
     NotificationListener, // Listener que escucha eventos y los encola
-    NotificationProcessor, // Processor que procesa los trabajos de la cola
+    ...(isRedisConfigured ? [NotificationProcessor] : []), // Processor solo si Redis está configurado
   ],
   exports: [NotificationsService, NotificationsGateway, EmailService],
 })
