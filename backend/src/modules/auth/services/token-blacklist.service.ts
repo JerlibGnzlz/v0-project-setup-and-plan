@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { Inject } from '@nestjs/common'
-import Redis, { type RedisOptions } from 'ioredis'
+import Redis from 'ioredis'
+import type { RedisOptions } from 'ioredis'
 
 /**
  * Servicio para manejar blacklist de tokens
