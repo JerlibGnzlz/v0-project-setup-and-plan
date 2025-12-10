@@ -241,24 +241,18 @@ export const inscripcionesApi = {
     // Timeout de 5 minutos para el proceso de recordatorios (puede tardar si hay muchos)
     const timeout = 5 * 60 * 1000 // 5 minutos
     
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), timeout)
-    
     try {
       const response = await apiClient.post(
         '/inscripciones/acciones/enviar-recordatorios',
         { convencionId },
         {
-          signal: controller.signal,
-          timeout, // Timeout adicional de axios
+          timeout, // Timeout específico para esta operación
         }
       )
-      clearTimeout(timeoutId)
       return response.data
     } catch (error: unknown) {
-      clearTimeout(timeoutId)
-      
-      if (error instanceof Error && error.name === 'AbortError') {
+      // Manejar errores de timeout
+      if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
         throw new Error('El proceso de recordatorios está tardando demasiado. Por favor, intenta nuevamente.')
       }
       
