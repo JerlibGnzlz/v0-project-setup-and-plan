@@ -297,22 +297,29 @@ export function Navbar() {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+        className={`lg:hidden fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setIsOpen(false)}
-        style={{ top: scrolled ? '76px' : '72px' }}
+        style={{ 
+          top: scrolled ? '76px' : '72px',
+          // No usar backdrop-blur en móvil para evitar problemas de rendimiento
+        }}
       />
 
       {/* Mobile Menu Panel */}
       <div
-        className={`lg:hidden fixed right-0 z-40 w-[300px] sm:w-[350px] bg-[#0d1f35]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl transition-all duration-300 ease-out ${
+        className={`lg:hidden fixed right-0 z-50 w-[300px] sm:w-[350px] bg-[#0d1f35]/98 border-l border-white/10 shadow-2xl transition-all duration-300 ease-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{
           top: scrolled ? '76px' : '72px',
           height: scrolled ? 'calc(100vh - 76px)' : 'calc(100vh - 72px)',
+          // Reducir backdrop-blur en móvil para mejor rendimiento
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         <nav className="flex flex-col p-6 gap-2 overflow-y-auto h-full">
           {navLinks.map((link: any, index: number) => {
