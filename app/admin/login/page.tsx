@@ -29,22 +29,10 @@ export default function AdminLogin() {
 
   const handleSubmit = async (data: LoginFormData & { rememberMe: boolean }) => {
     setIsSubmitting(true)
+    setLoginError(null)
+    
     try {
       await login(data)
-
-      // Esperar un momento para asegurar que el storage se haya guardado
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      // Verificar que el token esté guardado antes de redirigir
-      const storage = data.rememberMe ? localStorage : sessionStorage
-      const storedToken = storage.getItem('auth_token')
-      const storedUser = storage.getItem('auth_user')
-
-      if (!storedToken || !storedUser) {
-        setLoginError('Error al guardar la sesión. Por favor, intenta nuevamente.')
-        setIsSubmitting(false)
-        return
-      }
 
       // Limpiar error solo cuando el login es exitoso
       setLoginError(null)
@@ -53,13 +41,12 @@ export default function AdminLogin() {
         description: 'Has iniciado sesión correctamente',
       })
 
-      // Usar router.push en lugar de window.location.href para mejor UX
-      setTimeout(() => {
-        router.push('/admin')
-        setTimeout(() => {
-          router.refresh()
-        }, 100)
-      }, 200)
+      // Resetear isSubmitting antes de redirigir
+      setIsSubmitting(false)
+
+      // Usar window.location.href para forzar una navegación completa
+      // Esto asegura que el layout del admin detecte correctamente la autenticación
+      window.location.href = '/admin'
     } catch (error: unknown) {
       const errorData = (error as { response?: { data?: { message?: string }; message?: string } })?.response?.data
       let errorMessage = errorData?.message || (error as { message?: string })?.message || 'Credenciales inválidas'
