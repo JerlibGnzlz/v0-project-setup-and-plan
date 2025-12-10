@@ -3,7 +3,7 @@ services:
     name: ministerio-backend
     env: node
     rootDir: backend
-    buildCommand: npm install --legacy-peer-deps && npx prisma generate && (npm run build 2>&1 || (echo "❌ Build command failed" && exit 1)) && test -f dist/main.js || (echo "❌ Build failed - dist/main.js not found" && ls -la dist/ 2>/dev/null || echo "dist/ directory does not exist" && exit 1)
+    buildCommand: npm install --legacy-peer-deps && npx prisma generate && npm run build && (test -f dist/src/main.js && echo "✅ Build successful - dist/src/main.js exists" || (echo "❌ Build failed - dist/src/main.js not found" && echo "Contents of dist/:" && ls -la dist/ 2>/dev/null || echo "dist/ directory does not exist" && exit 1))
     startCommand: npm run start:prod
     # Alternativa si rootDir no funciona: usar buildCommand con cd
     # buildCommand: cd backend && npm install --legacy-peer-deps && npm run build && npx prisma generate
