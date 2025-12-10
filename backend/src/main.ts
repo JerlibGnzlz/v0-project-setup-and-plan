@@ -77,6 +77,11 @@ async function bootstrap() {
       const forwardedProto = req.headers['x-forwarded-proto']
       const host = req.headers.host
 
+      // No redirigir si es localhost (desarrollo)
+      if (host && (host.includes('localhost') || host.includes('127.0.0.1'))) {
+        return next()
+      }
+
       // Si no es HTTPS y estamos en producción, redirigir
       if (forwardedProto && forwardedProto !== 'https' && host) {
         logger.warn(`⚠️  Redirigiendo HTTP a HTTPS: ${host}${req.url}`)
