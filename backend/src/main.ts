@@ -145,7 +145,14 @@ async function bootstrap() {
         }
       }
 
-      // Permitir origins configurados
+      // Permitir todos los dominios de Vercel (producción y previews)
+      // Vercel genera URLs como: https://app-name-xxx-username.vercel.app
+      if (origin.includes('.vercel.app') || origin.includes('vercel.app')) {
+        logger.debug(`✅ Origin permitido (Vercel): ${origin}`)
+        return callback(null, true)
+      }
+
+      // Permitir origins configurados explícitamente
       if (allowedOrigins.some(allowed => origin.startsWith(allowed) || allowed.includes(origin))) {
         logger.debug(`✅ Origin permitido: ${origin}`)
         return callback(null, true)
