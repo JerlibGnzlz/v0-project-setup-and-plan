@@ -19,64 +19,52 @@ export class TokenBlacklistService implements OnModuleInit {
     // Inicializar Redis si está configurado
     if (process.env.REDIS_HOST || process.env.REDIS_URL) {
       try {
-        // Configurar opciones de Redis según si se usa URL o host/port
-        let redisOptions: RedisOptions
-        
+        // Opciones comunes para ambos casos
+        const commonOptions: RedisOptions = {
+          // Deshabilitar reconexión automática después de varios intentos
+          retryStrategy: (times: number) => {
+            this.connectionAttempts = times
+            if (times > this.MAX_CONNECTION_ATTEMPTS) {
+              this.logger.warn(
+                `⚠️  Redis no disponible después de ${times} intentos. Token blacklist deshabilitado.`
+              )
+              this.logger.warn(
+                '   La aplicación continuará funcionando sin blacklist de tokens.'
+              )
+              this.redis = null
+              return null // Detener reconexión
+            }
+            const delay = Math.min(times * 50, 2000)
+            return delay
+          },
+          enableOfflineQueue: false,
+          maxRetriesPerRequest: 1,
+        }
+
+        // Crear instancia de Redis según si se usa URL o host/port
         if (process.env.REDIS_URL) {
-          // Usar URL directamente (ioredis soporta URLs)
-          redisOptions = {
-            url: process.env.REDIS_URL,
-            tls: process.env.REDIS_URL.startsWith('rediss://')
-              ? { rejectUnauthorized: false }
-              : undefined,
-            // Deshabilitar reconexión automática después de varios intentos
-            retryStrategy: (times: number) => {
-              this.connectionAttempts = times
-              if (times > this.MAX_CONNECTION_ATTEMPTS) {
-                this.logger.warn(
-                  `⚠️  Redis no disponible después de ${times} intentos. Token blacklist deshabilitado.`
-                )
-                this.logger.warn(
-                  '   La aplicación continuará funcionando sin blacklist de tokens.'
-                )
-                this.redis = null
-                return null // Detener reconexión
-              }
-              const delay = Math.min(times * 50, 2000)
-              return delay
-            },
-            enableOfflineQueue: false,
-            maxRetriesPerRequest: 1,
+          // Usar URL directamente (ioredis acepta URL como primer parámetro)
+          // Agregar opciones adicionales para TLS si es rediss://
+          const urlOptions: RedisOptions = {
+            ...commonOptions,
+            ...(process.env.REDIS_URL.startsWith('rediss://')
+              ? {
+                  tls: { rejectUnauthorized: false },
+                }
+              : {}),
           }
+          this.redis = new Redis(process.env.REDIS_URL, urlOptions)
         } else {
           // Usar host/port tradicional
-          redisOptions = {
+          const hostOptions: RedisOptions = {
+            ...commonOptions,
             host: process.env.REDIS_HOST || 'localhost',
             port: parseInt(process.env.REDIS_PORT || '6379'),
             password: process.env.REDIS_PASSWORD || undefined,
             db: parseInt(process.env.REDIS_DB || '0'),
-            // Deshabilitar reconexión automática después de varios intentos
-            retryStrategy: (times: number) => {
-              this.connectionAttempts = times
-              if (times > this.MAX_CONNECTION_ATTEMPTS) {
-                this.logger.warn(
-                  `⚠️  Redis no disponible después de ${times} intentos. Token blacklist deshabilitado.`
-                )
-                this.logger.warn(
-                  '   La aplicación continuará funcionando sin blacklist de tokens.'
-                )
-                this.redis = null
-                return null // Detener reconexión
-              }
-              const delay = Math.min(times * 50, 2000)
-              return delay
-            },
-            enableOfflineQueue: false,
-            maxRetriesPerRequest: 1,
           }
+          this.redis = new Redis(hostOptions)
         }
-
-        this.redis = new Redis(redisOptions)
 
         // Manejar eventos de Redis
         this.redis.on('error', (error: unknown) => {
