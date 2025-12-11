@@ -110,7 +110,8 @@ export const pagosApi = {
   },
 
   rehabilitarPago: async (id: string): Promise<Pago> => {
-    const response = await apiClient.post<Pago>(`/inscripciones/pagos/${id}/rehabilitar`)
+    // El endpoint está en /inscripciones/:id/rehabilitar donde :id es el ID del pago
+    const response = await apiClient.post<Pago>(`/inscripciones/${id}/rehabilitar`)
     return response.data
   },
 
