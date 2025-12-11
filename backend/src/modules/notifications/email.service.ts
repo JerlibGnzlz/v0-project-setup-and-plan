@@ -688,16 +688,20 @@ export class EmailService {
       } else if (errorCode === 'ECONNECTION') {
         this.logger.error('   ⚠️ Error de conexión SMTP. Verifica SMTP_HOST y SMTP_PORT')
       } else if (errorCode === 'ETIMEDOUT' || errorMessage.includes('Timeout')) {
-        this.logger.error('   ⚠️ Timeout de conexión SMTP')
+        this.logger.error('   ⚠️ Timeout de conexión SMTP (después de múltiples reintentos)')
         this.logger.error('   Posibles causas:')
-        this.logger.error('   - Firewall bloqueando conexión a Gmail SMTP')
-        this.logger.error('   - SMTP_HOST o SMTP_PORT incorrectos')
-        this.logger.error('   - Problemas de red en Render')
-        this.logger.error('   - Gmail bloqueando conexiones desde Render')
-        this.logger.error('   💡 Solución recomendada: Usa SendGrid configurando:')
-        this.logger.error('      EMAIL_PROVIDER=sendgrid')
-        this.logger.error('      SENDGRID_API_KEY=tu-api-key')
-        this.logger.error('      SENDGRID_FROM_EMAIL=tu-email@dominio.com')
+        this.logger.error('   - Gmail bloqueando conexiones desde Render (común en servicios cloud)')
+        this.logger.error('   - Firewall de Render bloqueando conexión a Gmail SMTP')
+        this.logger.error('   - Problemas de red temporales')
+        this.logger.error('   - Gmail requiere conexiones desde IPs conocidas')
+        this.logger.error('   Soluciones:')
+        this.logger.error('   1. Usar un servicio SMTP relay más confiable para producción:')
+        this.logger.error('      - SendGrid (plan de pago): $15/mes para 40,000 emails')
+        this.logger.error('      - Mailgun: $35/mes para 50,000 emails')
+        this.logger.error('      - Postmark: $15/mes para 10,000 emails')
+        this.logger.error('   2. O configurar un servidor SMTP propio')
+        this.logger.error('   3. O usar Resend si tienes dominio propio (gratis hasta 3,000/mes)')
+        this.logger.error('   💡 Gmail SMTP no es ideal para producción en servicios cloud como Render')
       }
 
       return false
