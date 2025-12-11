@@ -314,12 +314,13 @@ Este es un monorepo con:
 5. **NO hardcodear valores**: Usar variables de entorno
 6. **NO ignorar errores**: Siempre manejar con try/catch y logging
 7. **NO crear componentes > 400 líneas**: Modularizar
-8. **NO hacer commits ni push a GitHub automáticamente**: 
-   - ❌ NUNCA ejecutar `git commit` o `git push` automáticamente
-   - ❌ NUNCA hacer commits sin que el usuario lo solicite explícitamente
-   - ✅ Solo hacer cambios en archivos locales
-   - ✅ El usuario decidirá cuándo hacer commit y push
-   - ✅ Si el usuario solicita hacer commit, preguntar antes de ejecutar
+8. **SIEMPRE hacer git status, add, commit y push después de cambios**: 
+   - ✅ SIEMPRE ejecutar `git status` para verificar cambios
+   - ✅ SIEMPRE ejecutar `git add .` para agregar todos los cambios
+   - ✅ SIEMPRE ejecutar `git commit` con un mensaje descriptivo
+   - ✅ SIEMPRE ejecutar `git push origin main` después del commit
+   - ✅ Hacer esto automáticamente después de cualquier modificación de código
+   - ✅ El mensaje de commit debe ser descriptivo y claro
 
 9. **NO modificar archivos auto-generados que aparecen como cambios pendientes**:
    - ❌ NUNCA modificar archivos como `*.tsbuildinfo`, `tsconfig.tsbuildinfo`, `.next/`, `dist/`, `build/`

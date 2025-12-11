@@ -7,7 +7,7 @@ import { Noticia, CategoriaNoticia } from '@prisma/client'
 export class NoticiasService {
   private readonly logger = new Logger(NoticiasService.name)
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   // Generar slug desde el título
   private generateSlug(titulo: string): string {
