@@ -1067,16 +1067,33 @@ export default function InscripcionesPage() {
                                                                     Pago Completo
                                                                 </Badge>
                                                             )}
-                                                            {/* Botón editar */}
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => abrirEditarInscripcion(insc)}
-                                                                className="h-6 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-                                                            >
-                                                                <Pencil className="size-3 mr-1" />
-                                                                Editar
-                                                            </Button>
+                                                            {/* Botón editar - Deshabilitado si todos los pagos están completados o inscripción confirmada */}
+                                                            {(() => {
+                                                                const pagosInfo = getPagosInfo(insc)
+                                                                const todosPagosCompletados = pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
+                                                                const estaConfirmada = insc.estado === 'confirmado'
+                                                                const deshabilitado = todosPagosCompletados || estaConfirmada
+                                                                
+                                                                return (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() => abrirEditarInscripcion(insc)}
+                                                                        disabled={deshabilitado}
+                                                                        className="h-6 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                        title={
+                                                                            deshabilitado
+                                                                                ? estaConfirmada
+                                                                                    ? 'No se puede editar una inscripción confirmada'
+                                                                                    : 'No se puede editar una inscripción con todos los pagos completados'
+                                                                                : 'Editar información de la inscripción'
+                                                                        }
+                                                                    >
+                                                                        <Pencil className="size-3 mr-1" />
+                                                                        Editar
+                                                                    </Button>
+                                                                )
+                                                            })()}
                                                             {/* Botón cancelar (solo si no está cancelada ni confirmada) */}
                                                             {insc.estado !== 'cancelado' && insc.estado !== 'confirmado' && (
                                                                 <Button
