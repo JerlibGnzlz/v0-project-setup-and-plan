@@ -10,7 +10,7 @@ import { PastorJwtStrategy } from './strategies/pastor-jwt.strategy'
 import { InvitadoAuthService } from './invitado-auth.service'
 import { InvitadoAuthController } from './invitado-auth.controller'
 import { InvitadoJwtStrategy } from './strategies/invitado-jwt.strategy'
-// GoogleOAuthStrategy removido - archivo vacío
+import { GoogleOAuthStrategy } from './strategies/google-oauth.strategy'
 import { UnifiedAuthService } from './unified-auth.service'
 import { NotificationsModule } from '../notifications/notifications.module'
 import { TokenBlacklistService } from './services/token-blacklist.service'
@@ -32,7 +32,7 @@ import { TokenBlacklistService } from './services/token-blacklist.service'
     PastorJwtStrategy,
     InvitadoAuthService,
     InvitadoJwtStrategy,
-    // GoogleOAuthStrategy removido
+    GoogleOAuthStrategy,
     UnifiedAuthService,
     TokenBlacklistService,
   ],
