@@ -118,15 +118,31 @@ export class NoticiasService {
     const slug = createNoticiaDto.slug || this.generateSlug(createNoticiaDto.titulo)
     const uniqueSlug = await this.ensureUniqueSlug(slug)
 
+    // Manejar fechaPublicacion: si se envía, convertir correctamente preservando la hora
+    let fechaPublicacion: Date | null = null
+    if (createNoticiaDto.fechaPublicacion) {
+      const fechaStr = createNoticiaDto.fechaPublicacion
+      // Si viene en formato ISO sin zona horaria, interpretarlo como hora local
+      if (fechaStr.includes('T') && !fechaStr.includes('Z') && !fechaStr.includes('+')) {
+        // Formato: "2025-12-10T23:51" - interpretar como hora local
+        const [datePart, timePart] = fechaStr.split('T')
+        const [year, month, day] = datePart.split('-').map(Number)
+        const [hours, minutes] = timePart.split(':').map(Number)
+        // Crear fecha en hora local
+        fechaPublicacion = new Date(year, month - 1, day, hours, minutes)
+      } else {
+        // Si ya tiene zona horaria, usar directamente
+        fechaPublicacion = new Date(createNoticiaDto.fechaPublicacion)
+      }
+    } else if (createNoticiaDto.publicado) {
+      fechaPublicacion = new Date()
+    }
+
     return this.prisma.noticia.create({
       data: {
         ...createNoticiaDto,
         slug: uniqueSlug,
-        fechaPublicacion: createNoticiaDto.fechaPublicacion
-          ? new Date(createNoticiaDto.fechaPublicacion)
-          : createNoticiaDto.publicado
-            ? new Date()
-            : null,
+        fechaPublicacion,
       },
     })
   }
@@ -144,15 +160,35 @@ export class NoticiasService {
       slug = await this.ensureUniqueSlug(slug, id)
     }
 
+    // Preparar datos de actualización
+    const updateData: any = {
+      ...updateNoticiaDto,
+      ...(slug ? { slug } : {}),
+    }
+
+    // Manejar fechaPublicacion: si se envía, convertir correctamente preservando la hora
+    // El frontend envía en formato "yyyy-MM-dd'T'HH:mm" (sin zona horaria)
+    // Necesitamos interpretarlo como hora local y convertir a UTC para la BD
+    if (updateNoticiaDto.fechaPublicacion) {
+      const fechaStr = updateNoticiaDto.fechaPublicacion
+      // Si viene en formato ISO sin zona horaria, interpretarlo como hora local
+      if (fechaStr.includes('T') && !fechaStr.includes('Z') && !fechaStr.includes('+')) {
+        // Formato: "2025-12-10T23:51" - interpretar como hora local
+        const [datePart, timePart] = fechaStr.split('T')
+        const [year, month, day] = datePart.split('-').map(Number)
+        const [hours, minutes] = timePart.split(':').map(Number)
+        // Crear fecha en hora local
+        const fechaLocal = new Date(year, month - 1, day, hours, minutes)
+        updateData.fechaPublicacion = fechaLocal
+      } else {
+        // Si ya tiene zona horaria, usar directamente
+        updateData.fechaPublicacion = new Date(updateNoticiaDto.fechaPublicacion)
+      }
+    }
+
     return this.prisma.noticia.update({
       where: { id },
-      data: {
-        ...updateNoticiaDto,
-        ...(slug ? { slug } : {}),
-        ...(updateNoticiaDto.fechaPublicacion
-          ? { fechaPublicacion: new Date(updateNoticiaDto.fechaPublicacion) }
-          : {}),
-      },
+      data: updateData,
     })
   }
 
