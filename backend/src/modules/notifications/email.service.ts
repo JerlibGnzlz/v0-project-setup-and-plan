@@ -22,8 +22,23 @@ export class EmailService {
 
     if (provider === 'resend') {
       this.configureResend()
+      // Si Resend no se configuró, intentar SendGrid como fallback
+      if (!this.resendConfigured && (process.env.SENDGRID_API_KEY || process.env.SMTP_USER)) {
+        this.logger.warn('⚠️ Resend no se configuró, intentando SendGrid como fallback...')
+        this.configureSendGrid()
+        // Si SendGrid tampoco se configuró, intentar SMTP
+        if (!this.sendgridConfigured && process.env.SMTP_USER) {
+          this.logger.warn('⚠️ SendGrid no se configuró, intentando SMTP como fallback...')
+          this.configureSMTP()
+        }
+      }
     } else if (provider === 'sendgrid') {
       this.configureSendGrid()
+      // Si SendGrid no se configuró, intentar SMTP como fallback
+      if (!this.sendgridConfigured && process.env.SMTP_USER) {
+        this.logger.warn('⚠️ SendGrid no se configuró, intentando SMTP como fallback...')
+        this.configureSMTP()
+      }
     } else {
       this.configureSMTP()
     }
