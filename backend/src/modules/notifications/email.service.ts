@@ -161,19 +161,25 @@ export class EmailService {
             pass: cleanPassword,
           },
           // Configuración de timeouts más robusta para evitar ETIMEDOUT
-          connectionTimeout: 30000, // 30 segundos para establecer conexión
-          greetingTimeout: 30000, // 30 segundos para recibir saludo del servidor
-          socketTimeout: 30000, // 30 segundos para operaciones de socket
+          connectionTimeout: 60000, // 60 segundos para establecer conexión (aumentado)
+          greetingTimeout: 60000, // 60 segundos para recibir saludo del servidor (aumentado)
+          socketTimeout: 60000, // 60 segundos para operaciones de socket (aumentado)
           // Opciones adicionales para mejorar la conexión
-          pool: true, // Usar pool de conexiones
-          maxConnections: 5, // Máximo de conexiones en el pool
-          maxMessages: 100, // Máximo de mensajes por conexión
-          rateDelta: 1000, // Intervalo para rate limiting
-          rateLimit: 5, // Máximo de mensajes por rateDelta
-          // Opciones de TLS/SSL
+          pool: false, // Deshabilitar pool para evitar problemas de conexión persistente
+          maxConnections: 1, // Una conexión a la vez
+          maxMessages: 1, // Un mensaje por conexión
+          rateDelta: 2000, // Intervalo para rate limiting (aumentado)
+          rateLimit: 3, // Máximo de mensajes por rateDelta (reducido)
+          // Opciones de TLS/SSL mejoradas
           tls: {
-            rejectUnauthorized: false, // No rechazar certificados no autorizados (útil para algunos servidores)
-            ciphers: 'SSLv3', // Ciphers permitidos
+            rejectUnauthorized: false, // No rechazar certificados no autorizados
+            minVersion: 'TLSv1.2', // Versión mínima de TLS
+            ciphers: 'HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA', // Ciphers seguros
+          },
+          // Opciones de socket mejoradas
+          socket: {
+            keepAlive: true,
+            keepAliveDelay: 10000, // 10 segundos
           },
           // Debug (solo en desarrollo)
           debug: process.env.NODE_ENV === 'development',
