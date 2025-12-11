@@ -16,10 +16,11 @@ export class EmailService {
   private resendConfigured = false
 
   constructor() {
-    // Determinar qué proveedor usar (Resend es preferido para producción)
+    // Determinar qué proveedor usar (por defecto: gmail para desarrollo)
     const provider = (process.env.EMAIL_PROVIDER || 'gmail').toLowerCase() as EmailProvider
     this.emailProvider = provider
 
+    // Configurar SOLO el proveedor especificado, sin intentar otros
     if (provider === 'resend') {
       this.configureResend()
       // Si Resend no se configuró, intentar SendGrid como fallback
@@ -40,7 +41,19 @@ export class EmailService {
         this.configureSMTP()
       }
     } else {
+      // provider === 'gmail' o 'smtp' - usar SOLO SMTP
       this.configureSMTP()
+      // NO intentar configurar SendGrid o Resend si el usuario eligió SMTP explícitamente
+      if (!this.transporter) {
+        this.logger.error('❌ SMTP no se pudo configurar')
+        this.logger.error('   Verifica que tengas configurado:')
+        this.logger.error('   - SMTP_HOST (opcional, por defecto: smtp.gmail.com)')
+        this.logger.error('   - SMTP_PORT (opcional, por defecto: 587)')
+        this.logger.error('   - SMTP_SECURE (opcional, por defecto: false)')
+        this.logger.error('   - SMTP_USER (requerido)')
+        this.logger.error('   - SMTP_PASSWORD (requerido)')
+        this.logger.error('   Para Gmail, necesitas una App Password: https://myaccount.google.com/apppasswords')
+      }
     }
   }
 
@@ -190,27 +203,55 @@ export class EmailService {
       return false
     }
 
-    // Usar Resend si está configurado (preferido)
-    if (this.resendConfigured) {
+    // Respetar el proveedor configurado en EMAIL_PROVIDER
+    // Si el usuario eligió 'gmail' o 'smtp', usar SOLO SMTP
+    if (this.emailProvider === 'gmail' || this.emailProvider === 'smtp') {
+      if (!this.transporter) {
+        this.logger.error('❌ SMTP no está configurado')
+        this.logger.error('   Verifica que tengas configurado:')
+        this.logger.error('   - SMTP_USER (requerido)')
+        this.logger.error('   - SMTP_PASSWORD (requerido)')
+        this.logger.error('   - SMTP_HOST (opcional, por defecto: smtp.gmail.com)')
+        this.logger.error('   - SMTP_PORT (opcional, por defecto: 587)')
+        this.logger.error('   - SMTP_SECURE (opcional, por defecto: false)')
+        return false
+      }
+      return this.sendWithSMTP(to, title, body, data)
+    }
+
+    // Si el proveedor es 'resend', usar Resend
+    if (this.emailProvider === 'resend' && this.resendConfigured) {
       return this.sendWithResend(to, title, body, data)
     }
 
-    // Usar SendGrid si está configurado
-    if (this.sendgridConfigured) {
+    // Si el proveedor es 'sendgrid', usar SendGrid
+    if (this.emailProvider === 'sendgrid' && this.sendgridConfigured) {
       return this.sendWithSendGrid(to, title, body, data)
     }
 
-    // Usar SMTP (Gmail) como fallback
-    if (!this.transporter) {
-      this.logger.error('❌ No se puede enviar email: servicio no configurado')
-      this.logger.error('   Verifica que tengas configurado uno de estos:')
-      this.logger.error('   - Resend: RESEND_API_KEY y RESEND_FROM_EMAIL con EMAIL_PROVIDER=resend')
-      this.logger.error('   - SendGrid: SENDGRID_API_KEY y SENDGRID_FROM_EMAIL con EMAIL_PROVIDER=sendgrid')
-      this.logger.error('   - SMTP: SMTP_USER y SMTP_PASSWORD con EMAIL_PROVIDER=gmail')
-      return false
+    // Fallback: intentar en orden de prioridad si el proveedor configurado no está disponible
+    if (this.resendConfigured) {
+      this.logger.warn('⚠️ Usando Resend como fallback (proveedor configurado no disponible)')
+      return this.sendWithResend(to, title, body, data)
     }
 
-    return this.sendWithSMTP(to, title, body, data)
+    if (this.sendgridConfigured) {
+      this.logger.warn('⚠️ Usando SendGrid como fallback (proveedor configurado no disponible)')
+      return this.sendWithSendGrid(to, title, body, data)
+    }
+
+    if (this.transporter) {
+      this.logger.warn('⚠️ Usando SMTP como fallback (proveedor configurado no disponible)')
+      return this.sendWithSMTP(to, title, body, data)
+    }
+
+    // Si ningún proveedor está disponible
+    this.logger.error('❌ No se puede enviar email: ningún servicio configurado')
+    this.logger.error('   Verifica que tengas configurado uno de estos:')
+    this.logger.error('   - Resend: RESEND_API_KEY y RESEND_FROM_EMAIL con EMAIL_PROVIDER=resend')
+    this.logger.error('   - SendGrid: SENDGRID_API_KEY y SENDGRID_FROM_EMAIL con EMAIL_PROVIDER=sendgrid')
+    this.logger.error('   - SMTP: SMTP_USER y SMTP_PASSWORD con EMAIL_PROVIDER=gmail')
+    return false
   }
 
   /**
