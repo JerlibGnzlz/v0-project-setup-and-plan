@@ -22,13 +22,11 @@ import {
   UpdatePagoDto,
 } from './dto/inscripcion.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { InvitadoJwtAuthGuard } from '../auth/guards/invitado-jwt-auth.guard'
 import { Throttle } from '@nestjs/throttler'
 import { PaginationDto } from '../../common/dto/pagination.dto'
 import { InscripcionFilterDto, PagoFilterDto } from '../../common/dto/search-filter.dto'
 import { CsvExportUtil } from '../../common/utils/csv-export.util'
 import { AuthenticatedRequest } from '../auth/types/request.types'
-import { AuthenticatedInvitadoRequest } from '../auth/types/request.types'
 
 @Controller('inscripciones')
 export class InscripcionesController {
@@ -295,16 +293,6 @@ export class PagosController {
   @Post(':id/rehabilitar')
   rehabilitarPago(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
     return this.inscripcionesService.rehabilitarPago(id, req.user.id)
-  }
-
-  // Endpoint para invitados: rehabilitar sus propios pagos
-  @UseGuards(InvitadoJwtAuthGuard)
-  @Post('pagos/:id/rehabilitar')
-  async rehabilitarPagoInvitado(
-    @Request() req: AuthenticatedInvitadoRequest,
-    @Param('id') id: string
-  ) {
-    return this.inscripcionesService.rehabilitarPago(id, undefined, req.user.id)
   }
 
   @UseGuards(JwtAuthGuard)

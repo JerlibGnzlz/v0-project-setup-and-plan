@@ -1726,26 +1726,14 @@ export class InscripcionesService {
     /**
      * Rehabilita un pago rechazado para que pueda volver a enviarse
      */
-    async rehabilitarPago(id: string, userId?: string, invitadoId?: string): Promise<Pago> {
-        this.logger.log(`🔄 Rehabilitando pago: ${id}`, { userId, invitadoId })
+    async rehabilitarPago(id: string, userId?: string): Promise<Pago> {
+        this.logger.log(`🔄 Rehabilitando pago: ${id}`)
 
         const pago = await this.findOnePago(id)
         const estadoAnterior = pago.estado
 
         if (pago.estado !== EstadoPago.CANCELADO) {
             throw new BadRequestException('Solo se pueden rehabilitar pagos cancelados')
-        }
-
-        // Si es un invitado, verificar que el pago pertenece a su inscripción
-        if (invitadoId) {
-            const inscripcion = await this.prisma.inscripcion.findUnique({
-                where: { id: pago.inscripcionId },
-                include: { invitado: true },
-            })
-
-            if (!inscripcion || inscripcion.invitadoId !== invitadoId) {
-                throw new BadRequestException('No tienes permiso para rehabilitar este pago')
-            }
         }
 
         const pagoRehabilitado = await this.prisma.pago.update({
