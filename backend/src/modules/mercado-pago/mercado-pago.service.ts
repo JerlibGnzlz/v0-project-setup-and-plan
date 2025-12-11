@@ -93,7 +93,7 @@ export class MercadoPagoService {
               }
             : undefined,
         },
-        back_urls,
+        back_urls: backUrls,
         auto_return: 'approved',
         external_reference: `pago_${dto.pagoId}`,
         notification_url: `${process.env.BACKEND_URL || baseUrl}/api/mercado-pago/webhook`,

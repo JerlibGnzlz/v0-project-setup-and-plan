@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { PrismaService } from '../../prisma/prisma.service'
+import { Prisma } from '@prisma/client'
 import * as bcrypt from 'bcrypt'
 import {
   InvitadoRegisterDto,
@@ -319,9 +320,10 @@ export class InvitadoAuthService {
     }
 
     // Declarar invitadoAuth fuera del try para que esté disponible en todo el método
-    let invitadoAuth: Awaited<ReturnType<typeof this.prisma.invitadoAuth.findUnique<{
+    type InvitadoAuthWithInvitado = Prisma.InvitadoAuthGetPayload<{
       include: { invitado: true }
-    }>>> | null = null
+    }>
+    let invitadoAuth: InvitadoAuthWithInvitado | null = null
 
     try {
       // 1. Buscar si ya existe un invitado con este googleId
