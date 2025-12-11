@@ -1,12 +1,15 @@
 'use client'
 
-import { CheckCircle2, Clock, CreditCard, Mail, Phone, MapPin, Calendar, Copy, ExternalLink, AlertCircle, Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import { CheckCircle2, Clock, CreditCard, Mail, Phone, MapPin, Calendar, Copy, ExternalLink, AlertCircle, Sparkles, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { pagosApi } from '@/lib/api/pagos'
 
 interface InscripcionExistenteCardProps {
     inscripcion: {
@@ -51,12 +54,50 @@ export function InscripcionExistenteCard({
     convencion,
     onVolverInicio
 }: InscripcionExistenteCardProps) {
+    const queryClient = useQueryClient()
+    
     // Calcular estado de pagos
     const pagos = inscripcion.pagos || []
     const numeroCuotas = inscripcion.numeroCuotas || 3
     const cuotasPagadas = pagos.filter(p => p.estado === 'COMPLETADO').length
     const cuotasPendientes = numeroCuotas - cuotasPagadas
     const porcentajePagado = numeroCuotas > 0 ? (cuotasPagadas / numeroCuotas) * 100 : 0
+    
+    // Detectar pagos cancelados
+    const pagosCancelados = pagos.filter(p => p.estado === 'CANCELADO')
+    const tienePagosCancelados = pagosCancelados.length > 0
+    
+    // Mutation para rehabilitar pagos (como invitado)
+    const rehabilitarPagoMutation = useMutation({
+        mutationFn: (pagoId: string) => pagosApi.rehabilitarPago(pagoId, true), // true = es invitado
+        onSuccess: () => {
+            toast.success('Pago rehabilitado', {
+                description: 'El pago ha sido rehabilitado. Ahora puedes volver a enviar tu comprobante.',
+            })
+            // Invalidar queries para refrescar datos
+            queryClient.invalidateQueries({ queryKey: ['checkInscripcion'] })
+            queryClient.invalidateQueries({ queryKey: ['inscripciones'] })
+        },
+        onError: (error: any) => {
+            console.error('Error al rehabilitar pago:', error)
+            toast.error('Error al rehabilitar pago', {
+                description: error.response?.data?.message || error.message || 'No se pudo rehabilitar el pago',
+            })
+        },
+    })
+    
+    // Función para rehabilitar un pago
+    const handleRehabilitarPago = async (pagoId: string) => {
+        if (!confirm('¿Estás seguro de que deseas rehabilitar este pago? Podrás volver a enviar tu comprobante de pago.')) {
+            return
+        }
+        
+        try {
+            await rehabilitarPagoMutation.mutateAsync(pagoId)
+        } catch (error) {
+            // El error ya se maneja en onError
+        }
+    }
 
     // Obtener costo total
     const costo = typeof convencion.costo === 'number'
@@ -236,6 +277,7 @@ export function InscripcionExistenteCard({
                         {Array.from({ length: numeroCuotas }, (_, i) => i + 1).map(numero => {
                             const pago = pagos.find(p => p.numeroCuota === numero)
                             const estaPagada = pago?.estado === 'COMPLETADO'
+                            const estaCancelada = pago?.estado === 'CANCELADO'
 
                             return (
                                 <div
@@ -244,7 +286,9 @@ export function InscripcionExistenteCard({
                                         "flex items-center justify-between p-2 rounded-lg border",
                                         estaPagada
                                             ? "bg-emerald-500/10 border-emerald-500/30"
-                                            : "bg-white/5 border-white/10"
+                                            : estaCancelada
+                                                ? "bg-red-500/10 border-red-500/30"
+                                                : "bg-white/5 border-white/10"
                                     )}
                                 >
                                     <div className="flex items-center gap-2">
@@ -252,13 +296,19 @@ export function InscripcionExistenteCard({
                                             "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
                                             estaPagada
                                                 ? "bg-emerald-500 text-white"
-                                                : "bg-white/10 text-white/50"
+                                                : estaCancelada
+                                                    ? "bg-red-500 text-white"
+                                                    : "bg-white/10 text-white/50"
                                         )}>
                                             {estaPagada ? <CheckCircle2 className="w-3 h-3" /> : numero}
                                         </div>
                                         <span className={cn(
                                             "text-sm",
-                                            estaPagada ? "text-emerald-300" : "text-white/70"
+                                            estaPagada 
+                                                ? "text-emerald-300" 
+                                                : estaCancelada
+                                                    ? "text-red-300"
+                                                    : "text-white/70"
                                         )}>
                                             Cuota {numero}
                                         </span>
@@ -273,11 +323,28 @@ export function InscripcionExistenteCard({
                                                 "text-xs",
                                                 estaPagada
                                                     ? "border-emerald-500/50 text-emerald-400"
-                                                    : "border-amber-500/50 text-amber-400"
+                                                    : estaCancelada
+                                                        ? "border-red-500/50 text-red-400"
+                                                        : "border-amber-500/50 text-amber-400"
                                             )}
                                         >
-                                            {estaPagada ? 'Pagada' : 'Pendiente'}
+                                            {estaPagada ? 'Pagada' : estaCancelada ? 'Cancelada' : 'Pendiente'}
                                         </Badge>
+                                        {estaCancelada && pago?.id && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => handleRehabilitarPago(pago.id)}
+                                                disabled={rehabilitarPagoMutation.isPending}
+                                                className="h-6 text-[10px] px-2 border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                                            >
+                                                <RefreshCw className={cn(
+                                                    "size-3 mr-1",
+                                                    rehabilitarPagoMutation.isPending && "animate-spin"
+                                                )} />
+                                                {rehabilitarPagoMutation.isPending ? 'Rehabilitando...' : 'Rehabilitar'}
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             )
@@ -329,7 +396,23 @@ export function InscripcionExistenteCard({
                 </div>
 
                 {/* Mensaje informativo según estado */}
-                {cuotasPendientes > 0 && (
+                {tienePagosCancelados && (
+                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                        <div className="flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                                <h4 className="text-sm font-semibold text-red-300 mb-1">Pagos Cancelados</h4>
+                                <p className="text-xs text-white/70 mb-2">
+                                    Tienes {pagosCancelados.length} pago(s) cancelado(s). Puedes rehabilitarlos para volver a enviar tu comprobante de pago.
+                                </p>
+                                <p className="text-xs text-white/50">
+                                    Haz clic en el botón "Rehabilitar" junto a cada cuota cancelada para activarla nuevamente.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {cuotasPendientes > 0 && !tienePagosCancelados && (
                     <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                         <div className="flex items-start gap-3">
                             <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />

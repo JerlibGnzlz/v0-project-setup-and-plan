@@ -295,6 +295,16 @@ export class PagosController {
     return this.inscripcionesService.rehabilitarPago(id, req.user.id)
   }
 
+  // Endpoint para invitados: rehabilitar sus propios pagos
+  @UseGuards(InvitadoJwtAuthGuard)
+  @Post('pagos/:id/rehabilitar')
+  async rehabilitarPagoInvitado(
+    @Request() req: AuthenticatedInvitadoRequest,
+    @Param('id') id: string
+  ) {
+    return this.inscripcionesService.rehabilitarPago(id, undefined, req.user.id)
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get(':id/auditoria')
   getHistorialAuditoria(@Param('id') id: string) {

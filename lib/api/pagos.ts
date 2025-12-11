@@ -109,8 +109,13 @@ export const pagosApi = {
     return response.data
   },
 
-  rehabilitarPago: async (id: string): Promise<Pago> => {
-    // El endpoint está en /pagos/:id/rehabilitar donde :id es el ID del pago
+  rehabilitarPago: async (id: string, isInvitado: boolean = false): Promise<Pago> => {
+    // Si es invitado, usar endpoint específico para invitados
+    if (isInvitado) {
+      const response = await apiClient.post<Pago>(`/inscripciones/pagos/${id}/rehabilitar`)
+      return response.data
+    }
+    // Si es admin, usar endpoint de admin
     const response = await apiClient.post<Pago>(`/pagos/${id}/rehabilitar`)
     return response.data
   },
