@@ -154,10 +154,14 @@ export class EmailService {
       }
 
       try {
-        this.transporter = nodemailer.createTransport({
-          ...emailConfig,
+        // Construir configuración SMTP explícitamente
+        // No tipar explícitamente para evitar problemas con tipos de nodemailer
+        const smtpConfig = {
+          host: emailConfig.host,
+          port: emailConfig.port,
+          secure: emailConfig.secure,
           auth: {
-            ...emailConfig.auth,
+            user: emailConfig.auth.user,
             pass: cleanPassword,
           },
           // Configuración de timeouts más robusta para evitar ETIMEDOUT
@@ -184,7 +188,10 @@ export class EmailService {
           // Debug (solo en desarrollo)
           debug: process.env.NODE_ENV === 'development',
           logger: process.env.NODE_ENV === 'development',
-        })
+        }
+
+        // Usar type assertion para evitar problemas de tipos con nodemailer
+        this.transporter = nodemailer.createTransport(smtpConfig as unknown as nodemailer.TransportOptions)
 
         // Verificar que el transporter se creó correctamente
         if (this.transporter) {
@@ -624,27 +631,27 @@ export class EmailService {
       }
 
       this.logger.log(`📧 Enviando email a ${to} desde ${process.env.SMTP_USER} (SMTP)...`)
-      
+
       // Agregar timeout adicional para la operación completa (aumentado a 90 segundos)
       // También agregar reintentos para manejar timeouts temporales
       let lastError: unknown = null
       const maxRetries = 3
       const retryDelay = 2000 // 2 segundos entre reintentos
-      
+
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           if (attempt > 1) {
             this.logger.log(`🔄 Reintento ${attempt}/${maxRetries} para ${to}...`)
             await new Promise(resolve => setTimeout(resolve, retryDelay * (attempt - 1)))
           }
-          
+
           const sendPromise = this.transporter!.sendMail(mailOptions)
           const timeoutPromise = new Promise<never>((_, reject) => {
             setTimeout(() => reject(new Error('Timeout: El envío de email tardó más de 90 segundos')), 90000)
           })
-          
+
           const info = await Promise.race([sendPromise, timeoutPromise])
-          
+
           // Si llegamos aquí, el email se envió exitosamente
           this.logger.log(`✅ Email enviado exitosamente a ${to} (SMTP)`)
           this.logger.log(`   Message ID: ${info.messageId}`)
@@ -654,18 +661,18 @@ export class EmailService {
           lastError = error
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
           const errorCode = this.getErrorCode(error)
-          
+
           // Si es un timeout y no es el último intento, reintentar
           if ((errorCode === 'ETIMEDOUT' || errorMessage.includes('Timeout')) && attempt < maxRetries) {
             this.logger.warn(`⚠️ Timeout en intento ${attempt}/${maxRetries} para ${to}, reintentando...`)
             continue
           }
-          
+
           // Si no es timeout o es el último intento, lanzar el error
           throw error
         }
       }
-      
+
       // Si llegamos aquí, todos los reintentos fallaron
       throw lastError || new Error('Error desconocido después de múltiples reintentos')
     } catch (error: unknown) {
