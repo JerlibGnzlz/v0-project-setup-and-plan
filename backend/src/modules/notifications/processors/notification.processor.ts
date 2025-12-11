@@ -64,8 +64,8 @@ export class NotificationProcessor {
             template.body.replace(/<[^>]*>/g, ''), // Texto plano para push
             { ...data, type: notificationType }
           )
-          results.push = pushResult.pushSuccess
-          this.logger.log(`📱 Push ${pushResult.pushSuccess ? 'enviado' : 'falló'} para ${email}`)
+          results.push = pushResult
+          this.logger.log(`📱 Push ${pushResult ? 'enviado' : 'falló'} para ${email}`)
         } catch (error) {
           this.logger.error(`Error enviando push a ${email}:`, error)
           results.push = false

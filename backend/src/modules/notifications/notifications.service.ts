@@ -32,7 +32,7 @@ export class NotificationsService {
       const pastor = await this.prisma.pastor.findUnique({
         where: { email },
         include: {
-          pastorAuth: {
+          auth: {
             include: {
               deviceTokens: {
                 where: { active: true },
@@ -42,13 +42,13 @@ export class NotificationsService {
         },
       })
 
-      if (!pastor || !pastor.pastorAuth || pastor.pastorAuth.deviceTokens.length === 0) {
+      if (!pastor || !pastor.auth || pastor.auth.deviceTokens.length === 0) {
         this.logger.warn(`No se encontraron tokens de dispositivo para el email: ${email}`)
         return false
       }
 
       // Obtener todos los tokens activos
-      const tokens = pastor.pastorAuth.deviceTokens.map((dt) => dt.token)
+      const tokens = pastor.auth.deviceTokens.map((dt) => dt.token)
 
       if (tokens.length === 0) {
         this.logger.warn(`No hay tokens activos para el email: ${email}`)
@@ -163,6 +163,170 @@ export class NotificationsService {
       data: { active: false },
     })
     this.logger.log(`Token desactivado: ${token}`)
+  }
+
+  /**
+   * Envía una notificación a un admin (guarda en NotificationHistory)
+   */
+  async sendNotificationToAdmin(
+    email: string,
+    title: string,
+    body: string,
+    data?: any,
+  ): Promise<void> {
+    try {
+      await this.prisma.notificationHistory.create({
+        data: {
+          email,
+          title,
+          message: body,
+          type: data?.type || 'info',
+          read: false,
+          metadata: data || {},
+        },
+      })
+      this.logger.log(`📧 Notificación guardada para admin: ${email}`)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error guardando notificación para admin ${email}:`, errorMessage)
+      throw error
+    }
+  }
+
+  /**
+   * Registra un token de dispositivo (alias con email)
+   */
+  async registerToken(
+    email: string,
+    token: string,
+    platform: string,
+    deviceId?: string,
+  ): Promise<void> {
+    const pastor = await this.prisma.pastor.findUnique({
+      where: { email },
+      include: { auth: true },
+    })
+
+    if (!pastor || !pastor.auth) {
+      throw new Error(`Pastor no encontrado para email: ${email}`)
+    }
+
+    await this.registerDeviceToken(pastor.id, token, platform as 'ios' | 'android', deviceId)
+  }
+
+  /**
+   * Obtiene el historial de notificaciones para un admin
+   */
+  async getNotificationHistory(
+    email: string,
+    options?: { limit?: number; offset?: number },
+  ): Promise<any[]> {
+    const limit = options?.limit || 50
+    const offset = options?.offset || 0
+
+    return this.prisma.notificationHistory.findMany({
+      where: { email },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset,
+    })
+  }
+
+  /**
+   * Obtiene el conteo de notificaciones no leídas
+   */
+  async getUnreadCount(email: string): Promise<number> {
+    // Buscar primero si es admin (por email en NotificationHistory)
+    const adminCount = await this.prisma.notificationHistory.count({
+      where: {
+        email,
+        read: false,
+      },
+    })
+
+    if (adminCount > 0) {
+      return adminCount
+    }
+
+    // Si no es admin, buscar si es pastor (por pastorId)
+    const pastor = await this.prisma.pastor.findUnique({
+      where: { email },
+    })
+
+    if (pastor) {
+      // Los pastores no tienen NotificationHistory, retornar 0
+      return 0
+    }
+
+    return 0
+  }
+
+  /**
+   * Marca una notificación como leída
+   */
+  async markAsRead(id: string, email: string): Promise<void> {
+    await this.prisma.notificationHistory.updateMany({
+      where: {
+        id,
+        email,
+      },
+      data: {
+        read: true,
+      },
+    })
+  }
+
+  /**
+   * Marca todas las notificaciones como leídas
+   */
+  async markAllAsRead(email: string): Promise<void> {
+    await this.prisma.notificationHistory.updateMany({
+      where: {
+        email,
+        read: false,
+      },
+      data: {
+        read: true,
+      },
+    })
+  }
+
+  /**
+   * Elimina una notificación
+   */
+  async deleteNotification(id: string, email: string): Promise<void> {
+    await this.prisma.notificationHistory.deleteMany({
+      where: {
+        id,
+        email,
+      },
+    })
+  }
+
+  /**
+   * Elimina múltiples notificaciones
+   */
+  async deleteNotifications(
+    email: string,
+    options: { ids?: string[]; deleteRead?: boolean; olderThanDays?: number },
+  ): Promise<void> {
+    const where: any = { email }
+
+    if (options.ids && options.ids.length > 0) {
+      where.id = { in: options.ids }
+    } else {
+      if (options.deleteRead) {
+        where.read = true
+      }
+
+      if (options.olderThanDays) {
+        const date = new Date()
+        date.setDate(date.getDate() - options.olderThanDays)
+        where.createdAt = { lt: date }
+      }
+    }
+
+    await this.prisma.notificationHistory.deleteMany({ where })
   }
 }
 
