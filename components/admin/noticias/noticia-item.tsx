@@ -94,10 +94,24 @@ export function NoticiaItem({
 
           <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
             {noticia.autor && <span>Por: {noticia.autor}</span>}
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" />
-              {formatDate(noticia.fechaPublicacion || noticia.createdAt)}
-            </span>
+            {noticia.fechaPublicacion && (
+              <span className="flex items-center gap-1" title="Fecha de publicación">
+                <Calendar className="w-3.5 h-3.5" />
+                Publicado: {formatDate(noticia.fechaPublicacion)}
+              </span>
+            )}
+            {noticia.createdAt && (
+              <span className="flex items-center gap-1" title="Fecha de creación">
+                <Calendar className="w-3.5 h-3.5" />
+                Creado: {formatDate(noticia.createdAt)}
+              </span>
+            )}
+            {noticia.updatedAt && noticia.updatedAt !== noticia.createdAt && (
+              <span className="flex items-center gap-1" title="Última modificación">
+                <Calendar className="w-3.5 h-3.5" />
+                Modificado: {formatDate(noticia.updatedAt)}
+              </span>
+            )}
             <span className="flex items-center gap-1">
               <Eye className="w-3.5 h-3.5" />
               {noticia.vistas || 0} vistas
