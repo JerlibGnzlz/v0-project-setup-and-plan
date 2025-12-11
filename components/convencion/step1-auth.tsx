@@ -128,18 +128,18 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
             }
             localStorage.setItem('invitado_user', JSON.stringify(userData))
 
+            // Invalidar queries de React Query para que se refetch automáticamente
+            queryClient.invalidateQueries({ queryKey: ['invitado', 'profile'] })
+            queryClient.invalidateQueries({ queryKey: ['checkInscripcion'] })
+
             // Actualizar el estado con el perfil completo
             checkAuth()
 
             // Forzar re-renderizado para asegurar que la vista de bienvenida se muestre
             setForceUpdate(prev => prev + 1)
 
-            // Invalidar queries de React Query para que se refetch automáticamente
-            queryClient.invalidateQueries({ queryKey: ['invitado', 'profile'] })
-            queryClient.invalidateQueries({ queryKey: ['checkInscripcion'] })
-
-            // Esperar un momento para que el estado se actualice
-            await new Promise(resolve => setTimeout(resolve, 500))
+            // Esperar un momento para que el estado se actualice y las queries se completen
+            await new Promise(resolve => setTimeout(resolve, 800))
 
             // Llamar a onComplete para avanzar al siguiente paso
             console.log('[Step1Auth] Llamando a onComplete para avanzar al siguiente paso...')
