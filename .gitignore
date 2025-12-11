@@ -40,39 +40,6 @@ yarn-error.log*
 *.swp
 *.swo
 *~
-.cursor/
-*.code-workspace
-
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-desktop.ini
-
-# Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Cache
-.cache/
-.parcel-cache/
-.eslintcache
-.stylelintcache
-*.tsbuildinfo
-
-# Temporary files
-*.tmp
-*.temp
-.tmp/
-.temp/
 
 # Mobile App
 amva-mobile/node_modules/
@@ -81,3 +48,33 @@ amva-mobile/android/app/build/
 amva-mobile/android/build/
 amva-mobile/.expo-shared/
 *.log
+
+# TypeScript build info (auto-generado)
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Cache y temporales
+.cache/
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# OS
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Prisma
+backend/prisma/migrations/
+
+# Uploads locales (no subir archivos subidos)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Cursor/IDE
+.cursor/
+.vscode/
+.idea/

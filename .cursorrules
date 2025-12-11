@@ -314,6 +314,25 @@ Este es un monorepo con:
 5. **NO hardcodear valores**: Usar variables de entorno
 6. **NO ignorar errores**: Siempre manejar con try/catch y logging
 7. **NO crear componentes > 400 líneas**: Modularizar
+8. **NO hacer commits ni push a GitHub automáticamente**: 
+   - ❌ NUNCA ejecutar `git commit` o `git push` automáticamente
+   - ❌ NUNCA hacer commits sin que el usuario lo solicite explícitamente
+   - ✅ Solo hacer cambios en archivos locales
+   - ✅ El usuario decidirá cuándo hacer commit y push
+   - ✅ Si el usuario solicita hacer commit, preguntar antes de ejecutar
+
+9. **NO modificar archivos auto-generados que aparecen como cambios pendientes**:
+   - ❌ NUNCA modificar archivos como `*.tsbuildinfo`, `tsconfig.tsbuildinfo`, `.next/`, `dist/`, `build/`
+   - ❌ NUNCA hacer commit de archivos que se generan automáticamente
+   - ✅ Si aparecen cambios en archivos auto-generados, ignorarlos (están en `.gitignore`)
+   - ✅ Si el usuario ve cambios pendientes después de cerrar/abrir Cursor, verificar que los archivos estén en `.gitignore`
+   - ✅ Archivos que NO deberían aparecer como cambios:
+     - `*.tsbuildinfo` (TypeScript build info)
+     - `.next/` (Next.js build)
+     - `dist/` (Backend build)
+     - `node_modules/` (Dependencias)
+     - `*.log` (Logs)
+     - `.cache/`, `.tmp/` (Archivos temporales)
 
 ## ✅ Mejores Prácticas
 
