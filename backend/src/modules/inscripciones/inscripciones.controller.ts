@@ -22,11 +22,13 @@ import {
   UpdatePagoDto,
 } from './dto/inscripcion.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { InvitadoJwtAuthGuard } from '../auth/guards/invitado-jwt-auth.guard'
 import { Throttle } from '@nestjs/throttler'
 import { PaginationDto } from '../../common/dto/pagination.dto'
 import { InscripcionFilterDto, PagoFilterDto } from '../../common/dto/search-filter.dto'
 import { CsvExportUtil } from '../../common/utils/csv-export.util'
 import { AuthenticatedRequest } from '../auth/types/request.types'
+import { AuthenticatedInvitadoRequest } from '../auth/types/request.types'
 
 @Controller('inscripciones')
 export class InscripcionesController {
