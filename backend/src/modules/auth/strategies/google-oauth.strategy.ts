@@ -104,13 +104,29 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
       }
 
       // Extraer nombre y apellido
-      const nombre = profile.name?.givenName || profile.displayName?.split(' ')[0] || ''
-      const apellido =
+      let nombre = profile.name?.givenName || profile.displayName?.split(' ')[0] || ''
+      let apellido =
         profile.name?.familyName || profile.displayName?.split(' ').slice(1).join(' ') || ''
 
-      // Validar que al menos tengamos un nombre
+      // Si no hay apellido pero hay displayName con múltiples palabras, usar la última como apellido
+      if (!apellido && profile.displayName) {
+        const parts = profile.displayName.trim().split(/\s+/)
+        if (parts.length > 1) {
+          nombre = parts[0] || ''
+          apellido = parts.slice(1).join(' ') || ''
+        }
+      }
+
+      // Si aún no hay nombre ni apellido, usar el email como fallback
       if (!nombre && !apellido) {
-        this.logger.warn(`⚠️ Nombre completo no disponible en perfil de Google para: ${email}`)
+        this.logger.warn(`⚠️ Nombre completo no disponible en perfil de Google para: ${email}, usando email como nombre`)
+        nombre = email.split('@')[0] || 'Usuario'
+        apellido = '' // Apellido vacío es válido según el schema
+      }
+
+      // Asegurar que al menos nombre tenga un valor (apellido puede estar vacío)
+      if (!nombre) {
+        nombre = email.split('@')[0] || 'Usuario'
       }
 
       // Obtener foto del perfil de Google (si existe)

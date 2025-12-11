@@ -387,10 +387,21 @@ export class InvitadoAuthService {
         // Crear invitado
         this.logger.log(`📸 Guardando fotoUrl de Google: ${fotoUrl || 'NO HAY FOTO'}`)
 
+        // Asegurar que nombre y apellido tengan valores válidos (apellido puede estar vacío)
+        const nombreFinal = nombre.trim() || email.split('@')[0] || 'Usuario'
+        const apellidoFinal = apellido.trim() || '' // Apellido vacío es válido según el schema
+
+        this.logger.log(`📝 Creando invitado con datos:`, {
+          nombre: nombreFinal,
+          apellido: apellidoFinal || '(vacío)',
+          email,
+          tieneFoto: !!fotoUrl
+        })
+
         const invitado = await this.prisma.invitado.create({
           data: {
-            nombre,
-            apellido,
+            nombre: nombreFinal,
+            apellido: apellidoFinal,
             email,
             fotoUrl: fotoUrl || null, // Guardar foto de Google si existe
             auth: {
