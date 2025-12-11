@@ -30,11 +30,12 @@ export class CreateInscripcionDto {
   nombre: string
 
   @IsString()
-  @Length(2, 50, { message: 'El apellido debe tener entre 2 y 50 caracteres' })
+  @Length(0, 50, { message: 'El apellido no puede exceder 50 caracteres' })
+  @ValidateIf(o => o.apellido && o.apellido.length > 0)
   @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/, {
     message: 'El apellido solo puede contener letras, espacios, guiones y apóstrofes',
   })
-  apellido: string
+  apellido: string // Puede estar vacío si el usuario no tiene apellido (ej: Google OAuth)
 
   @IsEmail({}, { message: 'Correo electrónico inválido' })
   @Length(5, 254, { message: 'El correo electrónico debe tener entre 5 y 254 caracteres' })

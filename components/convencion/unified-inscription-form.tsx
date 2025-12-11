@@ -231,7 +231,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
       const datosInscripcion: any = {
         convencionId: convencion.id,
         nombre: formData.nombre.trim(),
-        apellido: formData.apellido.trim(),
+        apellido: (formData.apellido || '').trim(), // Asegurar que apellido siempre sea string (puede estar vacío)
         email: formData.email.trim().toLowerCase(),
         telefono: formData.telefono?.trim() || undefined,
         sede: formData.sede.trim(),
