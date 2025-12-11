@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, UseQueryResult } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api/client'
 
 // Tipos básicos para Mercado Pago
@@ -86,10 +86,12 @@ export function useCreatePaymentPreference() {
  * Hook para obtener el estado de un pago por su ID
  * @param paymentId - ID del pago (payment_id o preference_id)
  */
-export function usePaymentStatus(paymentId: string | null) {
-  return useQuery<PaymentStatus | null>({
+export function usePaymentStatus(
+  paymentId: string | null
+): UseQueryResult<PaymentStatus | null, Error> {
+  return useQuery<PaymentStatus | null, Error>({
     queryKey: ['mercado-pago', 'payment', paymentId],
-    queryFn: async () => {
+    queryFn: async (): Promise<PaymentStatus | null> => {
       if (!paymentId) {
         return null
       }
