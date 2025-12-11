@@ -48,39 +48,83 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
         '   Para habilitar Google OAuth, configura GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET en las variables de entorno.'
       )
     } else {
-      this.logger.log('✅ Google OAuth Strategy configurada correctamente')
-      this.logger.log(`   Callback URL: ${callbackURL}`)
+      this.logger.log(`✅ Google OAuth Strategy inicializada`)
+      this.logger.debug(`Callback URL: ${callbackURL}`)
     }
   }
 
   /**
-   * Valida el perfil de Google y retorna los datos del usuario
+   * Valida y procesa el perfil de Google OAuth
+   *
+   * @param accessToken - Token de acceso de Google
+   * @param refreshToken - Token de refresco de Google (no usado actualmente)
+   * @param profile - Perfil del usuario de Google
+   * @param done - Callback de Passport
    */
   async validate(
     accessToken: string,
     refreshToken: string,
     profile: Profile,
-    done: VerifyCallback,
+    done: VerifyCallback
   ): Promise<void> {
-    try {
-      const { id, name, emails, photos } = profile
+    // Si Google OAuth no está configurado, rechazar la autenticación
+    const clientID = process.env.GOOGLE_CLIENT_ID
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET
 
-      // Validar que el perfil tenga email
-      if (!emails || emails.length === 0 || !emails[0].value) {
-        this.logger.error('❌ Google OAuth: Perfil sin email')
-        return done(new UnauthorizedException('No se pudo obtener el email de Google'), null)
+    if (!clientID || !clientSecret) {
+      this.logger.error('❌ Intento de autenticación con Google OAuth, pero no está configurado')
+      return done(
+        new UnauthorizedException(
+          'Google OAuth no está configurado. Por favor, contacta al administrador.'
+        ),
+        undefined
+      )
+    }
+
+    try {
+      // Validar que el perfil tenga los datos necesarios
+      if (!profile || !profile.id) {
+        this.logger.error('❌ Perfil de Google inválido: falta ID')
+        return done(new UnauthorizedException('Perfil de Google inválido'), undefined)
       }
 
-      const email = emails[0].value
-      const nombre = name?.givenName || ''
-      const apellido = name?.familyName || ''
-      // Obtener foto del perfil de Google (si existe)
-      const fotoUrl = photos && photos[0] ? photos[0].value : null
+      // Validar email
+      if (!profile.emails || !profile.emails[0] || !profile.emails[0].value) {
+        this.logger.error('❌ Perfil de Google inválido: falta email')
+        return done(new UnauthorizedException('Email no disponible en el perfil de Google'), undefined)
+      }
 
-      this.logger.log(`🔐 Validando perfil de Google para: ${email}`)
+      const email = profile.emails[0].value
+
+      // Validar que el email esté verificado por Google
+      if (profile.emails[0].verified === false) {
+        this.logger.warn(`⚠️ Email de Google no verificado: ${email}`)
+        // En producción, podrías querer rechazar emails no verificados
+        // return done(new UnauthorizedException('Email de Google no verificado'), null)
+      }
+
+      // Extraer nombre y apellido
+      const nombre = profile.name?.givenName || profile.displayName?.split(' ')[0] || ''
+      const apellido =
+        profile.name?.familyName || profile.displayName?.split(' ').slice(1).join(' ') || ''
+
+      // Validar que al menos tengamos un nombre
+      if (!nombre && !apellido) {
+        this.logger.warn(`⚠️ Nombre completo no disponible en perfil de Google para: ${email}`)
+      }
+
+      // Obtener foto del perfil de Google (si existe)
+      const fotoUrl = profile.photos && profile.photos[0] ? profile.photos[0].value : null
+
+      this.logger.log(`📸 Foto de Google obtenida: ${fotoUrl || 'NO DISPONIBLE'}`, {
+        email,
+        tieneFotos: !!profile.photos,
+        cantidadFotos: profile.photos?.length || 0,
+        fotoUrlOriginal: fotoUrl,
+      })
 
       const user: GoogleOAuthUserData = {
-        googleId: id,
+        googleId: profile.id,
         email,
         nombre,
         apellido,
@@ -88,12 +132,16 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
         accessToken,
       }
 
-      // Llamar al callback con los datos del usuario
+      this.logger.log(`✅ Usuario de Google validado: ${email}`, {
+        googleId: profile.id,
+        nombre: `${nombre} ${apellido}`,
+        tieneFoto: !!fotoUrl,
+      })
+
       done(null, user)
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-      this.logger.error(`❌ Error validando perfil de Google: ${errorMessage}`)
-      done(new UnauthorizedException('Error al validar perfil de Google'), null)
+    } catch (error) {
+      this.logger.error('❌ Error al validar perfil de Google:', error)
+      done(error instanceof Error ? error : new Error('Error al procesar perfil de Google'), undefined)
     }
   }
 }

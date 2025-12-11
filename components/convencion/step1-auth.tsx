@@ -3,11 +3,26 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from '@/lib/validations/auth'
+import {
+  loginSchema,
+  registerSchema,
+  type LoginFormData,
+  type RegisterFormData,
+} from '@/lib/validations/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Mail, Lock, AlertCircle, Eye, EyeOff, Loader2, CheckCircle2, User, LogOut } from 'lucide-react'
+import {
+  Mail,
+  Lock,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Loader2,
+  CheckCircle2,
+  User,
+  LogOut,
+} from 'lucide-react'
 import { useUnifiedAuth } from '@/lib/hooks/use-unified-auth'
 import { useQueryClient } from '@tanstack/react-query'
 import { invitadoAuthApi } from '@/lib/api/invitado-auth'
@@ -47,14 +62,44 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
     const refreshToken = searchParams?.get('refresh_token')
     const isGoogle = searchParams?.get('google')
     const error = searchParams?.get('error')
-    
+
     if (error) {
-      toast.error('Error en la autenticación', {
-        description: 'No se pudo completar el inicio de sesión con Google',
+      // Mensajes de error más específicos según el tipo de error
+      let errorMessage = 'No se pudo completar el inicio de sesión con Google'
+      let errorTitle = 'Error en la autenticación'
+
+      switch (error) {
+        case 'google_auth_email_error':
+          errorTitle = 'Error con el email'
+          errorMessage =
+            'No se pudo obtener o validar el email de tu cuenta de Google. Por favor, intenta nuevamente.'
+          break
+        case 'google_auth_token_error':
+          errorTitle = 'Error al generar tokens'
+          errorMessage =
+            'No se pudieron generar los tokens de autenticación. Por favor, intenta nuevamente.'
+          break
+        case 'google_auth_failed':
+        default:
+          errorTitle = 'Error en la autenticación'
+          errorMessage =
+            'No se pudo completar el inicio de sesión con Google. Por favor, intenta nuevamente.'
+          break
+      }
+
+      toast.error(errorTitle, {
+        description: errorMessage,
+        duration: 5000,
       })
+
+      // Limpiar parámetros de error de la URL
+      setTimeout(() => {
+        router.replace(window.location.pathname)
+      }, 100)
+
       return
     }
-    
+
     if (token && isGoogle === 'true') {
       // Guardar tokens
       if (typeof window !== 'undefined') {
@@ -62,43 +107,58 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
         if (refreshToken) {
           localStorage.setItem('invitado_refresh_token', refreshToken)
         }
-        
+
         // Obtener el perfil inmediatamente después de guardar el token
         // Esto asegura que el usuario se muestre correctamente en la vista de bienvenida
         setTimeout(async () => {
           try {
             console.log('[Step1Auth] Obteniendo perfil después del callback de Google...')
             const profile = await invitadoAuthApi.getProfile()
-            
-            console.log('[Step1Auth] Perfil obtenido exitosamente:', { 
-              id: profile.id, 
+
+            console.log('[Step1Auth] Perfil obtenido exitosamente:', {
+              id: profile.id,
               email: profile.email,
-              fotoUrl: profile.fotoUrl 
+              fotoUrl: profile.fotoUrl,
+              fotoUrlNormalizada: normalizeGoogleImageUrl(profile.fotoUrl),
             })
-            
+
+            // Verificar que la fotoUrl esté disponible
+            if (!profile.fotoUrl) {
+              console.warn('[Step1Auth] ⚠️ El perfil no tiene fotoUrl. Esto puede deberse a:')
+              console.warn('  1. El usuario de Google no tiene foto de perfil')
+              console.warn('  2. La fotoUrl no se guardó correctamente en la base de datos')
+              console.warn('  3. El endpoint /auth/invitado/me no está retornando la fotoUrl')
+            } else {
+              console.log('[Step1Auth] ✅ FotoUrl disponible:', profile.fotoUrl)
+              console.log(
+                '[Step1Auth] ✅ FotoUrl normalizada:',
+                normalizeGoogleImageUrl(profile.fotoUrl)
+              )
+            }
+
             // Guardar perfil completo con foto
             const userData = {
               ...profile,
               tipo: 'INVITADO',
             }
             localStorage.setItem('invitado_user', JSON.stringify(userData))
-            
+
             // Actualizar el estado con el perfil completo
             // Esto hará que el componente muestre la vista de bienvenida
             checkAuth()
-            
+
             // Forzar re-renderizado para asegurar que la vista de bienvenida se muestre
             setForceUpdate(prev => prev + 1)
-            
+
             // Invalidar queries de React Query para que se refetch automáticamente
             queryClient.invalidateQueries({ queryKey: ['invitado', 'profile'] })
             queryClient.invalidateQueries({ queryKey: ['checkInscripcion'] })
-            
+
             // Limpiar parámetros de la URL DESPUÉS de actualizar el estado
             setTimeout(() => {
               router.replace(window.location.pathname)
             }, 200)
-            
+
             toast.success('¡Bienvenido!', {
               description: 'Has iniciado sesión con Google correctamente',
             })
@@ -107,17 +167,17 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
             console.error('[Step1Auth] Error details:', {
               status: error.response?.status,
               data: error.response?.data,
-              message: error.message
+              message: error.message,
             })
-            
+
             // Aún así, actualizar el estado con el token disponible
             checkAuth()
-            
+
             // Limpiar URL incluso si falla el perfil
             setTimeout(() => {
               router.replace(window.location.pathname)
             }, 100)
-            
+
             // Si falla, intentar usar los datos del token si están disponibles
             toast.success('¡Bienvenido!', {
               description: 'Has iniciado sesión con Google correctamente',
@@ -137,48 +197,34 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
     }, 100)
   }
 
-  const handleLogout = () => {
-    // Cerrar sesión en el hook de autenticación primero (limpia el estado de Zustand)
-    logout()
-    
-    // Limpiar todos los tokens y datos de usuario inmediatamente
-    if (typeof window !== 'undefined') {
-      // Limpiar localStorage
-      localStorage.removeItem('invitado_token')
-      localStorage.removeItem('invitado_refresh_token')
-      localStorage.removeItem('invitado_user')
-      localStorage.removeItem('pastor_auth_token')
-      localStorage.removeItem('pastor_refresh_token')
-      localStorage.removeItem('pastor_auth_user')
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_user')
-      
-      // Limpiar sessionStorage
-      sessionStorage.removeItem('invitado_token')
-      sessionStorage.removeItem('invitado_refresh_token')
-      sessionStorage.removeItem('invitado_user')
-      sessionStorage.removeItem('pastor_auth_token')
-      sessionStorage.removeItem('pastor_refresh_token')
-      sessionStorage.removeItem('pastor_auth_user')
-      sessionStorage.removeItem('auth_token')
-      sessionStorage.removeItem('auth_user')
-      
+  const handleLogout = async () => {
+    try {
+      // Cerrar sesión en el hook de autenticación (invalida token en backend y limpia storage)
+      await logout()
+
       // Limpiar también cualquier parámetro de URL que pueda tener tokens
-      const url = new URL(window.location.href)
-      url.searchParams.delete('token')
-      url.searchParams.delete('refresh_token')
-      url.searchParams.delete('google')
-      window.history.replaceState({}, '', url.pathname)
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href)
+        url.searchParams.delete('token')
+        url.searchParams.delete('refresh_token')
+        url.searchParams.delete('google')
+        window.history.replaceState({}, '', url.pathname)
+      }
+
+      // Mostrar toast de éxito
+      toast.success('Sesión cerrada', {
+        description: 'Has cerrado sesión correctamente',
+      })
+
+      // Redirigir a la landing page (página principal)
+      // Usar window.location.href para forzar una navegación completa y limpiar todo el estado
+      window.location.href = '/'
+    } catch (error) {
+      // Aún así continuar aunque haya error
+      console.warn('[Step1Auth] Error en logout:', error)
+      // Redirigir a la landing page incluso si hay error
+      window.location.href = '/'
     }
-    
-        // Mostrar toast de éxito
-        toast.success('Sesión cerrada', {
-          description: 'Has cerrado sesión correctamente',
-        })
-        
-        // Redirigir inmediatamente a la landing page (página principal)
-        // Usar window.location.href para forzar una navegación completa y limpiar todo el estado
-        window.location.href = '/'
   }
 
   const {
@@ -211,22 +257,59 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
     try {
       // Usar login unificado que busca en admins, pastores e invitados
       await login(data.email, data.password)
-      
+
       toast.success('Bienvenido', {
         description: 'Has iniciado sesión correctamente',
       })
-      
+
       // Invalidar queries de React Query para que se refetch automáticamente
       queryClient.invalidateQueries({ queryKey: ['invitado', 'profile'] })
       queryClient.invalidateQueries({ queryKey: ['checkInscripcion'] })
-      
+
       // Avanzar al siguiente paso
       onComplete()
     } catch (error: any) {
-      console.error('Error en login:', error)
-      const errorMessage = error.response?.data?.message || error.message || 'Credenciales inválidas'
+      // Extraer mensaje de error de forma robusta
+      // El backend usa el formato: { success: false, error: { message: "...", statusCode: 401, error: "Unauthorized" } }
+      let errorMessage = 'No pudimos iniciar sesión. Por favor, verifica tus credenciales.'
+
+      // Prioridad 1: Si el error ya tiene un mensaje claro (del unified-auth.ts que ya procesó el error), usarlo
+      // El mensaje ya viene procesado desde unified-auth.ts, así que tiene prioridad
+      if (
+        error.message &&
+        error.message !== 'Request failed with status code 401' &&
+        error.message !== 'Network Error' &&
+        !error.message.includes('status code')
+      ) {
+        errorMessage = error.message
+      }
+      // Prioridad 2: Extraer del response del backend (fallback)
+      else if (error.response?.data) {
+        const responseData = error.response.data
+
+        // Formato del GlobalExceptionFilter: { success: false, error: { message: "...", ... } }
+        if (responseData.error?.message) {
+          errorMessage = responseData.error.message
+        }
+        // Formato alternativo: { message: "..." }
+        else if (responseData.message) {
+          errorMessage =
+            typeof responseData.message === 'string'
+              ? responseData.message
+              : Array.isArray(responseData.message)
+                ? responseData.message.join(', ')
+                : errorMessage
+        }
+        // Formato string directo
+        else if (typeof responseData === 'string') {
+          errorMessage = responseData
+        }
+      }
+
+      // Mostrar el toast con el mensaje
       toast.error('Error de autenticación', {
         description: errorMessage,
+        duration: 5000,
       })
     }
   }
@@ -242,15 +325,15 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
         sede: data.sede,
         telefono: data.telefono,
       })
-      
+
       // Invalidar queries de React Query para que se refetch automáticamente
       queryClient.invalidateQueries({ queryKey: ['invitado', 'profile'] })
       queryClient.invalidateQueries({ queryKey: ['checkInscripcion'] })
-      
+
       // El hook ya muestra el toast de éxito
       // Cambiar a la pestaña de login después del registro
       setActiveTab('login')
-      
+
       // Pre-llenar el email en el formulario de login
       setLoginValue('email', data.email)
     } catch (error: any) {
@@ -262,13 +345,30 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
   // Función helper para normalizar URLs de Google
   const normalizeGoogleImageUrl = (url: string | undefined): string | undefined => {
     if (!url) return undefined
-    // Si es una URL de Google con parámetros de tamaño, intentar obtener una versión más grande
+
+    // Si es una URL de Google, normalizarla para obtener mejor calidad
     if (url.includes('googleusercontent.com')) {
-      // Remover parámetros de tamaño existentes y agregar uno más grande
-      const baseUrl = url.split('=')[0]
-      // Usar tamaño más grande para mejor calidad
-      return `${baseUrl}=s200-c`
+      try {
+        const urlObj = new URL(url)
+
+        // Remover todos los parámetros de tamaño existentes
+        urlObj.searchParams.delete('sz')
+        urlObj.searchParams.delete('s')
+
+        // Agregar parámetro para tamaño más grande (200px) sin recorte
+        // s200 = tamaño 200px, sin -c para mantener proporción
+        urlObj.searchParams.set('s', '200')
+
+        return urlObj.toString()
+      } catch (e) {
+        // Si falla el parsing, intentar método simple
+        // Remover parámetros existentes después del último =
+        const baseUrl = url.split('?')[0] || url.split('=')[0]
+        // Agregar parámetro de tamaño
+        return `${baseUrl}?sz=200`
+      }
     }
+
     return url
   }
 
@@ -285,7 +385,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
       console.log('[Step1Auth] Usuario autenticado detectado, mostrando vista de bienvenida')
       // Marcar que ya mostramos la información del usuario
       setHasShownUserInfo(true)
-      
+
       // Avanzar automáticamente al formulario después de 5 segundos
       // Esto da tiempo suficiente para que el usuario vea su información
       const timer = setTimeout(() => {
@@ -300,20 +400,20 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
   // Verificar también si hay token en localStorage para mostrar la vista inmediatamente después del callback
   const hasToken = typeof window !== 'undefined' && localStorage.getItem('invitado_token')
   const shouldShowWelcome = isAuthenticated && user && (user.fotoUrl || hasToken)
-  
+
   if (shouldShowWelcome) {
-    console.log('[Step1Auth] Mostrando vista de bienvenida:', { 
-      isAuthenticated, 
-      hasUser: !!user, 
+    console.log('[Step1Auth] Mostrando vista de bienvenida:', {
+      isAuthenticated,
+      hasUser: !!user,
       hasFotoUrl: !!user?.fotoUrl,
-      hasToken: !!hasToken 
+      hasToken: !!hasToken,
     })
     return (
       <div className="max-w-md mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="bg-gradient-to-br from-white/10 via-white/5 to-white/5 backdrop-blur-xl border border-white/20 rounded-3xl p-8 sm:p-10 shadow-2xl relative overflow-hidden">
           {/* Efecto de brillo animado */}
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-transparent to-teal-500/10 animate-pulse" />
-          
+
           {/* Contenido */}
           <div className="relative z-10">
             {/* Información del usuario autenticado */}
@@ -324,25 +424,29 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
                   {/* Anillo de pulso */}
                   <div className="absolute inset-0 rounded-full bg-emerald-500/30 animate-ping" />
                   <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-pulse" />
-                  
+
                   {/* Avatar */}
                   <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-emerald-500/60 ring-4 ring-emerald-500/20 shadow-lg shadow-emerald-500/30 group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
                     {user.fotoUrl && !imageError ? (
                       <img
-                        src={normalizeGoogleImageUrl(user.fotoUrl)}
+                        src={normalizeGoogleImageUrl(user.fotoUrl) || user.fotoUrl}
                         alt={`${user.nombre} ${user.apellido}`}
                         className="w-full h-full object-cover"
-                        onError={(e) => {
-                          // Solo log en desarrollo, no mostrar error al usuario
-                          if (process.env.NODE_ENV === 'development') {
-                            console.warn('[Step1Auth] Error cargando foto, mostrando iniciales:', user.fotoUrl)
-                          }
+                        crossOrigin="anonymous"
+                        referrerPolicy="no-referrer"
+                        onError={e => {
+                          console.error('[Step1Auth] ❌ Error cargando foto:', {
+                            originalUrl: user.fotoUrl,
+                            normalizedUrl: normalizeGoogleImageUrl(user.fotoUrl),
+                            error: e,
+                          })
                           setImageError(true)
                         }}
                         onLoad={() => {
-                          if (process.env.NODE_ENV === 'development') {
-                            console.log('[Step1Auth] Foto cargada exitosamente')
-                          }
+                          console.log('[Step1Auth] ✅ Foto cargada exitosamente:', {
+                            originalUrl: user.fotoUrl,
+                            normalizedUrl: normalizeGoogleImageUrl(user.fotoUrl),
+                          })
                           setImageError(false)
                         }}
                         loading="lazy"
@@ -354,20 +458,20 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Badge de verificación */}
                   <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full p-2 shadow-lg ring-2 ring-white/20">
                     <CheckCircle2 className="size-5 text-white" />
                   </div>
                 </div>
-                
+
                 {/* Información del usuario */}
                 <div className="space-y-2">
                   <h3 className="text-2xl font-bold text-white tracking-tight">
                     ¡Bienvenido, {user.nombre}!
                   </h3>
                   <p className="text-sm text-white/70 font-medium">{user.email}</p>
-                  
+
                   {/* Badge de Google */}
                   <div className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg">
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -400,19 +504,17 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
                 <p className="text-sm font-medium text-white/90">
                   Redirigiendo automáticamente al formulario...
                 </p>
-                <p className="text-xs text-white/50">
-                  Serás redirigido en unos segundos
-                </p>
+                <p className="text-xs text-white/50">Serás redirigido en unos segundos</p>
               </div>
-              
+
               {/* Barra de progreso animada */}
               <div className="relative w-full bg-white/10 rounded-full h-2.5 overflow-hidden shadow-inner">
-                <div 
+                <div
                   className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 rounded-full transition-all duration-[5000ms] ease-linear shadow-lg"
-                  style={{ 
+                  style={{
                     width: '100%',
                     backgroundSize: '200% 100%',
-                    animation: 'shimmer 2s infinite'
+                    animation: 'shimmer 2s infinite',
                   }}
                 />
               </div>
@@ -420,38 +522,50 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
 
             {/* Botones de acción */}
             <div className="space-y-3">
-                    {/* Botón principal para continuar */}
-                    <Button
-                      type="button"
-                      onClick={async () => {
-                        console.log('[Step1Auth] Botón continuar clickeado, verificando inscripción antes de avanzar...')
-                        setIsCheckingInscripcion(true)
-                        try {
-                          // Llamar onComplete que ahora verificará la inscripción existente antes de avanzar
-                          await onComplete()
-                        } finally {
-                          setIsCheckingInscripcion(false)
-                        }
-                      }}
-                      disabled={isCheckingInscripcion}
-                      className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold py-6 text-base shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all duration-300 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
-                      <span className="flex items-center justify-center gap-2">
-                        {isCheckingInscripcion ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Verificando inscripción...
-                          </>
-                        ) : (
-                          <>
-                            Continuar con la inscripción
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                            </svg>
-                          </>
-                        )}
-                      </span>
-                    </Button>
+              {/* Botón principal para continuar */}
+              <Button
+                type="button"
+                onClick={async () => {
+                  console.log(
+                    '[Step1Auth] Botón continuar clickeado, verificando inscripción antes de avanzar...'
+                  )
+                  setIsCheckingInscripcion(true)
+                  try {
+                    // Llamar onComplete que ahora verificará la inscripción existente antes de avanzar
+                    await onComplete()
+                  } finally {
+                    setIsCheckingInscripcion(false)
+                  }
+                }}
+                disabled={isCheckingInscripcion}
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold py-6 text-base shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all duration-300 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  {isCheckingInscripcion ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Verificando inscripción...
+                    </>
+                  ) : (
+                    <>
+                      Continuar con la inscripción
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 7l5 5m0 0l-5 5m5-5H6"
+                        />
+                      </svg>
+                    </>
+                  )}
+                </span>
+              </Button>
 
               {/* Botón secundario para cerrar sesión */}
               <Button
@@ -485,7 +599,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
             {!isLoadingGoogle && (
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             )}
-            
+
             <span className="relative flex items-center justify-center gap-3">
               {isLoadingGoogle ? (
                 <>
@@ -833,4 +947,3 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
     </div>
   )
 }
-
