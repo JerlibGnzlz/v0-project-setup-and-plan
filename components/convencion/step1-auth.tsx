@@ -110,7 +110,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
 
         // Obtener el perfil inmediatamente después de guardar el token
         // Esto asegura que el usuario se muestre correctamente en la vista de bienvenida
-        setTimeout(async () => {
+        const processGoogleAuth = async () => {
           try {
             console.log('[Step1Auth] Obteniendo perfil después del callback de Google...')
             const profile = await invitadoAuthApi.getProfile()
@@ -119,22 +119,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
               id: profile.id,
               email: profile.email,
               fotoUrl: profile.fotoUrl,
-              fotoUrlNormalizada: normalizeGoogleImageUrl(profile.fotoUrl),
             })
-
-            // Verificar que la fotoUrl esté disponible
-            if (!profile.fotoUrl) {
-              console.warn('[Step1Auth] ⚠️ El perfil no tiene fotoUrl. Esto puede deberse a:')
-              console.warn('  1. El usuario de Google no tiene foto de perfil')
-              console.warn('  2. La fotoUrl no se guardó correctamente en la base de datos')
-              console.warn('  3. El endpoint /auth/invitado/me no está retornando la fotoUrl')
-            } else {
-              console.log('[Step1Auth] ✅ FotoUrl disponible:', profile.fotoUrl)
-              console.log(
-                '[Step1Auth] ✅ FotoUrl normalizada:',
-                normalizeGoogleImageUrl(profile.fotoUrl)
-              )
-            }
 
             // Guardar perfil completo con foto
             const userData = {
@@ -144,7 +129,6 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
             localStorage.setItem('invitado_user', JSON.stringify(userData))
 
             // Actualizar el estado con el perfil completo
-            // Esto hará que el componente muestre la vista de bienvenida
             checkAuth()
 
             // Forzar re-renderizado para asegurar que la vista de bienvenida se muestre
@@ -154,36 +138,50 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
             queryClient.invalidateQueries({ queryKey: ['invitado', 'profile'] })
             queryClient.invalidateQueries({ queryKey: ['checkInscripcion'] })
 
+            // Esperar un momento para que el estado se actualice
+            await new Promise(resolve => setTimeout(resolve, 500))
+
+            // Llamar a onComplete para avanzar al siguiente paso
+            console.log('[Step1Auth] Llamando a onComplete para avanzar al siguiente paso...')
+            await onComplete(userData)
+
             // Limpiar parámetros de la URL DESPUÉS de actualizar el estado
-            setTimeout(() => {
-              router.replace(window.location.pathname)
-            }, 200)
+            router.replace(window.location.pathname)
 
             toast.success('¡Bienvenido!', {
               description: 'Has iniciado sesión con Google correctamente',
             })
-          } catch (error: any) {
+          } catch (error: unknown) {
             console.error('[Step1Auth] Error obteniendo perfil después del callback:', error)
-            console.error('[Step1Auth] Error details:', {
-              status: error.response?.status,
-              data: error.response?.data,
-              message: error.message,
-            })
+            const errorDetails = error && typeof error === 'object' && 'response' in error
+              ? {
+                  status: (error as { response?: { status?: number } }).response?.status,
+                  data: (error as { response?: { data?: unknown } }).response?.data,
+                }
+              : {}
+            console.error('[Step1Auth] Error details:', errorDetails)
 
             // Aún así, actualizar el estado con el token disponible
             checkAuth()
 
-            // Limpiar URL incluso si falla el perfil
-            setTimeout(() => {
-              router.replace(window.location.pathname)
-            }, 100)
+            // Intentar avanzar aunque falle el perfil
+            try {
+              await onComplete()
+            } catch (onCompleteError) {
+              console.error('[Step1Auth] Error llamando a onComplete:', onCompleteError)
+            }
 
-            // Si falla, intentar usar los datos del token si están disponibles
+            // Limpiar URL incluso si falla el perfil
+            router.replace(window.location.pathname)
+
             toast.success('¡Bienvenido!', {
               description: 'Has iniciado sesión con Google correctamente',
             })
           }
-        }, 300) // Delay mínimo para asegurar que el token esté guardado
+        }
+
+        // Ejecutar inmediatamente sin delay para procesar más rápido
+        processGoogleAuth()
       }
     }
   }, [searchParams, checkAuth, onComplete])
