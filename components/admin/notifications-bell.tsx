@@ -115,7 +115,11 @@ export function NotificationsBell() {
     }
   }
 
-  const unreadNotifications = history?.notifications.filter(n => !n.read) || []
+  // Validar que history y notifications existan antes de filtrar
+  const unreadNotifications = 
+    history && Array.isArray(history.notifications) 
+      ? history.notifications.filter(n => !n.read) 
+      : []
 
   // Función para obtener el texto del botón de acción según el tipo
   const getActionButtonText = (type: string) => {
@@ -154,12 +158,14 @@ export function NotificationsBell() {
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold">Notificaciones</h3>
           <div className="flex items-center gap-2">
-            {history && history.notifications.length > 0 && (
+            {history && Array.isArray(history.notifications) && history.notifications.length > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  const readNotifications = history.notifications.filter(n => n.read)
+                  const readNotifications = Array.isArray(history.notifications) 
+                    ? history.notifications.filter(n => n.read) 
+                    : []
                   if (readNotifications.length > 0) {
                     setShowClearDialog(true)
                   } else {
@@ -197,14 +203,14 @@ export function NotificationsBell() {
                 </div>
               ))}
             </div>
-          ) : history?.notifications.length === 0 ? (
+          ) : !history || !Array.isArray(history.notifications) || history.notifications.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Bell className="h-12 w-12 mx-auto mb-2 opacity-50" />
               <p>No hay notificaciones</p>
             </div>
           ) : (
             <div className="p-2">
-              {history?.notifications.map(notification => (
+              {Array.isArray(history.notifications) && history.notifications.map(notification => (
                 <div
                   key={notification.id}
                   className={`p-3 rounded-lg mb-2 transition-all ${
@@ -342,7 +348,7 @@ export function NotificationsBell() {
               ¿Eliminar notificaciones leídas?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {history &&
+              {history && Array.isArray(history.notifications) &&
                 (() => {
                   const readCount = history.notifications.filter(n => n.read).length
                   return `Se eliminarán ${readCount} notificación(es) leída(s). Esta acción no se puede deshacer.`
@@ -355,7 +361,7 @@ export function NotificationsBell() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
-                if (history) {
+                if (history && Array.isArray(history.notifications)) {
                   const readNotifications = history.notifications.filter(n => n.read)
                   if (readNotifications.length > 0) {
                     await deleteNotifications.mutateAsync({

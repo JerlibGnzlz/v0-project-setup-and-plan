@@ -12,9 +12,36 @@ export function useNotificationHistory(limit = 50, offset = 0) {
 
   return useQuery({
     queryKey: ['notifications', 'history', limit, offset],
-    queryFn: () => notificationsApi.getHistory(limit, offset),
+    queryFn: async () => {
+      try {
+        const data = await notificationsApi.getHistory(limit, offset)
+        // Asegurar que siempre tenga la estructura correcta
+        return {
+          notifications: Array.isArray(data?.notifications) ? data.notifications : [],
+          total: typeof data?.total === 'number' ? data.total : 0,
+          limit: typeof data?.limit === 'number' ? data.limit : limit,
+          offset: typeof data?.offset === 'number' ? data.offset : offset,
+        }
+      } catch (error) {
+        // Si hay error, retornar estructura por defecto
+        console.warn('[useNotificationHistory] Error obteniendo historial:', error)
+        return {
+          notifications: [],
+          total: 0,
+          limit,
+          offset,
+        }
+      }
+    },
     enabled: !!hasToken, // Solo ejecutar si hay token
     refetchOnWindowFocus: !!hasToken, // Solo refetch si hay token
+    // Valores por defecto para evitar undefined
+    placeholderData: {
+      notifications: [],
+      total: 0,
+      limit,
+      offset,
+    },
   })
 }
 
