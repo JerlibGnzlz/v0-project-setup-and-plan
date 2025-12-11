@@ -27,13 +27,16 @@ import { QueryProvider } from '@/lib/providers/query-provider'
 import { getReturnUrl } from '@/lib/utils/scroll-restore'
 import { formatViews } from '@/lib/utils/view-tracker'
 
-function formatDate(dateString: string | null): string {
+function formatDate(dateString: string | Date | null): string {
   if (!dateString) return ''
   try {
-    const date = new Date(dateString)
+    // Si es un string, crear Date. Si ya es Date, usar directamente
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString
     // Asegurarse de que la fecha es válida
     if (isNaN(date.getTime())) return ''
     // Formato: "26 de noviembre, 2025 a las 14:30"
+    // date-fns maneja correctamente las zonas horarias: la fecha viene en UTC de la BD
+    // y se muestra en la zona horaria local del navegador
     return format(date, "d 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })
   } catch {
     return ''
