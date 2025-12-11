@@ -62,25 +62,41 @@ function ConvencionInscripcionPageContent() {
       hasUser: !!user,
       isLoadingInscripcion,
       isFetchingInscripcion,
+      userEmail: user?.email,
     })
     
-    // Si hay inscripción existente, ambos pasos están completados
+    // PRIORIDAD 1: Si hay inscripción existente, ir directo a mostrarla
     if (inscripcionExistente) {
+      console.log('[ConvencionInscripcionPage] Inscripción existente detectada, yendo directo a la vista')
       setPasosCompletados([1, 2])
       if (currentStep === 1) {
         setCurrentStep(2)
       }
-    } else if (
+      return // Salir temprano para evitar otros cambios
+    }
+    
+    // PRIORIDAD 2: Si el usuario está autenticado pero aún no se ha verificado la inscripción, esperar
+    if ((isAuthenticated || hasToken) && (isLoadingInscripcion || isFetchingInscripcion)) {
+      console.log('[ConvencionInscripcionPage] Esperando verificación de inscripción...')
+      return // Esperar a que termine la carga
+    }
+    
+    // PRIORIDAD 3: Usuario autenticado sin inscripción, mostrar formulario
+    if (
       (isAuthenticated || hasToken) &&
       currentStep === 1 &&
       !isLoadingInscripcion &&
-      !isFetchingInscripcion
+      !isFetchingInscripcion &&
+      !inscripcionExistente
     ) {
-      // Usuario autenticado sin inscripción, avanzar al formulario
-      console.log('[ConvencionInscripcionPage] Usuario autenticado, avanzando al paso 2')
+      console.log('[ConvencionInscripcionPage] Usuario autenticado sin inscripción, avanzando al formulario')
       setCurrentStep(2)
       setPasosCompletados([1])
-    } else if (currentStep >= 2) {
+      return
+    }
+    
+    // Actualizar pasos completados según el step actual
+    if (currentStep >= 2) {
       setPasosCompletados([1, 2])
     } else if (currentStep >= 1) {
       setPasosCompletados([1])
@@ -171,11 +187,54 @@ function ConvencionInscripcionPageContent() {
         queryClient.invalidateQueries({ queryKey: ['invitado', 'profile'] })
         queryClient.invalidateQueries({ queryKey: ['checkInscripcion'] })
         
-        // Esperar a que las queries se completen
-        await new Promise(resolve => setTimeout(resolve, 500))
+        // Esperar a que las queries se completen (aumentar tiempo para asegurar que se cargue la inscripción)
+        await new Promise(resolve => setTimeout(resolve, 800))
         
-        // Avanzar al siguiente paso
-        console.log('[ConvencionInscripcionPage] Avanzando al paso 2...')
+        // Refetch explícito de checkInscripcion para obtener datos actualizados
+        const userEmail = user?.email || (typeof window !== 'undefined' 
+          ? (() => {
+              try {
+                const userStr = localStorage.getItem('invitado_user')
+                if (userStr) {
+                  const parsed = JSON.parse(userStr)
+                  return parsed.email
+                }
+              } catch (e) {
+                console.error('Error parseando user:', e)
+              }
+              return null
+            })()
+          : null)
+        
+        if (userEmail && convencion?.id) {
+          console.log('[ConvencionInscripcionPage] Verificando inscripción existente para:', userEmail)
+          // Hacer refetch explícito
+          await queryClient.refetchQueries({ 
+            queryKey: ['checkInscripcion', convencion.id, userEmail] 
+          })
+          
+          // Esperar un poco más para que se complete
+          await new Promise(resolve => setTimeout(resolve, 300))
+          
+          // Obtener datos actualizados de la query
+          const inscripcionData = queryClient.getQueryData(['checkInscripcion', convencion.id, userEmail])
+          
+          console.log('[ConvencionInscripcionPage] Datos de inscripción después del refetch:', {
+            tieneInscripcion: !!inscripcionData,
+            inscripcion: inscripcionData
+          })
+          
+          // Si hay inscripción existente, ir directo a mostrarla (paso 2 con inscripción)
+          if (inscripcionData) {
+            console.log('[ConvencionInscripcionPage] Inscripción existente encontrada, yendo directo a la vista')
+            setCurrentStep(2)
+            setPasosCompletados([1, 2])
+            return
+          }
+        }
+        
+        // Si no hay inscripción existente, mostrar formulario
+        console.log('[ConvencionInscripcionPage] No hay inscripción existente, mostrando formulario')
         setCurrentStep(2)
         setPasosCompletados([1])
       } else {
@@ -298,17 +357,16 @@ function ConvencionInscripcionPageContent() {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {currentStep === 1 && !inscripcionExistente && (
-          <Step1Auth onComplete={userData => handleStepComplete(1, userData)} onBack={handleBack} />
-        )}
-
-        {/* Si ya está inscrito, mostrar el wizard completo con información - PRIORIDAD ALTA */}
+        {/* PRIORIDAD 1: Si hay inscripción existente, mostrar directo la card (sin pasar por formulario) */}
         {isAuthenticated && convencion && inscripcionExistente && (
           <>
             {/* Actualizar pasos completados para mostrar ambos pasos como completados */}
             {(() => {
               if (pasosCompletados.length < 2) {
                 setPasosCompletados([1, 2])
+              }
+              if (currentStep === 1) {
+                setCurrentStep(2)
               }
               return null
             })()}
@@ -318,6 +376,11 @@ function ConvencionInscripcionPageContent() {
               onVolverInicio={() => router.push('/#convenciones')}
             />
           </>
+        )}
+
+        {/* PRIORIDAD 2: Si no hay inscripción existente y está en paso 1, mostrar autenticación */}
+        {currentStep === 1 && !inscripcionExistente && (
+          <Step1Auth onComplete={userData => handleStepComplete(1, userData)} onBack={handleBack} />
         )}
 
         {/* Formulario unificado de inscripción - Solo si NO hay inscripción existente */}
