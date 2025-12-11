@@ -1,12 +1,22 @@
 'use client'
 
-import { CheckCircle2, Clock, CreditCard, Mail, Phone, MapPin, Calendar, Copy, ExternalLink, AlertCircle, Sparkles } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { CheckCircle2, Clock, CreditCard, Mail, Phone, MapPin, Calendar, Copy, ExternalLink, AlertCircle, Sparkles, LogOut, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useInvitadoAuth } from '@/lib/hooks/use-invitado-auth'
+import Image from 'next/image'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 
 interface InscripcionExistenteCardProps {
     inscripcion: {
@@ -51,6 +61,37 @@ export function InscripcionExistenteCard({
     convencion,
     onVolverInicio
 }: InscripcionExistenteCardProps) {
+    const router = useRouter()
+    const invitadoAuth = useInvitadoAuth()
+    const user = invitadoAuth.user
+    
+    // Normalizar URL de imagen de Google para obtener tamaño más grande
+    const normalizeGoogleImageUrl = (url: string | undefined): string | undefined => {
+        if (!url) return undefined
+        // Si es una URL de Google, cambiar el tamaño a 200x200
+        if (url.includes('googleusercontent.com')) {
+            return url.replace(/=s\d+-c$/, '=s200-c').replace(/=s\d+$/, '=s200')
+        }
+        return url
+    }
+    
+    // Función para cerrar sesión
+    const handleLogout = async () => {
+        try {
+            await invitadoAuth.logout()
+            toast.success('Sesión cerrada', {
+                description: 'Has cerrado sesión correctamente',
+            })
+            // Redirigir a la página principal
+            router.push('/')
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error)
+            toast.error('Error al cerrar sesión', {
+                description: 'No se pudo cerrar sesión correctamente',
+            })
+        }
+    }
+    
     // Calcular estado de pagos
     const pagos = inscripcion.pagos || []
     const numeroCuotas = inscripcion.numeroCuotas || 3
@@ -98,6 +139,55 @@ export function InscripcionExistenteCard({
 
     return (
         <div className="max-w-2xl mx-auto">
+            {/* Header con avatar y cerrar sesión */}
+            {user && (
+                <div className="flex items-center justify-end mb-4">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-10 px-2 gap-2 text-white/70 hover:text-white hover:bg-white/10"
+                            >
+                                {user.fotoUrl ? (
+                                    <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-emerald-500/50">
+                                        <Image
+                                            src={normalizeGoogleImageUrl(user.fotoUrl) || user.fotoUrl}
+                                            alt={`${user.nombre} ${user.apellido}`}
+                                            fill
+                                            className="object-cover"
+                                            onError={(e) => {
+                                                // Si falla la imagen, mostrar placeholder
+                                                const target = e.target as HTMLImageElement
+                                                target.src = '/placeholder.svg'
+                                            }}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center">
+                                        <User className="w-4 h-4 text-emerald-400" />
+                                    </div>
+                                )}
+                                <span className="text-sm font-medium hidden sm:inline">
+                                    {user.nombre} {user.apellido}
+                                </span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                            <div className="px-2 py-1.5">
+                                <p className="text-sm font-medium">{user.nombre} {user.apellido}</p>
+                                <p className="text-xs text-muted-foreground">{user.email}</p>
+                            </div>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400">
+                                <LogOut className="mr-2 h-4 w-4" />
+                                Cerrar sesión
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            )}
+            
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl overflow-hidden">
                 {/* Header con estado */}
                 <div className="text-center mb-6">

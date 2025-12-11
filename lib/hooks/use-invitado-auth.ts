@@ -119,6 +119,34 @@ export function useInvitadoAuth() {
   const isAuthenticated = !!token && !!user && !userError
   const isHydrated = true // Siempre hidratado con React Query
 
+  // Función para cerrar sesión
+  const logout = useCallback(async () => {
+    try {
+      const refreshToken = typeof window !== 'undefined' 
+        ? localStorage.getItem('invitado_refresh_token')
+        : null
+      
+      // Llamar al endpoint de logout
+      await invitadoAuthApi.logout(refreshToken || undefined)
+    } catch (error) {
+      console.error('[useInvitadoAuth] Error en logout:', error)
+    } finally {
+      // Siempre limpiar localStorage y sessionStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('invitado_token')
+        localStorage.removeItem('invitado_refresh_token')
+        localStorage.removeItem('invitado_user')
+        sessionStorage.removeItem('invitado_token')
+        sessionStorage.removeItem('invitado_refresh_token')
+        sessionStorage.removeItem('invitado_user')
+      }
+      
+      // Invalidar queries
+      queryClient.invalidateQueries({ queryKey: ['invitado', 'profile'] })
+      queryClient.invalidateQueries({ queryKey: ['checkInscripcion'] })
+    }
+  }, [queryClient])
+
   return {
     user: user || null,
     token,
@@ -128,5 +156,6 @@ export function useInvitadoAuth() {
     isFetchingUser,
     userError,
     refetchUser: invalidateAndRefetch,
+    logout,
   }
 }

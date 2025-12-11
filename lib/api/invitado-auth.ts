@@ -30,6 +30,7 @@ export interface Invitado {
   email: string
   telefono?: string
   sede?: string
+  fotoUrl?: string
 }
 
 export interface InvitadoRegisterResponse {
@@ -106,6 +107,17 @@ export const invitadoAuthApi = {
     } catch (error: any) {
       console.error('[invitadoAuthApi] Error obteniendo perfil:', error)
       throw error
+    }
+  },
+
+  logout: async (refreshToken?: string): Promise<void> => {
+    try {
+      console.log('[invitadoAuthApi] Cerrando sesión del invitado...')
+      await apiClient.post("/auth/invitado/logout", { refreshToken })
+      console.log('[invitadoAuthApi] Logout exitoso')
+    } catch (error: any) {
+      console.error('[invitadoAuthApi] Error en logout:', error)
+      // No lanzar error, siempre limpiar localStorage
     }
   },
 }
