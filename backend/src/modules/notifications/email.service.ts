@@ -310,8 +310,29 @@ export class EmailService {
         stack: errorStack,
       })
 
+      // Detectar error específico de créditos agotados
+      const hasCreditsError = errorMessage.includes('Maximum credits exceeded') || 
+                              errorMessage.includes('credits exceeded') ||
+                              (errorDetails && Array.isArray(errorDetails) && 
+                               errorDetails.some((err: unknown) => {
+                                 const errObj = err as { message?: string }
+                                 return errObj.message?.includes('Maximum credits exceeded') ||
+                                        errObj.message?.includes('credits exceeded')
+                               }))
+
       // Mensajes específicos según el tipo de error
-      if (errorMessage === 'Forbidden' || statusCode === 403) {
+      if (hasCreditsError) {
+        this.logger.error('   ⚠️ ERROR: SendGrid ha agotado sus créditos gratuitos')
+        this.logger.error('   → El plan gratuito de SendGrid incluye 100 emails por día')
+        this.logger.error('   → Has alcanzado el límite de créditos')
+        this.logger.error('   Soluciones:')
+        this.logger.error('   1. Esperar hasta mañana (el límite se reinicia diariamente)')
+        this.logger.error('   2. Actualizar el plan de SendGrid para obtener más créditos')
+        this.logger.error('      → Ve a SendGrid → Settings → Billing')
+        this.logger.error('      → Actualiza a un plan de pago')
+        this.logger.error('   3. El sistema intentará usar Gmail SMTP como fallback automático')
+        this.logger.warn('   🔄 Cambiando automáticamente a Gmail SMTP como fallback...')
+      } else if (errorMessage === 'Forbidden' || statusCode === 403) {
         this.logger.error('   ⚠️ Error 403 Forbidden de SendGrid')
         this.logger.error('   Posibles causas:')
         this.logger.error('   1. El email "from" no está verificado en SendGrid')
@@ -322,7 +343,7 @@ export class EmailService {
         this.logger.error('      → Verifica que la API Key tenga permisos de "Mail Send"')
         this.logger.error('   3. La API Key es incorrecta o fue revocada')
         this.logger.error('      → Verifica SENDGRID_API_KEY en Render')
-      } else if (statusCode === 401) {
+      } else if (statusCode === 401 || errorMessage === 'Unauthorized') {
         this.logger.error('   ⚠️ Error 401 Unauthorized de SendGrid')
         this.logger.error('   → La API Key es inválida o fue revocada')
         this.logger.error('   → Verifica SENDGRID_API_KEY en Render')
@@ -334,10 +355,17 @@ export class EmailService {
         })
       }
 
-      // Si SendGrid falla, intentar con SMTP como fallback
+      // Si SendGrid falla (por cualquier razón), intentar con SMTP como fallback
       if (this.transporter) {
-        this.logger.warn('⚠️ SendGrid falló, intentando con SMTP como fallback...')
+        if (hasCreditsError) {
+          this.logger.warn('⚠️ SendGrid sin créditos, usando Gmail SMTP como fallback automático...')
+        } else {
+          this.logger.warn('⚠️ SendGrid falló, intentando con SMTP como fallback...')
+        }
         return this.sendWithSMTP(to, title, body, data)
+      } else if (hasCreditsError) {
+        this.logger.error('   ❌ No hay fallback disponible (SMTP no configurado)')
+        this.logger.error('   → Configura SMTP_USER y SMTP_PASSWORD en Render para usar Gmail SMTP como fallback')
       }
 
       return false
