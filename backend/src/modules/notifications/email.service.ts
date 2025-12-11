@@ -397,10 +397,23 @@ export class EmailService {
       const result = await Promise.race([sendPromise, timeoutPromise])
 
       // Resend retorna { data: { id: string } } en caso de éxito
+      // O { error: { ... } } en caso de error
       if (result && typeof result === 'object' && 'data' in result && result.data && 'id' in result.data) {
         this.logger.log(`✅ Email enviado exitosamente a ${to} (Resend)`)
         this.logger.log(`   Message ID: ${(result.data as { id: string }).id}`)
         return true
+      } else if (result && typeof result === 'object' && 'error' in result) {
+        // Resend retornó un error estructurado
+        const errorData = result.error as { statusCode?: number; message?: string; name?: string }
+        const errorMessage = errorData?.message || 'Error desconocido'
+        const statusCode = errorData?.statusCode
+
+        this.logger.error(`❌ Resend rechazó el email para ${to}`)
+        this.logger.error(`   Status Code: ${statusCode || 'N/A'}`)
+        this.logger.error(`   Error: ${errorMessage}`)
+
+        // Lanzar error para que el catch lo maneje
+        throw new Error(`Resend Error ${statusCode}: ${errorMessage}`)
       } else {
         this.logger.error(`❌ Resend rechazó el email para ${to}`)
         this.logger.error(`   Respuesta inesperada: ${JSON.stringify(result)}`)
@@ -416,12 +429,27 @@ export class EmailService {
       })
 
       // Mensajes específicos según el tipo de error
-      if (errorMessage.includes('Forbidden') || errorMessage.includes('403')) {
+      if (errorMessage.includes('domain is not verified') || errorMessage.includes('gmail.com') || errorMessage.includes('domain')) {
+        this.logger.error('   ⚠️ Error: Dominio no verificado en Resend')
+        this.logger.error('   Resend NO permite usar emails de Gmail directamente')
+        this.logger.error('   Soluciones:')
+        this.logger.error('   1. Verifica un dominio propio en Resend:')
+        this.logger.error('      → Ve a Resend → Domains → Add Domain')
+        this.logger.error('      → Configura los registros DNS que te da Resend')
+        this.logger.error('      → Usa un email de ese dominio (ej: noreply@tudominio.com)')
+        this.logger.error('   2. O verifica un email individual en Resend:')
+        this.logger.error('      → Ve a Resend → Emails → Add Email')
+        this.logger.error('      → Verifica el email que quieres usar')
+        this.logger.error('   3. O cambia a SendGrid o SMTP:')
+        this.logger.error('      → Cambia EMAIL_PROVIDER=sendgrid o EMAIL_PROVIDER=gmail en Render')
+        this.logger.error(`   Email actual configurado: ${fromEmail || 'NO CONFIGURADO'}`)
+      } else if (errorMessage.includes('Forbidden') || errorMessage.includes('403')) {
         this.logger.error('   ⚠️ Error 403 Forbidden de Resend')
         this.logger.error('   Posibles causas:')
         this.logger.error('   1. El email "from" no está verificado en Resend')
         this.logger.error('      → Ve a Resend → Domains → Verifica tu dominio')
-        this.logger.error('      → O usa un email verificado: ' + (fromEmail || 'NO CONFIGURADO'))
+        this.logger.error('      → O Resend → Emails → Verifica un email individual')
+        this.logger.error('      → Email configurado: ' + (fromEmail || 'NO CONFIGURADO'))
         this.logger.error('   2. La API Key no tiene permisos')
         this.logger.error('      → Ve a Resend → API Keys')
         this.logger.error('      → Verifica que la API Key tenga permisos correctos')
