@@ -343,6 +343,10 @@ export class EmailService {
       return false
     }
 
+    // Obtener email "from" - DEBE estar verificado en Resend (fuera del try para usar en catch)
+    const fromEmail = process.env.RESEND_FROM_EMAIL
+    const fromName = process.env.RESEND_FROM_NAME || 'AMVA Digital'
+
     try {
       this.logger.log(`📧 Preparando email con Resend para ${to}...`)
 
@@ -353,10 +357,6 @@ export class EmailService {
 
       // Extraer texto plano del HTML
       const textContent = body.replace(/<[^>]*>/g, '').trim() || title
-
-      // Obtener email "from" - DEBE estar verificado en Resend
-      const fromEmail = process.env.RESEND_FROM_EMAIL
-      const fromName = process.env.RESEND_FROM_NAME || 'AMVA Digital'
 
       if (!fromEmail) {
         this.logger.error('❌ RESEND_FROM_EMAIL no configurado')
