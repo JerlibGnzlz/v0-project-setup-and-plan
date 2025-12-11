@@ -338,84 +338,106 @@ export class InvitadoAuthService {
           },
         })
 
-      // Si existe por email pero no tiene googleId, actualizarlo
-      if (invitadoAuth && !invitadoAuth.googleId) {
-        // Actualizar auth con googleId
-        await this.prisma.invitadoAuth.update({
-          where: { id: invitadoAuth.id },
-          data: { googleId },
-        })
+        // Si existe por email pero no tiene googleId, actualizarlo
+        if (invitadoAuth && !invitadoAuth.googleId) {
+          this.logger.log(`🔄 Actualizando invitado existente con googleId: ${email}`)
+          // Actualizar auth con googleId
+          await this.prisma.invitadoAuth.update({
+            where: { id: invitadoAuth.id },
+            data: { googleId },
+          })
 
-        // Actualizar invitado con foto si no tiene y Google proporciona una
-        if (fotoUrl && !invitadoAuth.invitado.fotoUrl) {
-          await this.prisma.invitado.update({
-            where: { id: invitadoAuth.invitado.id },
-            data: { fotoUrl },
+          // Actualizar invitado con foto si no tiene y Google proporciona una
+          if (fotoUrl && invitadoAuth.invitado && !invitadoAuth.invitado.fotoUrl) {
+            await this.prisma.invitado.update({
+              where: { id: invitadoAuth.invitado.id },
+              data: { fotoUrl },
+            })
+          }
+
+          // Obtener datos actualizados
+          invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+            where: { id: invitadoAuth.id },
+            include: {
+              invitado: true,
+            },
           })
         }
-
-        // Obtener datos actualizados
-        invitadoAuth = await this.prisma.invitadoAuth.findUnique({
-          where: { id: invitadoAuth.id },
-          include: {
-            invitado: true,
-          },
-        })
+      } else {
+        this.logger.log(`✅ Invitado encontrado por googleId: ${email}`)
       }
+    } catch (error) {
+      this.logger.error('❌ Error al buscar invitado:', error)
+      throw error
     }
 
     // 3. Si no existe, crear nuevo invitado y auth
     if (!invitadoAuth) {
-      // Generar una contraseña aleatoria (no se usará, pero es requerida por el schema)
-      const randomPassword = await bcrypt.hash(
-        Math.random().toString(36) + Date.now().toString(),
-        10
-      )
+      try {
+        this.logger.log(`📝 Creando nuevo invitado con Google OAuth: ${email}`)
+        // Generar una contraseña aleatoria (no se usará, pero es requerida por el schema)
+        const randomPassword = await bcrypt.hash(
+          Math.random().toString(36) + Date.now().toString(),
+          10
+        )
 
-      // Crear invitado
-      this.logger.log(`📸 Guardando fotoUrl de Google: ${fotoUrl || 'NO HAY FOTO'}`)
+        // Crear invitado
+        this.logger.log(`📸 Guardando fotoUrl de Google: ${fotoUrl || 'NO HAY FOTO'}`)
 
-      const invitado = await this.prisma.invitado.create({
-        data: {
-          nombre,
-          apellido,
-          email,
-          fotoUrl: fotoUrl || null, // Guardar foto de Google si existe
-          auth: {
-            create: {
-              email,
-              password: randomPassword, // Contraseña aleatoria (no se usará para OAuth)
-              googleId,
-              emailVerificado: true, // Google ya verificó el email
+        const invitado = await this.prisma.invitado.create({
+          data: {
+            nombre,
+            apellido,
+            email,
+            fotoUrl: fotoUrl || null, // Guardar foto de Google si existe
+            auth: {
+              create: {
+                email,
+                password: randomPassword, // Contraseña aleatoria (no se usará para OAuth)
+                googleId,
+                emailVerificado: true, // Google ya verificó el email
+              },
             },
           },
-        },
-        include: {
-          auth: true,
-        },
-      })
+          include: {
+            auth: true,
+          },
+        })
 
-      // Obtener el auth con la relación invitado incluida
-      if (!invitado.auth) {
-        throw new Error('Error al crear autenticación para invitado')
+        // Obtener el auth con la relación invitado incluida
+        if (!invitado.auth) {
+          this.logger.error('❌ Error: invitado.auth es null después de crear')
+          throw new Error('Error al crear autenticación para invitado')
+        }
+        
+        invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+          where: { id: invitado.auth.id },
+          include: {
+            invitado: true,
+          },
+        })
+
+        if (!invitadoAuth) {
+          this.logger.error('❌ Error: No se pudo obtener invitadoAuth después de crear')
+          throw new Error('Error al obtener autenticación del invitado')
+        }
+
+        this.logger.log(`✅ Invitado creado con Google OAuth: ${email}`, {
+          invitadoId: invitadoAuth.invitado.id,
+          email,
+          googleId,
+          fotoUrlGuardada: invitadoAuth.invitado.fotoUrl,
+        })
+      } catch (error) {
+        this.logger.error('❌ Error al crear invitado:', error)
+        if (error && typeof error === 'object' && 'code' in error) {
+          this.logger.error('❌ Error de Prisma:', {
+            code: (error as { code?: string }).code,
+            meta: (error as { meta?: unknown }).meta
+          })
+        }
+        throw error
       }
-      invitadoAuth = await this.prisma.invitadoAuth.findUnique({
-        where: { id: invitado.auth.id },
-        include: {
-          invitado: true,
-        },
-      })
-
-      if (!invitadoAuth) {
-        throw new Error('Error al obtener autenticación del invitado')
-      }
-
-      this.logger.log(`✅ Invitado creado con Google OAuth: ${email}`, {
-        invitadoId: invitadoAuth.invitado.id,
-        email,
-        googleId,
-        fotoUrlGuardada: invitadoAuth.invitado.fotoUrl,
-      })
     } else {
       if (!invitadoAuth) {
         throw new Error('InvitadoAuth no encontrado')
