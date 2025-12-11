@@ -96,6 +96,18 @@ export const invitadoAuthApi = {
       throw error
     }
   },
+
+  getProfile: async (): Promise<Invitado> => {
+    try {
+      console.log('[invitadoAuthApi] Obteniendo perfil del invitado...')
+      const response = await apiClient.get<Invitado>("/auth/invitado/me")
+      console.log('[invitadoAuthApi] Perfil obtenido exitosamente:', response.data)
+      return response.data
+    } catch (error: any) {
+      console.error('[invitadoAuthApi] Error obteniendo perfil:', error)
+      throw error
+    }
+  },
 }
 
 
