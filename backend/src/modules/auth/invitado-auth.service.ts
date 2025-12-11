@@ -483,41 +483,41 @@ export class InvitadoAuthService {
       })
     }
 
-      // 4. Generar tokens
-      if (!invitadoAuth || !invitadoAuth.invitado) {
-        this.logger.error('❌ Error al generar tokens: datos del invitado no disponibles', {
-          hasInvitadoAuth: !!invitadoAuth,
-          hasInvitado: !!invitadoAuth?.invitado
-        })
-        throw new Error('Error al generar tokens: datos del invitado no disponibles')
-      }
-
-      this.logger.debug('🔑 Generando tokens para invitado:', {
-        invitadoId: invitadoAuth.invitado.id,
-        email: invitadoAuth.email
+    // 4. Generar tokens
+    if (!invitadoAuth || !invitadoAuth.invitado) {
+      this.logger.error('❌ Error al generar tokens: datos del invitado no disponibles', {
+        hasInvitadoAuth: !!invitadoAuth,
+        hasInvitado: !!invitadoAuth?.invitado
       })
+      throw new Error('Error al generar tokens: datos del invitado no disponibles')
+    }
 
-      const { accessToken, refreshToken } = this.generateTokenPair(
-        invitadoAuth.invitado.id,
-        invitadoAuth.email,
-        'INVITADO'
-      )
+    this.logger.debug('🔑 Generando tokens para invitado:', {
+      invitadoId: invitadoAuth.invitado.id,
+      email: invitadoAuth.email
+    })
 
-      this.logger.log(`✅ Tokens generados exitosamente para: ${email}`)
+    const { accessToken, refreshToken } = this.generateTokenPair(
+      invitadoAuth.invitado.id,
+      invitadoAuth.email,
+      'INVITADO'
+    )
 
-      return {
-        access_token: accessToken,
-        refresh_token: refreshToken,
-        invitado: {
-          id: invitadoAuth.invitado.id,
-          nombre: invitadoAuth.invitado.nombre,
-          apellido: invitadoAuth.invitado.apellido,
-          email: invitadoAuth.invitado.email,
-          telefono: invitadoAuth.invitado.telefono,
-          sede: invitadoAuth.invitado.sede,
-          fotoUrl: invitadoAuth.invitado.fotoUrl,
-        },
-      }
+    this.logger.log(`✅ Tokens generados exitosamente para: ${email}`)
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      invitado: {
+        id: invitadoAuth.invitado.id,
+        nombre: invitadoAuth.invitado.nombre,
+        apellido: invitadoAuth.invitado.apellido,
+        email: invitadoAuth.invitado.email,
+        telefono: invitadoAuth.invitado.telefono,
+        sede: invitadoAuth.invitado.sede,
+        fotoUrl: invitadoAuth.invitado.fotoUrl,
+      },
+    }
     } catch (error) {
       // Log detallado del error
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
