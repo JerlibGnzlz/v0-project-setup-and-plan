@@ -2557,19 +2557,23 @@ export class InscripcionesService {
 
             const emailService = new EmailService()
 
-            // Verificar que el servicio esté configurado (SendGrid o SMTP)
+            // Verificar que el servicio esté configurado (Resend, SendGrid o SMTP)
+            const isResendConfigured = emailService['resendConfigured'] === true
             const isSendGridConfigured = emailService['sendgridConfigured'] === true
             const isSMTPConfigured = emailService['transporter'] !== null
 
-            if (!isSendGridConfigured && !isSMTPConfigured) {
+            if (!isResendConfigured && !isSendGridConfigured && !isSMTPConfigured) {
                 this.logger.error(
-                    `❌ EmailService no está configurado. Verifica SendGrid o SMTP en las variables de entorno`
+                    `❌ EmailService no está configurado. Verifica uno de estos proveedores en las variables de entorno:`
                 )
                 this.logger.error(
-                    `   SendGrid: SENDGRID_API_KEY y SENDGRID_FROM_EMAIL`
+                    `   Resend: RESEND_API_KEY y RESEND_FROM_EMAIL con EMAIL_PROVIDER=resend`
                 )
                 this.logger.error(
-                    `   SMTP: SMTP_USER y SMTP_PASSWORD`
+                    `   SendGrid: SENDGRID_API_KEY y SENDGRID_FROM_EMAIL con EMAIL_PROVIDER=sendgrid`
+                )
+                this.logger.error(
+                    `   SMTP: SMTP_USER y SMTP_PASSWORD con EMAIL_PROVIDER=gmail`
                 )
                 return false
             }

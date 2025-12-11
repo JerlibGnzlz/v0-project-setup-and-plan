@@ -443,6 +443,9 @@ export class EmailService {
         this.logger.error('   3. O cambia a SendGrid o SMTP:')
         this.logger.error('      → Cambia EMAIL_PROVIDER=sendgrid o EMAIL_PROVIDER=gmail en Render')
         this.logger.error(`   Email actual configurado: ${fromEmail || 'NO CONFIGURADO'}`)
+        
+        // Si el error es por dominio Gmail no verificado, intentar fallback inmediatamente
+        this.logger.warn('   🔄 Intentando fallback automático a SendGrid o SMTP...')
       } else if (errorMessage.includes('Forbidden') || errorMessage.includes('403')) {
         this.logger.error('   ⚠️ Error 403 Forbidden de Resend')
         this.logger.error('   Posibles causas:')
