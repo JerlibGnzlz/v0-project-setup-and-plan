@@ -22,14 +22,15 @@ export function useWebSocketNotifications() {
       return
     }
 
-    // Solo conectar si está autenticado y en una ruta de admin
-    if (!isAuthenticated || !user) {
+    // Verificar PRIMERO que estamos en una ruta de admin antes de hacer cualquier cosa
+    const currentPath = window.location.pathname || ''
+    if (!currentPath.startsWith('/admin') || currentPath === '/admin/login') {
+      // No conectar si no estamos en admin
       return
     }
 
-    // Verificar que estamos en una ruta de admin antes de conectar
-    const currentPath = window.location.pathname || ''
-    if (!currentPath.startsWith('/admin') || currentPath === '/admin/login') {
+    // Solo conectar si está autenticado
+    if (!isAuthenticated || !user) {
       return
     }
 

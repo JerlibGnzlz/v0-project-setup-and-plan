@@ -50,6 +50,7 @@ export function NotificationsBell() {
   const [showClearDialog, setShowClearDialog] = useState(false)
 
   // Conectar a WebSocket para notificaciones en tiempo real
+  // Solo se conecta si estamos en una ruta de admin y autenticados
   useWebSocketNotifications()
 
   const handleMarkAsRead = async (id: string) => {
