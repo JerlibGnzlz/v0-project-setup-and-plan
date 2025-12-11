@@ -340,15 +340,15 @@ export class EmailService {
       }
 
       this.logger.log(`📧 Enviando email a ${to} desde ${fromEmail} (SendGrid)...`)
-      
+
       // Agregar timeout de 30 segundos para SendGrid
       const sendPromise = sgMail.send(msg)
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Timeout: SendGrid tardó más de 30 segundos')), 30000)
       })
-      
+
       const [response] = await Promise.race([sendPromise, timeoutPromise]) as [sgMail.ClientResponse, unknown]
-      
+
       // Verificar que el status code sea 202 (Accepted) o 200 (OK)
       // SendGrid retorna 202 cuando acepta el email para envío
       if (response.statusCode === 202 || response.statusCode === 200) {
@@ -366,7 +366,7 @@ export class EmailService {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       const errorStack = error instanceof Error ? error.stack : undefined
-      
+
       // Extraer información adicional del error de SendGrid
       const sendgridError = error as { response?: { body?: { errors?: unknown[] }; statusCode?: number } }
       const errorDetails = sendgridError?.response?.body?.errors || []
@@ -380,14 +380,14 @@ export class EmailService {
       })
 
       // Detectar error específico de créditos agotados
-      const hasCreditsError = errorMessage.includes('Maximum credits exceeded') || 
-                              errorMessage.includes('credits exceeded') ||
-                              (errorDetails && Array.isArray(errorDetails) && 
-                               errorDetails.some((err: unknown) => {
-                                 const errObj = err as { message?: string }
-                                 return errObj.message?.includes('Maximum credits exceeded') ||
-                                        errObj.message?.includes('credits exceeded')
-                               }))
+      const hasCreditsError = errorMessage.includes('Maximum credits exceeded') ||
+        errorMessage.includes('credits exceeded') ||
+        (errorDetails && Array.isArray(errorDetails) &&
+          errorDetails.some((err: unknown) => {
+            const errObj = err as { message?: string }
+            return errObj.message?.includes('Maximum credits exceeded') ||
+              errObj.message?.includes('credits exceeded')
+          }))
 
       // Mensajes específicos según el tipo de error
       if (hasCreditsError) {
@@ -555,7 +555,7 @@ export class EmailService {
         this.logger.error('   3. O cambia a SendGrid o SMTP:')
         this.logger.error('      → Cambia EMAIL_PROVIDER=sendgrid o EMAIL_PROVIDER=gmail en Render')
         this.logger.error(`   Email actual configurado: ${fromEmail || 'NO CONFIGURADO'}`)
-        
+
         // Si el error es por dominio Gmail no verificado, intentar fallback inmediatamente
         this.logger.warn('   🔄 Intentando fallback automático a SendGrid o SMTP...')
       } else if (errorMessage.includes('Forbidden') || errorMessage.includes('403')) {
@@ -625,18 +625,49 @@ export class EmailService {
 
       this.logger.log(`📧 Enviando email a ${to} desde ${process.env.SMTP_USER} (SMTP)...`)
       
-      // Agregar timeout adicional para la operación completa
-      const sendPromise = this.transporter!.sendMail(mailOptions)
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout: El envío de email tardó más de 60 segundos')), 60000)
-      })
+      // Agregar timeout adicional para la operación completa (aumentado a 90 segundos)
+      // También agregar reintentos para manejar timeouts temporales
+      let lastError: unknown = null
+      const maxRetries = 3
+      const retryDelay = 2000 // 2 segundos entre reintentos
       
-      const info = await Promise.race([sendPromise, timeoutPromise])
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          if (attempt > 1) {
+            this.logger.log(`🔄 Reintento ${attempt}/${maxRetries} para ${to}...`)
+            await new Promise(resolve => setTimeout(resolve, retryDelay * (attempt - 1)))
+          }
+          
+          const sendPromise = this.transporter!.sendMail(mailOptions)
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout: El envío de email tardó más de 90 segundos')), 90000)
+          })
+          
+          const info = await Promise.race([sendPromise, timeoutPromise])
+          
+          // Si llegamos aquí, el email se envió exitosamente
+          this.logger.log(`✅ Email enviado exitosamente a ${to} (SMTP)`)
+          this.logger.log(`   Message ID: ${info.messageId}`)
+          this.logger.log(`   Response: ${info.response || 'N/A'}`)
+          return true
+        } catch (error: unknown) {
+          lastError = error
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+          const errorCode = this.getErrorCode(error)
+          
+          // Si es un timeout y no es el último intento, reintentar
+          if ((errorCode === 'ETIMEDOUT' || errorMessage.includes('Timeout')) && attempt < maxRetries) {
+            this.logger.warn(`⚠️ Timeout en intento ${attempt}/${maxRetries} para ${to}, reintentando...`)
+            continue
+          }
+          
+          // Si no es timeout o es el último intento, lanzar el error
+          throw error
+        }
+      }
       
-      this.logger.log(`✅ Email enviado exitosamente a ${to} (SMTP)`)
-      this.logger.log(`   Message ID: ${info.messageId}`)
-      this.logger.log(`   Response: ${info.response || 'N/A'}`)
-      return true
+      // Si llegamos aquí, todos los reintentos fallaron
+      throw lastError || new Error('Error desconocido después de múltiples reintentos')
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       const errorCode = this.getErrorCode(error)
@@ -715,13 +746,12 @@ export class EmailService {
           <!-- Content -->
           <tr>
             <td style="padding: 30px;">
-              ${
-                body.trim().startsWith('<div') || body.trim().startsWith('<!DOCTYPE')
-                  ? body
-                  : `<h2 style="margin: 0 0 20px; color: #1f2937; font-size: 20px; font-weight: 600;">${title}</h2>
+              ${body.trim().startsWith('<div') || body.trim().startsWith('<!DOCTYPE')
+        ? body
+        : `<h2 style="margin: 0 0 20px; color: #1f2937; font-size: 20px; font-weight: 600;">${title}</h2>
                    <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">${body}</p>
                    ${data ? this.buildDataSection(data) : ''}`
-              }
+      }
             </td>
           </tr>
           <!-- Footer -->
