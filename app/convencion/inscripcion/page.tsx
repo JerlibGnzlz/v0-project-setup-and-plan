@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { useConvencionActiva } from '@/lib/hooks/use-convencion'
 import { useUnifiedAuth } from '@/lib/hooks/use-unified-auth'
@@ -15,9 +15,11 @@ import { CheckCircle2, Circle, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { QueryProvider } from '@/lib/providers/query-provider'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 function ConvencionInscripcionPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const queryClient = useQueryClient()
   const { data: convencion, isLoading: loadingConvencion } = useConvencionActiva()
 
@@ -46,6 +48,57 @@ function ConvencionInscripcionPageContent() {
 
   // React Query maneja automáticamente la sincronización cuando cambia user?.email
   // useCheckInscripcion se refetch automáticamente cuando cambia convencion?.id o user?.email
+
+  // Manejar callback de Google OAuth
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const token = searchParams.get('token')
+    const refreshToken = searchParams.get('refresh_token')
+    const isGoogle = searchParams.get('google') === 'true'
+    const error = searchParams.get('error')
+
+    // Manejar error de Google OAuth
+    if (error) {
+      let errorMessage = 'Error al autenticarse con Google'
+      if (error === 'google_auth_email_error') {
+        errorMessage = 'No se pudo obtener el email de tu cuenta de Google'
+      } else if (error === 'google_auth_token_error') {
+        errorMessage = 'Error al generar los tokens de autenticación'
+      }
+      toast.error('Error de autenticación', {
+        description: errorMessage,
+      })
+      // Limpiar parámetros de error de la URL
+      const url = new URL(window.location.href)
+      url.searchParams.delete('error')
+      router.replace(url.pathname + url.search)
+      return
+    }
+
+    // Manejar token de Google OAuth
+    if (token && isGoogle && typeof window !== 'undefined') {
+      // Guardar tokens
+      localStorage.setItem('invitado_token', token)
+      if (refreshToken) {
+        localStorage.setItem('invitado_refresh_token', refreshToken)
+      }
+
+      // Invalidar queries para que se refetch el perfil
+      queryClient.invalidateQueries({ queryKey: ['invitado', 'profile'] })
+
+      toast.success('¡Autenticación exitosa!', {
+        description: 'Has iniciado sesión con Google correctamente',
+      })
+
+      // Limpiar parámetros de la URL
+      const url = new URL(window.location.href)
+      url.searchParams.delete('token')
+      url.searchParams.delete('refresh_token')
+      url.searchParams.delete('google')
+      router.replace(url.pathname + url.search)
+    }
+  }, [searchParams, queryClient, router])
 
   // Efecto simplificado: solo actualizar pasos completados y step basado en datos de React Query
   useEffect(() => {
