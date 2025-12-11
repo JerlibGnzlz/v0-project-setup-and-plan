@@ -371,13 +371,9 @@ export class InvitadoAuthService {
       } else {
         this.logger.log(`✅ Invitado encontrado por googleId: ${email}`)
       }
-    } catch (error) {
-      this.logger.error('❌ Error al buscar invitado:', error)
-      throw error
-    }
 
-    // 3. Si no existe, crear nuevo invitado y auth
-    if (!invitadoAuth) {
+      // 3. Si no existe, crear nuevo invitado y auth
+      if (!invitadoAuth) {
       try {
         this.logger.log(`📝 Creando nuevo invitado con Google OAuth: ${email}`)
         // Generar una contraseña aleatoria (no se usará, pero es requerida por el schema)
@@ -443,86 +439,86 @@ export class InvitadoAuthService {
         }
         throw error
       }
-    } else {
-      if (!invitadoAuth) {
-        throw new Error('InvitadoAuth no encontrado')
-      }
+      } else {
+        if (!invitadoAuth) {
+          throw new Error('InvitadoAuth no encontrado')
+        }
 
-      // Actualizar último login
-      await this.prisma.invitadoAuth.update({
-        where: { id: invitadoAuth.id },
-        data: { ultimoLogin: new Date() },
-      })
-
-      // Actualizar foto si Google proporciona una nueva o si no hay foto actual
-      if (
-        fotoUrl &&
-        invitadoAuth.invitado &&
-        (!invitadoAuth.invitado.fotoUrl || invitadoAuth.invitado.fotoUrl !== fotoUrl)
-      ) {
-        await this.prisma.invitado.update({
-          where: { id: invitadoAuth.invitado.id },
-          data: { fotoUrl },
-        })
-        this.logger.log(`✅ Foto de perfil actualizada para invitado: ${email}`)
-
-        // Obtener datos actualizados
-        invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+        // Actualizar último login
+        await this.prisma.invitadoAuth.update({
           where: { id: invitadoAuth.id },
-          include: {
-            invitado: true,
-          },
+          data: { ultimoLogin: new Date() },
+        })
+
+        // Actualizar foto si Google proporciona una nueva o si no hay foto actual
+        if (
+          fotoUrl &&
+          invitadoAuth.invitado &&
+          (!invitadoAuth.invitado.fotoUrl || invitadoAuth.invitado.fotoUrl !== fotoUrl)
+        ) {
+          await this.prisma.invitado.update({
+            where: { id: invitadoAuth.invitado.id },
+            data: { fotoUrl },
+          })
+          this.logger.log(`✅ Foto de perfil actualizada para invitado: ${email}`)
+
+          // Obtener datos actualizados
+          invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+            where: { id: invitadoAuth.id },
+            include: {
+              invitado: true,
+            },
+          })
+        }
+
+        if (!invitadoAuth || !invitadoAuth.invitado) {
+          throw new Error('Error al obtener datos del invitado')
+        }
+
+        this.logger.log(`✅ Invitado logueado con Google OAuth: ${email}`, {
+          invitadoId: invitadoAuth.invitado.id,
+          email,
+          googleId,
+          tieneFoto: !!invitadoAuth.invitado.fotoUrl,
+          ultimoLogin: new Date().toISOString(),
         })
       }
 
+      // 4. Generar tokens
       if (!invitadoAuth || !invitadoAuth.invitado) {
-        throw new Error('Error al obtener datos del invitado')
+        this.logger.error('❌ Error al generar tokens: datos del invitado no disponibles', {
+          hasInvitadoAuth: !!invitadoAuth,
+          hasInvitado: !!invitadoAuth?.invitado
+        })
+        throw new Error('Error al generar tokens: datos del invitado no disponibles')
       }
 
-      this.logger.log(`✅ Invitado logueado con Google OAuth: ${email}`, {
+      this.logger.debug('🔑 Generando tokens para invitado:', {
         invitadoId: invitadoAuth.invitado.id,
-        email,
-        googleId,
-        tieneFoto: !!invitadoAuth.invitado.fotoUrl,
-        ultimoLogin: new Date().toISOString(),
+        email: invitadoAuth.email
       })
-    }
 
-    // 4. Generar tokens
-    if (!invitadoAuth || !invitadoAuth.invitado) {
-      this.logger.error('❌ Error al generar tokens: datos del invitado no disponibles', {
-        hasInvitadoAuth: !!invitadoAuth,
-        hasInvitado: !!invitadoAuth?.invitado
-      })
-      throw new Error('Error al generar tokens: datos del invitado no disponibles')
-    }
+      const { accessToken, refreshToken } = this.generateTokenPair(
+        invitadoAuth.invitado.id,
+        invitadoAuth.email,
+        'INVITADO'
+      )
 
-    this.logger.debug('🔑 Generando tokens para invitado:', {
-      invitadoId: invitadoAuth.invitado.id,
-      email: invitadoAuth.email
-    })
+      this.logger.log(`✅ Tokens generados exitosamente para: ${email}`)
 
-    const { accessToken, refreshToken } = this.generateTokenPair(
-      invitadoAuth.invitado.id,
-      invitadoAuth.email,
-      'INVITADO'
-    )
-
-    this.logger.log(`✅ Tokens generados exitosamente para: ${email}`)
-
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      invitado: {
-        id: invitadoAuth.invitado.id,
-        nombre: invitadoAuth.invitado.nombre,
-        apellido: invitadoAuth.invitado.apellido,
-        email: invitadoAuth.invitado.email,
-        telefono: invitadoAuth.invitado.telefono,
-        sede: invitadoAuth.invitado.sede,
-        fotoUrl: invitadoAuth.invitado.fotoUrl,
-      },
-    }
+      return {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        invitado: {
+          id: invitadoAuth.invitado.id,
+          nombre: invitadoAuth.invitado.nombre,
+          apellido: invitadoAuth.invitado.apellido,
+          email: invitadoAuth.invitado.email,
+          telefono: invitadoAuth.invitado.telefono,
+          sede: invitadoAuth.invitado.sede,
+          fotoUrl: invitadoAuth.invitado.fotoUrl,
+        },
+      }
     } catch (error) {
       // Log detallado del error
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
