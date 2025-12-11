@@ -318,10 +318,15 @@ export class InvitadoAuthService {
       throw new BadRequestException('Error al validar datos de Google OAuth')
     }
 
+    // Declarar invitadoAuth fuera del try para que esté disponible en todo el método
+    let invitadoAuth: Awaited<ReturnType<typeof this.prisma.invitadoAuth.findUnique<{
+      include: { invitado: true }
+    }>>> | null = null
+
     try {
       // 1. Buscar si ya existe un invitado con este googleId
       this.logger.debug(`🔍 Buscando invitado por googleId: ${googleId}`)
-      let invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+      invitadoAuth = await this.prisma.invitadoAuth.findUnique({
         where: { googleId },
         include: {
           invitado: true,
@@ -527,8 +532,8 @@ export class InvitadoAuthService {
         error: errorMessage,
         stack: errorStack,
         errorType: error?.constructor?.name,
-        googleId,
-        email
+        googleId: googleId,
+        email: email
       })
 
       // Si es un error de Prisma, loguear más detalles
