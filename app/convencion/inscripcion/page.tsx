@@ -49,6 +49,21 @@ function ConvencionInscripcionPageContent() {
 
   // Efecto simplificado: solo actualizar pasos completados y step basado en datos de React Query
   useEffect(() => {
+    // Verificar token en localStorage directamente (más confiable que isAuthenticated)
+    const hasToken = typeof window !== 'undefined' 
+      ? !!(localStorage.getItem('invitado_token') || localStorage.getItem('auth_token'))
+      : false
+    
+    console.log('[ConvencionInscripcionPage] useEffect - Estado actual:', {
+      inscripcionExistente: !!inscripcionExistente,
+      isAuthenticated,
+      hasToken,
+      currentStep,
+      hasUser: !!user,
+      isLoadingInscripcion,
+      isFetchingInscripcion,
+    })
+    
     // Si hay inscripción existente, ambos pasos están completados
     if (inscripcionExistente) {
       setPasosCompletados([1, 2])
@@ -56,12 +71,13 @@ function ConvencionInscripcionPageContent() {
         setCurrentStep(2)
       }
     } else if (
-      isAuthenticated &&
+      (isAuthenticated || hasToken) &&
       currentStep === 1 &&
       !isLoadingInscripcion &&
       !isFetchingInscripcion
     ) {
       // Usuario autenticado sin inscripción, avanzar al formulario
+      console.log('[ConvencionInscripcionPage] Usuario autenticado, avanzando al paso 2')
       setCurrentStep(2)
       setPasosCompletados([1])
     } else if (currentStep >= 2) {
@@ -75,6 +91,7 @@ function ConvencionInscripcionPageContent() {
     currentStep,
     isLoadingInscripcion,
     isFetchingInscripcion,
+    user,
   ])
 
   // Si no hay convención activa, redirigir a landing
