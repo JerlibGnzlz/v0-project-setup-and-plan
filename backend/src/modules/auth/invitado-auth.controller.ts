@@ -107,10 +107,18 @@ export class InvitadoAuthController {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
 
     try {
+      this.logger.log('🔐 Iniciando callback de Google OAuth')
+      
       // Validar que req.user existe y tiene los datos necesarios
       if (!req.user) {
+        this.logger.error('❌ No se recibió información del usuario de Google')
         throw new Error('No se recibió información del usuario de Google')
       }
+
+      this.logger.debug('✅ Usuario recibido de Google:', { 
+        hasUser: !!req.user,
+        userKeys: Object.keys(req.user as Record<string, unknown>)
+      })
 
       const user = req.user as {
         googleId: string
@@ -122,8 +130,20 @@ export class InvitadoAuthController {
 
       // Validar campos requeridos
       if (!user.googleId || !user.email) {
+        this.logger.error('❌ Datos incompletos del perfil de Google:', {
+          hasGoogleId: !!user.googleId,
+          hasEmail: !!user.email,
+          userData: { ...user, googleId: user.googleId ? '***' : undefined }
+        })
         throw new Error('Datos incompletos del perfil de Google')
       }
+
+      this.logger.log(`📧 Procesando autenticación para: ${user.email}`, {
+        googleId: user.googleId,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        tieneFoto: !!user.fotoUrl
+      })
 
       // Llamar al servicio de autenticación
       const result = await this.invitadoAuthService.googleAuth(
@@ -134,31 +154,64 @@ export class InvitadoAuthController {
         user.fotoUrl || undefined
       )
 
+      this.logger.debug('✅ Resultado de googleAuth:', {
+        hasAccessToken: !!result.access_token,
+        hasRefreshToken: !!result.refresh_token,
+        hasInvitado: !!result.invitado
+      })
+
       // Validar que el resultado tenga los tokens necesarios
       if (!result.access_token || !result.refresh_token) {
+        this.logger.error('❌ No se generaron los tokens de autenticación:', {
+          hasAccessToken: !!result.access_token,
+          hasRefreshToken: !!result.refresh_token,
+          resultKeys: Object.keys(result)
+        })
         throw new Error('No se generaron los tokens de autenticación')
       }
 
       // Redirigir al frontend con el token
       const redirectUrl = `${frontendUrl}/convencion/inscripcion?token=${result.access_token}&google=true&refresh_token=${result.refresh_token}`
+      
+      this.logger.log(`✅ Redirigiendo a frontend: ${redirectUrl.replace(/token=[^&]+/, 'token=***')}`)
 
       return res.redirect(redirectUrl)
     } catch (error: unknown) {
-      // Log del error para debugging
+      // Log detallado del error para debugging
       const errorLogMessage = error instanceof Error ? error.message : 'Error desconocido'
-      this.logger.error(`Error en callback de Google OAuth: ${errorLogMessage}`)
+      const errorStack = error instanceof Error ? error.stack : undefined
+      
+      this.logger.error(`❌ Error en callback de Google OAuth: ${errorLogMessage}`, {
+        error: errorLogMessage,
+        stack: errorStack,
+        errorType: error?.constructor?.name,
+        hasUser: !!req.user,
+        userData: req.user ? Object.keys(req.user as Record<string, unknown>) : []
+      })
+
+      // Si es un error de Prisma, loguear más detalles
+      if (error && typeof error === 'object' && 'code' in error) {
+        this.logger.error('❌ Error de Prisma:', {
+          code: (error as { code?: string }).code,
+          meta: (error as { meta?: unknown }).meta
+        })
+      }
 
       // Determinar el tipo de error para un mensaje más específico
       let errorCode = 'google_auth_failed'
       if (error instanceof Error) {
-        if (error.message.includes('email')) {
+        if (error.message.includes('email') || error.message.includes('Email')) {
           errorCode = 'google_auth_email_error'
-        } else if (error.message.includes('token')) {
+        } else if (error.message.includes('token') || error.message.includes('Token')) {
           errorCode = 'google_auth_token_error'
+        } else if (error.message.includes('Prisma') || error.message.includes('database')) {
+          errorCode = 'google_auth_database_error'
         }
       }
 
       const errorUrl = `${frontendUrl}/convencion/inscripcion?error=${errorCode}`
+
+      this.logger.log(`🔴 Redirigiendo a error: ${errorUrl}`)
 
       return res.redirect(errorUrl)
     }

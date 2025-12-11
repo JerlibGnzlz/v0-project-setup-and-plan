@@ -285,43 +285,58 @@ export class InvitadoAuthService {
     apellido: string,
     fotoUrl?: string
   ) {
-    // Validar parámetros requeridos
-    if (!googleId || !email) {
-      this.logger.error('❌ Google Auth: googleId o email faltantes')
-      throw new BadRequestException('Datos de Google OAuth incompletos')
+    try {
+      // Validar parámetros requeridos
+      if (!googleId || !email) {
+        this.logger.error('❌ Google Auth: googleId o email faltantes', {
+          hasGoogleId: !!googleId,
+          hasEmail: !!email
+        })
+        throw new BadRequestException('Datos de Google OAuth incompletos')
+      }
+
+      // Validar formato de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        this.logger.error(`❌ Google Auth: Email inválido: ${email}`)
+        throw new BadRequestException('Email inválido')
+      }
+
+      this.logger.log(`🔐 Iniciando autenticación Google OAuth para: ${email}`, {
+        googleId,
+        email,
+        nombre,
+        apellido,
+        tieneFoto: !!fotoUrl,
+      })
+    } catch (error) {
+      // Re-lanzar errores de validación
+      if (error instanceof BadRequestException) {
+        throw error
+      }
+      this.logger.error('❌ Error en validación inicial de Google Auth:', error)
+      throw new BadRequestException('Error al validar datos de Google OAuth')
     }
 
-    // Validar formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      this.logger.error(`❌ Google Auth: Email inválido: ${email}`)
-      throw new BadRequestException('Email inválido')
-    }
-
-    this.logger.log(`🔐 Iniciando autenticación Google OAuth para: ${email}`, {
-      googleId,
-      email,
-      nombre,
-      apellido,
-      tieneFoto: !!fotoUrl,
-    })
-
-    // 1. Buscar si ya existe un invitado con este googleId
-    let invitadoAuth = await this.prisma.invitadoAuth.findUnique({
-      where: { googleId },
-      include: {
-        invitado: true,
-      },
-    })
-
-    // 2. Si no existe, buscar por email
-    if (!invitadoAuth) {
-      invitadoAuth = await this.prisma.invitadoAuth.findUnique({
-        where: { email },
+    try {
+      // 1. Buscar si ya existe un invitado con este googleId
+      this.logger.debug(`🔍 Buscando invitado por googleId: ${googleId}`)
+      let invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+        where: { googleId },
         include: {
           invitado: true,
         },
       })
+
+      // 2. Si no existe, buscar por email
+      if (!invitadoAuth) {
+        this.logger.debug(`🔍 Invitado no encontrado por googleId, buscando por email: ${email}`)
+        invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+          where: { email },
+          include: {
+            invitado: true,
+          },
+        })
 
       // Si existe por email pero no tiene googleId, actualizarlo
       if (invitadoAuth && !invitadoAuth.googleId) {
@@ -446,29 +461,69 @@ export class InvitadoAuthService {
       })
     }
 
-    // 4. Generar tokens
-    if (!invitadoAuth || !invitadoAuth.invitado) {
-      throw new Error('Error al generar tokens: datos del invitado no disponibles')
-    }
+      // 4. Generar tokens
+      if (!invitadoAuth || !invitadoAuth.invitado) {
+        this.logger.error('❌ Error al generar tokens: datos del invitado no disponibles', {
+          hasInvitadoAuth: !!invitadoAuth,
+          hasInvitado: !!invitadoAuth?.invitado
+        })
+        throw new Error('Error al generar tokens: datos del invitado no disponibles')
+      }
 
-    const { accessToken, refreshToken } = this.generateTokenPair(
-      invitadoAuth.invitado.id,
-      invitadoAuth.email,
-      'INVITADO'
-    )
+      this.logger.debug('🔑 Generando tokens para invitado:', {
+        invitadoId: invitadoAuth.invitado.id,
+        email: invitadoAuth.email
+      })
 
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      invitado: {
-        id: invitadoAuth.invitado.id,
-        nombre: invitadoAuth.invitado.nombre,
-        apellido: invitadoAuth.invitado.apellido,
-        email: invitadoAuth.invitado.email,
-        telefono: invitadoAuth.invitado.telefono,
-        sede: invitadoAuth.invitado.sede,
-        fotoUrl: invitadoAuth.invitado.fotoUrl,
-      },
+      const { accessToken, refreshToken } = this.generateTokenPair(
+        invitadoAuth.invitado.id,
+        invitadoAuth.email,
+        'INVITADO'
+      )
+
+      this.logger.log(`✅ Tokens generados exitosamente para: ${email}`)
+
+      return {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        invitado: {
+          id: invitadoAuth.invitado.id,
+          nombre: invitadoAuth.invitado.nombre,
+          apellido: invitadoAuth.invitado.apellido,
+          email: invitadoAuth.invitado.email,
+          telefono: invitadoAuth.invitado.telefono,
+          sede: invitadoAuth.invitado.sede,
+          fotoUrl: invitadoAuth.invitado.fotoUrl,
+        },
+      }
+    } catch (error) {
+      // Log detallado del error
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorStack = error instanceof Error ? error.stack : undefined
+      
+      this.logger.error(`❌ Error en googleAuth: ${errorMessage}`, {
+        error: errorMessage,
+        stack: errorStack,
+        errorType: error?.constructor?.name,
+        googleId,
+        email
+      })
+
+      // Si es un error de Prisma, loguear más detalles
+      if (error && typeof error === 'object' && 'code' in error) {
+        this.logger.error('❌ Error de Prisma en googleAuth:', {
+          code: (error as { code?: string }).code,
+          meta: (error as { meta?: unknown }).meta
+        })
+      }
+
+      // Re-lanzar errores de BadRequestException
+      if (error instanceof BadRequestException) {
+        throw error
+      }
+
+      // Re-lanzar otros errores
+      throw error
     }
   }
 
