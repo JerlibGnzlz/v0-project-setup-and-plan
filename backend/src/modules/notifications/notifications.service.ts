@@ -167,6 +167,7 @@ export class NotificationsService {
 
   /**
    * Envía una notificación a un admin (guarda en NotificationHistory)
+   * Busca el pastor por email para obtener el pastorId requerido
    */
   async sendNotificationToAdmin(
     email: string,
@@ -175,14 +176,61 @@ export class NotificationsService {
     data?: any,
   ): Promise<void> {
     try {
+      // Buscar pastor por email para obtener pastorId
+      // Si no es pastor, buscar si es admin (User) y crear un pastor temporal o usar un pastorId por defecto
+      const pastor = await this.prisma.pastor.findUnique({
+        where: { email },
+      })
+
+      // Si no es pastor, buscar si es admin (User)
+      if (!pastor) {
+        const user = await this.prisma.user.findUnique({
+          where: { email },
+        })
+
+        if (!user) {
+          this.logger.warn(`No se encontró usuario (pastor o admin) con email: ${email}`)
+          return
+        }
+
+        // Para admins, buscar un pastor por defecto o crear una entrada sin pastorId
+        // Por ahora, usaremos el email como referencia y crearemos una entrada especial
+        // O mejor: buscar el primer pastor disponible para asociar la notificación
+        const firstPastor = await this.prisma.pastor.findFirst({
+          where: { activo: true },
+        })
+
+        if (!firstPastor) {
+          this.logger.warn(`No hay pastores disponibles para asociar notificación de admin: ${email}`)
+          return
+        }
+
+        // Crear notificación asociada al primer pastor (solo para estructura de BD)
+        await this.prisma.notificationHistory.create({
+          data: {
+            pastorId: firstPastor.id,
+            email,
+            title,
+            body,
+            type: data?.type || 'info',
+            data: data ? JSON.parse(JSON.stringify(data)) : null,
+            read: false,
+          },
+        })
+        this.logger.log(`📧 Notificación guardada para admin: ${email}`)
+        return
+      }
+
+      // Si es pastor, crear notificación normalmente
       await this.prisma.notificationHistory.create({
         data: {
+          pastorId: pastor.id,
           email,
           title,
-          message: body,
+          body,
           type: data?.type || 'info',
+          data: data ? JSON.parse(JSON.stringify(data)) : null,
           read: false,
-          metadata: data || {},
         },
       })
       this.logger.log(`📧 Notificación guardada para admin: ${email}`)
