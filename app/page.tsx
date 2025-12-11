@@ -42,28 +42,55 @@ function InscripcionSuccessHandler() {
 }
 
 function HomePageContent() {
-
   useEffect(() => {
+    // Solo ejecutar en el cliente
+    if (typeof window === 'undefined') return
+
     // Restaurar la posición de scroll cuando se carga la página
     // Esperar a que el DOM y las queries estén listas
     const restore = () => {
-      // Esperar a que Next.js termine de hidratar
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-          setTimeout(() => restoreScrollPosition(), 300)
-        })
-      } else {
-        setTimeout(() => restoreScrollPosition(), 300)
+      try {
+        // Esperar a que Next.js termine de hidratar
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+              try {
+                restoreScrollPosition()
+              } catch (error) {
+                console.warn('Error restaurando scroll position:', error)
+              }
+            }, 300)
+          })
+        } else {
+          setTimeout(() => {
+            try {
+              restoreScrollPosition()
+            } catch (error) {
+              console.warn('Error restaurando scroll position:', error)
+            }
+          }, 300)
+        }
+      } catch (error) {
+        console.warn('Error en restore scroll:', error)
       }
     }
 
     restore()
 
     // También escuchar cuando la página se carga completamente
-    if (typeof window !== 'undefined') {
-      window.addEventListener('load', () => {
-        setTimeout(() => restoreScrollPosition(), 200)
-      })
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        try {
+          restoreScrollPosition()
+        } catch (error) {
+          console.warn('Error restaurando scroll position en load:', error)
+        }
+      }, 200)
+    })
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('load', restore)
     }
   }, [])
 
@@ -123,6 +150,17 @@ function HomePageContent() {
 }
 
 export default function HomePage() {
+  // Agregar error boundary para capturar errores del cliente
+  if (typeof window !== 'undefined') {
+    window.addEventListener('error', (event) => {
+      console.error('[HomePage] Error capturado:', event.error)
+    })
+
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('[HomePage] Promise rechazada:', event.reason)
+    })
+  }
+
   return (
     <QueryProvider>
       <InscripcionSuccessHandler />
