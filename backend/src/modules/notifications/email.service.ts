@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
 import * as nodemailer from 'nodemailer'
 import * as sgMail from '@sendgrid/mail'
+import { Resend } from 'resend'
 import { NotificationData } from './types/notification.types'
 
-type EmailProvider = 'sendgrid' | 'gmail' | 'smtp'
+type EmailProvider = 'sendgrid' | 'gmail' | 'smtp' | 'resend'
 
 @Injectable()
 export class EmailService {
@@ -11,13 +12,17 @@ export class EmailService {
   private transporter: nodemailer.Transporter | null = null
   private emailProvider: EmailProvider = 'gmail'
   private sendgridConfigured = false
+  private resend: Resend | null = null
+  private resendConfigured = false
 
   constructor() {
-    // Determinar qué proveedor usar (SendGrid es preferido para producción)
+    // Determinar qué proveedor usar (Resend es preferido para producción)
     const provider = (process.env.EMAIL_PROVIDER || 'gmail').toLowerCase() as EmailProvider
     this.emailProvider = provider
 
-    if (provider === 'sendgrid') {
+    if (provider === 'resend') {
+      this.configureResend()
+    } else if (provider === 'sendgrid') {
       this.configureSendGrid()
     } else {
       this.configureSMTP()
@@ -25,7 +30,43 @@ export class EmailService {
   }
 
   /**
-   * Configura SendGrid (recomendado para producción)
+   * Configura Resend (recomendado para producción)
+   */
+  private configureResend() {
+    const apiKey = process.env.RESEND_API_KEY
+    const fromEmail = process.env.RESEND_FROM_EMAIL
+
+    if (!apiKey) {
+      this.logger.warn('⚠️ Resend no configurado (falta RESEND_API_KEY)')
+      this.logger.warn('   Configura RESEND_API_KEY y RESEND_FROM_EMAIL en .env')
+      this.logger.warn('   O cambia EMAIL_PROVIDER=sendgrid para usar SendGrid')
+      this.logger.warn('   O cambia EMAIL_PROVIDER=gmail para usar Gmail SMTP')
+      return
+    }
+
+    if (!fromEmail) {
+      this.logger.warn('⚠️ Resend no configurado (falta RESEND_FROM_EMAIL)')
+      this.logger.warn('   Configura RESEND_FROM_EMAIL en .env')
+      this.logger.warn('   Ejemplo: RESEND_FROM_EMAIL=noreply@tudominio.com')
+      return
+    }
+
+    try {
+      this.resend = new Resend(apiKey)
+      this.resendConfigured = true
+      this.logger.log('✅ Servicio de email configurado (Resend)')
+      this.logger.log(`📧 Provider: Resend`)
+      this.logger.log(`👤 From: ${fromEmail}`)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error configurando Resend: ${errorMessage}`)
+      this.logger.warn('   Fallback: Intentando configurar SendGrid...')
+      this.configureSendGrid()
+    }
+  }
+
+  /**
+   * Configura SendGrid (alternativa para producción)
    */
   private configureSendGrid() {
     const apiKey = process.env.SENDGRID_API_KEY
@@ -134,6 +175,11 @@ export class EmailService {
       return false
     }
 
+    // Usar Resend si está configurado (preferido)
+    if (this.resendConfigured) {
+      return this.sendWithResend(to, title, body, data)
+    }
+
     // Usar SendGrid si está configurado
     if (this.sendgridConfigured) {
       return this.sendWithSendGrid(to, title, body, data)
@@ -142,8 +188,10 @@ export class EmailService {
     // Usar SMTP (Gmail) como fallback
     if (!this.transporter) {
       this.logger.error('❌ No se puede enviar email: servicio no configurado')
-      this.logger.error('   Verifica que SMTP_USER y SMTP_PASSWORD estén configurados en .env')
-      this.logger.error('   O configura SendGrid: SENDGRID_API_KEY y SENDGRID_FROM_EMAIL con EMAIL_PROVIDER=sendgrid')
+      this.logger.error('   Verifica que tengas configurado uno de estos:')
+      this.logger.error('   - Resend: RESEND_API_KEY y RESEND_FROM_EMAIL con EMAIL_PROVIDER=resend')
+      this.logger.error('   - SendGrid: SENDGRID_API_KEY y SENDGRID_FROM_EMAIL con EMAIL_PROVIDER=sendgrid')
+      this.logger.error('   - SMTP: SMTP_USER y SMTP_PASSWORD con EMAIL_PROVIDER=gmail')
       return false
     }
 
@@ -274,6 +322,129 @@ export class EmailService {
       // Si SendGrid falla, intentar con SMTP como fallback
       if (this.transporter) {
         this.logger.warn('⚠️ SendGrid falló, intentando con SMTP como fallback...')
+        return this.sendWithSMTP(to, title, body, data)
+      }
+
+      return false
+    }
+  }
+
+  /**
+   * Envía email usando Resend (recomendado)
+   */
+  private async sendWithResend(
+    to: string,
+    title: string,
+    body: string,
+    data?: NotificationData
+  ): Promise<boolean> {
+    if (!this.resend) {
+      this.logger.error('❌ Resend no está inicializado')
+      return false
+    }
+
+    try {
+      this.logger.log(`📧 Preparando email con Resend para ${to}...`)
+
+      // Si el body ya es HTML completo, usarlo directamente
+      const htmlContent = body.trim().startsWith('<!DOCTYPE')
+        ? body
+        : this.buildEmailTemplate(title, body, data)
+
+      // Extraer texto plano del HTML
+      const textContent = body.replace(/<[^>]*>/g, '').trim() || title
+
+      // Obtener email "from" - DEBE estar verificado en Resend
+      const fromEmail = process.env.RESEND_FROM_EMAIL
+      const fromName = process.env.RESEND_FROM_NAME || 'AMVA Digital'
+
+      if (!fromEmail) {
+        this.logger.error('❌ RESEND_FROM_EMAIL no configurado')
+        this.logger.error('   Configura RESEND_FROM_EMAIL en las variables de entorno de Render')
+        this.logger.error('   IMPORTANTE: El email DEBE estar verificado en Resend')
+        this.logger.error('   → Ve a Resend → Domains → Verifica tu dominio o email')
+        // Intentar con SendGrid si está disponible
+        if (this.sendgridConfigured) {
+          this.logger.warn('⚠️ Intentando con SendGrid como fallback...')
+          return this.sendWithSendGrid(to, title, body, data)
+        }
+        // Intentar con SMTP si está disponible
+        if (this.transporter) {
+          this.logger.warn('⚠️ Intentando con SMTP como fallback...')
+          return this.sendWithSMTP(to, title, body, data)
+        }
+        return false
+      }
+
+      // Construir el email "from" con nombre y email
+      const from = fromName ? `${fromName} <${fromEmail}>` : fromEmail
+
+      this.logger.log(`📧 Enviando email a ${to} desde ${fromEmail} (Resend)...`)
+
+      // Agregar timeout de 30 segundos para Resend
+      const sendPromise = this.resend.emails.send({
+        from,
+        to,
+        subject: title,
+        html: htmlContent,
+        text: textContent,
+      })
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout: Resend tardó más de 30 segundos')), 30000)
+      })
+
+      const result = await Promise.race([sendPromise, timeoutPromise])
+
+      // Resend retorna { data: { id: string } } en caso de éxito
+      if (result && typeof result === 'object' && 'data' in result && result.data && 'id' in result.data) {
+        this.logger.log(`✅ Email enviado exitosamente a ${to} (Resend)`)
+        this.logger.log(`   Message ID: ${(result.data as { id: string }).id}`)
+        return true
+      } else {
+        this.logger.error(`❌ Resend rechazó el email para ${to}`)
+        this.logger.error(`   Respuesta inesperada: ${JSON.stringify(result)}`)
+        return false
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorStack = error instanceof Error ? error.stack : undefined
+
+      this.logger.error(`❌ Error enviando email con Resend a ${to}:`, {
+        message: errorMessage,
+        stack: errorStack,
+      })
+
+      // Mensajes específicos según el tipo de error
+      if (errorMessage.includes('Forbidden') || errorMessage.includes('403')) {
+        this.logger.error('   ⚠️ Error 403 Forbidden de Resend')
+        this.logger.error('   Posibles causas:')
+        this.logger.error('   1. El email "from" no está verificado en Resend')
+        this.logger.error('      → Ve a Resend → Domains → Verifica tu dominio')
+        this.logger.error('      → O usa un email verificado: ' + (fromEmail || 'NO CONFIGURADO'))
+        this.logger.error('   2. La API Key no tiene permisos')
+        this.logger.error('      → Ve a Resend → API Keys')
+        this.logger.error('      → Verifica que la API Key tenga permisos correctos')
+        this.logger.error('   3. La API Key es incorrecta o fue revocada')
+        this.logger.error('      → Verifica RESEND_API_KEY en Render')
+      } else if (errorMessage.includes('Unauthorized') || errorMessage.includes('401')) {
+        this.logger.error('   ⚠️ Error 401 Unauthorized de Resend')
+        this.logger.error('   → La API Key es inválida o fue revocada')
+        this.logger.error('   → Verifica RESEND_API_KEY en Render')
+      } else if (errorMessage.includes('Timeout')) {
+        this.logger.error('   ⚠️ Timeout de conexión con Resend')
+        this.logger.error('   → Verifica tu conexión a internet o el estado de Resend')
+      }
+
+      // Fallback a SendGrid si está disponible
+      if (this.sendgridConfigured) {
+        this.logger.warn('⚠️ Resend falló, intentando con SendGrid como fallback...')
+        return this.sendWithSendGrid(to, title, body, data)
+      }
+
+      // Fallback a SMTP si está disponible
+      if (this.transporter) {
+        this.logger.warn('⚠️ Resend falló, intentando con SMTP como fallback...')
         return this.sendWithSMTP(to, title, body, data)
       }
 
