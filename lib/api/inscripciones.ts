@@ -1,5 +1,4 @@
-import { apiClient } from './client'
-import axios from 'axios'
+import { apiClient } from "./client"
 
 export interface Pago {
   id: string
@@ -7,7 +6,7 @@ export interface Pago {
   monto: number | string
   metodoPago: string
   numeroCuota?: number
-  estado: 'PENDIENTE' | 'COMPLETADO' | 'CANCELADO' | 'REEMBOLSADO'
+  estado: "PENDIENTE" | "COMPLETADO" | "CANCELADO" | "REEMBOLSADO"
   referencia?: string
   comprobanteUrl?: string
   fechaPago?: string
@@ -81,7 +80,7 @@ export const inscripcionesApi = {
     if (filters?.origen && filters.origen !== 'todos') params.origen = filters.origen
     if (filters?.convencionId) params.convencionId = filters.convencionId
 
-    const response = await apiClient.get<PaginatedResponse<Inscripcion>>('/inscripciones', {
+    const response = await apiClient.get<PaginatedResponse<Inscripcion>>("/inscripciones", {
       params,
     })
     return response.data
@@ -90,11 +89,8 @@ export const inscripcionesApi = {
   create: async (data: CreateInscripcionDto): Promise<Inscripcion> => {
     try {
       console.log('[inscripcionesApi] Enviando datos a /inscripciones:', data)
-      console.log(
-        '[inscripcionesApi] API_URL:',
-        process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
-      )
-      const response = await apiClient.post<Inscripcion>('/inscripciones', data)
+      console.log('[inscripcionesApi] API_URL:', process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api")
+      const response = await apiClient.post<Inscripcion>("/inscripciones", data)
       console.log('[inscripcionesApi] Respuesta exitosa:', response.data)
       return response.data
     } catch (error: any) {
@@ -105,19 +101,17 @@ export const inscripcionesApi = {
       console.error('[inscripcionesApi] Error response statusText:', error.response?.statusText)
       console.error('[inscripcionesApi] Error message:', error.message)
       console.error('[inscripcionesApi] Error code:', error.code)
-
+      
       // Si es un error de red (sin respuesta del servidor)
       if (!error.response) {
         console.error('[inscripcionesApi] Error de red - El servidor no está respondiendo')
-        throw new Error(
-          'No se pudo conectar con el servidor. Por favor, verifica que el backend esté corriendo.'
-        )
+        throw new Error('No se pudo conectar con el servidor. Por favor, verifica que el backend esté corriendo.')
       }
-
+      
       // Si es un error 400, intentar extraer el mensaje de validación
       if (error.response.status === 400) {
         const responseData = error.response.data
-
+        
         // Extraer mensaje de error de forma segura sin serializar objetos complejos
         let errorMessage = 'Error de validación'
         if (responseData?.error?.message) {
@@ -126,30 +120,21 @@ export const inscripcionesApi = {
           errorMessage = responseData.message
         }
         console.error('[inscripcionesApi] Error 400:', errorMessage)
-
+        
         // El GlobalExceptionFilter devuelve errores en formato ErrorResponse
         // { success: false, error: { message, statusCode, error, details: { validationErrors: [...] } } }
-        if (
-          responseData?.error?.details?.validationErrors &&
-          Array.isArray(responseData.error.details.validationErrors)
-        ) {
-          const validationErrors = responseData.error.details.validationErrors
-            .map((err: any) =>
-              typeof err === 'string' ? err : `${err.field || 'campo'}: ${err.message || err}`
-            )
-            .join(', ')
+        if (responseData?.error?.details?.validationErrors && Array.isArray(responseData.error.details.validationErrors)) {
+          const validationErrors = responseData.error.details.validationErrors.map((err: any) => 
+            typeof err === 'string' ? err : `${err.field || 'campo'}: ${err.message || err}`
+          ).join(', ')
           console.error('[inscripcionesApi] Errores de validación:', validationErrors)
           const validationError = new Error(validationErrors)
           ;(validationError as any).response = error.response
           throw validationError
         } else if (typeof responseData === 'object' && Object.keys(responseData).length === 0) {
           // Si responseData está vacío, puede ser un problema de validación silencioso
-          console.error(
-            '[inscripcionesApi] Error 400 sin detalles - posible problema de validación'
-          )
-          const validationError = new Error(
-            'Error de validación. Por favor, verifica que todos los campos estén completos y sean válidos.'
-          )
+          console.error('[inscripcionesApi] Error 400 sin detalles - posible problema de validación')
+          const validationError = new Error('Error de validación. Por favor, verifica que todos los campos estén completos y sean válidos.')
           ;(validationError as any).response = error.response
           throw validationError
         } else {
@@ -158,29 +143,29 @@ export const inscripcionesApi = {
           throw serverError
         }
       }
-
+      
       // Manejar error 409 (ConflictException - email duplicado)
       if (error.response.status === 409) {
         const responseData = error.response.data
         let errorMessage = 'Este correo electrónico ya está registrado para esta convención.'
-
+        
         if (responseData?.error?.message) {
           errorMessage = responseData.error.message
         } else if (responseData?.message) {
           errorMessage = responseData.message
         }
-
+        
         const conflictError = new Error(errorMessage)
         ;(conflictError as any).response = error.response
         throw conflictError
       }
-
+      
       throw error
     }
   },
 
   getAll: async (): Promise<Inscripcion[]> => {
-    const response = await apiClient.get<Inscripcion[]>('/inscripciones')
+    const response = await apiClient.get<Inscripcion[]>("/inscripciones")
     return response.data
   },
 
@@ -191,9 +176,7 @@ export const inscripcionesApi = {
 
   checkInscripcion: async (convencionId: string, email: string): Promise<Inscripcion | null> => {
     try {
-      const response = await apiClient.get<Inscripcion>(
-        `/inscripciones/check/${convencionId}/${encodeURIComponent(email)}`
-      )
+      const response = await apiClient.get<Inscripcion>(`/inscripciones/check/${convencionId}/${encodeURIComponent(email)}`)
       return response.data
     } catch (error: any) {
       // Si no encuentra inscripción, retornar null (no es un error)
@@ -214,11 +197,6 @@ export const inscripcionesApi = {
     return response.data
   },
 
-  rehabilitarInscripcion: async (id: string): Promise<Inscripcion> => {
-    const response = await apiClient.post<Inscripcion>(`/inscripciones/${id}/rehabilitar`)
-    return response.data
-  },
-
   getReporteIngresos: async (): Promise<{
     totalRecaudado: number
     totalPendiente: number
@@ -231,32 +209,13 @@ export const inscripcionesApi = {
     return response.data
   },
 
-  enviarRecordatorios: async (
-    convencionId?: string
-  ): Promise<{
+  enviarRecordatorios: async (convencionId?: string): Promise<{
     enviados: number
     fallidos: number
     detalles: { email: string; nombre: string; cuotasPendientes: number; exito: boolean }[]
   }> => {
-    // Timeout de 5 minutos para el proceso de recordatorios (puede tardar si hay muchos)
-    const timeout = 5 * 60 * 1000 // 5 minutos
-    
-    try {
-      const response = await apiClient.post(
-        '/inscripciones/acciones/enviar-recordatorios',
-        { convencionId },
-        {
-          timeout, // Timeout específico para esta operación
-        }
-      )
-      return response.data
-    } catch (error: unknown) {
-      // Manejar errores de timeout
-      if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
-        throw new Error('El proceso de recordatorios está tardando demasiado. Por favor, intenta nuevamente.')
-      }
-      
-      throw error
-    }
+    const response = await apiClient.post('/inscripciones/acciones/enviar-recordatorios', { convencionId })
+    return response.data
   },
 }
+

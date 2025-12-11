@@ -198,3 +198,4 @@ Si necesitas cambiar las URLs:
 **Script de verificación**: `backend/scripts/verificar-callback-urls.sh`
 
 
+

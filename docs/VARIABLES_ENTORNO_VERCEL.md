@@ -180,3 +180,4 @@ Si tienes problemas:
 3. Revisa los logs de Vercel para errores
 4. Verifica que las URLs sean correctas (https://, sin trailing slash)
 
+

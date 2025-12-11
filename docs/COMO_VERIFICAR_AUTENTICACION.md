@@ -122,3 +122,4 @@ El layout del admin (`app/admin/layout.tsx`) verifica automáticamente la autent
 
 **Última actualización:** Diciembre 2024
 
+

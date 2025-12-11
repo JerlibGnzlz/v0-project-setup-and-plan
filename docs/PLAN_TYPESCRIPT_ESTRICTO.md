@@ -146,3 +146,4 @@ protected readonly model: PrismaModelDelegate<T>
 
 **Última actualización:** Diciembre 2024
 
+

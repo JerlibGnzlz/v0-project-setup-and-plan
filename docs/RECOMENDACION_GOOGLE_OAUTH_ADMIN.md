@@ -250,3 +250,4 @@ Google OAuth es **excelente** para:
 **Recomendación:** Mantener sistema actual + implementar 2FA
 
 
+

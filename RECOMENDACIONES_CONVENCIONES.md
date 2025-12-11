@@ -105,3 +105,4 @@ ALTER TABLE convenciones ADD COLUMN fecha_archivado TIMESTAMP;
 - **Reportes**: Mantener capacidad de generar reportes de convenciones archivadas
 
 
+

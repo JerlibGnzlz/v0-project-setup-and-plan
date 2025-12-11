@@ -80,3 +80,4 @@ En producción, actualiza `FRONTEND_URL` con tu dominio real.
 - El email se marca como verificado automáticamente cuando se usa Google OAuth
 
 
+

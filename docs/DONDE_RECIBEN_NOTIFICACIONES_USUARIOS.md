@@ -294,3 +294,4 @@ Si un usuario reporta que no recibió una notificación:
 5. ✅ Revisa el historial de notificaciones en la base de datos
 
 
+

@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+import { apiClient } from "./client"
 
 export interface InvitadoRegisterRequest {
   nombre: string
@@ -30,7 +30,6 @@ export interface Invitado {
   email: string
   telefono?: string
   sede?: string
-  fotoUrl?: string
 }
 
 export interface InvitadoRegisterResponse {
@@ -61,10 +60,7 @@ export const invitadoAuthApi = {
         telefono: data.telefono,
         sede: data.sede,
       })
-      const response = await apiClient.post<InvitadoRegisterResponse>(
-        '/auth/invitado/register',
-        data
-      )
+      const response = await apiClient.post<InvitadoRegisterResponse>("/auth/invitado/register", data)
       console.log('[invitadoAuthApi] Respuesta exitosa:', response.data)
       return response.data
     } catch (error: any) {
@@ -73,9 +69,7 @@ export const invitadoAuthApi = {
     }
   },
 
-  registerComplete: async (
-    data: InvitadoRegisterCompleteRequest
-  ): Promise<InvitadoRegisterCompleteResponse> => {
+  registerComplete: async (data: InvitadoRegisterCompleteRequest): Promise<InvitadoRegisterCompleteResponse> => {
     try {
       console.log('[invitadoAuthApi] Enviando datos a /auth/invitado/register-complete:', {
         nombre: data.nombre,
@@ -84,10 +78,7 @@ export const invitadoAuthApi = {
         telefono: data.telefono,
         sede: data.sede,
       })
-      const response = await apiClient.post<InvitadoRegisterCompleteResponse>(
-        '/auth/invitado/register-complete',
-        data
-      )
+      const response = await apiClient.post<InvitadoRegisterCompleteResponse>("/auth/invitado/register-complete", data)
       console.log('[invitadoAuthApi] Respuesta exitosa:', response.data)
       return response.data
     } catch (error: any) {
@@ -98,93 +89,14 @@ export const invitadoAuthApi = {
 
   login: async (data: InvitadoLoginRequest): Promise<InvitadoLoginResponse> => {
     try {
-      const response = await apiClient.post<InvitadoLoginResponse>('/auth/invitado/login', data)
+      const response = await apiClient.post<InvitadoLoginResponse>("/auth/invitado/login", data)
       return response.data
     } catch (error: any) {
       console.error('[invitadoAuthApi] Error en login:', error)
       throw error
     }
   },
-
-  getProfile: async (): Promise<Invitado> => {
-    try {
-      // Asegurarse de que el token esté disponible antes de hacer la petición
-      const token =
-        typeof window !== 'undefined'
-          ? localStorage.getItem('invitado_token') || sessionStorage.getItem('invitado_token')
-          : null
-
-      if (!token) {
-        console.error('[invitadoAuthApi] No hay token de invitado disponible')
-        throw new Error('No hay token de invitado disponible')
-      }
-
-      // Decodificar el token para verificar su contenido (solo para debugging)
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        console.log('[invitadoAuthApi] Token payload:', {
-          sub: payload.sub,
-          email: payload.email,
-          role: payload.role,
-          type: payload.type,
-          exp: payload.exp,
-          expDate: new Date(payload.exp * 1000).toISOString(),
-        })
-      } catch (e) {
-        console.warn('[invitadoAuthApi] No se pudo decodificar el token:', e)
-      }
-
-      console.log('[invitadoAuthApi] Obteniendo perfil con token:', token.substring(0, 20) + '...')
-
-      // Hacer la petición con el token explícitamente en los headers
-      // El interceptor también debería agregarlo, pero lo hacemos explícito por seguridad
-      const response = await apiClient.get<Invitado>('/auth/invitado/me', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      console.log('[invitadoAuthApi] Perfil obtenido exitosamente:', response.data)
-      return response.data
-    } catch (error: any) {
-      console.error('[invitadoAuthApi] Error en getProfile:', error)
-      if (error.response?.status === 401) {
-        console.error('[invitadoAuthApi] Token inválido o expirado')
-        console.error('[invitadoAuthApi] Response:', error.response?.data)
-        console.error('[invitadoAuthApi] Headers enviados:', error.config?.headers)
-      }
-      throw error
-    }
-  },
-
-  logout: async (refreshToken?: string): Promise<void> => {
-    try {
-      const token =
-        typeof window !== 'undefined'
-          ? localStorage.getItem('invitado_token') || sessionStorage.getItem('invitado_token')
-          : null
-
-      if (!token) {
-        console.log('[invitadoAuthApi] No hay token para invalidar en logout')
-        return
-      }
-
-      console.log('[invitadoAuthApi] Invalidando token en backend...')
-      await apiClient.post(
-        '/auth/invitado/logout',
-        refreshToken ? { refreshToken } : {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      console.log('[invitadoAuthApi] Logout exitoso en backend')
-    } catch (error: unknown) {
-      // No lanzar error, logout debe siempre tener éxito
-      // Incluso si el backend falla, limpiamos el storage localmente
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-      console.warn('[invitadoAuthApi] Error al invalidar token en backend (continuando con logout local):', errorMessage)
-    }
-  },
 }
+
+
+

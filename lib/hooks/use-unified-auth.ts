@@ -1,9 +1,9 @@
-'use client'
+"use client"
 
-import { useState, useEffect, useCallback } from 'react'
-import { unifiedAuthApi } from '@/lib/api/unified-auth'
-import { invitadoAuthApi } from '@/lib/api/invitado-auth'
-import { pastorAuthApi } from '@/lib/api/pastor-auth'
+import { useState, useEffect, useCallback } from "react"
+import { unifiedAuthApi } from "@/lib/api/unified-auth"
+import { invitadoAuthApi } from "@/lib/api/invitado-auth"
+import { pastorAuthApi } from "@/lib/api/pastor-auth"
 
 interface UnifiedUser {
   id: string
@@ -41,7 +41,7 @@ export function useUnifiedAuth() {
   })
 
   const checkAuth = useCallback(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       setState(prev => ({ ...prev, isHydrated: true }))
       return
     }
@@ -49,39 +49,15 @@ export function useUnifiedAuth() {
     // Verificar invitado primero
     const invitadoToken = localStorage.getItem('invitado_token')
     const invitadoUser = localStorage.getItem('invitado_user')
-
-    if (invitadoToken) {
-      if (invitadoUser) {
-        // Si hay usuario guardado, usarlo
-        try {
-          const user = JSON.parse(invitadoUser)
-          setState({
-            user: {
-              ...user,
-              tipo: 'INVITADO' as const,
-              fotoUrl: user.fotoUrl,
-            },
-            token: invitadoToken,
-            refreshToken: localStorage.getItem('invitado_refresh_token') || null,
-            isAuthenticated: true,
-            isHydrated: true,
-            userType: 'INVITADO',
-          })
-          return
-        } catch (e) {
-          console.error('Error parsing invitado user:', e)
-        }
-      }
-
-      // Si hay token pero no hay usuario, NO intentar obtener el perfil aquí
-      // Esto puede causar problemas de timing y errores 401
-      // En su lugar, el componente Step1Auth manejará la obtención del perfil
-      // después de que el token esté completamente guardado
-      if (invitadoToken && !invitadoUser) {
-        // Simplemente marcar como autenticado con el token
-        // El componente se encargará de obtener el perfil cuando esté listo
+    
+    if (invitadoToken && invitadoUser) {
+      try {
+        const user = JSON.parse(invitadoUser)
         setState({
-          user: null,
+          user: {
+            ...user,
+            tipo: 'INVITADO' as const,
+          },
           token: invitadoToken,
           refreshToken: localStorage.getItem('invitado_refresh_token') || null,
           isAuthenticated: true,
@@ -89,13 +65,15 @@ export function useUnifiedAuth() {
           userType: 'INVITADO',
         })
         return
+      } catch (e) {
+        console.error('Error parsing invitado user:', e)
       }
     }
 
     // Verificar pastor
     const pastorToken = localStorage.getItem('pastor_auth_token')
     const pastorUser = localStorage.getItem('pastor_auth_user')
-
+    
     if (pastorToken && pastorUser) {
       try {
         const user = JSON.parse(pastorUser)
@@ -119,7 +97,7 @@ export function useUnifiedAuth() {
     // Verificar admin
     const adminToken = localStorage.getItem('auth_token')
     const adminUser = localStorage.getItem('auth_user')
-
+    
     if (adminToken && adminUser) {
       try {
         const user = JSON.parse(adminUser)
@@ -151,7 +129,7 @@ export function useUnifiedAuth() {
   const login = async (email: string, password: string) => {
     try {
       const response = await unifiedAuthApi.login({ email, password })
-
+      
       // Asegurar que el usuario tenga todos los campos necesarios
       const userData: UnifiedUser = {
         id: response.user.id,
@@ -161,9 +139,8 @@ export function useUnifiedAuth() {
         telefono: response.user.telefono,
         sede: response.user.sede,
         tipo: response.user.tipo,
-        fotoUrl: response.user.fotoUrl,
       }
-
+      
       // Guardar según el tipo de usuario
       if (typeof window !== 'undefined') {
         if (response.user.tipo === 'INVITADO') {
@@ -205,7 +182,7 @@ export function useUnifiedAuth() {
   }) => {
     try {
       const response = await invitadoAuthApi.registerComplete(data)
-
+      
       if (typeof window !== 'undefined') {
         localStorage.setItem('invitado_token', response.access_token)
         localStorage.setItem('invitado_refresh_token', response.refresh_token)
@@ -230,31 +207,8 @@ export function useUnifiedAuth() {
     }
   }
 
-  const logout = async () => {
-    // Intentar invalidar el token en el backend antes de limpiar el storage
-    // Esto es importante para que el token quede en la blacklist
-    try {
-      const userType = state.userType
-      const refreshToken = state.refreshToken
-
-      if (userType === 'INVITADO') {
-        await invitadoAuthApi.logout(refreshToken || undefined)
-      } else if (userType === 'PASTOR') {
-        // TODO: Agregar logout para pastores si existe
-        // await pastorAuthApi.logout(refreshToken || undefined)
-      } else if (userType === 'ADMIN') {
-        // TODO: Agregar logout para admins si existe
-        // await authApi.logout(refreshToken || undefined)
-      }
-    } catch (error) {
-      // No lanzar error, logout debe siempre tener éxito
-      // Incluso si el backend falla, limpiamos el storage localmente
-      console.warn('[useUnifiedAuth] Error al invalidar token en backend (continuando con logout local):', error)
-    }
-
-    // Limpiar todo de forma síncrona y rápida
+  const logout = () => {
     if (typeof window !== 'undefined') {
-      // Limpiar localStorage
       localStorage.removeItem('invitado_token')
       localStorage.removeItem('invitado_refresh_token')
       localStorage.removeItem('invitado_user')
@@ -263,19 +217,8 @@ export function useUnifiedAuth() {
       localStorage.removeItem('pastor_auth_user')
       localStorage.removeItem('auth_token')
       localStorage.removeItem('auth_user')
-
-      // Limpiar sessionStorage también
-      sessionStorage.removeItem('invitado_token')
-      sessionStorage.removeItem('invitado_refresh_token')
-      sessionStorage.removeItem('invitado_user')
-      sessionStorage.removeItem('pastor_auth_token')
-      sessionStorage.removeItem('pastor_refresh_token')
-      sessionStorage.removeItem('pastor_auth_user')
-      sessionStorage.removeItem('auth_token')
-      sessionStorage.removeItem('auth_user')
     }
 
-    // Actualizar estado inmediatamente
     setState({
       user: null,
       token: null,
@@ -294,3 +237,4 @@ export function useUnifiedAuth() {
     checkAuth,
   }
 }
+

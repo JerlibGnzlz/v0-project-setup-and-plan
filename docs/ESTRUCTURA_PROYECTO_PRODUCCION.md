@@ -257,3 +257,4 @@ import Image from 'next/image' // Ya lo usas ✅
 **Última actualización:** Diciembre 2024
 
 
+

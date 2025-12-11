@@ -318,3 +318,4 @@ El sistema de autenticación ahora tiene:
 **Versión**: 2.0.0
 
 
+

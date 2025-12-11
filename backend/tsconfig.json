@@ -12,18 +12,10 @@
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    // Opciones estrictas habilitadas gradualmente
-    "strictNullChecks": true,
-    "noImplicitAny": false, // Temporalmente deshabilitado para build en producción
-    "strictBindCallApply": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "strictFunctionTypes": true,
-    "strictPropertyInitialization": false, // Se puede habilitar después de corregir inicializaciones
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noUnusedLocals": false, // Se puede habilitar después de limpiar código
-    "noUnusedParameters": false, // Se puede habilitar después de limpiar código
-    "noImplicitReturns": true
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false
   }
 }

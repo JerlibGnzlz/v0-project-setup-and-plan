@@ -200,3 +200,4 @@ Si tienes dudas sobre el flujo:
 3. Revisa los logs del backend para verificar que la API `/convenciones/active` retorna la convención correcta
 
 
+
