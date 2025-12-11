@@ -180,11 +180,6 @@ export class EmailService {
             minVersion: 'TLSv1.2', // Versión mínima de TLS
             ciphers: 'HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA', // Ciphers seguros
           },
-          // Opciones de socket mejoradas
-          socket: {
-            keepAlive: true,
-            keepAliveDelay: 10000, // 10 segundos
-          },
           // Debug (solo en desarrollo)
           debug: process.env.NODE_ENV === 'development',
           logger: process.env.NODE_ENV === 'development',
