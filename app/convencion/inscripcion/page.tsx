@@ -304,9 +304,75 @@ function ConvencionInscripcionPageContent() {
         )}
 
         {/* Formulario unificado de inscripción - Solo si NO hay inscripción existente */}
-        {isAuthenticated && currentStep === 2 && convencion && user && !inscripcionExistente && (
-          <UnifiedInscriptionForm convencion={convencion} user={user} />
-        )}
+        {currentStep === 2 && convencion && !inscripcionExistente && (() => {
+          // Verificar si hay token en localStorage (más confiable que isAuthenticated)
+          const hasToken = typeof window !== 'undefined' 
+            ? !!(localStorage.getItem('invitado_token') || localStorage.getItem('auth_token'))
+            : false
+          
+          console.log('[ConvencionInscripcionPage] Renderizando paso 2:', {
+            hasToken,
+            isAuthenticated,
+            hasUser: !!user,
+            userEmail: user?.email,
+            isLoadingInscripcion,
+            invitadoAuthUser: invitadoAuth.user?.email,
+            unifiedAuthUser: unifiedAuth.user?.email,
+          })
+          
+          // Si hay user disponible (de cualquier hook), mostrar el formulario
+          if (user) {
+            console.log('[ConvencionInscripcionPage] User disponible, mostrando formulario')
+            return <UnifiedInscriptionForm convencion={convencion} user={user} />
+          }
+          
+          // Si hay token pero user aún no está disponible, intentar obtenerlo del localStorage
+          if (hasToken && !user) {
+            console.log('[ConvencionInscripcionPage] Token encontrado pero user no disponible, intentando obtener del localStorage...')
+            try {
+              const invitadoUserStr = typeof window !== 'undefined' 
+                ? localStorage.getItem('invitado_user')
+                : null
+              
+              if (invitadoUserStr) {
+                const invitadoUser = JSON.parse(invitadoUserStr)
+                console.log('[ConvencionInscripcionPage] User encontrado en localStorage, mostrando formulario')
+                return <UnifiedInscriptionForm convencion={convencion} user={invitadoUser} />
+              }
+            } catch (e) {
+              console.error('[ConvencionInscripcionPage] Error parseando invitado_user:', e)
+            }
+            
+            // Si hay token pero no user, mostrar loading mientras se carga
+            console.log('[ConvencionInscripcionPage] Token encontrado pero user no disponible, mostrando loading...')
+            return (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-white/70">Cargando información del usuario...</p>
+                </div>
+              </div>
+            )
+          }
+          
+          // Si no hay token ni user, mostrar mensaje
+          if (!hasToken && !user) {
+            console.log('[ConvencionInscripcionPage] No hay token ni user, mostrando mensaje de error')
+            return (
+              <div className="text-center py-12">
+                <p className="text-white/70">Por favor, inicia sesión primero.</p>
+                <Button
+                  onClick={() => setCurrentStep(1)}
+                  className="mt-4 bg-emerald-500 hover:bg-emerald-600 text-white"
+                >
+                  Volver a autenticación
+                </Button>
+              </div>
+            )
+          }
+          
+          return null
+        })()}
       </div>
     </div>
   )
