@@ -146,43 +146,65 @@ export class EmailService {
       // Remover espacios del password (Gmail App Passwords pueden tener espacios)
       const cleanPassword = emailConfig.auth.pass.replace(/\s/g, '')
 
-      this.transporter = nodemailer.createTransport({
-        ...emailConfig,
-        auth: {
-          ...emailConfig.auth,
-          pass: cleanPassword,
-        },
-        // Configuración de timeouts más robusta para evitar ETIMEDOUT
-        connectionTimeout: 30000, // 30 segundos para establecer conexión
-        greetingTimeout: 30000, // 30 segundos para recibir saludo del servidor
-        socketTimeout: 30000, // 30 segundos para operaciones de socket
-        // Opciones adicionales para mejorar la conexión
-        pool: true, // Usar pool de conexiones
-        maxConnections: 5, // Máximo de conexiones en el pool
-        maxMessages: 100, // Máximo de mensajes por conexión
-        rateDelta: 1000, // Intervalo para rate limiting
-        rateLimit: 5, // Máximo de mensajes por rateDelta
-        // Opciones de TLS/SSL
-        tls: {
-          rejectUnauthorized: false, // No rechazar certificados no autorizados (útil para algunos servidores)
-          ciphers: 'SSLv3', // Ciphers permitidos
-        },
-        // Debug (solo en desarrollo)
-        debug: process.env.NODE_ENV === 'development',
-        logger: process.env.NODE_ENV === 'development',
-      })
-      this.logger.log('✅ Servicio de email configurado (Gmail SMTP)')
-      this.logger.log(`📧 SMTP: ${emailConfig.host}:${emailConfig.port}`)
-      this.logger.log(`👤 Usuario: ${emailConfig.auth.user}`)
+      // Validar que el password no esté vacío después de limpiar
+      if (!cleanPassword || cleanPassword.length === 0) {
+        this.logger.error('❌ SMTP_PASSWORD está vacío o solo contiene espacios')
+        this.logger.error('   Verifica que SMTP_PASSWORD tenga un valor válido en Render')
+        return
+      }
+
+      try {
+        this.transporter = nodemailer.createTransport({
+          ...emailConfig,
+          auth: {
+            ...emailConfig.auth,
+            pass: cleanPassword,
+          },
+          // Configuración de timeouts más robusta para evitar ETIMEDOUT
+          connectionTimeout: 30000, // 30 segundos para establecer conexión
+          greetingTimeout: 30000, // 30 segundos para recibir saludo del servidor
+          socketTimeout: 30000, // 30 segundos para operaciones de socket
+          // Opciones adicionales para mejorar la conexión
+          pool: true, // Usar pool de conexiones
+          maxConnections: 5, // Máximo de conexiones en el pool
+          maxMessages: 100, // Máximo de mensajes por conexión
+          rateDelta: 1000, // Intervalo para rate limiting
+          rateLimit: 5, // Máximo de mensajes por rateDelta
+          // Opciones de TLS/SSL
+          tls: {
+            rejectUnauthorized: false, // No rechazar certificados no autorizados (útil para algunos servidores)
+            ciphers: 'SSLv3', // Ciphers permitidos
+          },
+          // Debug (solo en desarrollo)
+          debug: process.env.NODE_ENV === 'development',
+          logger: process.env.NODE_ENV === 'development',
+        })
+
+        // Verificar que el transporter se creó correctamente
+        if (this.transporter) {
+          this.logger.log('✅ Servicio de email configurado (Gmail SMTP)')
+          this.logger.log(`📧 SMTP: ${emailConfig.host}:${emailConfig.port}`)
+          this.logger.log(`👤 Usuario: ${emailConfig.auth.user}`)
+          this.logger.log(`🔐 Password: ${cleanPassword.length > 0 ? '***' + cleanPassword.slice(-4) : 'NO CONFIGURADO'}`)
+        }
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+        this.logger.error(`❌ Error creando transporter SMTP: ${errorMessage}`)
+        this.transporter = null
+      }
     } else {
-      this.logger.warn('⚠️ Servicio de email no configurado (faltan credenciales SMTP)')
-      this.logger.warn('   Configura SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD en .env')
-      this.logger.warn(
-        '   O configura SendGrid: SENDGRID_API_KEY y SENDGRID_FROM_EMAIL con EMAIL_PROVIDER=sendgrid'
-      )
-      this.logger.warn(
-        '   Para Gmail, necesitas una App Password: https://myaccount.google.com/apppasswords'
-      )
+      const missingFields: string[] = []
+      if (!emailConfig.auth.user) missingFields.push('SMTP_USER')
+      if (!emailConfig.auth.pass) missingFields.push('SMTP_PASSWORD')
+
+      this.logger.warn(`⚠️ Servicio de email no configurado (faltan: ${missingFields.join(', ')})`)
+      this.logger.warn('   Configura las siguientes variables en Render:')
+      this.logger.warn('   - SMTP_HOST (opcional, por defecto: smtp.gmail.com)')
+      this.logger.warn('   - SMTP_PORT (opcional, por defecto: 587)')
+      this.logger.warn('   - SMTP_SECURE (opcional, por defecto: false)')
+      this.logger.warn('   - SMTP_USER (requerido)')
+      this.logger.warn('   - SMTP_PASSWORD (requerido)')
+      this.logger.warn('   Para Gmail, necesitas una App Password: https://myaccount.google.com/apppasswords')
     }
   }
 
