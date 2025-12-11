@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -46,6 +46,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
   const [isCheckingInscripcion, setIsCheckingInscripcion] = useState(false) // Estado para verificar inscripción
   const [forceUpdate, setForceUpdate] = useState(0) // Forzar re-renderizado
   const [imageError, setImageError] = useState(false) // Estado para manejar errores de imagen
+  const googleAuthProcessed = useRef(false) // Bandera para evitar múltiples toasts de Google
   const { login, registerInvitado, checkAuth, logout, user, isAuthenticated } = useUnifiedAuth()
   const queryClient = useQueryClient()
   const searchParams = useSearchParams()
@@ -100,7 +101,10 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
       return
     }
 
-    if (token && isGoogle === 'true') {
+    if (token && isGoogle === 'true' && !googleAuthProcessed.current) {
+      // Marcar como procesado inmediatamente para evitar múltiples ejecuciones
+      googleAuthProcessed.current = true
+      
       // Guardar tokens
       if (typeof window !== 'undefined') {
         localStorage.setItem('invitado_token', token)
@@ -148,6 +152,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
             // Limpiar parámetros de la URL DESPUÉS de actualizar el estado
             router.replace(window.location.pathname)
 
+            // Mostrar toast solo una vez
             toast.success('¡Bienvenido!', {
               description: 'Has iniciado sesión con Google correctamente',
             })
@@ -174,6 +179,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
             // Limpiar URL incluso si falla el perfil
             router.replace(window.location.pathname)
 
+            // Mostrar toast solo una vez (incluso en caso de error)
             toast.success('¡Bienvenido!', {
               description: 'Has iniciado sesión con Google correctamente',
             })
@@ -183,6 +189,11 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
         // Ejecutar inmediatamente sin delay para procesar más rápido
         processGoogleAuth()
       }
+    }
+    
+    // Resetear el flag si no hay token de Google en la URL (para permitir nuevo login)
+    if (!token || isGoogle !== 'true') {
+      googleAuthProcessed.current = false
     }
   }, [searchParams, checkAuth, onComplete])
 
