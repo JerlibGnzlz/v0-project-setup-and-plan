@@ -131,6 +131,8 @@ function ConvencionInscripcionPageContent() {
       step,
       data,
       currentStep,
+      isAuthenticated,
+      userEmail: user?.email,
     })
     if (data) {
       setFormData((prev: any) => ({ ...prev, ...data }))
@@ -138,19 +140,32 @@ function ConvencionInscripcionPageContent() {
 
     // Avanzar al siguiente paso (step 2 = formulario de inscripción o card de inscripción existente)
     if (step === 1) {
-      // Si el usuario está autenticado, React Query ya está verificando la inscripción automáticamente
-      // Solo necesitamos invalidar las queries para asegurar que se refetch
-      if (isAuthenticated && user?.email && convencion?.id) {
-        console.log('[ConvencionInscripcionPage] Invalidando queries para refetch automático...')
-        // Invalidar ambas queries (perfil y inscripción) para refetch automático
+      // Esperar un momento para que el estado de autenticación se actualice
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      // Verificar nuevamente el estado de autenticación después del delay
+      const token = typeof window !== 'undefined' 
+        ? localStorage.getItem('invitado_token') || localStorage.getItem('auth_token')
+        : null
+      
+      if (token) {
+        console.log('[ConvencionInscripcionPage] Token encontrado, invalidando queries...')
+        // Invalidar queries para refetch automático
         queryClient.invalidateQueries({ queryKey: ['invitado', 'profile'] })
-        queryClient.invalidateQueries({ queryKey: ['checkInscripcion', convencion.id, user.email] })
-        // React Query manejará el refetch automáticamente
-        // El useEffect anterior actualizará el step basado en inscripcionExistente
-      } else {
-        // Si no está autenticado, simplemente avanzar
-        console.log('[ConvencionInscripcionPage] Usuario no autenticado, avanzando al paso 2')
+        queryClient.invalidateQueries({ queryKey: ['checkInscripcion'] })
+        
+        // Esperar a que las queries se completen
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Avanzar al siguiente paso
+        console.log('[ConvencionInscripcionPage] Avanzando al paso 2...')
         setCurrentStep(2)
+        setPasosCompletados([1])
+      } else {
+        // Si no hay token, simplemente avanzar
+        console.log('[ConvencionInscripcionPage] No hay token, avanzando al paso 2')
+        setCurrentStep(2)
+        setPasosCompletados([1])
       }
     }
   }
