@@ -23,7 +23,7 @@ export class CreateInscripcionDto {
   convencionId: string
 
   @IsString()
-  @Length(2, 50, { message: 'El nombre debe tener entre 2 y 50 caracteres' })
+  @Length(1, 50, { message: 'El nombre debe tener entre 1 y 50 caracteres' })
   @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/, {
     message: 'El nombre solo puede contener letras, espacios, guiones y apóstrofes',
   })
