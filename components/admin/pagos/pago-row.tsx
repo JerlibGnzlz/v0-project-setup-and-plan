@@ -303,14 +303,14 @@ export function PagoRow({
                 variant="outline"
                 onClick={() => onRehabilitar(pago)}
                 disabled={isRehabilitando}
-                className="h-7 text-[10px] px-2 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                className="h-7 text-[10px] px-2 border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium"
               >
-                <RefreshCw className="size-3 mr-0.5" />
-                Rehab
+                <RefreshCw className="size-3 mr-1" />
+                Rehabilitar
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Permitir que el usuario vuelva a enviar su pago</p>
+              <p>Rehabilitar pago: cambiará a estado PENDIENTE</p>
             </TooltipContent>
           </Tooltip>
         )}

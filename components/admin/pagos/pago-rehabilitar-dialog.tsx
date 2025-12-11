@@ -42,8 +42,8 @@ export function PagoRehabilitarDialog({
           <AlertDialogDescription asChild>
             <div className="space-y-4">
               <p>
-                ¿Estás seguro de que deseas rehabilitar este pago? Esto permitirá al usuario volver
-                a enviar su comprobante.
+                ¿Estás seguro de que deseas rehabilitar este pago? El estado cambiará de <strong>CANCELADO</strong> a <strong>PENDIENTE</strong>, 
+                permitiendo que el usuario vuelva a enviar su comprobante de pago.
               </p>
 
               <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 space-y-2 text-sm border border-blue-200 dark:border-blue-800">
