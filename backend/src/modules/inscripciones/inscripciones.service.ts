@@ -1733,7 +1733,7 @@ export class InscripcionesService {
         const estadoAnterior = pago.estado
 
         if (pago.estado !== EstadoPago.CANCELADO) {
-            throw new BadRequestException('Solo se pueden rehabilitar pagos rechazados')
+            throw new BadRequestException('Solo se pueden rehabilitar pagos cancelados')
         }
 
         const pagoRehabilitado = await this.prisma.pago.update({

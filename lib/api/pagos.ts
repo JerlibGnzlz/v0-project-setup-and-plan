@@ -110,7 +110,7 @@ export const pagosApi = {
   },
 
   rehabilitarPago: async (id: string): Promise<Pago> => {
-    const response = await apiClient.post<Pago>(`/pagos/${id}/rehabilitar`)
+    const response = await apiClient.post<Pago>(`/inscripciones/pagos/${id}/rehabilitar`)
     return response.data
   },
 
