@@ -8,6 +8,7 @@ import {
   ArrowRight,
   Newspaper,
   UserCheck,
+  Shield,
 } from 'lucide-react'
 import type { DashboardStats as DashboardStatsType } from '@/lib/hooks/use-dashboard-stats'
 
@@ -158,6 +159,43 @@ export function DashboardQuickActions({
                 {stats.inscripcionesConfirmadas > 0 && (
                   <span className="text-xs ml-1">
                     ({stats.inscripcionesConfirmadas} confirmadas)
+                  </span>
+                )}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      </ScrollReveal>
+
+      <ScrollReveal delay={600}>
+        <Link href="/admin/credenciales-pastorales">
+          <Card className="hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer group border-purple-200/50 dark:border-purple-500/20 bg-gradient-to-br from-white to-purple-50/30 dark:from-background dark:to-purple-950/20 overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/10 to-indigo-500/10 dark:from-purple-500/20 dark:to-indigo-500/20 group-hover:from-purple-500/20 group-hover:to-indigo-500/20 transition-colors">
+                  <Shield className="size-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <ArrowRight className="size-5 text-purple-500/50 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
+              </div>
+              <CardTitle className="mt-4 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                Credenciales Pastorales
+              </CardTitle>
+              <CardDescription>
+                Gestiona las credenciales ministeriales de los pastores y sus vencimientos
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-purple-600/70 dark:text-purple-400/70">
+                {stats.totalCredenciales} credencial(es) activa(s)
+                {stats.credencialesPorVencer > 0 && (
+                  <span className="text-xs ml-1 text-amber-600 dark:text-amber-400">
+                    ({stats.credencialesPorVencer} por vencer)
+                  </span>
+                )}
+                {stats.credencialesVencidas > 0 && (
+                  <span className="text-xs ml-1 text-red-600 dark:text-red-400">
+                    ({stats.credencialesVencidas} vencidas)
                   </span>
                 )}
               </p>
