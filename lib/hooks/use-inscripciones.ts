@@ -174,11 +174,13 @@ export function useRehabilitarInscripcion() {
 
   return useMutation({
     mutationFn: (id: string) => inscripcionesApi.rehabilitarInscripcion(id),
-    onSuccess: async (data) => {
+    onSuccess: async (data, variables) => {
+      const inscripcionId = data.id || variables
+      
       // Invalidar queries para forzar refetch
       await queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
       await queryClient.invalidateQueries({ queryKey: ["pagos"] })
-      await queryClient.invalidateQueries({ queryKey: ["inscripcion", id] })
+      await queryClient.invalidateQueries({ queryKey: ["inscripcion", inscripcionId] })
       
       // Refetch explícito para actualización inmediata
       await queryClient.refetchQueries({ queryKey: ["inscripciones"] })
@@ -190,8 +192,13 @@ export function useRehabilitarInscripcion() {
         description: "La inscripción ha cambiado de 'cancelado' a 'pendiente' y los pagos cancelados han sido rehabilitados",
       })
     },
-    onError: (error: any) => {
-      const errorMessage = error.response?.data?.error?.message || error.response?.data?.message || error.message || "Error al rehabilitar la inscripción"
+    onError: (error: unknown) => {
+      const errorMessage = 
+        (error as { response?: { data?: { error?: { message?: string }; message?: string } } })?.response?.data?.error?.message ||
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (error instanceof Error ? error.message : String(error)) ||
+        "Error al rehabilitar la inscripción"
+      
       toast.error("Error al rehabilitar la inscripción", {
         description: errorMessage,
         duration: 5000,
