@@ -66,8 +66,10 @@ export class AuditService {
       // Para otras entidades, usar una tabla genérica de auditoría
       // Por ahora, solo logueamos ya que no tenemos tabla genérica
       // En el futuro se puede crear una tabla `auditoria` genérica
+      const entityId = data.entityId || 'N/A'
+      const userEmail = data.userEmail || 'sistema'
       this.logger.log(
-        `📝 Auditoría [${data.entityType}]: ${data.action} en ${data.entityId} por ${data.userEmail || 'sistema'}`
+        `📝 Auditoría [${data.entityType}]: ${data.action} en ${entityId} por ${userEmail}`
       )
 
       // Log detallado de cambios
