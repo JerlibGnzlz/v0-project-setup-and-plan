@@ -147,37 +147,6 @@ export function InscripcionExistenteCard({
         }))
     }
 
-    // Manejar subida de comprobante (solo sube, no actualiza el pago todavía)
-    const handleComprobanteUpload = async (pagoId: string, file: File): Promise<string> => {
-        try {
-            setIsSubiendoComprobante(prev => ({ ...prev, [pagoId]: true }))
-
-            // Subir el comprobante a Cloudinary
-            const response = await uploadApi.uploadComprobantePago(file)
-
-            // Guardar temporalmente la URL del comprobante
-            setComprobantesTemporales(prev => ({
-                ...prev,
-                [pagoId]: response.url
-            }))
-
-            toast.success('Comprobante cargado', {
-                description: 'Haz clic en "Enviar" para confirmar el envío del comprobante.',
-            })
-
-            return response.url
-        } catch (error) {
-            console.error('Error al subir comprobante:', error)
-            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-            toast.error('Error al subir el comprobante', {
-                description: errorMessage || 'Por favor, intenta nuevamente',
-            })
-            throw error
-        } finally {
-            setIsSubiendoComprobante(prev => ({ ...prev, [pagoId]: false }))
-        }
-    }
-
     // Enviar comprobante (actualizar el pago con el comprobante)
     const handleEnviarComprobante = async (pagoId: string) => {
         const comprobanteUrl = comprobantesTemporales[pagoId] || pagos.find(p => p.id === pagoId)?.comprobanteUrl
@@ -185,6 +154,15 @@ export function InscripcionExistenteCard({
         if (!comprobanteUrl) {
             toast.error('No hay comprobante para enviar', {
                 description: 'Por favor, sube un comprobante primero',
+            })
+            return
+        }
+
+        // Si el pago ya tiene comprobante enviado, no permitir enviar de nuevo
+        const pago = pagos.find(p => p.id === pagoId)
+        if (pago?.comprobanteUrl && !comprobantesTemporales[pagoId]) {
+            toast.info('Comprobante ya enviado', {
+                description: 'Este comprobante ya fue enviado anteriormente.',
             })
             return
         }
@@ -575,10 +553,26 @@ export function InscripcionExistenteCard({
                                                         if (!pago?.id) {
                                                             throw new Error('No se encontró el ID del pago')
                                                         }
-                                                        return await handleComprobanteUpload(pago.id, file)
+                                                        try {
+                                                            const response = await uploadApi.uploadInscripcionDocumento(file)
+                                                            toast.success('Comprobante subido exitosamente', {
+                                                                description: 'Tu comprobante de transferencia ha sido cargado correctamente',
+                                                            })
+                                                            // Guardar temporalmente la URL
+                                                            setComprobantesTemporales(prev => ({
+                                                                ...prev,
+                                                                [pagoId]: response.url
+                                                            }))
+                                                            return response.url
+                                                        } catch (error) {
+                                                            toast.error('Error al subir el comprobante', {
+                                                                description: 'Por favor, intenta nuevamente',
+                                                            })
+                                                            throw error
+                                                        }
                                                     }}
                                                     className="bg-white/5"
-                                                    disabled={estaPagada}
+                                                    disabled={estaPagada || !!pago?.comprobanteUrl}
                                                 />
 
                                                 {/* Botón de Enviar */}
@@ -586,17 +580,23 @@ export function InscripcionExistenteCard({
                                                     <Button
                                                         onClick={() => handleEnviarComprobante(pagoId)}
                                                         disabled={
-                                                            !comprobantesTemporales[pagoId] && !pago?.comprobanteUrl ||
+                                                            (!comprobantesTemporales[pagoId] && !pago?.comprobanteUrl) ||
                                                             updatePagoMutation.isPending ||
                                                             isSubiendoComprobante[pagoId] ||
-                                                            estaPagada
+                                                            estaPagada ||
+                                                            !!pago?.comprobanteUrl // Deshabilitar si ya fue enviado
                                                         }
-                                                        className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
+                                                        className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
                                                         {updatePagoMutation.isPending ? (
                                                             <>
                                                                 <Clock className="w-4 h-4 mr-2 animate-spin" />
                                                                 Enviando...
+                                                            </>
+                                                        ) : pago?.comprobanteUrl ? (
+                                                            <>
+                                                                <CheckCircle2 className="w-4 h-4 mr-2" />
+                                                                Comprobante Enviado
                                                             </>
                                                         ) : (
                                                             <>
