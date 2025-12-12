@@ -2,14 +2,6 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { CredencialPastoral } from '@/lib/api/credenciales-pastorales'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale/es'
@@ -51,19 +43,19 @@ export function CredencialPastoralTable({
   }
 
   return (
-    <div className="border rounded-lg">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Número</TableHead>
-            <TableHead>Pastor</TableHead>
-            <TableHead>Emisión</TableHead>
-            <TableHead>Vencimiento</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead>Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+    <div className="rounded-md border overflow-x-auto">
+      <table className="w-full">
+        <thead className="bg-muted/50">
+          <tr>
+            <th className="p-3 text-left text-sm font-medium">Número</th>
+            <th className="p-3 text-left text-sm font-medium">Pastor</th>
+            <th className="p-3 text-left text-sm font-medium">Emisión</th>
+            <th className="p-3 text-left text-sm font-medium">Vencimiento</th>
+            <th className="p-3 text-left text-sm font-medium">Estado</th>
+            <th className="p-3 text-left text-sm font-medium">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
           {credenciales.map((credencial) => {
             const fechaVencimiento = new Date(credencial.fechaVencimiento)
             const hoy = new Date()
@@ -72,14 +64,14 @@ export function CredencialPastoralTable({
             )
 
             return (
-              <TableRow key={credencial.id}>
-                <TableCell>
+              <tr key={credencial.id} className="border-b">
+                <td className="p-3">
                   <div className="flex items-center gap-2">
                     <CreditCard className="w-4 h-4 text-muted-foreground" />
                     <span className="font-mono text-sm">{credencial.numeroCredencial}</span>
                   </div>
-                </TableCell>
-                <TableCell>
+                </td>
+                <td className="p-3">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-muted-foreground" />
                     <div>
@@ -91,16 +83,16 @@ export function CredencialPastoralTable({
                       )}
                     </div>
                   </div>
-                </TableCell>
-                <TableCell>
+                </td>
+                <td className="p-3">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm">
                       {format(new Date(credencial.fechaEmision), 'dd/MM/yyyy', { locale: es })}
                     </span>
                   </div>
-                </TableCell>
-                <TableCell>
+                </td>
+                <td className="p-3">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <div>
@@ -119,16 +111,16 @@ export function CredencialPastoralTable({
                       )}
                     </div>
                   </div>
-                </TableCell>
-                <TableCell>
+                </td>
+                <td className="p-3">
                   <Badge
                     variant="outline"
                     className={ESTADO_COLORS[credencial.estado]}
                   >
                     {ESTADO_LABELS[credencial.estado]}
                   </Badge>
-                </TableCell>
-                <TableCell>
+                </td>
+                <td className="p-3">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -137,12 +129,12 @@ export function CredencialPastoralTable({
                     <Edit className="w-4 h-4 mr-2" />
                     Editar
                   </Button>
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             )
           })}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   )
 }
