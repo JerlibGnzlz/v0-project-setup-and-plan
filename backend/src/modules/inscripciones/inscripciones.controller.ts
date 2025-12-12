@@ -98,7 +98,17 @@ export class InscripcionesController {
   @UseGuards(JwtAuthGuard)
   @Post(':id/rehabilitar')
   rehabilitar(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
-    return this.inscripcionesService.rehabilitarInscripcion(id, req.user.id, req.user.email)
+    try {
+      return this.inscripcionesService.rehabilitarInscripcion(
+        id,
+        req.user?.id,
+        req.user?.email
+      )
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en rehabilitar: ${errorMessage}`, error)
+      throw error
+    }
   }
 
   @UseGuards(JwtAuthGuard)
