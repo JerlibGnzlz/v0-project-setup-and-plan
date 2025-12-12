@@ -15,11 +15,11 @@ import { uploadApi } from '@/lib/api/upload'
 import { ComprobanteUpload } from '@/components/ui/comprobante-upload'
 import Image from 'next/image'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 
 interface InscripcionExistenteCardProps {
@@ -71,7 +71,7 @@ export function InscripcionExistenteCard({
     const user = invitadoAuth.user
     const updatePagoMutation = useUpdatePago()
     const [pagosExpandidos, setPagosExpandidos] = useState<Record<string, boolean>>({})
-    
+
     // Normalizar URL de imagen de Google para obtener tamaño más grande
     const normalizeGoogleImageUrl = (url: string | undefined): string | undefined => {
         if (!url) return undefined
@@ -81,7 +81,7 @@ export function InscripcionExistenteCard({
         }
         return url
     }
-    
+
     // Función para cerrar sesión
     const handleLogout = async () => {
         try {
@@ -98,14 +98,14 @@ export function InscripcionExistenteCard({
             })
         }
     }
-    
+
     // Calcular estado de pagos
     const pagos = inscripcion.pagos || []
     const numeroCuotas = inscripcion.numeroCuotas || 3
     const cuotasPagadas = pagos.filter(p => p.estado === 'COMPLETADO').length
     const cuotasPendientes = numeroCuotas - cuotasPagadas
     const porcentajePagado = numeroCuotas > 0 ? (cuotasPagadas / numeroCuotas) * 100 : 0
-    
+
     // Detectar pagos cancelados
     const pagosCancelados = pagos.filter(p => p.estado === 'CANCELADO')
     const tienePagosCancelados = pagosCancelados.length > 0
@@ -150,7 +150,7 @@ export function InscripcionExistenteCard({
         try {
             // Subir el comprobante
             const response = await uploadApi.uploadComprobantePago(file)
-            
+
             // Actualizar el pago con la URL del comprobante
             await updatePagoMutation.mutateAsync({
                 id: pagoId,
@@ -234,7 +234,7 @@ export function InscripcionExistenteCard({
                     </DropdownMenu>
                 </div>
             )}
-            
+
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl overflow-hidden">
                 {/* Header con estado */}
                 <div className="text-center mb-6">
@@ -283,20 +283,20 @@ export function InscripcionExistenteCard({
 
                 {/* Código de referencia destacado */}
                 {inscripcion.codigoReferencia && (
-                    <div 
+                    <div
                         className="mb-6 p-4 bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-amber-500/20 border-2 border-amber-500/40 rounded-xl"
                         role="region"
                         aria-labelledby="codigo-referencia-heading"
                     >
                         <div className="text-center">
-                            <h3 
+                            <h3
                                 id="codigo-referencia-heading"
                                 className="text-xs text-amber-300/90 mb-1 uppercase tracking-wider font-semibold"
                             >
                                 🔖 Código de Referencia para Pagos
                             </h3>
                             <div className="flex items-center justify-center gap-3" role="group" aria-label="Código de referencia y botón de copiar">
-                                <span 
+                                <span
                                     className="text-2xl sm:text-3xl font-mono font-bold text-amber-400 tracking-widest"
                                     aria-label={`Código de referencia: ${inscripcion.codigoReferencia}`}
                                 >
@@ -445,8 +445,8 @@ export function InscripcionExistenteCard({
                                             </div>
                                             <span className={cn(
                                                 "text-sm font-medium",
-                                                estaPagada 
-                                                    ? "text-emerald-300" 
+                                                estaPagada
+                                                    ? "text-emerald-300"
                                                     : estaCancelada
                                                         ? "text-red-300"
                                                         : "text-white/70"
@@ -597,7 +597,7 @@ export function InscripcionExistenteCard({
                             <div className="flex-1">
                                 <h4 className="text-sm font-semibold text-red-300 mb-1">Pagos Cancelados</h4>
                                 <p className="text-xs text-white/70 mb-2">
-                                    Tienes {pagosCancelados.length} pago(s) cancelado(s). 
+                                    Tienes {pagosCancelados.length} pago(s) cancelado(s).
                                 </p>
                                 <p className="text-xs text-white/50">
                                     Para rehabilitar tu pago, por favor contacta al administrador desde el panel de AMVA Digital.
