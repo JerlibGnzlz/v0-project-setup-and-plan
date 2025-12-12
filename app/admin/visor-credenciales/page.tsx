@@ -1,0 +1,412 @@
+'use client'
+
+import { useState } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  useCredencialesMinisteriales,
+  useDeleteCredencialMinisterial,
+} from '@/lib/hooks/use-credenciales-ministeriales'
+import { CredencialMinisterial } from '@/lib/api/credenciales-ministeriales'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale/es'
+import {
+  Shield,
+  Search,
+  Filter,
+  Plus,
+  Edit,
+  Trash2,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+} from 'lucide-react'
+import { CredencialCard } from '@/components/admin/credenciales-ministeriales/credencial-card'
+import { CredencialEditorDialog } from '@/components/admin/credenciales-ministeriales/credencial-editor-dialog'
+import { toast } from 'sonner'
+
+const ESTADO_COLORS = {
+  vigente: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+  por_vencer: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+  vencida: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
+}
+
+const ESTADO_LABELS = {
+  vigente: 'Vigente',
+  por_vencer: 'Por Vencer',
+  vencida: 'Vencida',
+}
+
+export default function VisorCredencialesPage() {
+  const [page, setPage] = useState(1)
+  const [limit] = useState(20)
+  const [documentoFilter, setDocumentoFilter] = useState('')
+  const [estadoFilter, setEstadoFilter] = useState<string>('todos')
+  const [selectedCredencial, setSelectedCredencial] =
+    useState<CredencialMinisterial | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editMode, setEditMode] = useState<'frente' | 'dorso'>('frente')
+  const [viewMode, setViewMode] = useState<'list' | 'view'>('list')
+
+  const filters = {
+    documento: documentoFilter || undefined,
+    estado: estadoFilter !== 'todos' ? (estadoFilter as any) : undefined,
+  }
+
+  const { data, isLoading, error } = useCredencialesMinisteriales(page, limit, filters)
+  const deleteMutation = useDeleteCredencialMinisterial()
+
+  const handleCreate = () => {
+    setSelectedCredencial(null)
+    setEditMode('frente')
+    setIsDialogOpen(true)
+  }
+
+  const handleEditFrente = (credencial: CredencialMinisterial) => {
+    setSelectedCredencial(credencial)
+    setEditMode('frente')
+    setIsDialogOpen(true)
+  }
+
+  const handleEditDorso = (credencial: CredencialMinisterial) => {
+    setSelectedCredencial(credencial)
+    setEditMode('dorso')
+    setIsDialogOpen(true)
+  }
+
+  const handleView = (credencial: CredencialMinisterial) => {
+    setSelectedCredencial(credencial)
+    setViewMode('view')
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar esta credencial?')) {
+      return
+    }
+
+    try {
+      await deleteMutation.mutateAsync(id)
+    } catch (error) {
+      // Error ya manejado en el hook
+    }
+  }
+
+  const credenciales = data?.data || []
+  const total = data?.total || 0
+  const totalPages = data?.totalPages || 0
+
+  if (viewMode === 'view' && selectedCredencial) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Visor de Credencial</h1>
+            <p className="text-muted-foreground">
+              Visualiza e imprime la credencial ministerial
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => setViewMode('list')}>
+            Volver a la Lista
+          </Button>
+        </div>
+        <CredencialCard
+          credencial={selectedCredencial}
+          onEdit={() => {
+            setViewMode('list')
+            handleEditFrente(selectedCredencial)
+          }}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto py-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Visor y Editor de Credenciales</h1>
+          <p className="text-muted-foreground">
+            Gestiona las credenciales ministeriales físicas para impresión
+          </p>
+        </div>
+        <Button onClick={handleCreate}>
+          <Plus className="w-4 h-4 mr-2" />
+          Nueva Credencial
+        </Button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Credenciales</CardTitle>
+            <Shield className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{total}</div>
+            <p className="text-xs text-muted-foreground">Credenciales activas</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Vigentes</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-emerald-600">
+              {credenciales.filter((c) => c.estado === 'vigente').length}
+            </div>
+            <p className="text-xs text-muted-foreground">En buen estado</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Por Vencer</CardTitle>
+            <Clock className="h-4 w-4 text-amber-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-amber-600">
+              {credenciales.filter((c) => c.estado === 'por_vencer').length}
+            </div>
+            <p className="text-xs text-muted-foreground">Próximos 30 días</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Vencidas</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {credenciales.filter((c) => c.estado === 'vencida').length}
+            </div>
+            <p className="text-xs text-muted-foreground">Requieren renovación</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtros</CardTitle>
+          <CardDescription>
+            Filtra las credenciales por documento o estado
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Buscar por DNI..."
+                  value={documentoFilter}
+                  onChange={(e) => {
+                    setDocumentoFilter(e.target.value)
+                    setPage(1)
+                  }}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+            <Select value={estadoFilter} onValueChange={setEstadoFilter}>
+              <SelectTrigger className="w-full md:w-[200px]">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos los estados</SelectItem>
+                <SelectItem value="vigente">Vigente</SelectItem>
+                <SelectItem value="por_vencer">Por Vencer</SelectItem>
+                <SelectItem value="vencida">Vencida</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      {isLoading ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : error ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <p className="text-lg font-semibold">Error al cargar credenciales</p>
+              <p className="text-sm text-muted-foreground">
+                {error instanceof Error ? error.message : 'Error desconocido'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="rounded-md border overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="p-3 text-left text-sm font-medium">Nombre</th>
+                  <th className="p-3 text-left text-sm font-medium">Documento</th>
+                  <th className="p-3 text-left text-sm font-medium">Nacionalidad</th>
+                  <th className="p-3 text-left text-sm font-medium">Tipo</th>
+                  <th className="p-3 text-left text-sm font-medium">Vencimiento</th>
+                  <th className="p-3 text-left text-sm font-medium">Estado</th>
+                  <th className="p-3 text-left text-sm font-medium">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {credenciales.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                      No se encontraron credenciales
+                    </td>
+                  </tr>
+                ) : (
+                  credenciales.map((credencial) => {
+                    const fechaVencimiento = format(
+                      new Date(credencial.fechaVencimiento),
+                      'dd/MM/yyyy',
+                      { locale: es }
+                    )
+
+                    return (
+                      <tr key={credencial.id} className="border-b">
+                        <td className="p-3">
+                          <div>
+                            <p className="font-medium">
+                              {credencial.nombre} {credencial.apellido}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <span className="font-mono text-sm">{credencial.documento}</span>
+                        </td>
+                        <td className="p-3">
+                          <span className="text-sm">{credencial.nacionalidad}</span>
+                        </td>
+                        <td className="p-3">
+                          <span className="text-sm">{credencial.tipoPastor}</span>
+                        </td>
+                        <td className="p-3">
+                          <span className="text-sm">{fechaVencimiento}</span>
+                          {credencial.diasRestantes !== undefined &&
+                            credencial.diasRestantes > 0 &&
+                            credencial.diasRestantes <= 30 && (
+                              <p className="text-xs text-amber-600">
+                                {credencial.diasRestantes} días restantes
+                              </p>
+                            )}
+                        </td>
+                        <td className="p-3">
+                          {credencial.estado && (
+                            <Badge
+                              variant="outline"
+                              className={ESTADO_COLORS[credencial.estado]}
+                            >
+                              {ESTADO_LABELS[credencial.estado]}
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleView(credencial)}
+                            >
+                              Ver
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditFrente(credencial)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditDorso(credencial)}
+                            >
+                              Editar Dorso
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(credencial.id)}
+                              disabled={deleteMutation.isPending}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Mostrando {((page - 1) * limit) + 1} - {Math.min(page * limit, total)} de {total}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                >
+                  Siguiente
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Dialog */}
+      <CredencialEditorDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        credencial={selectedCredencial}
+        editMode={editMode}
+      />
+    </div>
+  )
+}
+

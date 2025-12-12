@@ -134,6 +134,26 @@ model CredencialPastoral {
   @@map("credenciales_pastorales")
 }
 
+model CredencialMinisterial {
+  id                String   @id @default(uuid())
+  apellido          String
+  nombre            String
+  documento         String   @unique
+  nacionalidad      String
+  fechaNacimiento   DateTime @map("fecha_nacimiento")
+  tipoPastor        String   @default("PASTOR") @map("tipo_pastor") // PASTOR, PASTORA, etc.
+  fechaVencimiento  DateTime @map("fecha_vencimiento")
+  fotoUrl           String?  @map("foto_url")
+  activa             Boolean  @default(true)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@index([documento])
+  @@index([fechaVencimiento])
+  @@index([activa])
+  @@map("credenciales_ministeriales")
+}
+
 model DeviceToken {
   id        String   @id @default(uuid())
   pastorId  String   @map("pastor_id")

@@ -15,6 +15,7 @@ import { UploadModule } from './modules/upload/upload.module'
 import { NotificationsModule } from './modules/notifications/notifications.module'
 import { MercadoPagoModule } from './modules/mercado-pago/mercado-pago.module'
 import { CredencialesPastoralesModule } from './modules/credenciales-pastorales/credenciales-pastorales.module'
+import { CredencialesMinisterialesModule } from './modules/credenciales-ministeriales/credenciales-ministeriales.module'
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { CredencialesPastoralesModule } from './modules/credenciales-pastorales/
     NotificationsModule,
     MercadoPagoModule,
     CredencialesPastoralesModule,
+    CredencialesMinisterialesModule,
   ],
   providers: [
     // Guard global para rate limiting
