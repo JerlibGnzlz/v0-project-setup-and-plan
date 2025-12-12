@@ -51,7 +51,7 @@ export function PagoValidarDialog({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Cuota:</span>
+                  <span className="text-muted-foreground">Pago:</span>
                   <span className="font-medium text-foreground">
                     {pago.numeroCuota || 1} / {pago.inscripcion?.numeroCuotas || 3}
                   </span>
@@ -59,7 +59,7 @@ export function PagoValidarDialog({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Monto:</span>
                   <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                    ${monto.toLocaleString('es-AR')}
+                    ${monto.toLocaleString('es-AR')} <span className="text-xs text-muted-foreground font-normal">(pesos argentinos)</span>
                   </span>
                 </div>
                 <div className="flex justify-between">

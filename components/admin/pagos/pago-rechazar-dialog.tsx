@@ -65,7 +65,7 @@ export function PagoRechazarDialog({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-red-700 dark:text-red-300">Cuota:</span>
+              <span className="text-red-700 dark:text-red-300">Pago:</span>
               <span className="font-medium text-red-900 dark:text-red-100">
                 {pago.numeroCuota || 1} / {pago.inscripcion?.numeroCuotas || 3}
               </span>
@@ -73,7 +73,7 @@ export function PagoRechazarDialog({
             <div className="flex justify-between">
               <span className="text-red-700 dark:text-red-300">Monto:</span>
               <span className="font-bold text-red-900 dark:text-red-100">
-                ${monto.toLocaleString('es-AR')}
+                ${monto.toLocaleString('es-AR')} <span className="text-xs text-muted-foreground font-normal">(pesos argentinos)</span>
               </span>
             </div>
           </div>

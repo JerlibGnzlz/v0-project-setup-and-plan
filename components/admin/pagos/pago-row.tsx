@@ -170,7 +170,7 @@ export function PagoRow({
             variant="outline"
             className="text-[10px] px-1.5 py-0.5 bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700"
           >
-            Cuota {pago.numeroCuota}
+            Pago {pago.numeroCuota}
             {pago.inscripcion?.numeroCuotas && `/${pago.inscripcion.numeroCuotas}`}
           </Badge>
         ) : (
@@ -182,7 +182,9 @@ export function PagoRow({
           ? new Date(pago.fechaPago).toLocaleDateString('es-ES')
           : new Date(pago.createdAt).toLocaleDateString('es-ES')}
       </td>
-      <td className="p-2 text-xs font-semibold">${monto.toLocaleString('es-AR')}</td>
+      <td className="p-2 text-xs font-semibold">
+        ${monto.toLocaleString('es-AR')} <span className="text-[9px] text-muted-foreground font-normal">(pesos argentinos)</span>
+      </td>
       <td className="p-2">
         <div className="flex items-center gap-1">
           <CreditCard className="size-3 text-muted-foreground" />

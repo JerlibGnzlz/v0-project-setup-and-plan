@@ -54,7 +54,7 @@ export function PagoRehabilitarDialog({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-blue-700 dark:text-blue-300">Cuota:</span>
+                  <span className="text-blue-700 dark:text-blue-300">Pago:</span>
                   <span className="font-medium text-blue-900 dark:text-blue-100">
                     {pago.numeroCuota || 1} / {pago.inscripcion?.numeroCuotas || 3}
                   </span>
@@ -62,7 +62,7 @@ export function PagoRehabilitarDialog({
                 <div className="flex justify-between">
                   <span className="text-blue-700 dark:text-blue-300">Monto:</span>
                   <span className="font-bold text-blue-900 dark:text-blue-100">
-                    ${monto.toLocaleString('es-AR')}
+                    ${monto.toLocaleString('es-AR')} <span className="text-xs text-muted-foreground font-normal">(pesos argentinos)</span>
                   </span>
                 </div>
                 {pago.notas && (
