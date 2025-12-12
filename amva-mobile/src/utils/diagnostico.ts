@@ -117,3 +117,5 @@ export function generarReporteDiagnostico(resultado: DiagnosticoResult): string 
 
 
 
+
+
