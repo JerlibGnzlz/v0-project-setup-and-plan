@@ -174,12 +174,20 @@ export function useRehabilitarInscripcion() {
 
   return useMutation({
     mutationFn: (id: string) => inscripcionesApi.rehabilitarInscripcion(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
-      queryClient.invalidateQueries({ queryKey: ["pagos"] })
+    onSuccess: async (data) => {
+      // Invalidar queries para forzar refetch
+      await queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+      await queryClient.invalidateQueries({ queryKey: ["pagos"] })
+      await queryClient.invalidateQueries({ queryKey: ["inscripcion", id] })
+      
+      // Refetch explícito para actualización inmediata
+      await queryClient.refetchQueries({ queryKey: ["inscripciones"] })
+      
+      // Notificar a otras pestañas para actualización instantánea
       notifyChange("inscripciones")
+      
       toast.success("✅ Inscripción rehabilitada", {
-        description: "La inscripción y sus pagos cancelados han sido rehabilitados",
+        description: "La inscripción ha cambiado de 'cancelado' a 'pendiente' y los pagos cancelados han sido rehabilitados",
       })
     },
     onError: (error: any) => {
