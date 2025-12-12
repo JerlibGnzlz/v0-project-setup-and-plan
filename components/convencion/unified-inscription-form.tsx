@@ -33,6 +33,9 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { cn } from '@/lib/utils'
+import { ComprobanteUpload } from '@/components/ui/comprobante-upload'
+import { uploadApi } from '@/lib/api/upload'
+import { Receipt } from 'lucide-react'
 
 interface UnifiedInscriptionFormProps {
   convencion: {
@@ -115,6 +118,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
     provincia: '',
     tipoInscripcion: user.tipo === 'INVITADO' ? 'invitado' : 'pastor',
     numeroCuotas: 3,
+    documentoUrl: '',
     notas: '',
   })
 
@@ -239,6 +243,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
         provincia: formData.provincia.trim() || undefined,
         tipoInscripcion: formData.tipoInscripcion,
         numeroCuotas: formData.numeroCuotas,
+        documentoUrl: formData.documentoUrl?.trim() || undefined,
         notas: formData.notas?.trim() || undefined,
         origenRegistro: 'web',
       }
@@ -498,6 +503,47 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                         <SelectItem value="miembro">Miembro</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* Comprobante de Transferencia */}
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-white/90 mb-2 block flex items-center gap-2">
+                        <Receipt className="w-4 h-4 text-amber-400" />
+                        Comprobante de Transferencia Bancaria
+                      </Label>
+                      <p className="text-sm text-white/70 mb-3">
+                        Sube una foto o captura del comprobante de transferencia bancaria. Esto facilitará
+                        la validación de tu pago.
+                      </p>
+                    </div>
+                    <ComprobanteUpload
+                      value={formData.documentoUrl}
+                      onChange={url => setFormData({ ...formData, documentoUrl: url })}
+                      onUpload={async file => {
+                        try {
+                          const response = await uploadApi.uploadInscripcionDocumento(file)
+                          toast.success('Comprobante subido exitosamente', {
+                            description: 'Tu comprobante de transferencia ha sido cargado correctamente',
+                          })
+                          return response.url
+                        } catch (error) {
+                          toast.error('Error al subir el comprobante', {
+                            description: 'Por favor, intenta nuevamente',
+                          })
+                          throw error
+                        }
+                      }}
+                      className="bg-white/5"
+                    />
+                    {formData.documentoUrl && (
+                      <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                        <p className="text-sm text-emerald-300 flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4" />
+                          Comprobante de transferencia cargado correctamente
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-2">
