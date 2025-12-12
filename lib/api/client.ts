@@ -129,30 +129,39 @@ apiClient.interceptors.response.use(
           localStorage.getItem('auth_refresh_token') ||
           sessionStorage.getItem('auth_refresh_token')
 
-        if (refreshToken) {
-          try {
-            // Importar dinámicamente para evitar dependencias circulares
-            const { authApi } = await import('./auth')
-            const response = await authApi.refreshToken(refreshToken)
+        if (refreshToken && error.config) {
+          // Usar función async para manejar la promesa
+          const refreshAndRetry = async () => {
+            try {
+              // Importar dinámicamente para evitar dependencias circulares
+              const { authApi } = await import('./auth')
+              const response = await authApi.refreshToken(refreshToken)
 
-            // Guardar nuevos tokens
-            const storage = localStorage.getItem('auth_token')
-              ? localStorage
-              : sessionStorage
-            storage.setItem('auth_token', response.access_token)
-            if (response.refresh_token) {
-              storage.setItem('auth_refresh_token', response.refresh_token)
-            }
+              // Guardar nuevos tokens
+              const storage = localStorage.getItem('auth_token')
+                ? localStorage
+                : sessionStorage
+              storage.setItem('auth_token', response.access_token)
+              if (response.refresh_token) {
+                storage.setItem('auth_refresh_token', response.refresh_token)
+              }
 
-            // Reintentar la petición original con el nuevo token
-            if (error.config) {
-              error.config.headers.Authorization = `Bearer ${response.access_token}`
-              return apiClient.request(error.config)
+              // Reintentar la petición original con el nuevo token
+              if (error.config) {
+                error.config.headers.Authorization = `Bearer ${response.access_token}`
+                return apiClient.request(error.config)
+              }
+            } catch (refreshError) {
+              console.error('[apiClient] Error al refrescar token:', refreshError)
+              // Si falla el refresh, continuar con el logout
+              throw refreshError
             }
-          } catch (refreshError) {
-            console.error('[apiClient] Error al refrescar token:', refreshError)
-            // Si falla el refresh, continuar con el logout
           }
+
+          // Retornar la promesa para que axios la maneje
+          return refreshAndRetry().catch(() => {
+            // Si falla, continuar con el flujo normal de logout
+          })
         }
       }
 
