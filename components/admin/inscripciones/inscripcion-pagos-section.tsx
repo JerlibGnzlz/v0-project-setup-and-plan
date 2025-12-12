@@ -60,10 +60,10 @@ export function InscripcionPagosSection({
               {pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas ? (
                 <>
                   <CheckCircle2 className="size-3 mr-1" />
-                  {pagosInfo.cuotasPagadas}/{pagosInfo.numeroCuotas} cuotas
+                  {pagosInfo.cuotasPagadas}/{pagosInfo.numeroCuotas} pagos
                 </>
               ) : (
-                `${pagosInfo.cuotasPagadas}/${pagosInfo.numeroCuotas} cuotas`
+                `${pagosInfo.cuotasPagadas}/${pagosInfo.numeroCuotas} pagos`
               )}
             </Badge>
           </div>
@@ -71,19 +71,19 @@ export function InscripcionPagosSection({
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Total:</span>
               <span className="font-semibold">
-                ${pagosInfo.costoTotal.toLocaleString('es-AR')} <span className="text-xs text-muted-foreground font-normal">(ARS / USD)</span>
+                ${pagosInfo.costoTotal.toLocaleString('es-AR')} <span className="text-xs text-muted-foreground font-normal">(pesos argentinos)</span>
               </span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Pagado:</span>
               <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                ${pagosInfo.totalPagado.toLocaleString('es-AR')} <span className="text-xs text-muted-foreground font-normal">(ARS / USD)</span>
+                ${pagosInfo.totalPagado.toLocaleString('es-AR')} <span className="text-xs text-muted-foreground font-normal">(pesos argentinos)</span>
               </span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Pendiente:</span>
               <span className="font-semibold text-amber-600 dark:text-amber-400">
-                ${(pagosInfo.costoTotal - pagosInfo.totalPagado).toLocaleString('es-AR')} <span className="text-xs text-muted-foreground font-normal">(ARS / USD)</span>
+                ${(pagosInfo.costoTotal - pagosInfo.totalPagado).toLocaleString('es-AR')} <span className="text-xs text-muted-foreground font-normal">(pesos argentinos)</span>
               </span>
             </div>
             <div className="mt-2 h-2 bg-amber-200/50 dark:bg-amber-900/30 rounded-full overflow-hidden">
@@ -95,10 +95,10 @@ export function InscripcionPagosSection({
           </div>
         </div>
 
-        {/* Lista de cuotas */}
+        {/* Lista de pagos */}
         <div className="space-y-2">
           <h4 className="text-sm font-semibold">
-            Cuotas ({pagosInfo.numeroCuotas} {pagosInfo.numeroCuotas === 1 ? 'pago' : 'pagos'})
+            Pagos ({pagosInfo.numeroCuotas} {pagosInfo.numeroCuotas === 1 ? 'pago' : 'pagos'})
           </h4>
           {pagosInfo.cuotas.map(cuota => (
             <div
@@ -116,9 +116,9 @@ export function InscripcionPagosSection({
                   {cuota.numero}
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Cuota {cuota.numero}</div>
+                  <div className="text-sm font-medium">Pago {cuota.numero}</div>
                   <div className="text-xs text-muted-foreground">
-                    ${cuota.monto.toLocaleString('es-AR')} <span className="text-[10px]">(ARS / USD)</span>
+                    ${cuota.monto.toLocaleString('es-AR')} <span className="text-[10px]">(pesos argentinos)</span>
                   </div>
                 </div>
               </div>
@@ -161,7 +161,7 @@ export function InscripcionPagosSection({
                           <DialogHeader>
                             <DialogTitle>Comprobante de Pago</DialogTitle>
                             <DialogDescription>
-                              Cuota {cuota.numero} - {inscripcion.nombre} {inscripcion.apellido}
+                              Pago {cuota.numero} - {inscripcion.nombre} {inscripcion.apellido}
                               {cuota.pago.referencia && ` - ${cuota.pago.referencia}`}
                             </DialogDescription>
                           </DialogHeader>
