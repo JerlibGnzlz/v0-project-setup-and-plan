@@ -225,13 +225,16 @@ export const useAuth = create<AuthState>()(set => ({
 
       // Si el token es inválido, limpiar todo
       localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_refresh_token')
       localStorage.removeItem('auth_user')
       sessionStorage.removeItem('auth_token')
+      sessionStorage.removeItem('auth_refresh_token')
       sessionStorage.removeItem('auth_user')
 
       set({
         user: null,
         token: null,
+        refreshToken: null,
         isAuthenticated: false,
         isHydrated: true,
       })
@@ -247,6 +250,7 @@ export const useAuth = create<AuthState>()(set => ({
 if (typeof window !== 'undefined') {
   // Inicializar estado inmediatamente desde storage (sin esperar validación del backend)
   const initialToken = getStoredToken()
+  const initialRefreshToken = getStoredRefreshToken()
   const initialUser = getStoredUser()
   
   if (initialToken && initialUser) {
@@ -254,6 +258,7 @@ if (typeof window !== 'undefined') {
     useAuth.setState({
       user: initialUser,
       token: initialToken,
+      refreshToken: initialRefreshToken || null,
       isAuthenticated: true,
       isHydrated: true, // Marcar como hidratado inmediatamente
     })
