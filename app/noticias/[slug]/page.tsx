@@ -252,9 +252,21 @@ function NoticiaContent({ slug }: { slug: string }) {
               {categoriaLabels[noticia.categoria]}
             </span>
             {noticia.fechaPublicacion && (
-              <span className="flex items-center gap-1.5 text-white/50 text-sm">
+              <span className="flex items-center gap-1.5 text-white/50 text-sm" title="Fecha de publicación">
                 <Calendar className="w-4 h-4" />
-                {formatDate(noticia.fechaPublicacion)}
+                Publicado: {formatDate(noticia.fechaPublicacion)}
+              </span>
+            )}
+            {noticia.createdAt && (
+              <span className="flex items-center gap-1.5 text-white/50 text-sm" title="Fecha de creación">
+                <Calendar className="w-4 h-4" />
+                Creado: {formatDate(noticia.createdAt)}
+              </span>
+            )}
+            {noticia.updatedAt && noticia.updatedAt !== noticia.createdAt && (
+              <span className="flex items-center gap-1.5 text-white/50 text-sm" title="Última modificación">
+                <Calendar className="w-4 h-4" />
+                Modificado: {formatDate(noticia.updatedAt)}
               </span>
             )}
             <span className="flex items-center gap-1.5 text-white/50 text-sm">
