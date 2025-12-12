@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, Clock, CreditCard, Mail, Phone, MapPin, Calendar, Copy, ExternalLink, AlertCircle, Sparkles, LogOut, User } from 'lucide-react'
+import { CheckCircle2, Clock, CreditCard, Mail, Phone, MapPin, Calendar, Copy, ExternalLink, AlertCircle, Sparkles, LogOut, User, ChevronDown, ChevronUp, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
@@ -9,6 +10,9 @@ import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useInvitadoAuth } from '@/lib/hooks/use-invitado-auth'
+import { useUpdatePago } from '@/lib/hooks/use-pagos'
+import { uploadApi } from '@/lib/api/upload'
+import { ComprobanteUpload } from '@/components/ui/comprobante-upload'
 import Image from 'next/image'
 import {
   DropdownMenu,
@@ -35,6 +39,7 @@ interface InscripcionExistenteCardProps {
             estado: string
             numeroCuota?: number
             monto: number | string
+            comprobanteUrl?: string
         }>
         convencion?: {
             id: string
@@ -64,6 +69,8 @@ export function InscripcionExistenteCard({
     const router = useRouter()
     const invitadoAuth = useInvitadoAuth()
     const user = invitadoAuth.user
+    const updatePagoMutation = useUpdatePago()
+    const [pagosExpandidos, setPagosExpandidos] = useState<Record<string, boolean>>({})
     
     // Normalizar URL de imagen de Google para obtener tamaño más grande
     const normalizeGoogleImageUrl = (url: string | undefined): string | undefined => {
@@ -127,6 +134,46 @@ export function InscripcionExistenteCard({
             toast.success('Código copiado', {
                 description: 'El código de referencia se copió al portapapeles'
             })
+        }
+    }
+
+    // Toggle expandir/colapsar pago
+    const togglePagoExpandido = (pagoId: string) => {
+        setPagosExpandidos(prev => ({
+            ...prev,
+            [pagoId]: !prev[pagoId]
+        }))
+    }
+
+    // Manejar subida de comprobante para un pago específico
+    const handleComprobanteUpload = async (pagoId: string, file: File): Promise<{ url: string }> => {
+        try {
+            // Subir el comprobante
+            const response = await uploadApi.uploadComprobantePago(file)
+            
+            // Actualizar el pago con la URL del comprobante
+            await updatePagoMutation.mutateAsync({
+                id: pagoId,
+                data: { comprobanteUrl: response.url }
+            })
+
+            toast.success('Comprobante subido exitosamente', {
+                description: 'Tu comprobante ha sido cargado. El equipo lo validará pronto.',
+            })
+
+            // Cerrar el área expandida después de subir
+            setPagosExpandidos(prev => ({
+                ...prev,
+                [pagoId]: false
+            }))
+
+            return { url: response.url }
+        } catch (error) {
+            console.error('Error al subir comprobante:', error)
+            toast.error('Error al subir el comprobante', {
+                description: 'Por favor, intenta nuevamente',
+            })
+            throw error
         }
     }
 
@@ -354,18 +401,22 @@ export function InscripcionExistenteCard({
                         </div>
                     </div>
 
-                    {/* Lista de cuotas */}
+                    {/* Lista de pagos */}
                     <div className="mt-4 space-y-2">
                         {Array.from({ length: numeroCuotas }, (_, i) => i + 1).map(numero => {
                             const pago = pagos.find(p => p.numeroCuota === numero)
                             const estaPagada = pago?.estado === 'COMPLETADO'
                             const estaCancelada = pago?.estado === 'CANCELADO'
+                            const estaPendiente = !estaPagada && !estaCancelada
+                            const pagoId = pago?.id || `pago-${numero}`
+                            const estaExpandido = pagosExpandidos[pagoId] || false
+                            const tieneComprobante = !!pago?.comprobanteUrl
 
                             return (
                                 <div
                                     key={numero}
                                     className={cn(
-                                        "flex items-center justify-between p-2 rounded-lg border",
+                                        "rounded-lg border transition-all",
                                         estaPagada
                                             ? "bg-emerald-500/10 border-emerald-500/30"
                                             : estaCancelada
@@ -373,46 +424,122 @@ export function InscripcionExistenteCard({
                                                 : "bg-white/5 border-white/10"
                                     )}
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <div className={cn(
-                                            "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
-                                            estaPagada
-                                                ? "bg-emerald-500 text-white"
-                                                : estaCancelada
-                                                    ? "bg-red-500 text-white"
-                                                    : "bg-white/10 text-white/50"
-                                        )}>
-                                            {estaPagada ? <CheckCircle2 className="w-3 h-3" /> : numero}
-                                        </div>
-                                        <span className={cn(
-                                            "text-sm",
-                                            estaPagada 
-                                                ? "text-emerald-300" 
-                                                : estaCancelada
-                                                    ? "text-red-300"
-                                                    : "text-white/70"
-                                        )}>
-                                            Cuota {numero}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm text-white/50">
-                                            ${montoPorCuota.toLocaleString('es-AR')}
-                                        </span>
-                                        <Badge
-                                            variant="outline"
-                                            className={cn(
-                                                "text-xs",
+                                    {/* Header del pago */}
+                                    <div
+                                        className={cn(
+                                            "flex items-center justify-between p-3",
+                                            estaPendiente && "cursor-pointer hover:bg-white/5"
+                                        )}
+                                        onClick={() => estaPendiente && togglePagoExpandido(pagoId)}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <div className={cn(
+                                                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
                                                 estaPagada
-                                                    ? "border-emerald-500/50 text-emerald-400"
+                                                    ? "bg-emerald-500 text-white"
                                                     : estaCancelada
-                                                        ? "border-red-500/50 text-red-400"
-                                                        : "border-amber-500/50 text-amber-400"
+                                                        ? "bg-red-500 text-white"
+                                                        : "bg-white/10 text-white/50"
+                                            )}>
+                                                {estaPagada ? <CheckCircle2 className="w-3 h-3" /> : numero}
+                                            </div>
+                                            <span className={cn(
+                                                "text-sm font-medium",
+                                                estaPagada 
+                                                    ? "text-emerald-300" 
+                                                    : estaCancelada
+                                                        ? "text-red-300"
+                                                        : "text-white/70"
+                                            )}>
+                                                Pago {numero}
+                                            </span>
+                                            {estaPendiente && tieneComprobante && (
+                                                <Badge variant="outline" className="text-xs border-blue-500/50 text-blue-400">
+                                                    <Upload className="w-3 h-3 mr-1" />
+                                                    Comprobante cargado
+                                                </Badge>
                                             )}
-                                        >
-                                            {estaPagada ? 'Pagada' : estaCancelada ? 'Cancelada' : 'Pendiente'}
-                                        </Badge>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-white/50">
+                                                ${montoPorCuota.toLocaleString('es-AR', { minimumFractionDigits: 2 })} (pesos argentinos)
+                                            </span>
+                                            <Badge
+                                                variant="outline"
+                                                className={cn(
+                                                    "text-xs",
+                                                    estaPagada
+                                                        ? "border-emerald-500/50 text-emerald-400"
+                                                        : estaCancelada
+                                                            ? "border-red-500/50 text-red-400"
+                                                            : "border-amber-500/50 text-amber-400"
+                                                )}
+                                            >
+                                                {estaPagada ? 'Pagada' : estaCancelada ? 'Cancelada' : 'Pendiente'}
+                                            </Badge>
+                                            {estaPendiente && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 w-6 p-0 text-white/50 hover:text-white"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        togglePagoExpandido(pagoId)
+                                                    }}
+                                                >
+                                                    {estaExpandido ? (
+                                                        <ChevronUp className="w-4 h-4" />
+                                                    ) : (
+                                                        <ChevronDown className="w-4 h-4" />
+                                                    )}
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
+
+                                    {/* Área expandible para subir comprobante (solo para pagos pendientes) */}
+                                    {estaPendiente && estaExpandido && (
+                                        <div className="px-3 pb-3 border-t border-white/10 pt-3">
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <h4 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
+                                                        <Upload className="w-4 h-4 text-amber-400" />
+                                                        Subir Comprobante de Transferencia
+                                                    </h4>
+                                                    <p className="text-xs text-white/60 mb-3">
+                                                        Arrastra o selecciona una foto o captura de tu comprobante de transferencia bancaria para el Pago {numero}.
+                                                    </p>
+                                                </div>
+                                                <ComprobanteUpload
+                                                    value={pago?.comprobanteUrl || ''}
+                                                    onChange={async (url) => {
+                                                        if (pago?.id && url) {
+                                                            await updatePagoMutation.mutateAsync({
+                                                                id: pago.id,
+                                                                data: { comprobanteUrl: url }
+                                                            })
+                                                        }
+                                                    }}
+                                                    onUpload={async (file) => {
+                                                        if (!pago?.id) {
+                                                            throw new Error('No se encontró el ID del pago')
+                                                        }
+                                                        const result = await handleComprobanteUpload(pago.id, file)
+                                                        return result.url
+                                                    }}
+                                                    className="bg-white/5"
+                                                />
+                                                {pago?.comprobanteUrl && (
+                                                    <div className="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                                                        <p className="text-xs text-emerald-300 flex items-center gap-2">
+                                                            <CheckCircle2 className="w-3 h-3" />
+                                                            Comprobante cargado. El equipo lo validará pronto.
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )
                         })}
