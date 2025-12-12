@@ -95,10 +95,10 @@ export class AuthService {
         throw new UnauthorizedException('Credenciales inválidas')
       }
 
-      // Generar token JWT
-      this.logger.debug(`🎫 Generando token JWT para: ${dto.email}`)
-      const token = this.generateToken(user.id, user.email, user.rol)
-      this.logger.debug(`🎫 Token generado exitosamente (longitud: ${token.length})`)
+      // Generar tokens JWT (access + refresh) para web también
+      this.logger.debug(`🎫 Generando tokens JWT para: ${dto.email}`)
+      const { accessToken, refreshToken } = this.generateTokenPair(user.id, user.email, user.rol)
+      this.logger.debug(`🎫 Tokens generados exitosamente (access: ${accessToken.length}, refresh: ${refreshToken.length})`)
 
       this.logger.log(`✅ Login exitoso`, {
         userId: user.id,
@@ -109,7 +109,8 @@ export class AuthService {
       })
 
       const response = {
-        access_token: token,
+        access_token: accessToken,
+        refresh_token: refreshToken,
         user: {
           id: user.id,
           email: user.email,

@@ -115,16 +115,58 @@ apiClient.interceptors.response.use(
 
     // Solo manejar redirección en el cliente
     if (typeof window !== 'undefined' && error.response?.status === 401) {
-      // Limpiar todos los tokens al recibir 401
+      const currentPath = window.location.pathname
+      const requestUrl = error.config?.url || ''
+      
+      // Intentar refrescar token solo para admin (no para refresh endpoint ni login)
+      if (
+        currentPath.startsWith('/admin') &&
+        !requestUrl.includes('/auth/refresh') &&
+        !requestUrl.includes('/auth/login')
+      ) {
+        // Intentar refrescar el token antes de redirigir
+        const refreshToken =
+          localStorage.getItem('auth_refresh_token') ||
+          sessionStorage.getItem('auth_refresh_token')
+
+        if (refreshToken) {
+          try {
+            // Importar dinámicamente para evitar dependencias circulares
+            const { authApi } = await import('./auth')
+            const response = await authApi.refreshToken(refreshToken)
+
+            // Guardar nuevos tokens
+            const storage = localStorage.getItem('auth_token')
+              ? localStorage
+              : sessionStorage
+            storage.setItem('auth_token', response.access_token)
+            if (response.refresh_token) {
+              storage.setItem('auth_refresh_token', response.refresh_token)
+            }
+
+            // Reintentar la petición original con el nuevo token
+            if (error.config) {
+              error.config.headers.Authorization = `Bearer ${response.access_token}`
+              return apiClient.request(error.config)
+            }
+          } catch (refreshError) {
+            console.error('[apiClient] Error al refrescar token:', refreshError)
+            // Si falla el refresh, continuar con el logout
+          }
+        }
+      }
+
+      // Si no se pudo refrescar o no hay refresh token, limpiar y redirigir
       localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_refresh_token')
       sessionStorage.removeItem('auth_token')
+      sessionStorage.removeItem('auth_refresh_token')
       localStorage.removeItem('pastor_auth_token')
       sessionStorage.removeItem('pastor_auth_token')
       localStorage.removeItem('invitado_token')
       sessionStorage.removeItem('invitado_token')
 
       // Redirigir según la ruta actual
-      const currentPath = window.location.pathname
       if (currentPath.startsWith('/admin')) {
         window.location.href = '/admin/login'
       } else if (currentPath.startsWith('/convencion')) {

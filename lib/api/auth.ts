@@ -7,6 +7,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   access_token: string
+  refresh_token?: string // Opcional para compatibilidad con versiones anteriores
   user: {
     id: string
     email: string
@@ -14,6 +15,11 @@ export interface LoginResponse {
     rol: string
     avatar?: string | null
   }
+}
+
+export interface RefreshTokenResponse {
+  access_token: string
+  refresh_token: string
 }
 
 export const authApi = {
@@ -145,5 +151,18 @@ export const authApi = {
   getProfile: async (): Promise<LoginResponse['user']> => {
     const response = await apiClient.get<LoginResponse['user']>('/auth/me')
     return response.data
+  },
+
+  refreshToken: async (refreshToken: string): Promise<RefreshTokenResponse> => {
+    try {
+      const response = await apiClient.post<RefreshTokenResponse>('/auth/refresh', {
+        refreshToken,
+      })
+      return response.data
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('[authApi] Error al refrescar token:', errorMessage)
+      throw error
+    }
   },
 }

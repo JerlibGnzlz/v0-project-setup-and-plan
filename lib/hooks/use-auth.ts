@@ -6,18 +6,26 @@ import { authApi, type LoginRequest, type LoginResponse } from '@/lib/api/auth'
 interface AuthState {
   user: LoginResponse['user'] | null
   token: string | null
+  refreshToken: string | null
   isAuthenticated: boolean
   isHydrated: boolean
   login: (data: LoginRequest & { rememberMe?: boolean }) => Promise<void>
   logout: () => void
   checkAuth: () => Promise<void>
   setHydrated: () => void
+  refreshAccessToken: () => Promise<boolean>
 }
 
 // Función para obtener el token del storage correcto
 const getStoredToken = () => {
   if (typeof window === 'undefined') return null
   return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+}
+
+// Función para obtener el refresh token del storage correcto
+const getStoredRefreshToken = () => {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('auth_refresh_token') || sessionStorage.getItem('auth_refresh_token')
 }
 
 // Función para obtener el usuario guardado
@@ -37,6 +45,7 @@ const getStoredUser = () => {
 export const useAuth = create<AuthState>()(set => ({
   user: null,
   token: null,
+  refreshToken: null,
   isAuthenticated: false,
   isHydrated: false,
 
@@ -57,19 +66,24 @@ export const useAuth = create<AuthState>()(set => ({
     // Limpiar ambos storages primero
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_refresh_token')
       localStorage.removeItem('auth_user')
       sessionStorage.removeItem('auth_token')
+      sessionStorage.removeItem('auth_refresh_token')
       sessionStorage.removeItem('auth_user')
 
       // Si rememberMe es true, usar localStorage (persistente)
       // Si es false, usar sessionStorage (se borra al cerrar navegador)
       const storage = data.rememberMe ? localStorage : sessionStorage
 
-      // Guardar token y usuario en storage
+      // Guardar tokens y usuario en storage
       storage.setItem('auth_token', response.access_token)
+      if (response.refresh_token) {
+        storage.setItem('auth_refresh_token', response.refresh_token)
+      }
       storage.setItem('auth_user', JSON.stringify(response.user))
       console.log(
-        '[useAuth] Token y usuario guardados en',
+        '[useAuth] Tokens y usuario guardados en',
         data.rememberMe ? 'localStorage' : 'sessionStorage'
       )
 
@@ -85,6 +99,7 @@ export const useAuth = create<AuthState>()(set => ({
     const newState = {
       user: response.user,
       token: response.access_token,
+      refreshToken: response.refresh_token || null,
       isAuthenticated: true,
       isHydrated: true, // Asegurar que está hidratado
     }
@@ -104,16 +119,54 @@ export const useAuth = create<AuthState>()(set => ({
     }
   },
 
+  refreshAccessToken: async (): Promise<boolean> => {
+    try {
+      const refreshToken = getStoredRefreshToken()
+      if (!refreshToken) {
+        console.warn('[useAuth] No hay refresh token disponible')
+        return false
+      }
+
+      const response = await authApi.refreshToken(refreshToken)
+      
+      // Guardar nuevos tokens
+      if (typeof window !== 'undefined') {
+        const storage = localStorage.getItem('auth_token') ? localStorage : sessionStorage
+        storage.setItem('auth_token', response.access_token)
+        if (response.refresh_token) {
+          storage.setItem('auth_refresh_token', response.refresh_token)
+        }
+      }
+
+      set({
+        token: response.access_token,
+        refreshToken: response.refresh_token || null,
+      })
+
+      console.log('[useAuth] Token refrescado exitosamente')
+      return true
+    } catch (error) {
+      console.error('[useAuth] Error al refrescar token:', error)
+      // Si falla el refresh, hacer logout
+      const { logout } = useAuth.getState()
+      logout()
+      return false
+    }
+  },
+
   logout: () => {
     // Limpiar ambos storages
     localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_refresh_token')
     localStorage.removeItem('auth_user')
     sessionStorage.removeItem('auth_token')
+    sessionStorage.removeItem('auth_refresh_token')
     sessionStorage.removeItem('auth_user')
 
     set({
       user: null,
       token: null,
+      refreshToken: null,
       isAuthenticated: false,
     })
   },
@@ -121,6 +174,7 @@ export const useAuth = create<AuthState>()(set => ({
   // Verificar si hay sesión guardada al cargar la app
   checkAuth: async () => {
     const token = getStoredToken()
+    const refreshToken = getStoredRefreshToken()
     const user = getStoredUser()
 
     // Si no hay token o usuario, marcar como no autenticado
@@ -128,6 +182,7 @@ export const useAuth = create<AuthState>()(set => ({
       set({
         user: null,
         token: null,
+        refreshToken: null,
         isAuthenticated: false,
         isHydrated: true,
       })
@@ -148,6 +203,7 @@ export const useAuth = create<AuthState>()(set => ({
       set({
         user: response,
         token,
+        refreshToken: refreshToken || null,
         isAuthenticated: true,
         isHydrated: true,
       })
@@ -160,6 +216,7 @@ export const useAuth = create<AuthState>()(set => ({
         set({
           user,
           token,
+          refreshToken: refreshToken || null,
           isAuthenticated: true,
           isHydrated: true,
         })
