@@ -164,11 +164,6 @@ export const inscripcionesApi = {
     }
   },
 
-  getAll: async (): Promise<Inscripcion[]> => {
-    const response = await apiClient.get<Inscripcion[]>("/inscripciones")
-    return response.data
-  },
-
   getById: async (id: string): Promise<Inscripcion> => {
     const response = await apiClient.get<Inscripcion>(`/inscripciones/${id}`)
     return response.data

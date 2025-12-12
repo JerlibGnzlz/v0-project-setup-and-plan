@@ -18,11 +18,19 @@ export function useInscripciones(
   // Sincronización inteligente para actualización automática entre pestañas
   useSmartSync()
   
-  // Polling inteligente cada 30 segundos (solo cuando la pestaña está visible)
-  const pollingInterval = useSmartPolling(["inscripciones", page, limit, filters], 30000)
-  
   const pageNum = page || 1
   const limitNum = limit || 20
+  
+  // Polling inteligente cada 30 segundos (solo cuando la pestaña está visible)
+  // Convertir valores a strings para el queryKey
+  const queryKey = [
+    "inscripciones",
+    String(pageNum),
+    String(limitNum),
+    filters ? JSON.stringify(filters) : undefined,
+  ].filter(Boolean) as string[]
+  
+  const pollingInterval = useSmartPolling(queryKey, 30000)
   
   return useQuery({
     queryKey: ["inscripciones", pageNum, limitNum, filters],
