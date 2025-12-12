@@ -168,3 +168,27 @@ export function useUpdateInscripcion() {
   })
 }
 
+export function useRehabilitarInscripcion() {
+  const queryClient = useQueryClient()
+  const { notifyChange } = useSmartSync()
+
+  return useMutation({
+    mutationFn: (id: string) => inscripcionesApi.rehabilitarInscripcion(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
+      queryClient.invalidateQueries({ queryKey: ["pagos"] })
+      notifyChange("inscripciones")
+      toast.success("✅ Inscripción rehabilitada", {
+        description: "La inscripción y sus pagos cancelados han sido rehabilitados",
+      })
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.error?.message || error.response?.data?.message || error.message || "Error al rehabilitar la inscripción"
+      toast.error("Error al rehabilitar la inscripción", {
+        description: errorMessage,
+        duration: 5000,
+      })
+    },
+  })
+}
+

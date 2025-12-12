@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useInscripciones, useCreateInscripcion, useCancelarInscripcion, useReporteIngresos, useEnviarRecordatorios, useUpdateInscripcion } from '@/lib/hooks/use-inscripciones'
+import { useInscripciones, useCreateInscripcion, useCancelarInscripcion, useRehabilitarInscripcion, useReporteIngresos, useEnviarRecordatorios, useUpdateInscripcion } from '@/lib/hooks/use-inscripciones'
 import { useCreatePago, useUpdatePago } from '@/lib/hooks/use-pagos'
 import { useConvenciones } from '@/lib/hooks/use-convencion'
 import { useSmartSync, useSmartPolling } from '@/lib/hooks/use-smart-sync'
@@ -39,7 +39,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Textarea } from '@/components/ui/textarea'
-import { Search, UserCheck, ChevronLeft, Mail, Phone, MapPin, Calendar, FileText, CreditCard, Plus, DollarSign, CheckCircle2, Image as ImageIcon, X, Printer, Download, Sparkles, Smartphone, Globe, User, UserPlus, Star, Bell, TrendingUp, XCircle, BarChart3, AlertTriangle, Loader2, Pencil, Save } from 'lucide-react'
+import { Search, UserCheck, ChevronLeft, Mail, Phone, MapPin, Calendar, FileText, CreditCard, Plus, DollarSign, CheckCircle2, Image as ImageIcon, X, Printer, Download, Sparkles, Smartphone, Globe, User, UserPlus, Star, Bell, TrendingUp, XCircle, BarChart3, AlertTriangle, Loader2, Pencil, Save, RefreshCw } from 'lucide-react'
 import Image from 'next/image'
 import { ComprobanteUpload } from '@/components/ui/comprobante-upload'
 import { uploadApi } from '@/lib/api/upload'
@@ -120,6 +120,7 @@ export default function InscripcionesPage() {
     const updatePagoMutation = useUpdatePago()
     const createInscripcionMutation = useCreateInscripcion()
     const cancelarInscripcionMutation = useCancelarInscripcion()
+    const rehabilitarInscripcionMutation = useRehabilitarInscripcion()
     const enviarRecordatoriosMutation = useEnviarRecordatorios()
     const updateInscripcionMutation = useUpdateInscripcion()
     
@@ -1108,6 +1109,24 @@ export default function InscripcionesPage() {
                                                                 >
                                                                     <XCircle className="size-3 mr-1" />
                                                                     Cancelar
+                                                                </Button>
+                                                            )}
+                                                            {/* Botón rehabilitar (solo si está cancelada) */}
+                                                            {insc.estado === 'cancelado' && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => handleRehabilitarInscripcion(insc.id)}
+                                                                    disabled={rehabilitarInscripcionMutation.isPending}
+                                                                    className="h-6 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                                                                    title="Rehabilitar inscripción y pagos cancelados"
+                                                                >
+                                                                    {rehabilitarInscripcionMutation.isPending ? (
+                                                                        <Loader2 className="size-3 mr-1 animate-spin" />
+                                                                    ) : (
+                                                                        <RefreshCw className="size-3 mr-1" />
+                                                                    )}
+                                                                    Rehabilitar
                                                                 </Button>
                                                             )}
                                                         </div>

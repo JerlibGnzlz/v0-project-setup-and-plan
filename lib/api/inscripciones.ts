@@ -197,6 +197,11 @@ export const inscripcionesApi = {
     return response.data
   },
 
+  rehabilitarInscripcion: async (id: string): Promise<Inscripcion> => {
+    const response = await apiClient.post<Inscripcion>(`/inscripciones/${id}/rehabilitar`)
+    return response.data
+  },
+
   getReporteIngresos: async (): Promise<{
     totalRecaudado: number
     totalPendiente: number
