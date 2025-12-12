@@ -11,6 +11,8 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useInvitadoAuth } from '@/lib/hooks/use-invitado-auth'
 import { useUpdatePago } from '@/lib/hooks/use-pagos'
+import { pagosApi } from '@/lib/api/pagos'
+import { useQueryClient } from '@tanstack/react-query'
 import { uploadApi } from '@/lib/api/upload'
 import { ComprobanteUpload } from '@/components/ui/comprobante-upload'
 import Image from 'next/image'
@@ -70,6 +72,7 @@ export function InscripcionExistenteCard({
     const invitadoAuth = useInvitadoAuth()
     const user = invitadoAuth.user
     const updatePagoMutation = useUpdatePago()
+    const queryClient = useQueryClient()
     const [pagosExpandidos, setPagosExpandidos] = useState<Record<string, boolean>>({})
     const [comprobantesTemporales, setComprobantesTemporales] = useState<Record<string, string>>({})
 
@@ -167,11 +170,22 @@ export function InscripcionExistenteCard({
         }
 
         try {
-            // Actualizar el pago con la URL del comprobante
-            await updatePagoMutation.mutateAsync({
-                id: pagoId,
-                data: { comprobanteUrl }
-            })
+            // Usar el endpoint específico para invitados si estamos en contexto de invitado
+            const isInvitadoContext = typeof window !== 'undefined' && window.location.pathname.startsWith('/convencion')
+            
+            if (isInvitadoContext) {
+                // Usar endpoint específico para invitados
+                await pagosApi.updateComprobanteInvitado(pagoId, comprobanteUrl)
+                // Invalidar queries para refrescar datos
+                await queryClient.invalidateQueries({ queryKey: ['inscripciones'] })
+                await queryClient.invalidateQueries({ queryKey: ['checkInscripcion'] })
+            } else {
+                // Usar endpoint normal para admins
+                await updatePagoMutation.mutateAsync({
+                    id: pagoId,
+                    data: { comprobanteUrl }
+                })
+            }
 
             toast.success('Comprobante enviado exitosamente', {
                 description: 'Tu comprobante ha sido enviado. El equipo lo validará pronto.',

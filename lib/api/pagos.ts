@@ -100,6 +100,12 @@ export const pagosApi = {
     return response.data
   },
 
+  // Actualizar solo el comprobante (para invitados)
+  updateComprobanteInvitado: async (id: string, comprobanteUrl: string): Promise<Pago> => {
+    const response = await apiClient.patch<Pago>(`/pagos/invitado/${id}/comprobante`, { comprobanteUrl })
+    return response.data
+  },
+
   deletePago: async (id: string): Promise<void> => {
     await apiClient.delete(`/pagos/${id}`)
   },

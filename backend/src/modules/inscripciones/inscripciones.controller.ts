@@ -22,11 +22,13 @@ import {
   UpdatePagoDto,
 } from './dto/inscripcion.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { InvitadoJwtAuthGuard } from '../auth/guards/invitado-jwt-auth.guard'
 import { Throttle } from '@nestjs/throttler'
 import { PaginationDto } from '../../common/dto/pagination.dto'
 import { InscripcionFilterDto, PagoFilterDto } from '../../common/dto/search-filter.dto'
 import { CsvExportUtil } from '../../common/utils/csv-export.util'
 import { AuthenticatedRequest } from '../auth/types/request.types'
+import { ForbiddenException } from '@nestjs/common'
 
 @Controller('inscripciones')
 export class InscripcionesController {
@@ -292,6 +294,37 @@ export class PagosController {
       throw new BadRequestException('Se requiere un array de IDs de pagos para validar')
     }
     return this.inscripcionesService.validarPagosMasivos(body.ids, req.user?.id)
+  }
+
+  // Endpoint específico para invitados: solo pueden actualizar el comprobante de su propio pago
+  @UseGuards(InvitadoJwtAuthGuard)
+  @Patch('invitado/:id/comprobante')
+  async updateComprobanteInvitado(
+    @Request() req: any, // InvitadoRequest o AuthenticatedRequest
+    @Param('id') id: string,
+    @Body() body: { comprobanteUrl: string }
+  ) {
+    try {
+      // Obtener el pago y verificar que pertenezca a una inscripción del invitado
+      const pago = await this.inscripcionesService.findOnePago(id)
+      const inscripcion = await this.inscripcionesService.findOneInscripcion(pago.inscripcionId)
+
+      // Verificar que el email del invitado coincida con el email de la inscripción
+      if (inscripcion.email !== req.user?.email) {
+        throw new ForbiddenException('No tienes permiso para actualizar este pago')
+      }
+
+      // Solo permitir actualizar el comprobanteUrl
+      const dto: UpdatePagoDto = {
+        comprobanteUrl: body.comprobanteUrl,
+      }
+
+      return this.inscripcionesService.updatePago(id, dto, req.user?.id)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en updateComprobanteInvitado: ${errorMessage}`)
+      throw error
+    }
   }
 
   @UseGuards(JwtAuthGuard)
