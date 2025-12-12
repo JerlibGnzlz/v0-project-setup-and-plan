@@ -83,6 +83,7 @@ model Pastor {
   tipo                TipoPastor            @default(PASTOR)
   trayectoria         String?
   auth                PastorAuth?
+  credencialesPastorales CredencialPastoral[]
   NotificationHistory NotificationHistory[]
 
   @@index([activo])
@@ -108,6 +109,29 @@ model PastorAuth {
   @@index([email])
   @@index([googleId])
   @@map("pastor_auth")
+}
+
+model CredencialPastoral {
+  id                            String          @id @default(uuid())
+  pastorId                      String          @map("pastor_id")
+  numeroCredencial              String          @unique @map("numero_credencial")
+  fechaEmision                  DateTime        @map("fecha_emision")
+  fechaVencimiento               DateTime        @map("fecha_vencimiento")
+  estado                         EstadoCredencial @default(VIGENTE)
+  notificacionVencimientoEnviada Boolean         @default(false) @map("notificacion_vencimiento_enviada")
+  fechaUltimaNotificacion        DateTime?       @map("fecha_ultima_notificacion")
+  activa                         Boolean         @default(true)
+  notas                          String?
+  createdAt                      DateTime        @default(now()) @map("created_at")
+  updatedAt                      DateTime        @updatedAt @map("updated_at")
+  pastor                         Pastor          @relation(fields: [pastorId], references: [id], onDelete: Cascade)
+
+  @@index([pastorId])
+  @@index([estado])
+  @@index([fechaVencimiento])
+  @@index([activa])
+  @@index([numeroCredencial])
+  @@map("credenciales_pastorales")
 }
 
 model DeviceToken {
@@ -336,6 +360,13 @@ enum CategoriaNoticia {
   OPORTUNIDADES
   CAPACITACION
   COMUNICADO
+}
+
+enum EstadoCredencial {
+  SIN_CREDENCIAL
+  VIGENTE
+  POR_VENCER
+  VENCIDA
 }
 
 model NotificationHistory {

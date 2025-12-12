@@ -21,6 +21,7 @@ export type NotificationType =
     | 'convencion_proxima'
     | 'nuevo_invitado'
     | 'nuevo_pastor_auth'
+    | 'credencial_por_vencer'
     | 'test'
     | 'otro'
 

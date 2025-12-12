@@ -17,6 +17,9 @@ export enum NotificationEventType {
   INSCRIPCION_CONFIRMADA = 'inscripcion.confirmada',
   INSCRIPCION_CANCELADA = 'inscripcion.cancelada',
   INSCRIPCION_ACTUALIZADA = 'inscripcion.actualizada',
+
+  // Eventos de credenciales pastorales
+  CREDENCIAL_POR_VENCER = 'credencial.por_vencer',
 }
 
 /**
@@ -315,6 +318,51 @@ export class InscripcionActualizadaEvent implements BaseNotificationEvent {
       inscripcionId: data.inscripcionId,
       convencionTitulo: data.convencionTitulo,
       cambios: data.cambios,
+    }
+  }
+}
+
+/**
+ * Evento de credencial por vencer
+ */
+export class CredencialPorVencerEvent implements BaseNotificationEvent {
+  type = NotificationEventType.CREDENCIAL_POR_VENCER
+  email: string
+  userId?: string
+  data: {
+    credencialId: string
+    numeroCredencial: string
+    fechaVencimiento: string
+    diasRestantes: number
+    nombre?: string
+    apellido?: string
+    credencialNombre?: string
+  }
+  priority: 'high' = 'high'
+  channels?: ('email' | 'push' | 'web')[]
+
+  constructor(
+    data: CredencialPorVencerEvent['data'] & {
+      email: string
+      userId?: string
+      nombre?: string
+      apellido?: string
+    }
+  ) {
+    this.email = data.email
+    this.userId = data.userId
+    const nombreCompleto =
+      data.nombre && data.apellido
+        ? `${data.nombre} ${data.apellido}`
+        : data.credencialNombre || ''
+    this.data = {
+      credencialId: data.credencialId,
+      numeroCredencial: data.numeroCredencial,
+      fechaVencimiento: data.fechaVencimiento,
+      diasRestantes: data.diasRestantes,
+      nombre: data.nombre,
+      apellido: data.apellido,
+      credencialNombre: nombreCompleto,
     }
   }
 }

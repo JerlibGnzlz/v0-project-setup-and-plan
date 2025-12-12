@@ -697,6 +697,103 @@ export function getInscripcionActualizadaTemplate(data: EmailTemplateData): Emai
 }
 
 /**
+ * Template para credencial por vencer
+ */
+export function getCredencialPorVencerTemplate(data: EmailTemplateData): EmailTemplate {
+  const nombreCompleto =
+    data.credencialNombre ||
+    (data.nombre && data.apellido ? `${data.nombre} ${data.apellido}` : null) ||
+    data.nombre ||
+    'Estimado/a pastor'
+  const numeroCredencial = data.numeroCredencial || 'N/A'
+  const fechaVencimiento = data.fechaVencimiento
+    ? new Date(data.fechaVencimiento).toLocaleDateString('es-AR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : 'N/A'
+  const diasRestantes =
+    typeof data.diasRestantes === 'number'
+      ? data.diasRestantes
+      : typeof data.diasRestantes === 'string'
+      ? parseInt(data.diasRestantes) || 0
+      : 0
+
+  const body = `
+    <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px; font-weight: 700;">⚠️ Tu Credencial Está Por Vencer</h2>
+    <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.8;">
+      Hola <strong>${nombreCompleto}</strong>,<br><br>
+      Te informamos que tu <strong style="color: #f59e0b;">credencial ministerial está próxima a vencer</strong>. 
+      Es importante que renueves tu credencial para mantener tu estado activo en la asociación.
+    </p>
+    
+    <div style="margin: 30px 0; padding: 25px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-radius: 12px; border: 2px solid #f59e0b; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.1);">
+      <div style="display: flex; align-items: center; margin-bottom: 20px;">
+        <div style="width: 50px; height: 50px; background-color: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+          <span style="font-size: 24px;">⏰</span>
+        </div>
+        <div>
+          <h3 style="margin: 0; color: #92400e; font-size: 18px; font-weight: 700;">Información de Tu Credencial</h3>
+          <p style="margin: 5px 0 0; color: #b45309; font-size: 14px;">Renovación requerida</p>
+        </div>
+      </div>
+      
+      <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Número de Credencial:</strong></td>
+            <td style="padding: 8px 0; color: #4b5563; font-size: 14px; text-align: right; border-bottom: 1px solid #e5e7eb; font-family: monospace;">${numeroCredencial}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Fecha de Vencimiento:</strong></td>
+            <td style="padding: 8px 0; color: #f59e0b; font-size: 16px; font-weight: 700; text-align: right; border-bottom: 1px solid #e5e7eb;">${fechaVencimiento}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px;"><strong>Días Restantes:</strong></td>
+            <td style="padding: 8px 0; color: ${diasRestantes <= 7 ? '#dc2626' : '#f59e0b'}; font-size: 16px; font-weight: 700; text-align: right;">${diasRestantes} días</td>
+          </tr>
+        </table>
+      </div>
+      
+      ${diasRestantes <= 7 ? `
+      <div style="margin-top: 20px; padding: 15px; background-color: #fee2e2; border-radius: 8px; border-left: 4px solid #dc2626;">
+        <p style="margin: 0; color: #991b1b; font-size: 14px; font-weight: 600;">
+          ⚠️ <strong>URGENTE:</strong> Tu credencial vence en menos de una semana. Por favor, contacta a la administración lo antes posible.
+        </p>
+      </div>
+      ` : ''}
+    </div>
+    
+    <div style="margin: 30px 0; padding: 20px; background-color: #f9fafb; border-radius: 8px; border-left: 4px solid #3b82f6;">
+      <h3 style="margin: 0 0 15px; color: #1e40af; font-size: 18px; font-weight: 600;">📋 Próximos Pasos</h3>
+      <ol style="margin: 0; padding-left: 20px; color: #4b5563; font-size: 14px; line-height: 1.8;">
+        <li style="margin-bottom: 10px;">Contacta a la administración de AMVA para iniciar el proceso de renovación</li>
+        <li style="margin-bottom: 10px;">Completa el formulario de renovación y proporciona la documentación requerida</li>
+        <li style="margin-bottom: 10px;">Realiza el pago correspondiente para la renovación de tu credencial</li>
+        <li>Una vez procesada, recibirás tu nueva credencial con una nueva fecha de vencimiento</li>
+      </ol>
+    </div>
+    
+    <p style="margin: 30px 0 0; color: #4b5563; font-size: 14px; line-height: 1.6;">
+      Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos.<br><br>
+      <strong>¡Gracias por tu compromiso con la Asociación Misionera Vida Abundante!</strong>
+    </p>
+  `
+
+  return {
+    title: '⚠️ Tu Credencial Está Por Vencer',
+    body: buildBaseTemplate(
+      'Tu Credencial Está Por Vencer',
+      body,
+      '⏰',
+      '#f59e0b'
+    ),
+    type: 'credencial_por_vencer',
+  }
+}
+
+/**
  * Mapa de templates por tipo de evento
  */
 export const emailTemplates = {
@@ -708,6 +805,7 @@ export const emailTemplates = {
   inscripcion_confirmada: getInscripcionConfirmadaTemplate,
   inscripcion_cancelada: getInscripcionCanceladaTemplate,
   inscripcion_actualizada: getInscripcionActualizadaTemplate,
+  credencial_por_vencer: getCredencialPorVencerTemplate,
 }
 
 /**

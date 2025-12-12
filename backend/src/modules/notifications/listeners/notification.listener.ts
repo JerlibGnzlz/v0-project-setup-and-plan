@@ -12,6 +12,7 @@ import {
   InscripcionConfirmadaEvent,
   InscripcionCanceladaEvent,
   InscripcionActualizadaEvent,
+  CredencialPorVencerEvent,
   NotificationEventType,
 } from '../events/notification.events'
 import { NotificationType } from '../types/notification.types'
@@ -118,6 +119,15 @@ export class NotificationListener {
   @OnEvent(NotificationEventType.INSCRIPCION_ACTUALIZADA)
   async handleInscripcionActualizada(event: InscripcionActualizadaEvent) {
     this.logger.log(`📬 Evento recibido: INSCRIPCION_ACTUALIZADA para ${event.email}`)
+    await this.queueNotification(event)
+  }
+
+  /**
+   * Escucha eventos de credencial por vencer
+   */
+  @OnEvent(NotificationEventType.CREDENCIAL_POR_VENCER)
+  async handleCredencialPorVencer(event: CredencialPorVencerEvent) {
+    this.logger.log(`📬 Evento recibido: CREDENCIAL_POR_VENCER para ${event.email}`)
     await this.queueNotification(event)
   }
 
