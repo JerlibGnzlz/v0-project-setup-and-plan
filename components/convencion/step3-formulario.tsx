@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CheckCircle2, AlertCircle, Loader2, Sparkles } from 'lucide-react'
+import { CheckCircle2, AlertCircle, Loader2, Sparkles, Receipt } from 'lucide-react'
 import { useCreateInscripcion, useCheckInscripcion } from '@/lib/hooks/use-inscripciones'
 import { ComprobanteUpload } from '@/components/ui/comprobante-upload'
 import { uploadApi } from '@/lib/api/upload'
@@ -744,22 +744,45 @@ export function Step3Formulario({
             </div>
           )}
 
-          {/* Documento/Comprobante (Opcional) */}
-          <div>
-            <Label className="text-white/90 mb-2 block">Documento o Comprobante (Opcional)</Label>
-            <p className="text-sm text-white/60 mb-3">
-              Puedes subir un documento o comprobante relacionado con tu inscripción. Esto será
-              enviado directamente a Sede Digital.
-            </p>
+          {/* Comprobante de Transferencia */}
+          <div className="space-y-3">
+            <div>
+              <Label className="text-white/90 mb-2 block flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-amber-400" />
+                Comprobante de Transferencia Bancaria
+              </Label>
+              <p className="text-sm text-white/70 mb-3">
+                Sube una foto o captura del comprobante de transferencia bancaria. Esto facilitará
+                la validación de tu pago.
+              </p>
+            </div>
             <ComprobanteUpload
               value={formData.documentoUrl}
               onChange={url => handleChange('documentoUrl', url)}
               onUpload={async file => {
-                const response = await uploadApi.uploadInscripcionDocumento(file)
-                return response.url
+                try {
+                  const response = await uploadApi.uploadInscripcionDocumento(file)
+                  toast.success('Comprobante subido exitosamente', {
+                    description: 'Tu comprobante de transferencia ha sido cargado correctamente',
+                  })
+                  return response.url
+                } catch (error) {
+                  toast.error('Error al subir el comprobante', {
+                    description: 'Por favor, intenta nuevamente',
+                  })
+                  throw error
+                }
               }}
               className="bg-white/5"
             />
+            {formData.documentoUrl && (
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                <p className="text-sm text-emerald-300 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Comprobante de transferencia cargado correctamente
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Notas */}
