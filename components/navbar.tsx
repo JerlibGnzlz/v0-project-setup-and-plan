@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { ChevronRight, Sparkles, User } from 'lucide-react'
+import { ChevronRight, User } from 'lucide-react'
 import { usePastorAuth } from '@/lib/hooks/use-pastor-auth'
 
 export function Navbar() {
@@ -250,21 +250,6 @@ export function Navbar() {
                   </Link>
                 </Button>
               )}
-
-              {/* CTA Button with gradient */}
-              <Button
-                asChild
-                className="ml-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 hover:scale-105 border-0"
-              >
-                <Link
-                  href="#inscripcion"
-                  onClick={e => handleNavClick(e, '#inscripcion')}
-                  className="flex items-center gap-2"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Inscríbete
-                </Link>
-              </Button>
             </div>
 
             {/* Mobile Menu Button */}
@@ -362,26 +347,6 @@ export function Navbar() {
               </Link>
             )
           })}
-
-          <Button
-            asChild
-            size="lg"
-            className={`mt-6 w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-lg border-0 ${
-              isOpen ? 'animate-in slide-in-from-right-4 fade-in' : ''
-            }`}
-            style={{
-              animationDelay: isOpen ? `${navLinks.length * 50}ms` : '0ms',
-            }}
-          >
-            <Link
-              href="#inscripcion"
-              onClick={e => handleNavClick(e, '#inscripcion')}
-              className="flex items-center justify-center gap-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              Inscríbete Ahora
-            </Link>
-          </Button>
         </nav>
       </div>
     </>
