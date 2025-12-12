@@ -12,16 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -30,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import {
   useCreateCredencialPastoral,
@@ -70,7 +62,14 @@ export function CredencialPastoralDialog({
   const createMutation = useCreateCredencialPastoral()
   const updateMutation = useUpdateCredencialPastoral()
 
-  const form = useForm<CredencialFormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    setValue,
+    watch,
+  } = useForm<CredencialFormData>({
     resolver: zodResolver(credencialSchema),
     defaultValues: {
       pastorId: '',
@@ -83,29 +82,23 @@ export function CredencialPastoralDialog({
     },
   })
 
+  const pastorId = watch('pastorId')
+  const estado = watch('estado')
+  const activa = watch('activa')
+
   useEffect(() => {
-    if (credencial) {
-      form.reset({
-        pastorId: credencial.pastorId,
-        numeroCredencial: credencial.numeroCredencial,
-        fechaEmision: credencial.fechaEmision.split('T')[0],
-        fechaVencimiento: credencial.fechaVencimiento.split('T')[0],
-        estado: credencial.estado,
-        activa: credencial.activa,
-        notas: credencial.notas || '',
-      })
-    } else {
-      form.reset({
-        pastorId: '',
-        numeroCredencial: '',
-        fechaEmision: '',
-        fechaVencimiento: '',
-        estado: 'VIGENTE',
-        activa: true,
-        notas: '',
-      })
+    if (credencial && open) {
+      setValue('pastorId', credencial.pastorId)
+      setValue('numeroCredencial', credencial.numeroCredencial)
+      setValue('fechaEmision', credencial.fechaEmision.split('T')[0])
+      setValue('fechaVencimiento', credencial.fechaVencimiento.split('T')[0])
+      setValue('estado', credencial.estado)
+      setValue('activa', credencial.activa)
+      setValue('notas', credencial.notas || '')
+    } else if (!open) {
+      reset()
     }
-  }, [credencial, form])
+  }, [credencial, open, setValue, reset])
 
   const onSubmit = async (data: CredencialFormData) => {
     try {
@@ -118,16 +111,21 @@ export function CredencialPastoralDialog({
         await createMutation.mutateAsync(data)
       }
       onOpenChange(false)
-      form.reset()
+      reset()
     } catch (error) {
       // Error ya manejado en el hook
     }
   }
 
-  const isLoading = createMutation.isPending || updateMutation.isPending
+  const handleClose = () => {
+    onOpenChange(false)
+    reset()
+  }
+
+  const isLoading = createMutation.isPending || updateMutation.isPending || isSubmitting
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -140,169 +138,121 @@ export function CredencialPastoralDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="pastorId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pastor</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={!!credencial}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un pastor" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {pastores.map((pastor) => (
-                        <SelectItem key={pastor.id} value={pastor.id}>
-                          {pastor.nombre} {pastor.apellido}
-                          {pastor.email && ` (${pastor.email})`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="pastorId">Pastor *</Label>
+            <Select
+              value={pastorId}
+              onValueChange={value => setValue('pastorId', value)}
+              disabled={!!credencial}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona un pastor" />
+              </SelectTrigger>
+              <SelectContent>
+                {pastores.map((pastor) => (
+                  <SelectItem key={pastor.id} value={pastor.id}>
+                    {pastor.nombre} {pastor.apellido}
+                    {pastor.email && ` (${pastor.email})`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.pastorId && (
+              <p className="text-xs text-destructive">{errors.pastorId.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="numeroCredencial">Número de Credencial *</Label>
+            <Input
+              id="numeroCredencial"
+              placeholder="Ej: AMVA-2025-001"
+              {...register('numeroCredencial')}
             />
+            {errors.numeroCredencial && (
+              <p className="text-xs text-destructive">{errors.numeroCredencial.message}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Número único de identificación de la credencial
+            </p>
+          </div>
 
-            <FormField
-              control={form.control}
-              name="numeroCredencial"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Número de Credencial</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: AMVA-2025-001" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Número único de identificación de la credencial
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="fechaEmision">Fecha de Emisión *</Label>
+              <Input id="fechaEmision" type="date" {...register('fechaEmision')} />
+              {errors.fechaEmision && (
+                <p className="text-xs text-destructive">{errors.fechaEmision.message}</p>
               )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="fechaEmision"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fecha de Emisión</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="fechaVencimiento"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fecha de Vencimiento</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
-            <FormField
-              control={form.control}
-              name="estado"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Estado</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un estado" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="VIGENTE">Vigente</SelectItem>
-                      <SelectItem value="POR_VENCER">Por Vencer</SelectItem>
-                      <SelectItem value="VENCIDA">Vencida</SelectItem>
-                      <SelectItem value="SIN_CREDENCIAL">Sin Credencial</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    El estado se actualiza automáticamente según la fecha de vencimiento
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+            <div className="space-y-2">
+              <Label htmlFor="fechaVencimiento">Fecha de Vencimiento *</Label>
+              <Input id="fechaVencimiento" type="date" {...register('fechaVencimiento')} />
+              {errors.fechaVencimiento && (
+                <p className="text-xs text-destructive">{errors.fechaVencimiento.message}</p>
               )}
-            />
+            </div>
+          </div>
 
-            <FormField
-              control={form.control}
-              name="activa"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Credencial Activa</FormLabel>
-                    <FormDescription>
-                      Desactiva la credencial si ya no está en uso
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+          <div className="space-y-2">
+            <Label htmlFor="estado">Estado</Label>
+            <Select
+              value={estado}
+              onValueChange={value =>
+                setValue('estado', value as 'SIN_CREDENCIAL' | 'VIGENTE' | 'POR_VENCER' | 'VENCIDA')
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona un estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="VIGENTE">Vigente</SelectItem>
+                <SelectItem value="POR_VENCER">Por Vencer</SelectItem>
+                <SelectItem value="VENCIDA">Vencida</SelectItem>
+                <SelectItem value="SIN_CREDENCIAL">Sin Credencial</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              El estado se actualiza automáticamente según la fecha de vencimiento
+            </p>
+          </div>
 
-            <FormField
-              control={form.control}
-              name="notas"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notas</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Notas adicionales sobre la credencial..."
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <div className="space-y-0.5">
+              <Label className="text-base">Credencial Activa</Label>
+              <p className="text-xs text-muted-foreground">
+                Desactiva la credencial si ya no está en uso
+              </p>
+            </div>
+            <Switch checked={activa} onCheckedChange={value => setValue('activa', value)} />
+          </div>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isLoading}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading
-                  ? 'Guardando...'
-                  : credencial
-                    ? 'Actualizar'
-                    : 'Crear Credencial'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+          <div className="space-y-2">
+            <Label htmlFor="notas">Notas</Label>
+            <Textarea
+              id="notas"
+              placeholder="Notas adicionales sobre la credencial..."
+              className="resize-none"
+              {...register('notas')}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading
+                ? 'Guardando...'
+                : credencial
+                  ? 'Actualizar'
+                  : 'Crear Credencial'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )
 }
-
