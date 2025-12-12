@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { inscripcionesApi, type Inscripcion, type CreateInscripcionDto } from "@/lib/api/inscripciones"
 import { toast } from "sonner"
-import { useSmartSync, useSmartPolling } from "./use-smart-sync"
+import { useSmartSync, useSmartPolling } from "@/lib/hooks/use-smart-sync"
 
 export function useInscripciones(
   page?: number,
@@ -17,10 +17,10 @@ export function useInscripciones(
 ) {
   // Sincronización inteligente para actualización automática entre pestañas
   useSmartSync()
-  
+
   const pageNum = page || 1
   const limitNum = limit || 20
-  
+
   // Polling inteligente cada 30 segundos (solo cuando la pestaña está visible)
   // Convertir valores a strings para el queryKey
   const queryKey = [
@@ -29,15 +29,17 @@ export function useInscripciones(
     String(limitNum),
     filters ? JSON.stringify(filters) : undefined,
   ].filter(Boolean) as string[]
-  
+
   const pollingInterval = useSmartPolling(queryKey, 30000)
-  
+
   return useQuery({
     queryKey: ["inscripciones", pageNum, limitNum, filters],
     queryFn: () => inscripcionesApi.getAll(pageNum, limitNum, filters),
     refetchOnWindowFocus: true,
     refetchInterval: pollingInterval,
     placeholderData: (previousData) => previousData,
+    retry: 2,
+    retryDelay: 1000,
   })
 }
 
@@ -80,22 +82,22 @@ export function useCreateInscripcion() {
       if (error.response?.status === 409) {
         const responseData = error.response.data
         const errorMessage = responseData?.error?.message || responseData?.message || error.message || "Este correo electrónico ya está registrado para esta convención"
-        
+
         toast.error("❌ Ya estás inscrito", {
           description: errorMessage,
           duration: 6000,
         })
         return
       }
-      
+
       // Manejar otros errores
       const errorMessage = error.response?.data?.error?.message || error.response?.data?.message || error.message || "Error al crear la inscripción"
-      
+
       // Detectar errores de duplicado por contenido del mensaje (por si acaso)
-      if (errorMessage.toLowerCase().includes("ya está inscrito") || 
-          errorMessage.toLowerCase().includes("ya existe") || 
-          errorMessage.toLowerCase().includes("duplicado") ||
-          errorMessage.toLowerCase().includes("ya está registrado")) {
+      if (errorMessage.toLowerCase().includes("ya está inscrito") ||
+        errorMessage.toLowerCase().includes("ya existe") ||
+        errorMessage.toLowerCase().includes("duplicado") ||
+        errorMessage.toLowerCase().includes("ya está registrado")) {
         toast.error("❌ Ya estás inscrito", {
           description: errorMessage,
           duration: 6000,
@@ -115,7 +117,7 @@ export function useCancelarInscripcion() {
   const { notifyChange } = useSmartSync()
 
   return useMutation({
-    mutationFn: ({ id, motivo }: { id: string; motivo?: string }) => 
+    mutationFn: ({ id, motivo }: { id: string; motivo?: string }) =>
       inscripcionesApi.cancelarInscripcion(id, motivo),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
@@ -161,7 +163,7 @@ export function useUpdateInscripcion() {
   const { notifyChange } = useSmartSync()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CreateInscripcionDto> }) => 
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateInscripcionDto> }) =>
       inscripcionesApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
@@ -184,29 +186,29 @@ export function useRehabilitarInscripcion() {
     mutationFn: (id: string) => inscripcionesApi.rehabilitarInscripcion(id),
     onSuccess: async (data, variables) => {
       const inscripcionId = data.id || variables
-      
+
       // Invalidar queries para forzar refetch
       await queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
       await queryClient.invalidateQueries({ queryKey: ["pagos"] })
       await queryClient.invalidateQueries({ queryKey: ["inscripcion", inscripcionId] })
-      
+
       // Refetch explícito para actualización inmediata
       await queryClient.refetchQueries({ queryKey: ["inscripciones"] })
-      
+
       // Notificar a otras pestañas para actualización instantánea
       notifyChange("inscripciones")
-      
+
       toast.success("✅ Inscripción rehabilitada", {
         description: "La inscripción ha cambiado de 'cancelado' a 'pendiente' y los pagos cancelados han sido rehabilitados",
       })
     },
     onError: (error: unknown) => {
-      const errorMessage = 
+      const errorMessage =
         (error as { response?: { data?: { error?: { message?: string }; message?: string } } })?.response?.data?.error?.message ||
         (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         (error instanceof Error ? error.message : String(error)) ||
         "Error al rehabilitar la inscripción"
-      
+
       toast.error("Error al rehabilitar la inscripción", {
         description: errorMessage,
         duration: 5000,
