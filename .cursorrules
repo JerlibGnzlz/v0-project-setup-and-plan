@@ -335,6 +335,21 @@ Este es un monorepo con:
      - `*.log` (Logs)
      - `.cache/`, `.tmp/` (Archivos temporales)
 
+10. **Mantener estado limpio al cerrar/abrir Cursor**:
+   - ✅ SIEMPRE hacer `git add .`, `git commit` y `git push` antes de cerrar Cursor si hay cambios legítimos
+   - ✅ Al abrir Cursor después de cerrarlo, NO deberían aparecer cambios pendientes si previamente se hicieron todos los commits y push
+   - ✅ Si aparecen cambios pendientes al abrir Cursor después de hacer commit y push:
+     - Verificar que los archivos estén en `.gitignore` (archivos auto-generados)
+     - Ejecutar `git status` para ver qué archivos aparecen como modificados
+     - Si son archivos auto-generados (`*.tsbuildinfo`, `.next/`, `dist/`, etc.), NO hacer commit de ellos
+     - Si son archivos legítimos que no deberían estar modificados, verificar:
+       - Que el último commit y push se completaron correctamente
+       - Que no hay diferencias entre el working directory y el último commit
+       - Ejecutar `git diff` para ver qué cambió
+     - Si los cambios son solo en archivos auto-generados, ejecutar `git restore .` o `git checkout .` para descartarlos
+   - ✅ El objetivo es que al abrir Cursor, el estado del repositorio esté limpio y sincronizado con el remoto
+   - ✅ Si hay cambios legítimos pendientes, hacer commit y push antes de cerrar Cursor
+
 ## ✅ Mejores Prácticas
 
 1. **Error Handling**:
