@@ -369,6 +369,14 @@ export default function InscripcionesPage() {
         }
     }
 
+    const handleRehabilitarInscripcion = async (inscripcionId: string) => {
+        try {
+            await rehabilitarInscripcionMutation.mutateAsync(inscripcionId)
+        } catch (error) {
+            console.error('Error al rehabilitar inscripción:', error)
+        }
+    }
+
     // Función para enviar recordatorios
     const handleEnviarRecordatorios = async () => {
         try {
