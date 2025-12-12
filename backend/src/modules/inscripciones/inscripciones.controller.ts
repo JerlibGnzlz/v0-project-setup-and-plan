@@ -27,7 +27,7 @@ import { Throttle } from '@nestjs/throttler'
 import { PaginationDto } from '../../common/dto/pagination.dto'
 import { InscripcionFilterDto, PagoFilterDto } from '../../common/dto/search-filter.dto'
 import { CsvExportUtil } from '../../common/utils/csv-export.util'
-import { AuthenticatedRequest } from '../auth/types/request.types'
+import { AuthenticatedRequest, AuthenticatedInvitadoRequest } from '../auth/types/request.types'
 import { ForbiddenException } from '@nestjs/common'
 
 @Controller('inscripciones')
@@ -300,7 +300,7 @@ export class PagosController {
   @UseGuards(InvitadoJwtAuthGuard)
   @Patch('invitado/:id/comprobante')
   async updateComprobanteInvitado(
-    @Request() req: any, // InvitadoRequest o AuthenticatedRequest
+    @Request() req: AuthenticatedInvitadoRequest,
     @Param('id') id: string,
     @Body() body: { comprobanteUrl: string }
   ) {
