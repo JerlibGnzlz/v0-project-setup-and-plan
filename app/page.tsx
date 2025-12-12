@@ -14,7 +14,6 @@ import { GallerySection } from '@/components/gallery-section'
 import { EducacionSection } from '@/components/educacion-section'
 import { Footer } from '@/components/footer'
 import { ScrollReveal } from '@/components/scroll-reveal'
-import { SectionIndicator } from '@/components/section-indicator'
 import { QueryProvider } from '@/lib/providers/query-provider'
 import { restoreScrollPosition } from '@/lib/utils/scroll-restore'
 
@@ -103,7 +102,6 @@ function HomePageContent() {
     >
       <main>
         <Navbar />
-        <SectionIndicator />
         <div id="inicio">
           <HeroSection />
         </div>
