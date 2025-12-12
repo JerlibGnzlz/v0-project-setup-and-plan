@@ -31,7 +31,9 @@ import {
   Plus,
   Search,
   Filter,
+  Eye,
 } from 'lucide-react'
+import Link from 'next/link'
 import { CredencialPastoralDialog } from '@/components/admin/credenciales-pastorales/credencial-pastoral-dialog'
 import { CredencialPastoralTable } from '@/components/admin/credenciales-pastorales/credencial-pastoral-table'
 import { toast } from 'sonner'
@@ -101,6 +103,12 @@ export default function CredencialesPastoralesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Link href="/admin/visor-credenciales">
+            <Button variant="outline">
+              <Eye className="w-4 h-4 mr-2" />
+              Visor de Credenciales
+            </Button>
+          </Link>
           <Button
             variant="outline"
             onClick={handleActualizarEstados}
