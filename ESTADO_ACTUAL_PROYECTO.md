@@ -1,554 +1,573 @@
-# 📊 ESTADO ACTUAL DEL PROYECTO AMVA DIGITAL
+# 📊 Estado Actual del Proyecto AMVA Digital
 
-**Última actualización:** 30 de noviembre de 2024
-
----
-
-## 🎯 RESUMEN EJECUTIVO
-
-Proyecto full-stack completo para el **Ministerio AMVA (Asociación Misionera Vida Abundante)** con:
-
-- ✅ **Landing Page** moderna y responsive (Next.js)
-- ✅ **Dashboard Administrativo** completo (Next.js)
-- ✅ **Backend API** robusto (NestJS + Prisma + PostgreSQL)
-- ✅ **App Móvil** para pastores (React Native/Expo)
-- ✅ **Sistema de Emails** completo y funcionando (Gmail SMTP)
-- ✅ **Notificaciones en Tiempo Real** (WebSockets)
+**Última actualización**: Diciembre 2025  
+**Versión**: v0.1.1
 
 ---
 
-## 🏗️ ARQUITECTURA
+## 🎯 Resumen Ejecutivo
+
+AMVA Digital es una plataforma completa para la gestión de convenciones, inscripciones, pagos y contenido del Ministerio Asociación Misionera Vida Abundante. El proyecto incluye:
+
+- **Frontend Web**: Next.js 16 con React 19
+- **Backend API**: NestJS 10 con Prisma ORM
+- **App Móvil**: React Native (Expo) - En desarrollo
+- **Base de Datos**: PostgreSQL (Neon)
+- **Deployment**: Vercel (Frontend) + Render (Backend)
+
+---
+
+## 🛠️ Stack Tecnológico
+
+### Frontend
+- **Framework**: Next.js 16 (App Router)
+- **React**: 19.2.1
+- **TypeScript**: 5.9.3
+- **UI Library**: shadcn/ui (Radix UI)
+- **Estilos**: Tailwind CSS 4.1.9
+- **Estado**: Zustand (auth), React Query (data fetching)
+- **Formularios**: React Hook Form + Zod
+- **Notificaciones**: Sonner (toast)
+- **Iconos**: Lucide React
+- **Temas**: Dark/Light mode con next-themes
+
+### Backend
+- **Framework**: NestJS 10.3.0
+- **ORM**: Prisma 5.8.0
+- **Base de Datos**: PostgreSQL (Neon)
+- **Autenticación**: JWT (Passport.js)
+- **Validación**: class-validator + class-transformer
+- **Colas**: Bull + Redis (notificaciones)
+- **WebSockets**: Socket.io (notificaciones en tiempo real)
+- **Upload**: Cloudinary + Multer
+- **Email**: SendGrid + Resend + Nodemailer (SMTP fallback)
+- **Pagos**: Mercado Pago SDK
+
+### Mobile
+- **Framework**: React Native (Expo)
+- **Estado**: En desarrollo
+
+---
+
+## 📁 Estructura del Proyecto
 
 ```
-v0-project-setup-and-plan/
-├── app/                    # Frontend Next.js (Landing + Admin)
-├── backend/                # Backend NestJS + Prisma
-├── amva-mobile/            # App React Native (Expo)
-├── components/             # Componentes React reutilizables
-├── lib/                    # Utilidades, hooks, API clients
-├── docs/                   # Documentación completa
-└── public/                 # Assets estáticos
+/
+├── app/                    # Next.js App Router
+│   ├── admin/             # Panel administrativo
+│   │   ├── inscripciones/ # Gestión de inscripciones
+│   │   ├── pagos/         # Gestión de pagos
+│   │   ├── pastores/      # Gestión de pastores
+│   │   ├── noticias/      # Gestión de noticias
+│   │   ├── galeria/       # Gestión de galería
+│   │   └── login/         # Autenticación admin
+│   ├── convencion/         # Páginas públicas de convenciones
+│   │   ├── inscripcion/   # Formulario de inscripción
+│   │   ├── pago-exitoso/  # Confirmación de pago exitoso
+│   │   ├── pago-pendiente/# Estado de pago pendiente
+│   │   └── pago-fallido/  # Estado de pago fallido
+│   ├── noticias/          # Páginas públicas de noticias
+│   └── equipo/            # Página de equipo
+│
+├── components/            # Componentes React reutilizables
+│   ├── admin/            # Componentes del panel admin
+│   ├── convencion/       # Componentes de convenciones
+│   ├── ui/               # Componentes UI base (shadcn/ui)
+│   └── [feature]/        # Componentes por feature
+│
+├── lib/                  # Utilidades y configuraciones
+│   ├── api/              # Clientes API (axios)
+│   ├── hooks/            # Custom React hooks
+│   └── utils/            # Funciones utilitarias
+│
+├── backend/              # Backend NestJS
+│   ├── src/
+│   │   ├── modules/      # Módulos NestJS
+│   │   ├── common/       # Servicios y utilidades compartidas
+│   │   └── prisma/       # Configuración Prisma
+│   └── prisma/           # Schema y migraciones
+│
+└── amva-mobile/          # App móvil React Native
 ```
 
 ---
 
-## ✅ LANDING PAGE (Frontend Web)
+## 🎯 Funcionalidades Principales
 
-**URL:** `http://localhost:3000`
+### 1. Autenticación y Autorización
 
-### Secciones Implementadas:
+#### Tres Tipos de Usuarios:
+- **Admin**: Panel administrativo (`/admin/*`)
+  - Autenticación JWT
+  - Refresh tokens
+  - Logout con blacklist de tokens
+  
+- **Pastor**: App móvil (endpoints `/auth/pastor/*`)
+  - Autenticación JWT específica
+  - Refresh tokens independientes
+  
+- **Invitado**: Web pública (endpoints `/auth/invitado/*`)
+  - Autenticación JWT
+  - **Google OAuth** integrado
+  - Refresh tokens
+  - Logout con limpieza de estado
 
-1. ✅ **Hero Section** - Sección principal con imagen del mundo
-2. ✅ **Marquee Ticker** - Ticker de noticias deslizante
-3. ✅ **Sedes Section** - Información de sedes del ministerio
-4. ✅ **About Section** - Sobre el ministerio
-5. ✅ **Leadership Section** - Equipo pastoral con filtros por cargo
-6. ✅ **News Section** - Noticias con categorías y compartir
-7. ✅ **Conventions Section** - Convenciones activas con inscripción
-8. ✅ **Gallery Section** - Galería de imágenes
-9. ✅ **Educación Section** - Información educativa
-10. ✅ **Footer** - Pie de página completo
+#### Características:
+- ✅ Autenticación con Google OAuth
+- ✅ JWT con refresh tokens
+- ✅ Token blacklist para logout seguro
+- ✅ Guards específicos por tipo de usuario
+- ✅ Manejo de sesiones y tokens en localStorage
 
-### Funcionalidades:
+### 2. Gestión de Convenciones
 
-- ✅ Navegación suave entre secciones
-- ✅ Scroll restoration (restaura posición al volver)
-- ✅ Tema claro/oscuro
-- ✅ Diseño responsive (mobile, tablet, desktop)
-- ✅ SEO optimizado (robots.txt, sitemap.xml)
-- ✅ Compartir noticias (Facebook, copiar enlace)
-- ✅ Contador de vistas de noticias
-- ✅ **Formulario de inscripción a convenciones** (4 pasos)
-- ✅ Deep linking a app móvil
+#### Funcionalidades:
+- ✅ CRUD completo de convenciones
+- ✅ Activar/desactivar convenciones
+- ✅ Archivar convenciones antiguas
+- ✅ Gestión de cupos máximos
+- ✅ Fechas de inicio y fin
+- ✅ Costos configurables
+- ✅ Imágenes y galería asociada
 
-### Rutas Públicas:
+#### Endpoints:
+- `GET /convenciones` - Listar todas (público)
+- `GET /convenciones/:id` - Ver una convención (público)
+- `POST /convenciones` - Crear (admin)
+- `PATCH /convenciones/:id` - Actualizar (admin)
+- `DELETE /convenciones/:id` - Eliminar (admin)
 
-- `/` - Landing page principal
-- `/noticias` - Lista de noticias
-- `/noticias/[slug]` - Detalle de noticia
-- `/equipo` - Equipo pastoral completo
-- `/convencion/inscripcion` - Inscripción a convención
+### 3. Sistema de Inscripciones
 
----
+#### Funcionalidades:
+- ✅ Inscripción desde landing page (público)
+- ✅ Inscripción desde panel admin
+- ✅ Inscripción desde app móvil
+- ✅ Código de referencia único por inscripción
+- ✅ Gestión de múltiples cuotas (1, 2 o 3)
+- ✅ Estados: `pendiente`, `confirmado`, `cancelado`
+- ✅ Origen de registro: `web`, `dashboard`, `mobile`
+- ✅ Validación de email único por convención
+- ✅ Rehabilitación de inscripciones canceladas
 
-## ✅ DASHBOARD ADMINISTRATIVO
+#### Flujo de Inscripción:
+1. Usuario se autentica (Google OAuth o email/password)
+2. Completa formulario de inscripción
+3. Se genera código de referencia único
+4. Se crean pagos automáticamente (según número de cuotas)
+5. Se envía notificación a admins
+6. Usuario puede ver estado de su inscripción
 
-**URL:** `http://localhost:3000/admin`
-
-### Rutas Protegidas:
-
-- `/admin` - Dashboard principal con estadísticas
-- `/admin/login` - Login de administrador
-- `/admin/pastores` - Gestión de pastores (Estructura Organizacional)
-- `/admin/noticias` - Gestión de noticias
-- `/admin/galeria` - Gestión de multimedia
-- `/admin/pagos` - Gestión de pagos con validación
-- `/admin/inscripciones` - Gestión de inscripciones
-
-### Funcionalidades Principales:
-
-- ✅ **Autenticación JWT** con validación en backend
-- ✅ **Sidebar** con navegación intuitiva
-- ✅ **Notificaciones en tiempo real** (WebSockets)
-- ✅ **Campana de notificaciones** con contador de no leídas
-- ✅ **Gestión CRUD completa** de:
-  - Pastores (con clasificación: DIRECTIVA, SUPERVISOR, etc.)
-  - Noticias (con categorías: Anuncios, Eventos, etc.)
-  - Convenciones (con archivo y filtros por año)
-  - Inscripciones (con validación de pagos)
-  - Pagos (con comprobantes drag & drop)
-- ✅ **Exportar CSV** de inscripciones
-- ✅ **Imprimir lista** de registrados
-- ✅ **Subida de imágenes** a Cloudinary
-- ✅ **Validación de formularios** con Zod
-- ✅ **Filtros y búsqueda** en todas las secciones
-
-### Autenticación:
-
-- ✅ Login con email/password
-- ✅ Validación de JWT en cada carga
-- ✅ Refresh automático si token expirado
-- ✅ Logout funcional
-- ✅ Recuperación de contraseña (preparado)
-
----
-
-## ✅ BACKEND API (NestJS)
-
-**URL:** `http://localhost:4000/api`
-
-### Módulos Implementados:
-
-#### 1. **Auth Module** - Autenticación Admin
-
-- `POST /auth/login` - Login de administrador
-- `POST /auth/register` - Registrar nuevo admin
-- `GET /auth/me` - Obtener perfil (validar token)
-- `POST /auth/forgot-password` - Solicitar reset
-- `POST /auth/reset-password` - Resetear contraseña
-
-#### 2. **Pastor Auth Module** - Autenticación Pastores (Mobile)
-
-- `POST /auth/pastor/login` - Login de pastor
-- `POST /auth/pastor/register` - Registro de pastor
-- `POST /auth/pastor/register-complete` - Registro completo
-- `POST /auth/pastor/refresh` - Refrescar token
-- `GET /auth/pastor/me` - Perfil del pastor
-
-#### 3. **Pastores Module** - CRUD de Pastores
-
-- `GET /pastores` - Listar todos (con filtros)
-- `GET /pastores/:id` - Ver un pastor
-- `POST /pastores` - Crear pastor (protegido)
-- `PATCH /pastores/:id` - Actualizar (protegido)
-- `DELETE /pastores/:id` - Desactivar (protegido)
-
-#### 4. **Noticias Module** - CRUD de Noticias
-
-- `GET /noticias` - Listar todas (con filtros)
-- `GET /noticias/:id` - Ver una noticia
-- `POST /noticias` - Crear (protegido)
-- `PATCH /noticias/:id` - Actualizar (protegido)
-- `DELETE /noticias/:id` - Eliminar (protegido)
-- `PATCH /noticias/:id/vistas` - Incrementar vistas
-
-#### 5. **Convenciones Module** - CRUD de Convenciones
-
-- `GET /convenciones` - Listar todas (con filtros)
-- `GET /convenciones/:id` - Ver una convención
-- `POST /convenciones` - Crear (protegido)
-- `PATCH /convenciones/:id` - Actualizar (protegido)
-- `DELETE /convenciones/:id` - Eliminar/Archivar (protegido)
-
-#### 6. **Inscripciones Module** - Gestión de Inscripciones
-
-- `GET /inscripciones` - Listar todas (con filtros)
+#### Endpoints:
 - `POST /inscripciones` - Crear inscripción (público)
+- `GET /inscripciones` - Listar todas (admin)
 - `GET /inscripciones/:id` - Ver una inscripción
-- `PATCH /inscripciones/:id` - Actualizar estado
-- **📧 Envía email automático** al crear inscripción
+- `PATCH /inscripciones/:id` - Actualizar (admin)
+- `POST /inscripciones/:id/cancelar` - Cancelar (admin)
+- `POST /inscripciones/:id/rehabilitar` - Rehabilitar (admin)
+- `GET /inscripciones/check/:convencionId/:email` - Verificar si ya está inscrito
 
-#### 7. **Pagos Module** - Gestión de Pagos
+### 4. Sistema de Pagos
 
-- `GET /pagos` - Listar todos (con filtros)
-- `POST /pagos` - Crear pago
-- `PATCH /pagos/:id/validar` - Validar pago (protegido)
-- `GET /pagos/inscripcion/:inscripcionId` - Pagos de una inscripción
-- **📧 Envía email automático** al validar cada pago
-- **📧 Envía email automático** al completar todos los pagos
+#### Funcionalidades:
+- ✅ Gestión de pagos por cuotas
+- ✅ Estados: `PENDIENTE`, `COMPLETADO`, `CANCELADO`, `RECHAZADO`, `REEMBOLSADO`
+- ✅ Validación y rechazo de pagos (admin)
+- ✅ Rehabilitación de pagos cancelados (admin)
+- ✅ Subida de comprobantes (drag & drop)
+- ✅ Validación de montos
+- ✅ Confirmación automática cuando todas las cuotas están pagadas
+- ✅ Código de referencia para transferencias
+- ✅ Integración con Mercado Pago (opcional)
 
-#### 8. **Upload Module** - Subida de Archivos
+#### Métodos de Pago:
+- **Transferencia bancaria**: Con código de referencia
+- **Mercado Pago**: Integración completa con webhooks
+- **Efectivo**: Para inscripciones manuales
 
-- `POST /upload/image` - Subir imagen a Cloudinary
-- `POST /upload/document` - Subir documento
+#### Endpoints:
+- `GET /pagos` - Listar todos (admin)
+- `GET /pagos/:id` - Ver un pago
+- `POST /pagos/:id/validar` - Validar pago (admin)
+- `POST /pagos/:id/rechazar` - Rechazar pago (admin)
+- `POST /pagos/:id/rehabilitar` - Rehabilitar pago (admin)
+- `POST /pagos/validar-masivos` - Validar múltiples pagos (admin)
 
-#### 9. **Notifications Module** - Notificaciones y Emails
+### 5. Sistema de Notificaciones
 
-- `POST /notifications/register-device` - Registrar dispositivo (push)
-- `GET /notifications/history` - Historial de notificaciones
-- `GET /notifications/unread-count` - Contador de no leídas
-- `PATCH /notifications/mark-read/:id` - Marcar como leída
-- `PATCH /notifications/mark-all-read` - Marcar todas como leídas
-- `POST /notifications/test-email` - Probar envío de email
+#### Características:
+- ✅ **Notificaciones en tiempo real** (WebSocket)
+- ✅ **Notificaciones por email** (SendGrid/Resend/SMTP)
+- ✅ **Push notifications** (Expo - móvil)
+- ✅ **Notificaciones in-app** (campanita en header admin)
+- ✅ **Historial de notificaciones** (NotificationHistory)
+- ✅ **Contador de no leídas** en tiempo real
+- ✅ **Templates de email personalizados** con nombres reales
 
-#### 10. **WebSocket Gateway** - Notificaciones en Tiempo Real
+#### Tipos de Notificaciones:
+- `nueva_inscripcion`: Cuando se crea una inscripción nueva
+- `pago_validado`: Cuando un admin valida un pago
+- `pago_rechazado`: Cuando un admin rechaza un pago
+- `pago_rehabilitado`: Cuando se rehabilita un pago rechazado
+- `inscripcion_confirmada`: Cuando todas las cuotas están pagadas
+- `pago_recordatorio`: Recordatorio de pagos pendientes
 
-- Namespace: `/notifications`
-- Eventos: `notification`, `unread-count`
-- Notificaciones automáticas a admins cuando:
-  - Se crea una nueva inscripción
-  - Se registra un nuevo pastor
-  - Se valida un pago
+#### Procesamiento:
+- **Cola de procesamiento**: Bull + Redis (opcional)
+- **Fallback directo**: Si Redis no está disponible
+- **WebSocket Gateway**: Notificaciones en tiempo real para admins
+- **Email Service**: SendGrid → Resend → SMTP (fallback automático)
 
-#### 11. **Galeria Module** - Gestión de Galería
+### 6. Gestión de Pastores
 
-- `GET /galeria` - Listar imágenes
-- `POST /galeria` - Subir imagen (protegido)
-- `DELETE /galeria/:id` - Eliminar imagen (protegido)
+#### Funcionalidades:
+- ✅ CRUD completo de pastores
+- ✅ Estructura organizacional
+- ✅ Autenticación específica para pastores
+- ✅ Gestión de cargos y sedes
+- ✅ Activar/desactivar pastores
+- ✅ Biografías y fotos
 
-### Base de Datos (Prisma + PostgreSQL):
+#### Endpoints:
+- `GET /pastores` - Listar todos (público)
+- `GET /pastores/:id` - Ver un pastor (público)
+- `POST /pastores` - Crear pastor (admin)
+- `PATCH /pastores/:id` - Actualizar (admin)
+- `DELETE /pastores/:id` - Desactivar (admin)
 
-- ✅ PostgreSQL (Neon)
-- ✅ Modelos: User, Pastor, PastorAuth, Noticia, Convencion, Inscripcion, Pago, GaleriaImagen, PasswordResetToken
-- ✅ Relaciones configuradas correctamente
-- ✅ Migraciones aplicadas
-- ✅ Índices optimizados
+### 7. Gestión de Noticias
 
----
+#### Funcionalidades:
+- ✅ CRUD completo de noticias
+- ✅ Publicación programada (`fechaPublicacion`)
+- ✅ Fechas de creación y modificación
+- ✅ Slug único para URLs amigables
+- ✅ Contenido en markdown
+- ✅ Imágenes destacadas
+- ✅ Estados: `borrador`, `publicado`, `archivado`
 
-## 📧 SISTEMA DE EMAILS (COMPLETO Y FUNCIONANDO)
+#### Endpoints:
+- `GET /noticias` - Listar todas (público)
+- `GET /noticias/:slug` - Ver una noticia (público)
+- `POST /noticias` - Crear (admin)
+- `PATCH /noticias/:id` - Actualizar (admin)
+- `DELETE /noticias/:id` - Eliminar (admin)
 
-### ✅ Configuración:
+### 8. Galería de Medios
 
-- **Servicio:** Gmail SMTP con Nodemailer
-- **Estado:** ✅ Funcionando correctamente
-- **Variables de entorno:**
-  ```env
-  SMTP_HOST=smtp.gmail.com
-  SMTP_PORT=587
-  SMTP_SECURE=false
-  SMTP_USER=tu-email@gmail.com
-  SMTP_PASSWORD=tu-app-password-de-16-caracteres
-  ```
+#### Funcionalidades:
+- ✅ Subida de imágenes (Cloudinary)
+- ✅ Subida de videos (Cloudinary)
+- ✅ Gestión de galería por convención
+- ✅ Eliminación de medios
+- ✅ Organización y categorización
 
-### ✅ Emails Implementados:
+#### Endpoints:
+- `GET /galeria` - Listar medios
+- `POST /galeria` - Subir medio (admin)
+- `DELETE /galeria/:id` - Eliminar medio (admin)
 
-#### 1. **Email de Inscripción Recibida**
+### 9. Panel Administrativo
 
-- **Cuándo:** Al crear una inscripción desde landing/app
-- **Destinatario:** El usuario que se inscribió
-- **Contenido:**
-  - Saludo personalizado
-  - Detalles de la convención (título, fechas, ubicación)
-  - Costo total y número de cuotas
-  - Monto por cuota
-  - Estado: "Pendiente de pago"
-  - Instrucciones sobre próximos pasos
+#### Dashboard:
+- ✅ Estadísticas generales
+- ✅ Gráficos de inscripciones y pagos
+- ✅ Acciones rápidas
+- ✅ Lista de convenciones activas
+- ✅ Notificaciones en tiempo real
 
-#### 2. **Email de Pago Validado** (por cada cuota)
+#### Módulos:
+- **Inscripciones**: Gestión completa con filtros, búsqueda, edición
+- **Pagos**: Validación masiva, filtros avanzados, estadísticas
+- **Pastores**: CRUD completo con búsqueda y filtros
+- **Noticias**: Editor de noticias con preview
+- **Galería**: Gestión de imágenes y videos
+- **Configuración**: Seguridad y ajustes
 
-- **Cuándo:** Al validar un pago individual desde el dashboard
-- **Destinatario:** El usuario que realizó el pago
-- **Contenido:**
-  - Confirmación de pago validado
-  - Monto pagado
-  - Número de cuota (ej: "Cuota 1 de 3")
-  - Progreso de pagos (ej: "Has pagado 1 de 3 cuotas")
-  - Cuotas pendientes
+#### Características:
+- ✅ Filtros avanzados en todas las secciones
+- ✅ Búsqueda en tiempo real
+- ✅ Paginación optimizada
+- ✅ Exportación a CSV
+- ✅ Validación masiva de pagos
+- ✅ Edición inline de inscripciones
+- ✅ Modales y dialogs para acciones
 
-#### 3. **Email de Inscripción Confirmada**
+### 10. Landing Page Pública
 
-- **Cuándo:** Al validar TODAS las cuotas de una inscripción
-- **Destinatario:** El usuario que completó todos los pagos
-- **Contenido:**
-  - Confirmación de inscripción completa
-  - Título de la convención
-  - Mensaje de bienvenida
-  - Información de que todos los pagos fueron validados
+#### Secciones:
+- ✅ Hero section con animaciones
+- ✅ Sección de convenciones próximas
+- ✅ Sección de noticias
+- ✅ Sección de educación
+- ✅ Sección de equipo/pastores
+- ✅ Sección de sedes
+- ✅ Formulario de inscripción
+- ✅ Footer completo
 
-### ✅ Características:
-
-- ✅ Templates HTML profesionales y responsive
-- ✅ Fallback inteligente (funciona para usuarios regulares, no requiere ser pastor)
-- ✅ Manejo de errores robusto (no interrumpe el proceso si falla)
-- ✅ Logging detallado de éxito/error
-- ✅ Formateo de montos en ARS (pesos argentinos)
-- ✅ Formateo de fechas en español
-- ✅ Iconos y colores personalizados por tipo
-
-### 📁 Archivos del Sistema de Emails:
-
-- `backend/src/modules/notifications/email.service.ts` - Servicio principal
-- `backend/src/modules/inscripciones/inscripciones.service.ts` - Integración
-- `backend/src/modules/notifications/notifications.module.ts` - Módulo
-- `backend/src/modules/notifications/email-test.controller.ts` - Testing
-
-### 📚 Documentación:
-
-- `docs/FLUJO_EMAILS_COMPLETO.md` - Flujo completo paso a paso
-- `docs/CODIGO_EMAILS_RESUMEN.md` - Resumen técnico del código
-- `backend/GUIA_CONFIGURAR_GMAIL.md` - Guía para configurar Gmail
-
----
-
-## ✅ APP MÓVIL (AMVA Go)
-
-**Ubicación:** `amva-mobile/`
-
-### Tecnologías:
-
-- ✅ React Native (Expo)
-- ✅ TypeScript
-- ✅ React Navigation
-- ✅ React Query
-- ✅ Expo Secure Store (tokens)
-- ✅ Expo Notifications (push)
-- ✅ Expo Image Picker (documentos)
-
-### Pantallas Implementadas:
-
-1. ✅ **LoginScreen** - Login de pastores
-2. ✅ **RegisterScreen** - Registro de pastores
-3. ✅ **HomeScreen** - Pantalla principal con cards
-4. ✅ **NewsScreen** - Lista de noticias
-5. ✅ **ConventionRegistrationScreen** - Inscripción a convención (4 pasos)
-6. ✅ **NotificationsHistoryScreen** - Historial de notificaciones
-7. ✅ **ProfileScreen** - Perfil del pastor
-
-### Funcionalidades:
-
-- ✅ Autenticación con JWT (access + refresh tokens)
-- ✅ Refresh tokens automático
-- ✅ Navegación por tabs
-- ✅ Inscripción a convenciones con:
-  - Verificación de convención activa
-  - Formulario completo con validaciones
-  - Subida de documentos
-  - Confirmación
-- ✅ Notificaciones push
-- ✅ Historial de notificaciones
-- ✅ Perfil de usuario
-- ✅ Logout funcional
-
-### Navegación:
-
-- Tab Navigator con 5 tabs:
-  - 🏠 Inicio
-  - 📰 Noticias
-  - 🎯 Convenciones
-  - 🔔 Notificaciones
-  - 👤 Perfil
+#### Características:
+- ✅ Diseño responsive (mobile-first)
+- ✅ Dark/Light mode
+- ✅ Animaciones suaves
+- ✅ Scroll progress indicator
+- ✅ Back to top button
+- ✅ SEO optimizado (robots.txt, sitemap.xml)
 
 ---
 
-## 🔧 CONFIGURACIÓN
+## 🔧 Módulos Backend Implementados
 
-### Variables de Entorno (Backend - `.env`):
+### 1. AuthModule
+- Autenticación JWT para admins
+- Autenticación JWT para pastores
+- Autenticación JWT para invitados
+- Google OAuth Strategy
+- Token blacklist service
+- Refresh tokens
 
-```env
-# Base de datos
-DATABASE_URL=postgresql://...
+### 2. ConvencionesModule
+- CRUD completo
+- Repository pattern
+- Validación de fechas y cupos
 
-# JWT
-JWT_SECRET=tu-secret-key
-JWT_EXPIRATION=15m
-JWT_REFRESH_SECRET=tu-refresh-secret
-JWT_REFRESH_EXPIRATION=30d
+### 3. InscripcionesModule
+- CRUD completo
+- Gestión de pagos asociados
+- Generación de códigos de referencia
+- Validación de emails únicos
+- Cancelación y rehabilitación
+- Recordatorios de pago automáticos
 
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=...
-CLOUDINARY_API_KEY=...
-CLOUDINARY_API_SECRET=...
+### 4. PagosModule (dentro de InscripcionesModule)
+- Validación y rechazo
+- Rehabilitación
+- Validación masiva
+- Gestión de comprobantes
 
-# Gmail SMTP
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=tu-email@gmail.com
-SMTP_PASSWORD=tu-app-password-de-16-caracteres
-```
+### 5. PastoresModule
+- CRUD completo
+- BaseService pattern
+- Búsqueda y filtros
 
-### Variables de Entorno (Frontend - `.env.local`):
+### 6. NoticiasModule
+- CRUD completo
+- Gestión de fechas de publicación
+- Slug generation
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:4000/api
-```
+### 7. GaleriaModule
+- Subida de imágenes y videos
+- Integración con Cloudinary
+- Gestión por convención
 
-### Variables de Entorno (Mobile - `.env`):
+### 8. NotificationsModule
+- Email service (SendGrid/Resend/SMTP)
+- WebSocket gateway
+- Push notifications (Expo)
+- Templates personalizados
+- Historial de notificaciones
+- Cola de procesamiento (Bull + Redis)
 
-```env
-EXPO_PUBLIC_API_URL=http://192.168.0.33:4000/api
-```
+### 9. MercadoPagoModule
+- Creación de preferencias de pago
+- Webhooks para actualización de estado
+- Consulta de estado de pagos
+- Integración completa
+
+### 10. UploadModule
+- Subida a Cloudinary
+- Validación de archivos
+- Soporte para imágenes y videos
 
 ---
 
-## 🚀 COMANDOS PARA INICIAR
+## 🎨 Mejoras de Accesibilidad (WCAG)
 
-### Backend:
+### Implementadas Recientemente:
+- ✅ **Principios WCAG aplicados** al código de referencia de pagos
+- ✅ **Roles ARIA** (`region`, `group`)
+- ✅ **aria-labelledby** y **aria-label** descriptivos
+- ✅ **Focus states** mejorados para navegación por teclado
+- ✅ **Contraste de colores** mejorado
+- ✅ **Instrucciones claras y estructuradas** (lista numerada)
+- ✅ **Screen reader friendly**
 
-```bash
-cd backend
-pnpm install
-pnpm prisma generate
-pnpm prisma db push
-pnpm start:dev
-```
+---
 
-**Servidor:** `http://localhost:4000`
+## 📧 Sistema de Email
+
+### Proveedores Configurados:
+1. **SendGrid** (Principal - Producción)
+2. **Resend** (Fallback)
+3. **Gmail SMTP** (Fallback final)
+
+### Características:
+- ✅ Fallback automático entre proveedores
+- ✅ Templates personalizados con nombres reales
+- ✅ Manejo robusto de errores
+- ✅ Logging detallado
+- ✅ Retry automático en SMTP
+
+### Templates Disponibles:
+- `getPagoValidadoTemplate`
+- `getPagoRechazadoTemplate`
+- `getPagoRehabilitadoTemplate`
+- `getPagoRecordatorioTemplate`
+- `getInscripcionCreadaTemplate`
+- `getInscripcionConfirmadaTemplate`
+- `getInscripcionCanceladaTemplate`
+- `getInscripcionActualizadaTemplate`
+
+---
+
+## 🔐 Seguridad
+
+### Implementado:
+- ✅ JWT con expiración corta (15-30 min)
+- ✅ Refresh tokens con expiración larga (7-30 días)
+- ✅ Token blacklist para logout seguro
+- ✅ Rate limiting (ThrottlerModule)
+- ✅ Validación en frontend (Zod) y backend (class-validator)
+- ✅ Sanitización de inputs
+- ✅ CORS configurado
+- ✅ Helmet para headers de seguridad
+- ✅ Bcrypt para hashing de passwords
+
+---
+
+## 🚀 Deployment
 
 ### Frontend:
+- **Plataforma**: Vercel
+- **URL**: `https://v0-ministerio-amva.vercel.app`
+- **Build**: Automático desde GitHub
+- **Environment**: Production
 
-```bash
-pnpm install
-pnpm dev
-```
+### Backend:
+- **Plataforma**: Render
+- **URL**: `https://ministerio-backend-wdbj.onrender.com`
+- **Environment**: Production
+- **Base de Datos**: Neon PostgreSQL
 
-**Servidor:** `http://localhost:3000`
-
-### Mobile App:
-
-```bash
-cd amva-mobile
-npm install
-npm start
-```
-
-**Expo Dev Tools:** Se abre automáticamente
+### Base de Datos:
+- **Proveedor**: Neon
+- **Tipo**: PostgreSQL
+- **Conexión**: Connection pooling habilitado
 
 ---
 
-## 📊 FLUJO COMPLETO DE INSCRIPCIÓN
+## 📊 Estadísticas del Proyecto
 
-### Escenario: Usuario se inscribe desde la landing
+### Archivos:
+- **Frontend**: ~150+ componentes
+- **Backend**: ~87 archivos TypeScript
+- **Módulos Backend**: 10 módulos principales
+- **Documentación**: 105+ archivos .md
 
-1. **Usuario completa el formulario** en `/convencion/inscripcion`
-   - Ingresa: nombre, apellido, email, teléfono, etc.
-
-2. **Se crea la inscripción** en la base de datos
-   - Estado: `pendiente`
-   - Se crean automáticamente 3 pagos (PENDIENTE)
-
-3. **📧 Email 1: Inscripción Recibida**
-   - Se envía inmediatamente al email del usuario
-   - Título: "✅ Inscripción Recibida - Convención Nacional Venezuela"
-   - Contenido: Detalles completos de la inscripción
-
-4. **🔔 Notificación al Admin**
-   - Los administradores reciben notificación en tiempo real
-   - Aparece en la campana del dashboard
-   - Pueden hacer clic para ir a `/admin/inscripciones`
-
-5. **Admin valida el Pago 1** desde `/admin/pagos`
-   - Cambia estado a "COMPLETADO"
-
-6. **📧 Email 2: Pago Validado (Cuota 1/3)**
-   - Se envía al email del usuario
-   - Título: "✅ Pago de Cuota 1 Validado"
-   - Contenido: Monto, progreso (1/3), cuotas pendientes
-
-7. **Admin valida el Pago 2**
-   - Cambia estado a "COMPLETADO"
-
-8. **📧 Email 3: Pago Validado (Cuota 2/3)**
-   - Se envía al email del usuario
-   - Título: "✅ Pago de Cuota 2 Validado"
-   - Contenido: Progreso (2/3), 1 cuota pendiente
-
-9. **Admin valida el Pago 3** (última cuota)
-   - Cambia estado a "COMPLETADO"
-   - El sistema detecta que todas las cuotas están pagadas
-
-10. **📧 Email 4: Pago Validado (Cuota 3/3)**
-    - Se envía al email del usuario
-    - Título: "✅ Pago de Cuota 3 Validado"
-
-11. **📧 Email 5: Inscripción Confirmada** (automático)
-    - Se envía automáticamente cuando se detecta que todas las cuotas están pagadas
-    - Título: "🎉 ¡Inscripción Confirmada!"
-    - Contenido: Confirmación completa, todos los pagos validados
-
-12. **Estado de inscripción actualizado**
-    - Cambia de `pendiente` a `confirmado`
+### Funcionalidades:
+- ✅ 10 módulos backend completos
+- ✅ 3 tipos de autenticación
+- ✅ 6 tipos de notificaciones
+- ✅ 8 templates de email
+- ✅ 3 métodos de pago
+- ✅ 5 estados de pago
+- ✅ 3 estados de inscripción
 
 ---
 
-## ✅ ESTADO ACTUAL - RESUMEN
+## 🔄 Flujos Principales
 
-### ✅ Funcionando Completamente:
+### Flujo de Inscripción:
+1. Usuario visita landing page
+2. Se autentica (Google OAuth o email/password)
+3. Completa formulario de inscripción
+4. Se genera código de referencia único
+5. Se crean pagos automáticamente (1-3 cuotas)
+6. Se envía notificación a admins
+7. Usuario puede ver estado y subir comprobantes
 
-- ✅ Landing page completa y responsive
-- ✅ Dashboard administrativo completo
-- ✅ Autenticación JWT (admin y pastores)
-- ✅ CRUD completo de pastores, noticias, convenciones
-- ✅ Sistema de inscripciones y pagos
-- ✅ **Sistema de emails completo y funcionando** (Gmail SMTP)
-- ✅ Notificaciones push y email
-- ✅ WebSockets para notificaciones en tiempo real
-- ✅ App móvil completa
-- ✅ Subida de archivos a Cloudinary
-- ✅ Validación de formularios
-- ✅ Exportación de datos (CSV)
-- ✅ Filtros y búsqueda en todas las secciones
+### Flujo de Validación de Pago:
+1. Usuario sube comprobante de pago
+2. Admin revisa el pago en panel
+3. Admin valida o rechaza el pago
+4. Se envía notificación al usuario (email + in-app)
+5. Se envía notificación a todos los admins
+6. Si todas las cuotas están pagadas → inscripción confirmada
 
-### 📚 Documentación Disponible:
-
-- ✅ `docs/FLUJO_EMAILS_COMPLETO.md` - Flujo de emails
-- ✅ `docs/CODIGO_EMAILS_RESUMEN.md` - Código de emails
-- ✅ `docs/PASTOR_AUTH_API.md` - API de autenticación
-- ✅ `docs/MOBILE_APP_SETUP.md` - Setup de app móvil
-- ✅ `docs/FRONTEND_BACKEND_CONNECTION.md` - Conexión frontend-backend
-- ✅ `backend/GUIA_CONFIGURAR_GMAIL.md` - Configurar Gmail
-- ✅ Y más...
-
-### 🧪 Testing Disponible:
-
-- ✅ `backend/test-email-simple.js` - Probar emails
-- ✅ `backend/test-flujo-completo.sh` - Probar flujo completo
-- ✅ `POST /api/notifications/test-email` - Endpoint de prueba
+### Flujo de Notificaciones:
+1. Evento se emite (EventEmitter2)
+2. Listener procesa el evento
+3. Se intenta agregar a cola (Bull + Redis)
+4. Si Redis no disponible → procesamiento directo
+5. Se envía email (SendGrid → Resend → SMTP)
+6. Se envía push notification (si aplica)
+7. Se actualiza WebSocket para admins
+8. Se guarda en historial (NotificationHistory)
 
 ---
 
-## 🎯 PRÓXIMOS PASOS (Opcionales)
+## 🎯 Características Recientes
 
-### Mejoras Futuras:
-
-- [ ] Agregar recordatorios de pago pendiente (emails programados)
-- [ ] Agregar notificaciones de convención próxima
-- [ ] Personalizar templates por tipo de usuario
-- [ ] Agregar imágenes en los emails
-- [ ] Implementar emails programados (cron jobs)
-- [ ] Agregar analytics de emails (abiertos, clics)
-- [ ] Implementar recuperación de contraseña para pastores
-- [ ] Agregar rate limiting en endpoints de autenticación
-- [ ] Implementar logging de auditoría
-
----
-
-## 📝 NOTAS IMPORTANTES
-
-1. **Emails:** El sistema de emails está completamente funcional con Gmail SMTP
-2. **Notificaciones:** Funcionan vía WebSockets en el dashboard y push en mobile
-3. **Base de datos:** PostgreSQL en Neon, todas las migraciones aplicadas
-4. **Autenticación:** Sistema dual (admins y pastores) completamente separado
-5. **Seguridad:** JWT con refresh tokens, validación en backend, passwords hasheados
+### Implementadas en Diciembre 2025:
+- ✅ **Google OAuth** para invitados
+- ✅ **Rehabilitación de inscripciones** canceladas
+- ✅ **Rehabilitación de pagos** cancelados
+- ✅ **Deshabilitar botón Editar** cuando pagos completados
+- ✅ **Avatar y logout** en página de inscripción
+- ✅ **Mejora UX** para usuarios ya registrados
+- ✅ **Validación mejorada** para nombres cortos y apellidos vacíos
+- ✅ **Fechas de noticias** corregidas y consistentes
+- ✅ **Principios WCAG** aplicados al código de referencia
+- ✅ **Manejo de errores mejorado** en rehabilitación
 
 ---
 
-## 🎉 CONCLUSIÓN
+## 📝 Próximos Pasos Sugeridos
 
-**El proyecto está COMPLETO y FUNCIONANDO al 100%**
+### Corto Plazo:
+- [ ] Completar app móvil React Native
+- [ ] Implementar más tests
+- [ ] Mejorar documentación de API
+- [ ] Optimizar imágenes y assets
 
-Todos los módulos principales están implementados:
+### Mediano Plazo:
+- [ ] Dashboard de analytics avanzado
+- [ ] Exportación de reportes (PDF)
+- [ ] Integración con WhatsApp Business API
+- [ ] Sistema de cupones y descuentos
 
-- ✅ Frontend (Landing + Admin)
-- ✅ Backend (API completa)
-- ✅ Mobile App
-- ✅ Sistema de Emails
-- ✅ Notificaciones en Tiempo Real
-- ✅ Gestión de Archivos
-
-**El sistema está listo para producción** (solo falta configurar variables de entorno de producción).
+### Largo Plazo:
+- [ ] Multi-idioma (i18n)
+- [ ] Sistema de permisos granulares
+- [ ] API pública para integraciones
+- [ ] App móvil nativa (iOS/Android)
 
 ---
 
-**Última actualización:** 30 de noviembre de 2024
+## 📚 Documentación
+
+El proyecto incluye documentación extensa en `/docs`:
+- Guías de configuración
+- Troubleshooting
+- Mejores prácticas
+- Checklists de deployment
+- Guías de integración
+
+---
+
+## ✅ Estado General
+
+**El proyecto está en producción y funcionando correctamente.**
+
+- ✅ Frontend desplegado en Vercel
+- ✅ Backend desplegado en Render
+- ✅ Base de datos en Neon
+- ✅ Sistema de notificaciones operativo
+- ✅ Emails funcionando (SendGrid)
+- ✅ WebSockets funcionando
+- ✅ Autenticación completa
+- ✅ Gestión de pagos e inscripciones operativa
+
+---
+
+**Última actualización**: Diciembre 2025  
+**Versión del proyecto**: v0.1.1
