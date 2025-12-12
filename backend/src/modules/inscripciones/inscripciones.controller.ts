@@ -36,8 +36,15 @@ export class InscripcionesController {
 
   @Get()
   findAll(@Query() query: PaginationDto & InscripcionFilterDto) {
-    const page = query.page || 1
-    const limit = query.limit || 20
+    // Convertir explícitamente a números para evitar errores de Prisma
+    // Los query params siempre vienen como strings, necesitamos convertirlos
+    const page = query.page ? Number(query.page) : 1
+    const limit = query.limit ? Number(query.limit) : 20
+    
+    // Validar que sean números válidos
+    const pageNum = Number.isNaN(page) || page < 1 ? 1 : page
+    const limitNum = Number.isNaN(limit) || limit < 1 ? 20 : limit > 100 ? 100 : limit
+    
     const filters: InscripcionFilterDto = {
       search: query.search,
       q: query.q,
@@ -45,7 +52,7 @@ export class InscripcionesController {
       origen: query.origen,
       convencionId: query.convencionId,
     }
-    return this.inscripcionesService.findAllInscripciones(page, limit, filters)
+    return this.inscripcionesService.findAllInscripciones(pageNum, limitNum, filters)
   }
 
   @Get(':id')
