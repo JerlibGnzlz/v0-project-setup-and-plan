@@ -236,27 +236,56 @@ export function InscripcionExistenteCard({
 
                 {/* Código de referencia destacado */}
                 {inscripcion.codigoReferencia && (
-                    <div className="mb-6 p-4 bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-amber-500/20 border-2 border-amber-500/40 rounded-xl">
+                    <div 
+                        className="mb-6 p-4 bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-amber-500/20 border-2 border-amber-500/40 rounded-xl"
+                        role="region"
+                        aria-labelledby="codigo-referencia-heading"
+                    >
                         <div className="text-center">
-                            <p className="text-xs text-amber-300/80 mb-1 uppercase tracking-wider font-medium">
+                            <h3 
+                                id="codigo-referencia-heading"
+                                className="text-xs text-amber-300/90 mb-1 uppercase tracking-wider font-semibold"
+                            >
                                 🔖 Código de Referencia para Pagos
-                            </p>
-                            <div className="flex items-center justify-center gap-3">
-                                <span className="text-2xl sm:text-3xl font-mono font-bold text-amber-400 tracking-widest">
+                            </h3>
+                            <div className="flex items-center justify-center gap-3" role="group" aria-label="Código de referencia y botón de copiar">
+                                <span 
+                                    className="text-2xl sm:text-3xl font-mono font-bold text-amber-400 tracking-widest"
+                                    aria-label={`Código de referencia: ${inscripcion.codigoReferencia}`}
+                                >
                                     {inscripcion.codigoReferencia}
                                 </span>
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={copiarCodigo}
-                                    className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/20"
+                                    className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/20 focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-transparent transition-all"
+                                    aria-label={`Copiar código de referencia ${inscripcion.codigoReferencia} al portapapeles`}
+                                    title="Copiar código de referencia"
                                 >
-                                    <Copy className="w-4 h-4" />
+                                    <Copy className="w-4 h-4" aria-hidden="true" />
                                 </Button>
                             </div>
-                            <p className="text-xs text-amber-300/60 mt-2">
-                                Incluye este código en el concepto de tu transferencia
-                            </p>
+                            {/* Instrucciones mejoradas según principios WCAG */}
+                            <div className="mt-3 space-y-1.5" role="group" aria-label="Instrucciones para el pago">
+                                <p className="text-sm text-amber-200/90 font-medium leading-relaxed">
+                                    📝 Instrucciones para realizar el pago:
+                                </p>
+                                <ol className="text-xs text-amber-300/80 space-y-1 text-left max-w-md mx-auto list-decimal list-inside" aria-label="Pasos para incluir el código en la transferencia">
+                                    <li className="leading-relaxed">
+                                        <strong className="text-amber-200/90">Copia el código de referencia</strong> usando el botón de copiar
+                                    </li>
+                                    <li className="leading-relaxed">
+                                        <strong className="text-amber-200/90">Incluye este código</strong> en el concepto o descripción de tu transferencia bancaria
+                                    </li>
+                                    <li className="leading-relaxed">
+                                        <strong className="text-amber-200/90">Realiza la transferencia</strong> por el monto correspondiente a tu cuota
+                                    </li>
+                                    <li className="leading-relaxed">
+                                        <strong className="text-amber-200/90">Sube el comprobante</strong> de pago para que nuestro equipo pueda validarlo
+                                    </li>
+                                </ol>
+                            </div>
                         </div>
                     </div>
                 )}
