@@ -72,7 +72,6 @@ export function InscripcionExistenteCard({
     const updatePagoMutation = useUpdatePago()
     const [pagosExpandidos, setPagosExpandidos] = useState<Record<string, boolean>>({})
     const [comprobantesTemporales, setComprobantesTemporales] = useState<Record<string, string>>({})
-    const [isSubiendoComprobante, setIsSubiendoComprobante] = useState<Record<string, boolean>>({})
 
     // Normalizar URL de imagen de Google para obtener tamaño más grande
     const normalizeGoogleImageUrl = (url: string | undefined): string | undefined => {
@@ -582,7 +581,6 @@ export function InscripcionExistenteCard({
                                                         disabled={
                                                             (!comprobantesTemporales[pagoId] && !pago?.comprobanteUrl) ||
                                                             updatePagoMutation.isPending ||
-                                                            isSubiendoComprobante[pagoId] ||
                                                             estaPagada ||
                                                             !!pago?.comprobanteUrl // Deshabilitar si ya fue enviado
                                                         }
