@@ -21,7 +21,7 @@ import {
 } from '@/lib/hooks/use-credenciales-pastorales'
 import { CredencialPastoral } from '@/lib/api/credenciales-pastorales'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { es } from 'date-fns/locale/es'
 import {
   CreditCard,
   AlertTriangle,

@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table'
 import { CredencialPastoral } from '@/lib/api/credenciales-pastorales'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { es } from 'date-fns/locale/es'
 import { Edit, Calendar, CreditCard, User } from 'lucide-react'
 
 interface CredencialPastoralTableProps {
