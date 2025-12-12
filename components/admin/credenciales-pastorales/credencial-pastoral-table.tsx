@@ -30,16 +30,9 @@ export function CredencialPastoralTable({
   credenciales,
   onEdit,
 }: CredencialPastoralTableProps) {
+  // El estado vacío se maneja en la página principal
   if (credenciales.length === 0) {
-    return (
-      <div className="text-center py-12 border rounded-lg">
-        <CreditCard className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-        <p className="text-lg font-semibold">No hay credenciales</p>
-        <p className="text-sm text-muted-foreground">
-          Crea una nueva credencial para comenzar
-        </p>
-      </div>
-    )
+    return null
   }
 
   return (

@@ -232,34 +232,56 @@ export default function CredencialesPastoralesPage() {
         </Card>
       ) : (
         <>
-          <CredencialPastoralTable
-            credenciales={credenciales}
-            onEdit={handleEdit}
-          />
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                Mostrando {((page - 1) * limit) + 1} - {Math.min(page * limit, total)} de {total}
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  Anterior
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                >
-                  Siguiente
-                </Button>
-              </div>
-            </div>
+          {credenciales.length === 0 ? (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center py-12">
+                  <CreditCard className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No hay credenciales pastorales</h3>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Crea una nueva credencial para comenzar a gestionar las credenciales de los
+                    pastores
+                  </p>
+                  <Button onClick={handleCreate}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nueva Credencial
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <CredencialPastoralTable
+                credenciales={credenciales}
+                onEdit={handleEdit}
+              />
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {((page - 1) * limit) + 1} - {Math.min(page * limit, total)} de{' '}
+                    {total}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    >
+                      Anterior
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                    >
+                      Siguiente
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
