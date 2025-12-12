@@ -289,6 +289,7 @@ export class NotificationListener {
       [NotificationEventType.INSCRIPCION_CONFIRMADA]: 'inscripcion_confirmada',
       [NotificationEventType.INSCRIPCION_CANCELADA]: 'otro', // No hay tipo específico para cancelada
       [NotificationEventType.INSCRIPCION_ACTUALIZADA]: 'otro', // No hay tipo específico para actualizada
+      [NotificationEventType.CREDENCIAL_POR_VENCER]: 'credencial_por_vencer',
     }
     return typeMap[eventType] || 'general'
   }

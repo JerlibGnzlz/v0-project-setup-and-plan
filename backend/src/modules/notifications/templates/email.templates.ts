@@ -706,13 +706,20 @@ export function getCredencialPorVencerTemplate(data: EmailTemplateData): EmailTe
     data.nombre ||
     'Estimado/a pastor'
   const numeroCredencial = data.numeroCredencial || 'N/A'
-  const fechaVencimiento = data.fechaVencimiento
-    ? new Date(data.fechaVencimiento).toLocaleDateString('es-AR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : 'N/A'
+  const fechaVencimiento =
+    data.fechaVencimiento &&
+    (typeof data.fechaVencimiento === 'string' ||
+      data.fechaVencimiento instanceof Date)
+      ? new Date(
+          typeof data.fechaVencimiento === 'string'
+            ? data.fechaVencimiento
+            : data.fechaVencimiento
+        ).toLocaleDateString('es-AR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
+      : 'N/A'
   const diasRestantes =
     typeof data.diasRestantes === 'number'
       ? data.diasRestantes
