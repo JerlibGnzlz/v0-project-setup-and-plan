@@ -151,10 +151,10 @@ export function InscripcionExistenteCard({
     const handleComprobanteUpload = async (pagoId: string, file: File): Promise<string> => {
         try {
             setIsSubiendoComprobante(prev => ({ ...prev, [pagoId]: true }))
-            
+
             // Subir el comprobante a Cloudinary
             const response = await uploadApi.uploadComprobantePago(file)
-            
+
             // Guardar temporalmente la URL del comprobante
             setComprobantesTemporales(prev => ({
                 ...prev,
@@ -181,7 +181,7 @@ export function InscripcionExistenteCard({
     // Enviar comprobante (actualizar el pago con el comprobante)
     const handleEnviarComprobante = async (pagoId: string) => {
         const comprobanteUrl = comprobantesTemporales[pagoId] || pagos.find(p => p.id === pagoId)?.comprobanteUrl
-        
+
         if (!comprobanteUrl) {
             toast.error('No hay comprobante para enviar', {
                 description: 'Por favor, sube un comprobante primero',
@@ -580,7 +580,7 @@ export function InscripcionExistenteCard({
                                                     className="bg-white/5"
                                                     disabled={estaPagada}
                                                 />
-                                                
+
                                                 {/* Botón de Enviar */}
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Button
