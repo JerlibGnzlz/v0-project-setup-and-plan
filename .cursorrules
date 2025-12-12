@@ -335,7 +335,20 @@ Este es un monorepo con:
      - `*.log` (Logs)
      - `.cache/`, `.tmp/` (Archivos temporales)
 
-10. **Mantener estado limpio al cerrar/abrir Cursor**:
+10. **Manejar cambios menores pero importantes**:
+   - ✅ SIEMPRE hacer commit y push de cambios menores pero importantes (correcciones de tipos, imports, formato crítico)
+   - ✅ Cambios menores importantes incluyen:
+     - Correcciones de tipos TypeScript
+     - Agregar imports faltantes
+     - Correcciones de sintaxis que afectan funcionalidad
+     - Ajustes de formato que mejoran legibilidad
+     - Correcciones de errores de linting críticos
+   - ✅ Usar mensajes de commit descriptivos: `fix: Corrección de tipos en [archivo]` o `chore: Ajuste de formato en [archivo]`
+   - ✅ NO descartar cambios menores si afectan funcionalidad o tipos
+   - ✅ Verificar con `git diff` antes de descartar cambios
+   - ✅ Si hay dudas, hacer commit en lugar de descartar
+
+11. **Mantener estado limpio al cerrar/abrir Cursor**:
    - ✅ SIEMPRE hacer `git add .`, `git commit` y `git push` antes de cerrar Cursor si hay cambios legítimos
    - ✅ Al abrir Cursor después de cerrarlo, NO deberían aparecer cambios pendientes si previamente se hicieron todos los commits y push
    - ✅ Si aparecen cambios pendientes al abrir Cursor después de hacer commit y push:
