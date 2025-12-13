@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { CredencialMinisterial } from '@/lib/api/credenciales-ministeriales'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale/es'
-import { RotateCcw, Printer } from 'lucide-react'
+import { RotateCcw, Printer, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface CredencialCardProps {
