@@ -49,42 +49,41 @@ export class CredencialesMinisterialesController {
 
   @Get()
   async findAll(
-    @Query() pagination: PaginationDto,
-    @Query() filters?: CredencialMinisterialFilterDto
+    @Query() query: PaginationDto & CredencialMinisterialFilterDto
   ) {
     try {
       // Convertir page y limit a números de forma segura
-      const page = pagination.page ? Number(pagination.page) : 1
-      const limit = pagination.limit ? Number(pagination.limit) : 20
+      const page = query.page ? Number(query.page) : 1
+      const limit = query.limit ? Number(query.limit) : 20
       
       // Validar que page y limit sean números válidos
       if (isNaN(page) || page < 1) {
-        this.logger.warn(`Page inválido: ${pagination.page}, usando default: 1`)
+        this.logger.warn(`Page inválido: ${query.page}, usando default: 1`)
         return await this.credencialesMinisterialesService.findAllWithFilters(1, limit, undefined)
       }
       
       if (isNaN(limit) || limit < 1) {
-        this.logger.warn(`Limit inválido: ${pagination.limit}, usando default: 20`)
+        this.logger.warn(`Limit inválido: ${query.limit}, usando default: 20`)
         return await this.credencialesMinisterialesService.findAllWithFilters(page, 20, undefined)
       }
       
       // Limpiar filtros: solo incluir si tienen valor
       const cleanFilters: CredencialMinisterialFilterDto = {}
       
-      if (filters?.documento && typeof filters.documento === 'string' && filters.documento.trim()) {
-        cleanFilters.documento = filters.documento.trim()
+      if (query.documento && typeof query.documento === 'string' && query.documento.trim()) {
+        cleanFilters.documento = query.documento.trim()
       }
       
-      if (filters?.estado && typeof filters.estado === 'string' && filters.estado.trim() && filters.estado !== 'todos') {
-        cleanFilters.estado = filters.estado.trim() as 'vigente' | 'por_vencer' | 'vencida'
+      if (query.estado && typeof query.estado === 'string' && query.estado.trim() && query.estado !== 'todos') {
+        cleanFilters.estado = query.estado.trim() as 'vigente' | 'por_vencer' | 'vencida'
       }
       
       // Manejar activa: puede venir como string 'true'/'false' o como boolean
-      if (filters?.activa !== undefined && filters.activa !== null) {
-        if (typeof filters.activa === 'string') {
-          cleanFilters.activa = filters.activa === 'true' || filters.activa === '1'
-        } else if (typeof filters.activa === 'boolean') {
-          cleanFilters.activa = filters.activa
+      if (query.activa !== undefined && query.activa !== null) {
+        if (typeof query.activa === 'string') {
+          cleanFilters.activa = query.activa === 'true' || query.activa === '1'
+        } else if (typeof query.activa === 'boolean') {
+          cleanFilters.activa = query.activa
         }
       }
       
