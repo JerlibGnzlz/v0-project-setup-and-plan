@@ -143,27 +143,35 @@ export function CredencialEditorDialog({
       } else {
         // Crear nueva credencial
         try {
+          console.log('[CredencialEditorDialog] Creando credencial con datos:', data)
           const nuevaCredencial = await createMutation.mutateAsync(data)
           console.log('[CredencialEditorDialog] Credencial creada exitosamente:', nuevaCredencial)
           
-          // Cerrar diálogo y resetear formulario primero
+          // Verificar que la credencial se creó correctamente
+          if (!nuevaCredencial || !nuevaCredencial.id) {
+            console.error('[CredencialEditorDialog] La credencial creada no tiene ID:', nuevaCredencial)
+            toast.error('Error: La credencial no se creó correctamente')
+            return
+          }
+          
+          // Cerrar diálogo y resetear formulario
           onOpenChange(false)
           reset()
           
           // Llamar al callback con la credencial creada para mostrar el diseño visual
-          // Usar setTimeout para asegurar que el estado del diálogo se actualice primero
-          if (onCredencialCreated && nuevaCredencial) {
-            console.log('[CredencialEditorDialog] Llamando onCredencialCreated con:', nuevaCredencial)
-            // Usar setTimeout para asegurar que el diálogo se cierre antes de cambiar el modo
+          // El callback se ejecutará después de que el diálogo se cierre
+          if (onCredencialCreated) {
+            console.log('[CredencialEditorDialog] Llamando onCredencialCreated con credencial:', nuevaCredencial.id)
+            // Usar setTimeout para asegurar que el diálogo se cierre completamente
             setTimeout(() => {
               onCredencialCreated(nuevaCredencial)
-            }, 100)
+            }, 200)
           } else {
-            console.warn('[CredencialEditorDialog] onCredencialCreated no está definido o nuevaCredencial es null')
+            console.warn('[CredencialEditorDialog] onCredencialCreated no está definido')
           }
         } catch (error) {
           console.error('[CredencialEditorDialog] Error al crear credencial:', error)
-          // El error ya se maneja en el hook
+          // El error ya se maneja en el hook con toast
         }
       }
     } catch (error) {

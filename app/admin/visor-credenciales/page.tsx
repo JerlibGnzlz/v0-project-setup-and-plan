@@ -84,11 +84,26 @@ export default function VisorCredencialesPage() {
 
   const handleCredencialCreated = (credencial: CredencialMinisterial) => {
     console.log('[VisorCredencialesPage] handleCredencialCreated llamado con:', credencial)
-    // Después de crear, mostrar el diseño visual
-    setSelectedCredencial(credencial)
-    setViewMode('view')
+    
+    // Verificar que la credencial tenga todos los datos necesarios
+    if (!credencial || !credencial.id) {
+      console.error('[VisorCredencialesPage] Credencial inválida:', credencial)
+      toast.error('Error: La credencial creada no tiene datos válidos')
+      return
+    }
+    
+    // Después de crear, mostrar el diseño visual automáticamente
+    // Primero cerrar el diálogo
     setIsDialogOpen(false)
-    console.log('[VisorCredencialesPage] Estado actualizado - viewMode:', 'view', 'selectedCredencial:', credencial.id)
+    
+    // Luego actualizar el estado para mostrar el flip card
+    // Usar un pequeño delay para asegurar que el diálogo se cierre primero
+    setTimeout(() => {
+      setSelectedCredencial(credencial)
+      setViewMode('view')
+      console.log('[VisorCredencialesPage] Estado actualizado - viewMode: view, selectedCredencial:', credencial.id)
+      toast.success('Credencial creada y guardada exitosamente')
+    }, 150)
   }
 
   const handleEditFrente = (credencial: CredencialMinisterial) => {
