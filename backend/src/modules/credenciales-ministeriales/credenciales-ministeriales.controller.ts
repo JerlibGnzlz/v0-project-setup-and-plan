@@ -58,15 +58,22 @@ export class CredencialesMinisterialesController {
       
       // Limpiar filtros: solo incluir si tienen valor
       const cleanFilters: CredencialMinisterialFilterDto = {}
-      if (filters.documento && filters.documento.trim()) {
+      
+      if (filters.documento && typeof filters.documento === 'string' && filters.documento.trim()) {
         cleanFilters.documento = filters.documento.trim()
       }
-      if (filters.estado && filters.estado.trim() && filters.estado !== 'todos') {
+      
+      if (filters.estado && typeof filters.estado === 'string' && filters.estado.trim() && filters.estado !== 'todos') {
         cleanFilters.estado = filters.estado.trim() as 'vigente' | 'por_vencer' | 'vencida'
       }
-      // Incluir filtro de activa si está presente
+      
+      // Manejar activa: puede venir como string 'true'/'false' o como boolean
       if (filters.activa !== undefined) {
-        cleanFilters.activa = filters.activa
+        if (typeof filters.activa === 'string') {
+          cleanFilters.activa = filters.activa === 'true'
+        } else if (typeof filters.activa === 'boolean') {
+          cleanFilters.activa = filters.activa
+        }
       }
       
       this.logger.log(

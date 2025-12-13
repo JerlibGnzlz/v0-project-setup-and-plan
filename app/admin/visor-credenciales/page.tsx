@@ -392,6 +392,7 @@ export default function VisorCredencialesPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleView(credencial)}
+                              title="Ver credencial"
                             >
                               Ver
                             </Button>
@@ -399,6 +400,7 @@ export default function VisorCredencialesPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEditFrente(credencial)}
+                              title="Editar frente de la credencial"
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
@@ -406,6 +408,7 @@ export default function VisorCredencialesPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEditDorso(credencial)}
+                              title="Editar dorso (fecha de vencimiento)"
                             >
                               Editar Dorso
                             </Button>
@@ -414,6 +417,7 @@ export default function VisorCredencialesPage() {
                               size="sm"
                               onClick={() => handleDelete(credencial.id)}
                               disabled={deleteMutation.isPending}
+                              title="Eliminar credencial"
                             >
                               <Trash2 className="w-4 h-4 text-red-600" />
                             </Button>
