@@ -330,6 +330,7 @@ export class NotificationsService {
 
   /**
    * Registra un token de dispositivo (alias con email)
+   * Busca primero si es admin, luego si es pastor
    */
   async registerToken(
     email: string,
@@ -337,16 +338,75 @@ export class NotificationsService {
     platform: string,
     deviceId?: string,
   ): Promise<void> {
+    // Primero intentar como admin
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    })
+
+    if (user) {
+      await this.registerAdminDeviceToken(user.id, token, platform as 'ios' | 'android', deviceId)
+      return
+    }
+
+    // Si no es admin, intentar como pastor
     const pastor = await this.prisma.pastor.findUnique({
       where: { email },
       include: { auth: true },
     })
 
-    if (!pastor || !pastor.auth) {
-      throw new Error(`Pastor no encontrado para email: ${email}`)
+    if (pastor && pastor.auth) {
+      await this.registerDeviceToken(pastor.id, token, platform as 'ios' | 'android', deviceId)
+      return
     }
 
-    await this.registerDeviceToken(pastor.id, token, platform as 'ios' | 'android', deviceId)
+    throw new Error(`Usuario no encontrado para email: ${email}`)
+  }
+
+  /**
+   * Registra un token de dispositivo para un admin
+   */
+  async registerAdminDeviceToken(
+    userId: string,
+    token: string,
+    platform: 'ios' | 'android',
+    deviceId?: string,
+  ): Promise<void> {
+    try {
+      // Verificar si el token ya existe
+      const existing = await this.prisma.adminDeviceToken.findUnique({
+        where: { token },
+      })
+
+      if (existing) {
+        // Actualizar si ya existe
+        await this.prisma.adminDeviceToken.update({
+          where: { token },
+          data: {
+            userId,
+            platform,
+            deviceId,
+            active: true,
+          },
+        })
+        this.logger.log(`Token de admin actualizado para usuario ${userId}`)
+      } else {
+        // Crear nuevo token
+        await this.prisma.adminDeviceToken.create({
+          data: {
+            userId,
+            token,
+            platform,
+            deviceId,
+            active: true,
+          },
+        })
+        this.logger.log(`Token de admin registrado para usuario ${userId}`)
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error registrando token de admin:`, errorMessage)
+      throw error
+    }
   }
 
   /**
