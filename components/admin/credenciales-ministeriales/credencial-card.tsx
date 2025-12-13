@@ -252,7 +252,12 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               <div style="text-align: left; font-size: 11px; font-weight: bold; margin-bottom: 8px; white-space: nowrap;">
                 FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
               </div>
-              <div style="border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; margin-bottom: 5px; text-align: left;">FIRMA PRESIDENTE DEL C.E.N.</div>
+              <div style="text-align: left;">
+                <div style="border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; margin-bottom: 10px;">FIRMA PRESIDENTE DEL C.E.N.</div>
+                <div style="width: 200px; height: 80px; margin-top: 10px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">
+                  <img src="/firma-presidente.png" alt="Firma Presidente" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: rgba(255,255,255,0.5); font-size: 10px;\'>Firma</span>';" />
+                </div>
+              </div>
             </div>
             <div class="dorso-fecha">
               VENCE: ${fechaVencimiento}
@@ -472,8 +477,26 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                   <div className="text-xs font-bold mb-3 whitespace-nowrap text-left">
                     FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
                   </div>
-                  <div className="border-b-2 border-white/40 pb-3 text-left">
-                    <div className="text-sm font-semibold">FIRMA PRESIDENTE DEL C.E.N.</div>
+                  <div className="text-left">
+                    <div className="border-b-2 border-white/40 pb-3 mb-3">
+                      <div className="text-sm font-semibold">FIRMA PRESIDENTE DEL C.E.N.</div>
+                    </div>
+                    <div className="w-[200px] h-20 mt-2 bg-white/5 border border-dashed border-white/20 flex items-center justify-center">
+                      <Image
+                        src="/firma-presidente.png"
+                        alt="Firma Presidente"
+                        width={200}
+                        height={80}
+                        className="object-contain max-w-full max-h-full"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          if (target.parentElement) {
+                            target.parentElement.innerHTML = '<span class="text-white/50 text-[10px]">Firma</span>'
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
