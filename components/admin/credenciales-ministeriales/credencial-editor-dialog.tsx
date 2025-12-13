@@ -217,7 +217,6 @@ export function CredencialEditorDialog({
                     id="apellido"
                     placeholder="Apellido"
                     {...register('apellido')}
-                    disabled={!!credencial && editMode === 'dorso'}
                   />
                   {errors.apellido && (
                     <p className="text-xs text-destructive">{errors.apellido.message}</p>
@@ -230,7 +229,6 @@ export function CredencialEditorDialog({
                     id="nombre"
                     placeholder="Nombre"
                     {...register('nombre')}
-                    disabled={!!credencial && editMode === 'dorso'}
                   />
                   {errors.nombre && (
                     <p className="text-xs text-destructive">{errors.nombre.message}</p>
@@ -258,7 +256,6 @@ export function CredencialEditorDialog({
                     id="nacionalidad"
                     placeholder="Ej: Argentina"
                     {...register('nacionalidad')}
-                    disabled={!!credencial && editMode === 'dorso'}
                   />
                   {errors.nacionalidad && (
                     <p className="text-xs text-destructive">{errors.nacionalidad.message}</p>
@@ -273,7 +270,6 @@ export function CredencialEditorDialog({
                     id="fechaNacimiento"
                     type="date"
                     {...register('fechaNacimiento')}
-                    disabled={!!credencial && editMode === 'dorso'}
                   />
                   {errors.fechaNacimiento && (
                     <p className="text-xs text-destructive">
@@ -287,7 +283,6 @@ export function CredencialEditorDialog({
                   <Select
                     value={tipoPastor}
                     onValueChange={value => setValue('tipoPastor', value)}
-                    disabled={!!credencial && editMode === 'dorso'}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona un tipo" />
