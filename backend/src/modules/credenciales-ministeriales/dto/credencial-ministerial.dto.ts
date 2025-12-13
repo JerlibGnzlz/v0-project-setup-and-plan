@@ -92,8 +92,8 @@ export class UpdateCredencialMinisterialDto {
 }
 
 export class CredencialMinisterialFilterDto {
-  @IsString()
   @IsOptional()
+  @IsString()
   documento?: string
 
   @IsOptional()
@@ -102,6 +102,7 @@ export class CredencialMinisterialFilterDto {
 
   @IsOptional()
   @IsBoolean()
+  @Type(() => Boolean)
   activa?: boolean
 }
 

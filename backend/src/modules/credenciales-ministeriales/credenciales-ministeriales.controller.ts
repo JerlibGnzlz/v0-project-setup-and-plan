@@ -53,24 +53,36 @@ export class CredencialesMinisterialesController {
     @Query() filters: CredencialMinisterialFilterDto
   ) {
     try {
-      const page = Number(pagination.page || 1)
-      const limit = Number(pagination.limit || 20)
+      // Convertir page y limit a números de forma segura
+      const page = pagination.page ? Number(pagination.page) : 1
+      const limit = pagination.limit ? Number(pagination.limit) : 20
+      
+      // Validar que page y limit sean números válidos
+      if (isNaN(page) || page < 1) {
+        this.logger.warn(`Page inválido: ${pagination.page}, usando default: 1`)
+        return await this.credencialesMinisterialesService.findAllWithFilters(1, limit, undefined)
+      }
+      
+      if (isNaN(limit) || limit < 1) {
+        this.logger.warn(`Limit inválido: ${pagination.limit}, usando default: 20`)
+        return await this.credencialesMinisterialesService.findAllWithFilters(page, 20, undefined)
+      }
       
       // Limpiar filtros: solo incluir si tienen valor
       const cleanFilters: CredencialMinisterialFilterDto = {}
       
-      if (filters.documento && typeof filters.documento === 'string' && filters.documento.trim()) {
+      if (filters?.documento && typeof filters.documento === 'string' && filters.documento.trim()) {
         cleanFilters.documento = filters.documento.trim()
       }
       
-      if (filters.estado && typeof filters.estado === 'string' && filters.estado.trim() && filters.estado !== 'todos') {
+      if (filters?.estado && typeof filters.estado === 'string' && filters.estado.trim() && filters.estado !== 'todos') {
         cleanFilters.estado = filters.estado.trim() as 'vigente' | 'por_vencer' | 'vencida'
       }
       
       // Manejar activa: puede venir como string 'true'/'false' o como boolean
-      if (filters.activa !== undefined) {
+      if (filters?.activa !== undefined && filters.activa !== null) {
         if (typeof filters.activa === 'string') {
-          cleanFilters.activa = filters.activa === 'true'
+          cleanFilters.activa = filters.activa === 'true' || filters.activa === '1'
         } else if (typeof filters.activa === 'boolean') {
           cleanFilters.activa = filters.activa
         }
@@ -88,6 +100,9 @@ export class CredencialesMinisterialesController {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       this.logger.error(`Error en findAll: ${errorMessage}`)
+      if (error instanceof Error) {
+        this.logger.error(`Stack trace: ${error.stack}`)
+      }
       throw error
     }
   }
