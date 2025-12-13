@@ -603,7 +603,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
 
               {/* FICHERO DE CULTO */}
               <div className="mb-1.5" style={{ marginBottom: '6px' }}>
-                <div className="font-bold text-left break-words" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.2' }}>
+                <div className="font-bold text-center break-words" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.2' }}>
                   FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
                 </div>
               </div>
@@ -613,12 +613,12 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                 {/* Firma - Izquierda */}
                 <div className="flex-shrink-0" style={{ width: '155px' }}>
                   <div className="flex flex-col items-center justify-center" style={{ padding: '4px' }}>
-                    <div className="w-full flex items-center justify-center overflow-hidden mb-0.5" style={{ height: '35px', marginBottom: '2px' }}>
+                    <div className="w-full flex items-center justify-center overflow-hidden mb-0.5" style={{ height: '45px', marginBottom: '2px' }}>
                       <Image
                         src="/firma-presidente.png"
                         alt="Firma Presidente"
                         width={150}
-                        height={35}
+                        height={45}
                         className="object-contain max-w-full max-h-full"
                         unoptimized
                         style={{ maxWidth: '100%', maxHeight: '100%' }}
