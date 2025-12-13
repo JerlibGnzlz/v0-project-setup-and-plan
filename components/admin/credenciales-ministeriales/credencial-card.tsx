@@ -235,34 +235,40 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         <!-- DORSO -->
         <div class="credencial credencial-dorso">
           <div class="dorso-content">
-            <div style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 20px;">
+            <!-- Header con Logo y QR -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
               <div style="flex-shrink: 0;">
-                <img src="/mundo.png" alt="AMVA Logo" style="width: 100px; height: 100px; object-fit: contain;" />
+                <img src="/mundo.png" alt="AMVA Logo" style="width: 80px; height: 80px; object-fit: contain;" />
               </div>
-              <div style="flex: 1;">
-                <div class="dorso-header" style="text-align: left; margin-bottom: 15px;">
-                  <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">EL CONSEJO EJECUTIVO NACIONAL</div>
+              <div style="flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                <div style="width: 100px; height: 100px; background: white; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;">
+                  <span style="color: rgba(255,255,255,0.3); font-size: 10px; text-align: center;">QR CODE</span>
                 </div>
-                <div class="dorso-certificacion" style="text-align: left;">
-                  CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
-                </div>
+                <div style="font-size: 10px; font-weight: bold; text-align: right;">VENCE: ${fechaVencimiento}</div>
               </div>
             </div>
-            <div style="margin: 20px 0;">
-              <div style="text-align: left; font-size: 11px; font-weight: bold; margin-bottom: 8px; white-space: nowrap;">
+            
+            <!-- Título y Certificación -->
+            <div style="text-align: center; margin-bottom: 15px;">
+              <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">EL CONSEJO EJECUTIVO NACIONAL</div>
+              <div style="font-size: 12px; line-height: 1.5;">
+                CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
+              </div>
+            </div>
+            
+            <!-- FICHERO DE CULTO y Firma -->
+            <div style="margin-top: 20px;">
+              <div style="text-align: left; font-size: 11px; font-weight: bold; margin-bottom: 15px; white-space: nowrap;">
                 FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
               </div>
-              <div style="text-align: left;">
-                <div style="width: 200px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.3); padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                  <div style="font-size: 11px; font-weight: bold; margin-bottom: 8px; text-align: center;">FIRMA PRESIDENTE DEL C.E.N.</div>
-                  <div style="width: 100%; height: 80px; display: flex; align-items: center; justify-content: center;">
+              <div style="text-align: center;">
+                <div style="width: 250px; margin: 0 auto; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.3); padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                  <div style="width: 100%; height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
                     <img src="/firma-presidente.png" alt="Firma Presidente" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: rgba(255,255,255,0.5); font-size: 10px;\'>Firma</span>';" />
                   </div>
+                  <div style="font-size: 11px; font-weight: bold; text-align: center;">FIRMA PRESIDENTE DEL C.E.N.</div>
                 </div>
               </div>
-            </div>
-            <div class="dorso-fecha">
-              VENCE: ${fechaVencimiento}
             </div>
           </div>
         </div>
@@ -453,62 +459,68 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               minHeight: '320px',
             }}
           >
-            <div className="h-full flex flex-col justify-between">
-              <div>
-                <div className="flex items-start gap-5 mb-6">
-                  <div className="flex-shrink-0">
-                    <Image
-                      src="/mundo.png"
-                      alt="AMVA Logo"
-                      width={100}
-                      height={100}
-                      className="object-contain"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-xl font-bold mb-3 tracking-wide uppercase text-left">
-                      EL CONSEJO EJECUTIVO NACIONAL
-                    </div>
-                    <div className="text-base leading-relaxed text-left">
-                      CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
-                      MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
-                    </div>
-                  </div>
+            <div className="h-full flex flex-col">
+              {/* Header con Logo y QR */}
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex-shrink-0">
+                  <Image
+                    src="/mundo.png"
+                    alt="AMVA Logo"
+                    width={80}
+                    height={80}
+                    className="object-contain"
+                  />
                 </div>
-                <div className="mt-8">
-                  <div className="text-xs font-bold mb-3 whitespace-nowrap text-left">
-                    FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
+                <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                  <div className="w-24 h-24 bg-white border-2 border-white/30 flex items-center justify-center">
+                    <span className="text-white/30 text-[10px] text-center">QR CODE</span>
                   </div>
-                  <div className="text-left">
-                    <div className="w-[200px] bg-white/5 border border-white/40 p-3 flex flex-col items-center justify-center">
-                      <div className="text-sm font-semibold mb-2 text-center">FIRMA PRESIDENTE DEL C.E.N.</div>
-                      <div className="w-full h-20 flex items-center justify-center overflow-hidden">
-                        <Image
-                          src="/firma-presidente.png"
-                          alt="Firma Presidente"
-                          width={200}
-                          height={80}
-                          className="object-contain max-w-full max-h-full"
-                          unoptimized
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.style.display = 'none'
-                            const parent = target.parentElement
-                            if (parent && !parent.querySelector('span')) {
-                              const placeholder = document.createElement('span')
-                              placeholder.className = 'text-white/50 text-[10px]'
-                              placeholder.textContent = 'Firma'
-                              parent.appendChild(placeholder)
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  <div className="text-xs font-bold text-right">VENCE: {fechaVencimiento}</div>
                 </div>
               </div>
-              <div className="text-right text-lg font-bold mt-8">
-                VENCE: {fechaVencimiento}
+
+              {/* Título y Certificación */}
+              <div className="text-center mb-6">
+                <div className="text-xl font-bold mb-3 tracking-wide uppercase">
+                  EL CONSEJO EJECUTIVO NACIONAL
+                </div>
+                <div className="text-sm leading-relaxed">
+                  CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
+                  MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
+                </div>
+              </div>
+
+              {/* FICHERO DE CULTO y Firma */}
+              <div className="mt-auto">
+                <div className="text-xs font-bold mb-4 whitespace-nowrap text-left">
+                  FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
+                </div>
+                <div className="flex justify-center">
+                  <div className="w-[250px] bg-white/5 border border-white/40 p-3 flex flex-col items-center justify-center">
+                    <div className="w-full h-16 flex items-center justify-center overflow-hidden mb-2">
+                      <Image
+                        src="/firma-presidente.png"
+                        alt="Firma Presidente"
+                        width={200}
+                        height={60}
+                        className="object-contain max-w-full max-h-full"
+                        unoptimized
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          const parent = target.parentElement
+                          if (parent && !parent.querySelector('span')) {
+                            const placeholder = document.createElement('span')
+                            placeholder.className = 'text-white/50 text-[10px]'
+                            placeholder.textContent = 'Firma'
+                            parent.appendChild(placeholder)
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="text-xs font-semibold text-center">FIRMA PRESIDENTE DEL C.E.N.</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
