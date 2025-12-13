@@ -57,6 +57,7 @@ export default function VisorCredencialesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editMode, setEditMode] = useState<'frente' | 'dorso'>('frente')
   const [viewMode, setViewMode] = useState<'list' | 'view'>('list')
+  const [wizardStep, setWizardStep] = useState<'create' | 'preview' | 'list'>('list')
 
   // Debug: Log cuando cambia el estado
   useEffect(() => {
@@ -80,6 +81,7 @@ export default function VisorCredencialesPage() {
     setSelectedCredencial(null)
     setEditMode('frente')
     setIsDialogOpen(true)
+    setWizardStep('create')
   }
 
   const handleCredencialCreated = (credencial: CredencialMinisterial) => {
@@ -96,14 +98,25 @@ export default function VisorCredencialesPage() {
     // Primero cerrar el diálogo
     setIsDialogOpen(false)
     
-    // Luego actualizar el estado para mostrar el flip card
-    // Usar un pequeño delay para asegurar que el diálogo se cierre primero
+    // Mostrar mensaje de éxito
+    toast.success('✅ Credencial creada exitosamente', {
+      description: 'La credencial se ha guardado y está disponible en la lista',
+      duration: 3000,
+    })
+    
+    // Luego actualizar el estado para mostrar el flip card (paso 2 del wizard)
     setTimeout(() => {
       setSelectedCredencial(credencial)
       setViewMode('view')
-      console.log('[VisorCredencialesPage] Estado actualizado - viewMode: view, selectedCredencial:', credencial.id)
-      toast.success('Credencial creada y guardada exitosamente')
+      setWizardStep('preview')
+      console.log('[VisorCredencialesPage] Estado actualizado - viewMode: view, wizardStep: preview')
     }, 150)
+  }
+
+  const handleViewList = () => {
+    setViewMode('list')
+    setWizardStep('list')
+    setSelectedCredencial(null)
   }
 
   const handleEditFrente = (credencial: CredencialMinisterial) => {
