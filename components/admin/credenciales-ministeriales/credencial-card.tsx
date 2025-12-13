@@ -59,15 +59,16 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           .credencial {
             width: 400px;
             height: 250px;
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 25%, #2563eb 50%, #1e40af 75%, #1e3a8a 100%);
+            background: linear-gradient(135deg, #0D374E 0%, #0a2d3d 25%, #082229 50%, #0D374E 75%, #0a2d3d 100%);
             border-radius: 12px;
-            padding: 20px;
+            padding: 15px;
             color: white;
             position: relative;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
           }
           .credencial-dorso {
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 25%, #2563eb 50%, #1e40af 75%, #1e3a8a 100%);
+            background: linear-gradient(135deg, #0D374E 0%, #0a2d3d 25%, #082229 50%, #0D374E 75%, #0a2d3d 100%);
           }
           .header {
             text-align: center;
@@ -342,107 +343,108 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         >
           {/* FRENTE */}
           <div
-            className="w-full rounded-lg p-6 text-white shadow-xl border-2 border-blue-300/30"
+            className="w-full rounded-lg p-4 text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
               minHeight: '320px',
-              background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 25%, #2563eb 50%, #1e40af 75%, #1e3a8a 100%)',
+              maxHeight: '320px',
+              background: 'linear-gradient(135deg, #0D374E 0%, #0a2d3d 25%, #082229 50%, #0D374E 75%, #0a2d3d 100%)',
             }}
           >
             {/* Header */}
-            <div className="text-center mb-4">
-              <h1 className="text-lg font-bold tracking-wide text-white">
+            <div className="text-center mb-3">
+              <h1 className="text-base font-bold tracking-wide text-[#0D374E]">
                 ASOCIACIÓN MISIONERA
               </h1>
-              <h1 className="text-lg font-bold tracking-wide text-white">
+              <h1 className="text-base font-bold tracking-wide text-[#0D374E]">
                 VIDA ABUNDANTE
               </h1>
             </div>
 
-            <div className="flex gap-4 relative">
+            <div className="flex gap-3 relative">
               {/* Foto */}
-              <div className="w-28 flex-shrink-0">
-                <div className="w-28 h-32 bg-white rounded border-2 border-gray-400 mb-2 flex items-center justify-center overflow-hidden shadow-md">
+              <div className="w-24 flex-shrink-0">
+                <div className="w-24 h-28 bg-white rounded border-2 border-gray-400 mb-1.5 flex items-center justify-center overflow-hidden shadow-md">
                   {credencial.fotoUrl ? (
                     <Image
                       src={credencial.fotoUrl}
                       alt="Foto"
-                      width={112}
-                      height={128}
+                      width={96}
+                      height={112}
                       className="object-cover w-full h-full"
                     />
                   ) : (
                     <span className="text-gray-400 text-[10px] text-center px-2">FOTO</span>
                   )}
                 </div>
-                <div className="text-[9px] text-center font-semibold text-white whitespace-nowrap">
+                <div className="text-[8px] text-center font-semibold text-[#0D374E] whitespace-nowrap">
                   {credencial.tipoPastor} / {credencial.tipoPastor === 'PASTORA' ? 'SHEPHERD' : 'PASTOR'}
                 </div>
               </div>
 
               {/* Información */}
-              <div className="flex-1 space-y-2.5">
+              <div className="flex-1 space-y-2 min-w-0">
                 <div>
-                  <div className="text-[9px] text-white/80 mb-1 font-medium">
+                  <div className="text-[8px] text-[#0D374E] mb-0.5 font-medium">
                     Apellido / Surname
                   </div>
-                  <div className="text-sm font-bold uppercase text-white">
+                  <div className="text-xs font-bold uppercase text-black truncate">
                     {credencial.apellido}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] text-white/80 mb-1 font-medium">
+                  <div className="text-[8px] text-[#0D374E] mb-0.5 font-medium">
                     Nombre / Name
                   </div>
-                  <div className="text-sm font-bold uppercase text-white">
+                  <div className="text-xs font-bold uppercase text-black truncate">
                     {credencial.nombre}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] text-white/80 mb-1 font-medium">
+                  <div className="text-[8px] text-[#0D374E] mb-0.5 font-medium">
                     Documento / Document
                   </div>
-                  <div className="text-sm font-bold text-white font-mono">
+                  <div className="text-xs font-bold text-black font-mono truncate">
                     {credencial.documento}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] text-white/80 mb-1 font-medium">
+                  <div className="text-[8px] text-[#0D374E] mb-0.5 font-medium">
                     Nacionalidad / Nationality
                   </div>
-                  <div className="text-sm font-bold text-white">
+                  <div className="text-xs font-bold text-black truncate">
                     {credencial.nacionalidad}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] text-white/80 mb-1 font-medium">
+                  <div className="text-[8px] text-[#0D374E] mb-0.5 font-medium">
                     Fecha de nacimiento / Birthdate
                   </div>
-                  <div className="text-sm font-bold text-white">
+                  <div className="text-xs font-bold text-black truncate">
                     {fechaNacimiento}
                   </div>
                 </div>
               </div>
 
               {/* Logo AMVA */}
-              <div className="absolute top-1 right-1 w-32 h-32 flex items-center justify-center">
+              <div className="absolute top-0 right-0 w-28 h-28 flex items-center justify-center">
                 <Image
                   src="/mundo.png"
                   alt="AMVA Logo"
-                  width={128}
-                  height={128}
+                  width={112}
+                  height={112}
                   className="object-contain"
                 />
               </div>
             </div>
 
             {/* Footer */}
-            <div className="mt-8 text-center">
-              <div className="text-lg font-bold mb-1.5 text-white">
+            <div className="mt-4 text-center">
+              <div className="text-sm font-bold mb-1 text-[#0D374E]">
                 CREDENCIAL MINISTERIAL INTERNACIONAL
               </div>
-              <div className="text-[10px] text-white/80">
+              <div className="text-[9px] text-[#0D374E]">
                 SEDE SOCIAL: PICO 1641 (1429) CAPITAL FEDERAL
               </div>
             </div>
@@ -450,13 +452,14 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
 
           {/* DORSO */}
           <div
-            className="absolute inset-0 w-full rounded-lg p-8 text-white shadow-xl border-2 border-blue-300/30"
+            className="absolute inset-0 w-full rounded-lg p-4 text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
               minHeight: '320px',
-              background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 25%, #2563eb 50%, #1e40af 75%, #1e3a8a 100%)',
+              maxHeight: '320px',
+              background: 'linear-gradient(135deg, #0D374E 0%, #0a2d3d 25%, #082229 50%, #0D374E 75%, #0a2d3d 100%)',
             }}
           >
             <div className="h-full flex flex-col">
