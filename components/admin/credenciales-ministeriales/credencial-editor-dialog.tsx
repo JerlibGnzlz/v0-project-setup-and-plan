@@ -309,7 +309,6 @@ export function CredencialEditorDialog({
                     const response = await uploadApi.uploadImage(file)
                     return response.url
                   }}
-                  disabled={!!credencial && editMode === 'dorso'}
                 />
               </div>
             </>
