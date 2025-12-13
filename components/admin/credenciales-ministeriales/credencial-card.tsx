@@ -230,7 +230,8 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         <!-- DORSO -->
         <div class="credencial credencial-dorso">
           <div class="dorso-content">
-            <div class="dorso-header">
+            <div class="dorso-header" style="text-align: center; margin-bottom: 20px;">
+              <img src="/mundo.png" alt="AMVA Logo" style="width: 100px; height: 100px; object-fit: contain; margin: 0 auto 15px;" />
               <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">EL CONSEJO EJECUTIVO NACIONAL</div>
             </div>
             <div class="dorso-certificacion">
