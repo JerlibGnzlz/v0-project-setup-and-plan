@@ -235,22 +235,24 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         <!-- DORSO -->
         <div class="credencial credencial-dorso">
           <div class="dorso-content">
-            <div class="dorso-header" style="text-align: center; margin-bottom: 20px;">
-              <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">EL CONSEJO EJECUTIVO NACIONAL</div>
-            </div>
-            <div class="dorso-certificacion">
-              CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
-            </div>
-            <div style="margin: 20px 0; display: flex; align-items: center; justify-content: space-between;">
-              <div style="flex: 1;">
-                <div style="text-align: left; font-size: 11px; font-weight: bold; margin-bottom: 8px; white-space: nowrap;">
-                  FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
-                </div>
-                <div style="border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; margin-bottom: 5px; text-align: left;">FIRMA PRESIDENTE DEL C.E.N.</div>
-              </div>
-              <div style="margin-left: 20px;">
+            <div style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 20px;">
+              <div style="flex-shrink: 0;">
                 <img src="/mundo.png" alt="AMVA Logo" style="width: 100px; height: 100px; object-fit: contain;" />
               </div>
+              <div style="flex: 1;">
+                <div class="dorso-header" style="text-align: left; margin-bottom: 15px;">
+                  <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">EL CONSEJO EJECUTIVO NACIONAL</div>
+                </div>
+                <div class="dorso-certificacion" style="text-align: left;">
+                  CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
+                </div>
+              </div>
+            </div>
+            <div style="margin: 20px 0;">
+              <div style="text-align: left; font-size: 11px; font-weight: bold; margin-bottom: 8px; white-space: nowrap;">
+                FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
+              </div>
+              <div style="border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; margin-bottom: 5px; text-align: left;">FIRMA PRESIDENTE DEL C.E.N.</div>
             </div>
             <div class="dorso-fecha">
               VENCE: ${fechaVencimiento}
@@ -446,24 +448,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           >
             <div className="h-full flex flex-col justify-between">
               <div>
-                <div className="text-center mb-8">
-                  <div className="text-xl font-bold mb-3 tracking-wide uppercase">
-                    EL CONSEJO EJECUTIVO NACIONAL
-                  </div>
-                </div>
-                <div className="text-base leading-relaxed mb-8 text-center px-4">
-                  CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
-                  MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
-                </div>
-                <div className="mt-12 flex items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="text-xs font-bold mb-3 whitespace-nowrap text-left">
-                      FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
-                    </div>
-                    <div className="border-b-2 border-white/40 pb-3 text-left">
-                      <div className="text-sm font-semibold">FIRMA PRESIDENTE DEL C.E.N.</div>
-                    </div>
-                  </div>
+                <div className="flex items-start gap-5 mb-6">
                   <div className="flex-shrink-0">
                     <Image
                       src="/mundo.png"
@@ -472,6 +457,23 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                       height={100}
                       className="object-contain"
                     />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xl font-bold mb-3 tracking-wide uppercase text-left">
+                      EL CONSEJO EJECUTIVO NACIONAL
+                    </div>
+                    <div className="text-base leading-relaxed text-left">
+                      CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
+                      MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-8">
+                  <div className="text-xs font-bold mb-3 whitespace-nowrap text-left">
+                    FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
+                  </div>
+                  <div className="border-b-2 border-white/40 pb-3 text-left">
+                    <div className="text-sm font-semibold">FIRMA PRESIDENTE DEL C.E.N.</div>
                   </div>
                 </div>
               </div>
