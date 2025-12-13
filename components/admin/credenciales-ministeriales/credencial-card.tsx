@@ -38,30 +38,55 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
       <head>
         <title>Credencial Ministerial - ${credencial.nombre} ${credencial.apellido}</title>
         <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
           @media print {
             @page {
               size: 85.6mm 53.98mm;
               margin: 0;
             }
-            body {
+            html, body {
+              width: 85.6mm;
+              height: 53.98mm;
               margin: 0;
               padding: 0;
+              overflow: hidden;
+            }
+            body {
+              display: block;
+              background: transparent;
             }
             .credencial {
               width: 85.6mm !important;
               height: 53.98mm !important;
+              min-width: 85.6mm !important;
+              min-height: 53.98mm !important;
+              max-width: 85.6mm !important;
+              max-height: 53.98mm !important;
               border-radius: 0 !important;
               box-shadow: none !important;
+              margin: 0 !important;
+              padding: 3mm !important;
+              page-break-after: always;
+              page-break-inside: avoid;
+            }
+            .credencial:last-child {
+              page-break-after: auto;
             }
           }
-          body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            background: #f5f5f5;
+          @media screen {
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+              display: flex;
+              gap: 20px;
+              justify-content: center;
+              background: #f5f5f5;
+            }
           }
           .credencial {
             width: 85.6mm;
@@ -73,6 +98,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             position: relative;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             overflow: hidden;
+            display: block;
           }
           .credencial-dorso {
             background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%);
@@ -260,7 +286,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
       </head>
       <body>
         <!-- FRENTE -->
-        <div class="credencial">
+        <div class="credencial" style="width: 85.6mm; height: 53.98mm; min-width: 85.6mm; min-height: 53.98mm; max-width: 85.6mm; max-height: 53.98mm;">
           <div class="header">
             <h1>ASOCIACIÓN MISIONERA</h1>
             <h1>VIDA ABUNDANTE</h1>
@@ -305,7 +331,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         </div>
 
         <!-- DORSO -->
-        <div class="credencial credencial-dorso">
+        <div class="credencial credencial-dorso" style="width: 85.6mm; height: 53.98mm; min-width: 85.6mm; min-height: 53.98mm; max-width: 85.6mm; max-height: 53.98mm;">
           <div class="dorso-content">
             <!-- Header con Logo y Texto al lado -->
             <div style="display: flex; align-items: flex-start; gap: 4mm; margin-bottom: 1.5mm;">
