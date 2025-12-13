@@ -578,23 +578,23 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
             }}
           >
-            <div className="h-full flex flex-col" style={{ height: '100%' }}>
+            <div className="h-full flex flex-col" style={{ height: '100%', justifyContent: 'space-between' }}>
               {/* Header con Logo y Texto al lado */}
-              <div className="flex items-start mb-2" style={{ gap: '12px', marginBottom: '8px' }}>
+              <div className="flex items-start mb-1.5" style={{ gap: '10px', marginBottom: '6px' }}>
                 <div className="flex-shrink-0">
                   <Image
                     src="/mundo.png"
                     alt="AMVA Logo"
-                    width={80}
-                    height={80}
+                    width={70}
+                    height={70}
                     className="object-contain"
                   />
                 </div>
                 <div className="flex-1" style={{ minWidth: 0 }}>
-                  <div className="font-bold mb-1 tracking-wide uppercase text-left" style={{ fontSize: '13px', lineHeight: '1.2', marginBottom: '4px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                  <div className="font-bold mb-1 tracking-wide uppercase text-left" style={{ fontSize: '11px', lineHeight: '1.2', marginBottom: '3px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
                     EL CONSEJO EJECUTIVO NACIONAL
                   </div>
-                  <div className="leading-relaxed mb-1 text-left" style={{ fontSize: '9px', lineHeight: '1.3', marginBottom: '4px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                  <div className="leading-relaxed mb-1 text-left" style={{ fontSize: '8px', lineHeight: '1.25', marginBottom: '3px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
                     CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
                     MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
                   </div>
@@ -602,23 +602,23 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               </div>
 
               {/* FICHERO DE CULTO */}
-              <div className="mb-2" style={{ marginBottom: '8px' }}>
-                <div className="font-bold text-left" style={{ fontSize: '8px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.2' }}>
+              <div className="mb-1.5" style={{ marginBottom: '6px' }}>
+                <div className="font-bold text-left break-words" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.2' }}>
                   FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
                 </div>
               </div>
 
               {/* Footer: Firma (izquierda) y QR + Fecha (derecha) */}
-              <div className="mt-auto flex justify-between items-end" style={{ paddingTop: '8px', gap: '12px' }}>
+              <div className="mt-auto flex justify-between items-end" style={{ paddingTop: '4px', gap: '10px' }}>
                 {/* Firma - Izquierda */}
-                <div className="flex-shrink-0" style={{ width: '165px' }}>
-                  <div className="flex flex-col items-center justify-center" style={{ padding: '5px' }}>
-                    <div className="w-full flex items-center justify-center overflow-hidden mb-0.5" style={{ height: '38px', marginBottom: '3px' }}>
+                <div className="flex-shrink-0" style={{ width: '155px' }}>
+                  <div className="flex flex-col items-center justify-center" style={{ padding: '4px' }}>
+                    <div className="w-full flex items-center justify-center overflow-hidden mb-0.5" style={{ height: '35px', marginBottom: '2px' }}>
                       <Image
                         src="/firma-presidente.png"
                         alt="Firma Presidente"
-                        width={160}
-                        height={38}
+                        width={150}
+                        height={35}
                         className="object-contain max-w-full max-h-full"
                         unoptimized
                         style={{ maxWidth: '100%', maxHeight: '100%' }}
@@ -629,23 +629,23 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                           if (parent && !parent.querySelector('span')) {
                             const placeholder = document.createElement('span')
                             placeholder.className = 'text-white/50'
-                            placeholder.style.fontSize = '8px'
-                            placeholder.textContent = 'Firma'
+                            placeholder.style.fontSize = '7px'
+                            placeholder.textContent = 'Firma Presidente'
                             parent.appendChild(placeholder)
                           }
                         }}
                       />
                     </div>
-                    <div className="font-semibold text-center" style={{ fontSize: '8px', color: '#0D374E', fontWeight: 600, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>FIRMA PRESIDENTE DEL C.E.N.</div>
+                    <div className="font-semibold text-center break-words" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 600, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.2' }}>FIRMA PRESIDENTE DEL C.E.N.</div>
                   </div>
                 </div>
 
                 {/* QR + Fecha - Derecha */}
-                <div className="flex-shrink-0 flex flex-col items-end" style={{ gap: '5px' }}>
-                  <div className="bg-white border-2 border-white/30 flex items-center justify-center" style={{ width: '78px', height: '78px', borderRadius: '2px' }}>
-                    <span className="text-white/30 text-center" style={{ fontSize: '8px' }}>QR CODE</span>
+                <div className="flex-shrink-0 flex flex-col items-end" style={{ gap: '4px' }}>
+                  <div className="bg-white border-2 border-white/30 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '2px' }}>
+                    <span className="text-white/30 text-center" style={{ fontSize: '7px' }}>QR CODE</span>
                   </div>
-                  <div className="font-bold text-right" style={{ fontSize: '8px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>VENCE: {fechaVencimiento}</div>
+                  <div className="font-bold text-right break-words" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.2' }}>VENCE: {fechaVencimiento}</div>
                 </div>
               </div>
             </div>
