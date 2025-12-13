@@ -142,19 +142,28 @@ export function CredencialEditorDialog({
         }
       } else {
         // Crear nueva credencial
-        const nuevaCredencial = await createMutation.mutateAsync(data)
-        console.log('[CredencialEditorDialog] Credencial creada:', nuevaCredencial)
-        
-        // Cerrar diálogo y resetear formulario
-        onOpenChange(false)
-        reset()
-        
-        // Llamar al callback con la credencial creada para mostrar el diseño visual
-        if (onCredencialCreated) {
-          console.log('[CredencialEditorDialog] Llamando onCredencialCreated con:', nuevaCredencial)
-          onCredencialCreated(nuevaCredencial)
-        } else {
-          console.warn('[CredencialEditorDialog] onCredencialCreated no está definido')
+        try {
+          const nuevaCredencial = await createMutation.mutateAsync(data)
+          console.log('[CredencialEditorDialog] Credencial creada exitosamente:', nuevaCredencial)
+          
+          // Cerrar diálogo y resetear formulario primero
+          onOpenChange(false)
+          reset()
+          
+          // Llamar al callback con la credencial creada para mostrar el diseño visual
+          // Usar setTimeout para asegurar que el estado del diálogo se actualice primero
+          if (onCredencialCreated && nuevaCredencial) {
+            console.log('[CredencialEditorDialog] Llamando onCredencialCreated con:', nuevaCredencial)
+            // Usar setTimeout para asegurar que el diálogo se cierre antes de cambiar el modo
+            setTimeout(() => {
+              onCredencialCreated(nuevaCredencial)
+            }, 100)
+          } else {
+            console.warn('[CredencialEditorDialog] onCredencialCreated no está definido o nuevaCredencial es null')
+          }
+        } catch (error) {
+          console.error('[CredencialEditorDialog] Error al crear credencial:', error)
+          // El error ya se maneja en el hook
         }
       }
     } catch (error) {
