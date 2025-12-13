@@ -271,9 +271,56 @@ export default function VisorCredencialesPage() {
             <div className="text-center py-8">
               <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <p className="text-lg font-semibold">Error al cargar credenciales</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 {error instanceof Error ? error.message : 'Error desconocido'}
               </p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Si has creado credenciales en "Credenciales Pastorales", necesitas sincronizarlas primero.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => sincronizarMutation.mutate()}
+                  disabled={sincronizarMutation.isPending}
+                >
+                  <RefreshCw
+                    className={`w-4 h-4 mr-2 ${sincronizarMutation.isPending ? 'animate-spin' : ''}`}
+                  />
+                  Sincronizar desde Pastorales
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : credenciales.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                No hay credenciales ministeriales
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                {total === 0
+                  ? 'Crea una nueva credencial o sincroniza desde credenciales pastorales para comenzar'
+                  : 'No se encontraron credenciales con los filtros aplicados'}
+              </p>
+              <div className="flex items-center justify-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => sincronizarMutation.mutate()}
+                  disabled={sincronizarMutation.isPending}
+                >
+                  <RefreshCw
+                    className={`w-4 h-4 mr-2 ${sincronizarMutation.isPending ? 'animate-spin' : ''}`}
+                  />
+                  Sincronizar desde Pastorales
+                </Button>
+                <Button onClick={handleCreate}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nueva Credencial
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

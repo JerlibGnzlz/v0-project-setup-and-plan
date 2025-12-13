@@ -212,6 +212,10 @@ export class CredencialesMinisterialesService extends BaseService<
         }
       }
 
+      this.logger.log(
+        `🔍 Buscando credenciales ministeriales con filtros: ${JSON.stringify(where)}`
+      )
+
       const [data, total] = await Promise.all([
         this.prisma.credencialMinisterial.findMany({
           where,
@@ -221,6 +225,10 @@ export class CredencialesMinisterialesService extends BaseService<
         }),
         this.prisma.credencialMinisterial.count({ where }),
       ])
+
+      this.logger.log(
+        `✅ Encontradas ${data.length} credenciales de un total de ${total}`
+      )
 
       // Calcular estados para cada credencial
       const dataWithEstado: CredencialMinisterialWithEstado[] = data.map((credencial) => {
