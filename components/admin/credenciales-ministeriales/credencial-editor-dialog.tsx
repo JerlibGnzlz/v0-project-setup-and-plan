@@ -48,6 +48,7 @@ interface CredencialEditorDialogProps {
   onOpenChange: (open: boolean) => void
   credencial?: CredencialMinisterial | null
   editMode?: 'frente' | 'dorso' // 'frente' permite editar todo, 'dorso' solo fechaVencimiento
+  onCredencialCreated?: (credencial: CredencialMinisterial) => void
 }
 
 export function CredencialEditorDialog({
@@ -55,6 +56,7 @@ export function CredencialEditorDialog({
   onOpenChange,
   credencial,
   editMode = 'frente',
+  onCredencialCreated,
 }: CredencialEditorDialogProps) {
   const createMutation = useCreateCredencialMinisterial()
   const updateMutation = useUpdateCredencialMinisterial()

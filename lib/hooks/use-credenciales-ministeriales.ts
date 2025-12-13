@@ -38,10 +38,11 @@ export function useCreateCredencialMinisterial() {
   return useMutation({
     mutationFn: (dto: CreateCredencialMinisterialDto) =>
       credencialesMinisterialesApi.create(dto),
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ['credenciales-ministeriales'] })
       notifyChange('credenciales-ministeriales')
       toast.success('✅ Credencial creada exitosamente')
+      return data // Retornar la credencial creada
     },
     onError: (error: unknown) => {
       const errorMessage =

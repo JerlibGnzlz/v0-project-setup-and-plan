@@ -16,7 +16,6 @@ import {
 import {
   useCredencialesMinisteriales,
   useDeleteCredencialMinisterial,
-  useSincronizarDesdePastorales,
 } from '@/lib/hooks/use-credenciales-ministeriales'
 import { CredencialMinisterial } from '@/lib/api/credenciales-ministeriales'
 import { format } from 'date-fns'
@@ -31,7 +30,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  RefreshCw,
 } from 'lucide-react'
 import { CredencialCard } from '@/components/admin/credenciales-ministeriales/credencial-card'
 import { CredencialEditorDialog } from '@/components/admin/credenciales-ministeriales/credencial-editor-dialog'
@@ -67,12 +65,18 @@ export default function VisorCredencialesPage() {
 
   const { data, isLoading, error } = useCredencialesMinisteriales(page, limit, filters)
   const deleteMutation = useDeleteCredencialMinisterial()
-  const sincronizarMutation = useSincronizarDesdePastorales()
 
   const handleCreate = () => {
     setSelectedCredencial(null)
     setEditMode('frente')
     setIsDialogOpen(true)
+  }
+
+  const handleCredencialCreated = (credencial: CredencialMinisterial) => {
+    // Después de crear, mostrar el diseño visual
+    setSelectedCredencial(credencial)
+    setViewMode('view')
+    setIsDialogOpen(false)
   }
 
   const handleEditFrente = (credencial: CredencialMinisterial) => {
@@ -143,22 +147,10 @@ export default function VisorCredencialesPage() {
             Gestiona las credenciales ministeriales físicas para impresión
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => sincronizarMutation.mutate()}
-            disabled={sincronizarMutation.isPending}
-          >
-            <RefreshCw
-              className={`w-4 h-4 mr-2 ${sincronizarMutation.isPending ? 'animate-spin' : ''}`}
-            />
-            Sincronizar desde Pastorales
-          </Button>
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nueva Credencial
-          </Button>
-        </div>
+        <Button onClick={handleCreate}>
+          <Plus className="w-4 h-4 mr-2" />
+          Nueva Credencial
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -274,21 +266,6 @@ export default function VisorCredencialesPage() {
               <p className="text-sm text-muted-foreground mb-4">
                 {error instanceof Error ? error.message : 'Error desconocido'}
               </p>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  Si has creado credenciales en "Credenciales Pastorales", necesitas sincronizarlas primero.
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => sincronizarMutation.mutate()}
-                  disabled={sincronizarMutation.isPending}
-                >
-                  <RefreshCw
-                    className={`w-4 h-4 mr-2 ${sincronizarMutation.isPending ? 'animate-spin' : ''}`}
-                  />
-                  Sincronizar desde Pastorales
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -305,22 +282,10 @@ export default function VisorCredencialesPage() {
                   ? 'Crea una nueva credencial o sincroniza desde credenciales pastorales para comenzar'
                   : 'No se encontraron credenciales con los filtros aplicados'}
               </p>
-              <div className="flex items-center justify-center gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => sincronizarMutation.mutate()}
-                  disabled={sincronizarMutation.isPending}
-                >
-                  <RefreshCw
-                    className={`w-4 h-4 mr-2 ${sincronizarMutation.isPending ? 'animate-spin' : ''}`}
-                  />
-                  Sincronizar desde Pastorales
-                </Button>
-                <Button onClick={handleCreate}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nueva Credencial
-                </Button>
-              </div>
+              <Button onClick={handleCreate}>
+                <Plus className="w-4 h-4 mr-2" />
+                Nueva Credencial
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -467,6 +432,7 @@ export default function VisorCredencialesPage() {
         onOpenChange={setIsDialogOpen}
         credencial={selectedCredencial}
         editMode={editMode}
+        onCredencialCreated={handleCredencialCreated}
       />
     </div>
   )
