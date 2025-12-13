@@ -485,32 +485,32 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         </div>
       </div>
 
-          {/* Card Container con Flip - Ampliado 2.0x para mejor visualización */}
+          {/* Card Container con Flip - Ampliado para mejor visualización del dorso completo */}
           <div className="relative w-full flex justify-center" style={{ perspective: '1000px' }}>
             <div
               className="relative transition-transform duration-700"
               style={{
                 transformStyle: 'preserve-3d',
                 transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                width: '800px',
-                height: '504px',
-                minWidth: '800px',
-                minHeight: '504px',
+                width: '1000px',
+                height: '630px',
+                minWidth: '1000px',
+                minHeight: '630px',
               }}
             >
-              {/* FRENTE - Ampliado 2.0x para mejor visualización */}
+              {/* FRENTE - Ampliado para mejor visualización del dorso completo */}
               <div
                 className="rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
                 style={{
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',
-                  width: '800px',
-                  height: '504px',
-                  minWidth: '800px',
-                  minHeight: '504px',
-                  maxWidth: '800px',
-                  maxHeight: '504px',
-                  padding: '28px',
+                  width: '1000px',
+                  height: '630px',
+                  minWidth: '1000px',
+                  minHeight: '630px',
+                  maxWidth: '1000px',
+                  maxHeight: '630px',
+                  padding: '35px',
                   background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
                 }}
               >
@@ -612,20 +612,20 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             </div>
           </div>
 
-              {/* DORSO - Ampliado 2.0x para mejor visualización */}
+              {/* DORSO - Ampliado para mejor visualización del dorso completo */}
               <div
                 className="absolute inset-0 rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
                 style={{
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',
                   transform: 'rotateY(180deg)',
-                  width: '800px',
-                  height: '504px',
-                  minWidth: '800px',
-                  minHeight: '504px',
-                  maxWidth: '800px',
-                  maxHeight: '504px',
-                  padding: '28px',
+                  width: '1000px',
+                  height: '630px',
+                  minWidth: '1000px',
+                  minHeight: '630px',
+                  maxWidth: '1000px',
+                  maxHeight: '630px',
+                  padding: '35px',
                   background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
                 }}
               >
