@@ -230,7 +230,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               </div>
             </div>
             <div class="logo-section">
-              <img src="/mundo.png" alt="AMVA Logo" style="width: 120px; height: 120px; object-fit: contain;" />
+              <img src="/mundo.png" alt="AMVA Logo" />
             </div>
           </div>
           <div class="footer">
