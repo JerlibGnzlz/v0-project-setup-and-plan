@@ -354,43 +354,43 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         <div class="credencial credencial-dorso" style="width: 400px; height: 252px; min-width: 400px; min-height: 252px; max-width: 400px; max-height: 252px;">
           <div class="dorso-content">
             <!-- Header con Logo y Texto al lado -->
-            <div style="display: flex; align-items: flex-start; gap: 4mm; margin-bottom: 1.5mm;">
+            <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
               <div style="flex-shrink: 0;">
-                <img src="/mundo.png" alt="AMVA Logo" style="width: 20mm; height: 20mm; object-fit: contain;" />
+                <img src="/mundo.png" alt="AMVA Logo" style="width: 70px; height: 70px; object-fit: contain;" />
               </div>
               <div style="flex: 1;">
-                <div style="font-size: 3.2mm; font-weight: bold; margin-bottom: 1mm; color: #0D374E; text-align: left; line-height: 1.2;">EL CONSEJO EJECUTIVO NACIONAL</div>
-                <div style="font-size: 2.2mm; line-height: 1.3; margin-bottom: 1mm; color: #0D374E; text-align: left;">
+                <div style="font-size: 11px; font-weight: bold; margin-bottom: 3px; color: #0D374E; text-align: left; line-height: 1.2; text-shadow: 0 1px 2px rgba(255,255,255,0.9);">EL CONSEJO EJECUTIVO NACIONAL</div>
+                <div style="font-size: 8px; line-height: 1.25; margin-bottom: 3px; color: #0D374E; text-align: left; font-weight: 500; text-shadow: 0 1px 2px rgba(255,255,255,0.9);">
                   CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
                 </div>
               </div>
             </div>
             
             <!-- FICHERO DE CULTO -->
-            <div style="margin-bottom: 1.5mm;">
-              <div style="text-align: left; font-size: 2mm; font-weight: bold; white-space: nowrap; color: #0D374E; overflow: hidden;">
+            <div style="margin-bottom: 6px;">
+              <div style="text-align: center; font-size: 7px; font-weight: bold; color: #0D374E; word-break: break-word; text-shadow: 0 1px 2px rgba(255,255,255,0.9); line-height: 1.2;">
                 FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
               </div>
             </div>
             
             <!-- Footer: Firma (izquierda) y QR + Fecha (derecha) -->
-            <div style="margin-top: auto; padding-top: 3mm; display: flex; justify-content: space-between; align-items: flex-end; gap: 4mm;">
+            <div style="margin-top: auto; padding-top: 4px; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px;">
               <!-- Firma - Izquierda -->
-              <div style="flex-shrink: 0; width: 38mm;">
-                <div style="padding: 1.5mm; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                  <div style="width: 100%; height: 9mm; display: flex; align-items: center; justify-content: center; margin-bottom: 1mm;">
-                    <img src="/firma-presidente.png" alt="Firma Presidente" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: rgba(255,255,255,0.5); font-size: 2mm;\'>Firma</span>';" />
+              <div style="flex-shrink: 0; width: 155px;">
+                <div style="padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                  <div style="width: 100%; height: 45px; display: flex; align-items: center; justify-content: center; margin-bottom: 2px;">
+                    <img src="/firma-presidente.png" alt="Firma Presidente" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: rgba(255,255,255,0.5); font-size: 7px;\'>Firma Presidente</span>';" />
                   </div>
-                  <div style="font-size: 2mm; font-weight: bold; text-align: center; color: #0D374E;">FIRMA PRESIDENTE DEL C.E.N.</div>
+                  <div style="font-size: 7px; font-weight: 600; text-align: center; color: #0D374E; word-break: break-word; text-shadow: 0 1px 2px rgba(255,255,255,0.9); line-height: 1.2;">FIRMA PRESIDENTE DEL C.E.N.</div>
                 </div>
               </div>
               
               <!-- QR + Fecha - Derecha -->
-              <div style="flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 1.5mm;">
-                <div style="width: 18mm; height: 18mm; background: white; border: 0.5mm solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;">
-                  <span style="color: rgba(255,255,255,0.3); font-size: 2mm; text-align: center;">QR CODE</span>
+              <div style="flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                <div style="width: 72px; height: 72px; background: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 2px; display: flex; align-items: center; justify-content: center;">
+                  <span style="color: rgba(255,255,255,0.3); font-size: 7px; text-align: center;">QR CODE</span>
                 </div>
-                <div style="font-size: 2mm; font-weight: bold; text-align: right; color: #0D374E;">VENCE: ${fechaVencimiento}</div>
+                <div style="font-size: 7px; font-weight: bold; text-align: right; color: #0D374E; word-break: break-word; text-shadow: 0 1px 2px rgba(255,255,255,0.9); line-height: 1.2;">VENCE: ${fechaVencimiento}</div>
               </div>
             </div>
           </div>
