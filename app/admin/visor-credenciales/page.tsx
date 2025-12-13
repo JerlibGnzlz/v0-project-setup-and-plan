@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
@@ -57,6 +57,16 @@ export default function VisorCredencialesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editMode, setEditMode] = useState<'frente' | 'dorso'>('frente')
   const [viewMode, setViewMode] = useState<'list' | 'view'>('list')
+
+  // Debug: Log cuando cambia el estado
+  useEffect(() => {
+    console.log('[VisorCredencialesPage] Estado actualizado:', {
+      viewMode,
+      hasSelectedCredencial: !!selectedCredencial,
+      selectedCredencialId: selectedCredencial?.id,
+      isDialogOpen,
+    })
+  }, [viewMode, selectedCredencial, isDialogOpen])
 
   const filters = {
     documento: documentoFilter || undefined,
