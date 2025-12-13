@@ -376,15 +376,13 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         <div class="credencial credencial-dorso" style="width: 400px; height: 252px; min-width: 400px; min-height: 252px; max-width: 400px; max-height: 252px;">
           <div class="dorso-content">
             <!-- Header con Logo y Texto al lado -->
-            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 6px;">
+            <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
               <div style="flex-shrink: 0;">
-                <img src="/mundo.png" alt="AMVA Logo" style="width: 70px; height: 70px; object-fit: contain; display: block;" />
+                <img src="/mundo.png" alt="AMVA Logo" style="width: 70px; height: 70px; object-fit: contain;" />
               </div>
               <div style="flex: 1;">
-                <div style="font-size: 16px; font-weight: bold; margin-bottom: 5px; color: #0D374E; text-align: center; line-height: 1.3; text-shadow: 0 1px 2px rgba(255,255,255,0.9);">
-                  EL CONSEJO EJECUTIVO NACIONAL
-                </div>
-                <div style="font-size: 11px; line-height: 1.4; margin-bottom: 3px; color: #0D374E; text-align: center; font-weight: 500; text-shadow: 0 1px 2px rgba(255,255,255,0.9);">
+                <div style="font-size: 11px; font-weight: bold; margin-bottom: 3px; color: #0D374E; text-align: left; line-height: 1.2; text-shadow: 0 1px 2px rgba(255,255,255,0.9);">EL CONSEJO EJECUTIVO NACIONAL</div>
+                <div style="font-size: 8px; line-height: 1.25; margin-bottom: 3px; color: #0D374E; text-align: left; font-weight: 500; text-shadow: 0 1px 2px rgba(255,255,255,0.9);">
                   CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
                 </div>
               </div>
@@ -392,7 +390,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             
             <!-- FICHERO DE CULTO -->
             <div style="margin-bottom: 6px;">
-              <div style="text-align: center; font-size: 8px; font-weight: bold; color: #0D374E; word-break: break-word; text-shadow: 0 1px 2px rgba(255,255,255,0.9); line-height: 1.2;">
+              <div style="text-align: center; font-size: 7px; font-weight: bold; color: #0D374E; word-break: break-word; text-shadow: 0 1px 2px rgba(255,255,255,0.9); line-height: 1.2;">
                 FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
               </div>
             </div>      
