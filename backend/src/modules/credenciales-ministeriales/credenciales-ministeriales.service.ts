@@ -181,9 +181,7 @@ export class CredencialesMinisterialesService extends BaseService<
 
         if (credencialExistente) {
           // Enviar notificación a todos los admins
-          const admins = await this.prisma.user.findMany({
-            where: { activo: true },
-          })
+          const admins = await this.prisma.user.findMany()
 
           const titulo = 'Intento de actualizar credencial con documento duplicado'
           const mensaje = `Se intentó actualizar la credencial ${id} con el documento ${dto.documento} que ya existe. La credencial existente pertenece a ${credencialExistente.nombre} ${credencialExistente.apellido}.`
