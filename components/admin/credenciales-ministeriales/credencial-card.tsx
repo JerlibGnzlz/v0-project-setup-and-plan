@@ -453,8 +453,11 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                   MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
                 </div>
                 <div className="mt-12 flex justify-center">
-                  <div className="border-b-2 border-white/40 pb-3 w-64 text-center">
-                    <div className="text-sm font-semibold">FIRMA PRESIDENTE DEL C.E.N.</div>
+                  <div className="w-64 text-center">
+                    <div className="text-sm font-bold mb-3">FICHERO DE CULTO</div>
+                    <div className="border-b-2 border-white/40 pb-3">
+                      <div className="text-sm font-semibold">FIRMA PRESIDENTE DEL C.E.N.</div>
+                    </div>
                   </div>
                 </div>
               </div>
