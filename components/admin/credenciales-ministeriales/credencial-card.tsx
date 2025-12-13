@@ -59,7 +59,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           .credencial {
             width: 400px;
             height: 250px;
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 25%, #2563eb 50%, #1e40af 75%, #1e3a8a 100%);
             border-radius: 12px;
             padding: 20px;
             color: white;
@@ -67,7 +67,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
           }
           .credencial-dorso {
-            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 25%, #2563eb 50%, #1e40af 75%, #1e3a8a 100%);
           }
           .header {
             text-align: center;
@@ -248,19 +248,19 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               </div>
             </div>
             
-            <!-- Título y Certificación -->
-            <div style="text-align: center; margin-bottom: 15px;">
+            <!-- Título y Certificación (Todo arriba) -->
+            <div style="text-align: center; margin-bottom: 10px;">
               <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">EL CONSEJO EJECUTIVO NACIONAL</div>
-              <div style="font-size: 12px; line-height: 1.5;">
+              <div style="font-size: 12px; line-height: 1.5; margin-bottom: 10px;">
                 CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
+              </div>
+              <div style="text-align: left; font-size: 11px; font-weight: bold; margin-top: 10px; white-space: nowrap;">
+                FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
               </div>
             </div>
             
-            <!-- FICHERO DE CULTO y Firma -->
-            <div style="margin-top: 20px;">
-              <div style="text-align: left; font-size: 11px; font-weight: bold; margin-bottom: 15px; white-space: nowrap;">
-                FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
-              </div>
+            <!-- Firma (Abajo) -->
+            <div style="margin-top: auto; padding-top: 15px;">
               <div style="text-align: center;">
                 <div style="width: 250px; margin: 0 auto; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.3); padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                   <div style="width: 100%; height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
@@ -342,13 +342,12 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         >
           {/* FRENTE */}
           <div
-            className="w-full bg-gradient-to-br from-cyan-50 via-blue-50 to-cyan-100 dark:from-blue-950 dark:via-blue-900 dark:to-blue-950 rounded-lg p-6 text-gray-800 dark:text-gray-100 shadow-xl border-2 border-blue-200 dark:border-blue-700"
+            className="w-full rounded-lg p-6 text-white shadow-xl border-2 border-blue-300/30"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
               minHeight: '320px',
-              backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(59, 130, 246, 0.1) 1px, transparent 0)',
-              backgroundSize: '20px 20px',
+              background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 25%, #2563eb 50%, #1e40af 75%, #1e3a8a 100%)',
             }}
           >
             {/* Header */}
@@ -451,12 +450,13 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
 
           {/* DORSO */}
           <div
-            className="absolute inset-0 w-full bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900 rounded-lg p-8 text-white shadow-xl border-2 border-blue-600 dark:border-blue-700"
+            className="absolute inset-0 w-full rounded-lg p-8 text-white shadow-xl border-2 border-blue-300/30"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
               minHeight: '320px',
+              background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 25%, #2563eb 50%, #1e40af 75%, #1e3a8a 100%)',
             }}
           >
             <div className="h-full flex flex-col">
@@ -479,22 +479,22 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                 </div>
               </div>
 
-              {/* Título y Certificación */}
-              <div className="text-center mb-6">
+              {/* Título, Certificación y FICHERO DE CULTO (Todo arriba) */}
+              <div className="text-center mb-4">
                 <div className="text-xl font-bold mb-3 tracking-wide uppercase">
                   EL CONSEJO EJECUTIVO NACIONAL
                 </div>
-                <div className="text-sm leading-relaxed">
+                <div className="text-sm leading-relaxed mb-3">
                   CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
                   MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
                 </div>
-              </div>
-
-              {/* FICHERO DE CULTO y Firma */}
-              <div className="mt-auto">
-                <div className="text-xs font-bold mb-4 whitespace-nowrap text-left">
+                <div className="text-xs font-bold whitespace-nowrap text-left mt-3">
                   FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
                 </div>
+              </div>
+
+              {/* Firma (Abajo) */}
+              <div className="mt-auto pt-4">
                 <div className="flex justify-center">
                   <div className="w-[250px] bg-white/5 border border-white/40 p-3 flex flex-col items-center justify-center">
                     <div className="w-full h-16 flex items-center justify-center overflow-hidden mb-2">
