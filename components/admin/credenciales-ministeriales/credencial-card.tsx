@@ -683,8 +683,8 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                         height={66}
                         className="object-contain max-w-full max-h-full"
                         unoptimized
-                        style={{ 
-                          maxWidth: '100%', 
+                        style={{
+                          maxWidth: '100%',
                           maxHeight: '100%',
                           filter: 'brightness(0.3) contrast(1.5)',
                           WebkitFilter: 'brightness(0.3) contrast(1.5)',
