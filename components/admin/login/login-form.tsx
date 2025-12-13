@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth'
@@ -16,8 +16,15 @@ interface LoginFormProps {
     isSubmitting: boolean
 }
 
+const REMEMBER_ME_KEY = 'rememberMe_preference'
+
 export function LoginForm({ onSubmit, isSubmitting }: LoginFormProps) {
-    const [rememberMe, setRememberMe] = useState(false)
+    // Cargar preferencia guardada al montar el componente
+    const [rememberMe, setRememberMe] = useState(() => {
+        if (typeof window === 'undefined') return false
+        const saved = localStorage.getItem(REMEMBER_ME_KEY)
+        return saved === 'true'
+    })
     const [showPassword, setShowPassword] = useState(false)
     const [focusedField, setFocusedField] = useState<string | null>(null)
 
@@ -33,6 +40,18 @@ export function LoginForm({ onSubmit, isSubmitting }: LoginFormProps) {
     // Watch values to know if inputs have content
     const emailValue = watch('email')
     const passwordValue = watch('password')
+
+    // Guardar preferencia cuando cambia el checkbox
+    const handleRememberMeChange = (checked: boolean) => {
+        setRememberMe(checked)
+        if (typeof window !== 'undefined') {
+            if (checked) {
+                localStorage.setItem(REMEMBER_ME_KEY, 'true')
+            } else {
+                localStorage.removeItem(REMEMBER_ME_KEY)
+            }
+        }
+    }
 
     const handleFormSubmit = async (data: LoginFormData) => {
         await onSubmit({ ...data, rememberMe })
@@ -89,7 +108,7 @@ export function LoginForm({ onSubmit, isSubmitting }: LoginFormProps) {
                         <Checkbox
                             id="remember"
                             checked={rememberMe}
-                            onCheckedChange={checked => setRememberMe(checked === true)}
+                            onCheckedChange={checked => handleRememberMeChange(checked === true)}
                             className={cn(
                                 'h-4 w-4 rounded border-2 border-white/20 bg-white/5',
                                 'data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-amber-500 data-[state=checked]:to-orange-500',
