@@ -2579,10 +2579,9 @@ export class InscripcionesService {
                                 `📬 Evento PAGO_RECORDATORIO emitido para ${inscripcion.email}`
                             )
                             
-                            // IMPORTANTE: No asumir éxito automáticamente
-                            // El listener procesará el email y puede fallar
-                            // Usar el método directo para tener control del resultado
-                            this.logger.log(`📧 Verificando envío de email para ${inscripcion.email}...`)
+                            // IMPORTANTE: Enviar email directamente usando sendEmailToUser
+                            // Esto asegura que el email se envíe usando el EmailService correctamente configurado
+                            this.logger.log(`📧 Enviando email directamente a ${inscripcion.email}...`)
                             emailEnviado = await this.enviarEmailRecordatorioDirecto(
                                 inscripcion,
                                 cuotasPendientes,
@@ -2666,7 +2665,8 @@ export class InscripcionesService {
     }
 
     /**
-     * Envía email de recordatorio directamente (fallback cuando no hay eventEmitter/cola)
+     * Envía email de recordatorio directamente usando NotificationsService.sendEmailToUser
+     * Esto asegura que se use el EmailService correctamente configurado
      */
     private async enviarEmailRecordatorioDirecto(
         inscripcion: InscripcionWithRelations,
@@ -2677,33 +2677,14 @@ export class InscripcionesService {
         try {
             this.logger.log(`📧 Enviando email directo a ${inscripcion.email}...`)
 
-            // Importar EmailService dinámicamente
-            const { EmailService } = await import('../notifications/email.service')
-            const { getEmailTemplate } = await import('../notifications/templates/email.templates')
-
-            const emailService = new EmailService()
-
-            // Verificar que el servicio esté configurado (Resend, SendGrid o SMTP)
-            const isResendConfigured = emailService['resendConfigured'] === true
-            const isSendGridConfigured = emailService['sendgridConfigured'] === true
-            const isSMTPConfigured = emailService['transporter'] !== null
-
-            if (!isResendConfigured && !isSendGridConfigured && !isSMTPConfigured) {
-                this.logger.error(
-                    `❌ EmailService no está configurado. Verifica uno de estos proveedores en las variables de entorno:`
-                )
-                this.logger.error(
-                    `   Resend: RESEND_API_KEY y RESEND_FROM_EMAIL con EMAIL_PROVIDER=resend`
-                )
-                this.logger.error(
-                    `   SendGrid: SENDGRID_API_KEY y SENDGRID_FROM_EMAIL con EMAIL_PROVIDER=sendgrid`
-                )
-                this.logger.error(
-                    `   SMTP: SMTP_USER y SMTP_PASSWORD con EMAIL_PROVIDER=gmail`
-                )
+            // Verificar que notificationsService esté disponible
+            if (!this.notificationsService) {
+                this.logger.error('❌ NotificationsService no está disponible')
                 return false
             }
 
+            // Obtener template de email
+            const { getEmailTemplate } = await import('../notifications/templates/email.templates')
             const template = getEmailTemplate('pago_recordatorio', {
                 inscripcionId: inscripcion.id,
                 cuotasPendientes,
@@ -2716,7 +2697,8 @@ export class InscripcionesService {
 
             this.logger.log(`📧 Template obtenido: ${template.title}`)
 
-            const resultado = await emailService.sendNotificationEmail(
+            // Enviar email usando sendEmailToUser (usa EmailService correctamente configurado)
+            const resultado = await this.notificationsService.sendEmailToUser(
                 inscripcion.email,
                 template.title,
                 template.body,
