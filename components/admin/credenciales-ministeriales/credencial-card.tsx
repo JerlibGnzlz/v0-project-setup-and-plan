@@ -485,35 +485,35 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         </div>
       </div>
 
-      {/* Card Container con Flip */}
-      <div className="relative w-full flex justify-center" style={{ perspective: '1000px' }}>
-        <div
-          className="relative transition-transform duration-700"
-          style={{
-            transformStyle: 'preserve-3d',
-            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-            width: '400px',
-            height: '252px',
-            minWidth: '400px',
-            minHeight: '252px',
-          }}
-        >
-          {/* FRENTE */}
-          <div
-            className="rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
-            style={{
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              width: '400px',
-              height: '252px',
-              minWidth: '400px',
-              minHeight: '252px',
-              maxWidth: '400px',
-              maxHeight: '252px',
-              padding: '14px',
-              background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
-            }}
-          >
+          {/* Card Container con Flip - Ampliado para mejor visualización */}
+          <div className="relative w-full flex justify-center" style={{ perspective: '1000px' }}>
+            <div
+              className="relative transition-transform duration-700"
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                width: '600px',
+                height: '378px',
+                minWidth: '600px',
+                minHeight: '378px',
+              }}
+            >
+              {/* FRENTE - Ampliado para mejor visualización */}
+              <div
+                className="rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
+                style={{
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  width: '600px',
+                  height: '378px',
+                  minWidth: '600px',
+                  minHeight: '378px',
+                  maxWidth: '600px',
+                  maxHeight: '378px',
+                  padding: '21px',
+                  background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
+                }}
+              >
             {/* Header */}
             <div className="text-center mb-2" style={{ marginBottom: '6px' }}>
               <h1 className="font-bold tracking-wide" style={{ fontSize: '13px', lineHeight: '1.2', margin: 0, color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
@@ -612,23 +612,23 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             </div>
           </div>
 
-          {/* DORSO */}
-          <div
-            className="absolute inset-0 rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
-            style={{
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)',
-              width: '400px',
-              height: '252px',
-              minWidth: '400px',
-              minHeight: '252px',
-              maxWidth: '400px',
-              maxHeight: '252px',
-              padding: '14px',
-              background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
-            }}
-          >
+              {/* DORSO - Ampliado para mejor visualización */}
+              <div
+                className="absolute inset-0 rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
+                style={{
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  transform: 'rotateY(180deg)',
+                  width: '600px',
+                  height: '378px',
+                  minWidth: '600px',
+                  minHeight: '378px',
+                  maxWidth: '600px',
+                  maxHeight: '378px',
+                  padding: '21px',
+                  background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
+                }}
+              >
             <div className="h-full flex flex-col" style={{ height: '100%', justifyContent: 'space-between' }}>
               {/* Header con Logo y Texto al lado - Logo ampliado visualmente */}
               <div className="flex items-start mb-1.5" style={{ gap: '10px', marginBottom: '6px' }}>
