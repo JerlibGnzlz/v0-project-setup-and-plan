@@ -450,7 +450,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
   )
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
+    <div className="relative w-full max-w-7xl mx-auto">
       {/* Controles */}
       <div className="flex justify-between items-center gap-2 mb-4">
         {onBackToList && (

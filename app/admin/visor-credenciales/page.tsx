@@ -177,7 +177,7 @@ export default function VisorCredencialesPage() {
   if (viewMode === 'view' && selectedCredencial) {
     console.log('[VisorCredencialesPage] Renderizando modo view con credencial:', selectedCredencial.id)
     return (
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="w-full px-4 py-6 space-y-6">
         {/* Wizard Steps Indicator */}
         <div className="flex items-center justify-center gap-4 mb-6 p-4 bg-muted/50 rounded-lg">
           <div className="flex items-center gap-2">
