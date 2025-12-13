@@ -59,7 +59,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           .credencial {
             width: 400px;
             height: 250px;
-            background: linear-gradient(135deg, #0D374E 0%, #0a2d3d 25%, #082229 50%, #0D374E 75%, #0a2d3d 100%);
+            background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%);
             border-radius: 12px;
             padding: 15px;
             color: white;
@@ -68,7 +68,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             overflow: hidden;
           }
           .credencial-dorso {
-            background: linear-gradient(135deg, #0D374E 0%, #0a2d3d 25%, #082229 50%, #0D374E 75%, #0a2d3d 100%);
+            background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%);
           }
           .header {
             text-align: center;
@@ -353,7 +353,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               WebkitBackfaceVisibility: 'hidden',
               minHeight: '320px',
               maxHeight: '320px',
-              background: 'linear-gradient(135deg, #0D374E 0%, #0a2d3d 25%, #082229 50%, #0D374E 75%, #0a2d3d 100%)',
+              background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
             }}
           >
             {/* Header */}
@@ -463,7 +463,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               transform: 'rotateY(180deg)',
               minHeight: '320px',
               maxHeight: '320px',
-              background: 'linear-gradient(135deg, #0D374E 0%, #0a2d3d 25%, #082229 50%, #0D374E 75%, #0a2d3d 100%)',
+              background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
             }}
           >
             <div className="h-full flex flex-col">
