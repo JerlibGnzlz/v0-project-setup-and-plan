@@ -290,6 +290,8 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             object-fit: contain;
             display: block;
             margin-bottom: 2px;
+            filter: brightness(0.3) contrast(1.5) !important;
+            -webkit-filter: brightness(0.3) contrast(1.5) !important;
           }
           .dorso-firma-text {
             font-size: 7px;
@@ -401,7 +403,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               <div style="flex-shrink: 0; width: 155px;">
                 <div style="padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                   <div style="width: 100%; height: 45px; display: flex; align-items: center; justify-content: center; margin-bottom: 2px;">
-                    <img src="/firma-presidente.png" alt="Firma Presidente" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: rgba(255,255,255,0.5); font-size: 7px;\'>Firma Presidente</span>';" />
+                    <img src="/firma-presidente.png" alt="Firma Presidente" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block; filter: brightness(0.3) contrast(1.5) !important; -webkit-filter: brightness(0.3) contrast(1.5) !important;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: rgba(255,255,255,0.5); font-size: 7px;\'>Firma Presidente</span>';" />
                   </div>
                   <div style="font-size: 7px; font-weight: 600; text-align: center; color: #0D374E; word-break: break-word; text-shadow: 0 1px 2px rgba(255,255,255,0.9); line-height: 1.2;">FIRMA PRESIDENTE DEL C.E.N.</div>
                 </div>
@@ -681,7 +683,12 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                         height={66}
                         className="object-contain max-w-full max-h-full"
                         unoptimized
-                        style={{ maxWidth: '100%', maxHeight: '100%' }}
+                        style={{ 
+                          maxWidth: '100%', 
+                          maxHeight: '100%',
+                          filter: 'brightness(0.3) contrast(1.5)',
+                          WebkitFilter: 'brightness(0.3) contrast(1.5)',
+                        }}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
                           target.style.display = 'none'
