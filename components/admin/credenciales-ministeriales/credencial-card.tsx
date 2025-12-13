@@ -481,18 +481,23 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                     <div className="border-b-2 border-white/40 pb-3 mb-3">
                       <div className="text-sm font-semibold">FIRMA PRESIDENTE DEL C.E.N.</div>
                     </div>
-                    <div className="w-[200px] h-20 mt-2 bg-white/5 border border-dashed border-white/20 flex items-center justify-center">
+                    <div className="w-[200px] h-20 mt-2 bg-white/5 border border-dashed border-white/20 flex items-center justify-center overflow-hidden">
                       <Image
                         src="/firma-presidente.png"
                         alt="Firma Presidente"
                         width={200}
                         height={80}
                         className="object-contain max-w-full max-h-full"
+                        unoptimized
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
                           target.style.display = 'none'
-                          if (target.parentElement) {
-                            target.parentElement.innerHTML = '<span class="text-white/50 text-[10px]">Firma</span>'
+                          const parent = target.parentElement
+                          if (parent && !parent.querySelector('span')) {
+                            const placeholder = document.createElement('span')
+                            placeholder.className = 'text-white/50 text-[10px]'
+                            placeholder.textContent = 'Firma'
+                            parent.appendChild(placeholder)
                           }
                         }}
                       />
