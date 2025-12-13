@@ -629,7 +629,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                   background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
                 }}
               >
-            <div className="h-full flex flex-col" style={{ height: '100%', justifyContent: 'space-between' }}>
+            <div className="h-full flex flex-col" style={{ height: '100%', justifyContent: 'flex-start' }}>
               {/* Header con Logo y Texto al lado - Logo ampliado visualmente */}
               <div className="flex items-start mb-1.5" style={{ gap: '15px', marginBottom: '9px' }}>
                 <div className="flex-shrink-0">
@@ -652,15 +652,15 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                 </div>
               </div>
 
-              {/* FICHERO DE CULTO */}
-              <div className="mb-1.5" style={{ marginBottom: '9px' }}>
+              {/* FICHERO DE CULTO - Movido más arriba */}
+              <div className="mb-2" style={{ marginBottom: '12px', marginTop: '0px' }}>
                 <div className="font-bold text-center break-words" style={{ fontSize: '10.5px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.2' }}>
                   FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
                 </div>
               </div>
 
-              {/* Footer: Firma (izquierda) y QR + Fecha (derecha) */}
-              <div className="mt-auto flex justify-between items-end" style={{ paddingTop: '6px', gap: '15px' }}>
+              {/* Footer: Firma (izquierda) y QR + Fecha (derecha) - Subido un poco */}
+              <div className="mt-auto flex justify-between items-end" style={{ paddingTop: '0px', gap: '15px', marginTop: 'auto' }}>
                 {/* Firma - Izquierda */}
                 <div className="flex-shrink-0" style={{ width: '232.5px' }}>
                   <div className="flex flex-col items-center justify-center" style={{ padding: '6px' }}>
