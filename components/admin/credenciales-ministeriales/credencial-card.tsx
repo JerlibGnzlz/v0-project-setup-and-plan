@@ -467,49 +467,44 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             }}
           >
             <div className="h-full flex flex-col">
-              {/* Header con Logo y QR */}
-              <div className="flex justify-between items-start mb-4">
+              {/* Header con Logo */}
+              <div className="flex justify-start items-start mb-2">
                 <div className="flex-shrink-0">
                   <Image
                     src="/mundo.png"
                     alt="AMVA Logo"
-                    width={80}
-                    height={80}
+                    width={60}
+                    height={60}
                     className="object-contain"
                   />
-                </div>
-                <div className="flex-shrink-0 flex flex-col items-end gap-2">
-                  <div className="w-24 h-24 bg-white border-2 border-white/30 flex items-center justify-center">
-                    <span className="text-white/30 text-[10px] text-center">QR CODE</span>
-                  </div>
-                  <div className="text-xs font-bold text-right">VENCE: {fechaVencimiento}</div>
                 </div>
               </div>
 
               {/* Título, Certificación y FICHERO DE CULTO (Todo arriba) */}
-              <div className="text-center mb-4">
-                <div className="text-xl font-bold mb-3 tracking-wide uppercase">
+              <div className="text-center mb-2 flex-1 min-h-0">
+                <div className="text-base font-bold mb-2 tracking-wide uppercase text-[#0D374E]">
                   EL CONSEJO EJECUTIVO NACIONAL
                 </div>
-                <div className="text-sm leading-relaxed mb-3">
+                <div className="text-xs leading-relaxed mb-2 text-[#0D374E]">
                   CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
                   MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
                 </div>
-                <div className="text-xs font-bold whitespace-nowrap text-left mt-3">
+                <div className="text-[10px] font-bold whitespace-nowrap text-left mt-2 text-[#0D374E] overflow-hidden">
                   FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
                 </div>
               </div>
 
-              {/* Firma (Abajo) */}
-              <div className="mt-auto pt-4">
-                <div className="flex justify-center">
-                  <div className="w-[250px] bg-white/5 border border-white/40 p-3 flex flex-col items-center justify-center">
-                    <div className="w-full h-16 flex items-center justify-center overflow-hidden mb-2">
+              {/* Footer: Firma (izquierda) y QR + Fecha (derecha) */}
+              <div className="mt-auto pt-2 flex justify-between items-end gap-4">
+                {/* Firma - Izquierda */}
+                <div className="flex-shrink-0">
+                  <div className="w-[200px] bg-white/5 border border-white/40 p-2 flex flex-col items-center justify-center">
+                    <div className="w-full h-12 flex items-center justify-center overflow-hidden mb-1">
                       <Image
                         src="/firma-presidente.png"
                         alt="Firma Presidente"
-                        width={200}
-                        height={60}
+                        width={180}
+                        height={48}
                         className="object-contain max-w-full max-h-full"
                         unoptimized
                         onError={(e) => {
@@ -518,15 +513,23 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                           const parent = target.parentElement
                           if (parent && !parent.querySelector('span')) {
                             const placeholder = document.createElement('span')
-                            placeholder.className = 'text-white/50 text-[10px]'
+                            placeholder.className = 'text-white/50 text-[9px]'
                             placeholder.textContent = 'Firma'
                             parent.appendChild(placeholder)
                           }
                         }}
                       />
                     </div>
-                    <div className="text-xs font-semibold text-center">FIRMA PRESIDENTE DEL C.E.N.</div>
+                    <div className="text-[10px] font-semibold text-center text-[#0D374E]">FIRMA PRESIDENTE DEL C.E.N.</div>
                   </div>
+                </div>
+
+                {/* QR + Fecha - Derecha */}
+                <div className="flex-shrink-0 flex flex-col items-end gap-1.5">
+                  <div className="w-20 h-20 bg-white border-2 border-white/30 flex items-center justify-center">
+                    <span className="text-white/30 text-[9px] text-center">QR CODE</span>
+                  </div>
+                  <div className="text-[10px] font-bold text-right text-[#0D374E]">VENCE: {fechaVencimiento}</div>
                 </div>
               </div>
             </div>
