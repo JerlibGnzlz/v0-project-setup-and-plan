@@ -485,37 +485,37 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         </div>
       </div>
 
-          {/* Card Container con Flip - Tamaño optimizado para previsualización */}
-          <div className="relative w-full flex justify-center" style={{ perspective: '1000px' }}>
-            <div
-              className="relative transition-transform duration-700"
-              style={{
-                transformStyle: 'preserve-3d',
-                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                width: '600px',
-                height: '378px',
-                minWidth: '600px',
-                minHeight: '378px',
-              }}
-            >
-              {/* FRENTE - Tamaño optimizado para previsualización */}
-              <div
-                className="rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
-                style={{
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden',
-                  width: '600px',
-                  height: '378px',
-                  minWidth: '600px',
-                  minHeight: '378px',
-                  maxWidth: '600px',
-                  maxHeight: '378px',
-                  padding: '20px',
-                  background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
-                }}
-              >
+      {/* Card Container con Flip - Tamaño optimizado para previsualización */}
+      <div className="relative w-full flex justify-center" style={{ perspective: '1000px' }}>
+        <div
+          className="relative transition-transform duration-700"
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            width: '600px',
+            height: '378px',
+            minWidth: '600px',
+            minHeight: '378px',
+          }}
+        >
+          {/* FRENTE - Tamaño optimizado para previsualización */}
+          <div
+            className="rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              width: '600px',
+              height: '378px',
+              minWidth: '600px',
+              minHeight: '378px',
+              maxWidth: '600px',
+              maxHeight: '378px',
+              padding: '20px',
+              background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
+            }}
+          >
             {/* Header */}
-            <div className="text-center" style={{ marginBottom: '4px' }}>
+            <div className="text-center" style={{ marginBottom: '6px' }}>
               <h1 className="font-bold tracking-wide" style={{ fontSize: '13px', lineHeight: '1.1', margin: 0, color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', letterSpacing: '0.2px' }}>
                 ASOCIACIÓN MISIONERA
               </h1>
@@ -524,80 +524,97 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               </h1>
             </div>
 
-            <div className="flex relative" style={{ gap: '7px', alignItems: 'flex-start' }}>
-              {/* Foto */}
-              <div className="flex-shrink-0" style={{ width: '90px' }}>
-                <div className="bg-white rounded border-2 border-gray-400 mb-0.5 flex items-center justify-center overflow-hidden shadow-md" style={{ width: '90px', height: '110px', borderRadius: '3px' }}>
-                  {credencial.fotoUrl ? (
+            {/* Sección principal con borde amarillo - Centrada */}
+            <div className="flex justify-center items-center" style={{ marginBottom: '6px' }}>
+              <div 
+                className="relative"
+                style={{
+                  border: '3px solid #FCD34D',
+                  borderRadius: '4px',
+                  padding: '8px',
+                  width: '100%',
+                  maxWidth: '560px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <div className="flex relative w-full" style={{ gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
+                  {/* Foto */}
+                  <div className="flex-shrink-0" style={{ width: '95px' }}>
+                    <div className="bg-white rounded border-2 border-gray-400 mb-0.5 flex items-center justify-center overflow-hidden shadow-md" style={{ width: '95px', height: '115px', borderRadius: '3px' }}>
+                      {credencial.fotoUrl ? (
+                        <Image
+                          src={credencial.fotoUrl}
+                          alt="Foto"
+                          width={95}
+                          height={115}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-center px-1" style={{ fontSize: '7px' }}>FOTO</span>
+                      )}
+                    </div>
+                    <div className="text-center font-semibold whitespace-nowrap" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 600, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.1' }}>
+                      {credencial.tipoPastor} / SHEPHERD
+                    </div>
+                  </div>
+
+                  {/* Información */}
+                  <div className="flex-1 space-y-0.5 min-w-0" style={{ paddingTop: '0px', maxWidth: '280px' }}>
+                    <div>
+                      <div className="mb-0.5 font-medium" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                        Apellido / Surname
+                      </div>
+                      <div className="font-bold uppercase break-words" style={{ fontSize: '10px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
+                        {credencial.apellido}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="mb-0.5 font-medium" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                        Nombre / Name
+                      </div>
+                      <div className="font-bold uppercase break-words" style={{ fontSize: '10px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
+                        {credencial.nombre}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="mb-0.5 font-medium" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                        Documento / Document
+                      </div>
+                      <div className="font-bold text-black font-mono break-words" style={{ fontSize: '10px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
+                        {credencial.documento}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="mb-0.5 font-medium" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                        Nacionalidad / Nationality
+                      </div>
+                      <div className="font-bold break-words" style={{ fontSize: '10px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
+                        {credencial.nacionalidad}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="mb-0.5 font-medium" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                        Fecha de nacimiento / Birthdate
+                      </div>
+                      <div className="font-bold break-words" style={{ fontSize: '10px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
+                        {fechaNacimiento}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Logo AMVA - Centrado */}
+                  <div className="flex-shrink-0 flex items-center justify-center" style={{ width: '115px', height: '115px' }}>
                     <Image
-                      src={credencial.fotoUrl}
-                      alt="Foto"
-                      width={90}
-                      height={110}
-                      className="object-cover w-full h-full"
+                      src="/mundo.png"
+                      alt="AMVA Logo"
+                      width={115}
+                      height={115}
+                      className="object-contain"
                     />
-                  ) : (
-                    <span className="text-gray-400 text-center px-1" style={{ fontSize: '7px' }}>FOTO</span>
-                  )}
-                </div>
-                <div className="text-center font-semibold whitespace-nowrap" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 600, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.1' }}>
-                  {credencial.tipoPastor} / SHEPHERD
-                </div>
-              </div>
-
-              {/* Información */}
-              <div className="flex-1 space-y-0.5 min-w-0" style={{ paddingTop: '0px' }}>
-                <div>
-                  <div className="mb-0.5 font-medium" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
-                    Apellido / Surname
-                  </div>
-                  <div className="font-bold uppercase break-words" style={{ fontSize: '10px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
-                    {credencial.apellido}
                   </div>
                 </div>
-                <div>
-                  <div className="mb-0.5 font-medium" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
-                    Nombre / Name
-                  </div>
-                  <div className="font-bold uppercase break-words" style={{ fontSize: '10px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
-                    {credencial.nombre}
-                  </div>
-                </div>
-                <div>
-                  <div className="mb-0.5 font-medium" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
-                    Documento / Document
-                  </div>
-                  <div className="font-bold text-black font-mono break-words" style={{ fontSize: '10px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
-                    {credencial.documento}
-                  </div>
-                </div>
-                <div>
-                  <div className="mb-0.5 font-medium" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
-                    Nacionalidad / Nationality
-                  </div>
-                  <div className="font-bold break-words" style={{ fontSize: '10px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
-                    {credencial.nacionalidad}
-                  </div>
-                </div>
-                <div>
-                  <div className="mb-0.5 font-medium" style={{ fontSize: '7px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
-                    Fecha de nacimiento / Birthdate
-                  </div>
-                  <div className="font-bold break-words" style={{ fontSize: '10px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
-                    {fechaNacimiento}
-                  </div>
-                </div>
-              </div>
-
-              {/* Logo AMVA */}
-              <div className="absolute top-0 right-0 flex items-center justify-center" style={{ width: '110px', height: '110px', top: '2px', right: '2px' }}>
-                <Image
-                  src="/mundo.png"
-                  alt="AMVA Logo"
-                  width={110}
-                  height={110}
-                  className="object-contain"
-                />
               </div>
             </div>
 
@@ -612,23 +629,23 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             </div>
           </div>
 
-              {/* DORSO - Ampliado para mejor visualización del dorso completo */}
-              <div
-                className="absolute inset-0 rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
-                style={{
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden',
-                  transform: 'rotateY(180deg)',
-                  width: '1000px',
-                  height: '630px',
-                  minWidth: '1000px',
-                  minHeight: '630px',
-                  maxWidth: '1000px',
-                  maxHeight: '630px',
-                  padding: '35px',
-                  background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
-                }}
-              >
+          {/* DORSO - Ampliado para mejor visualización del dorso completo */}
+          <div
+            className="absolute inset-0 rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+              width: '1000px',
+              height: '630px',
+              minWidth: '1000px',
+              minHeight: '630px',
+              maxWidth: '1000px',
+              maxHeight: '630px',
+              padding: '35px',
+              background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
+            }}
+          >
             <div className="h-full flex flex-col" style={{ height: '100%' }}>
               {/* Header con Logo y Texto al lado */}
               <div className="flex items-start" style={{ gap: '8px', marginBottom: '3px' }}>
