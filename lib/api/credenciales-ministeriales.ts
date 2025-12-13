@@ -44,6 +44,7 @@ export interface UpdateCredencialMinisterialDto {
 export interface CredencialMinisterialFilterDto {
   documento?: string
   estado?: 'vigente' | 'por_vencer' | 'vencida'
+  activa?: boolean
 }
 
 export interface CredencialesMinisterialesResponse {

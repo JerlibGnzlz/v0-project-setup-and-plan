@@ -64,6 +64,10 @@ export class CredencialesMinisterialesController {
       if (filters.estado && filters.estado.trim() && filters.estado !== 'todos') {
         cleanFilters.estado = filters.estado.trim() as 'vigente' | 'por_vencer' | 'vencida'
       }
+      // Incluir filtro de activa si está presente
+      if (filters.activa !== undefined) {
+        cleanFilters.activa = filters.activa
+      }
       
       this.logger.log(
         `Obteniendo credenciales ministeriales: page=${page}, limit=${limit}, filters=${JSON.stringify(cleanFilters)}`

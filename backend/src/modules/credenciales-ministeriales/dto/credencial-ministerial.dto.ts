@@ -99,5 +99,9 @@ export class CredencialMinisterialFilterDto {
   @IsOptional()
   @IsString()
   estado?: string
+
+  @IsOptional()
+  @IsBoolean()
+  activa?: boolean
 }
 

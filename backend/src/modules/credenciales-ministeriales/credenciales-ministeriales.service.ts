@@ -178,8 +178,14 @@ export class CredencialesMinisterialesService extends BaseService<
       const en30Dias = new Date()
       en30Dias.setDate(hoy.getDate() + 30)
 
-      const where: Prisma.CredencialMinisterialWhereInput = {
-        activa: true,
+      const where: Prisma.CredencialMinisterialWhereInput = {}
+
+      // Filtrar por activa solo si se especifica en los filtros
+      if (filters?.activa !== undefined) {
+        where.activa = filters.activa
+      } else {
+        // Por defecto, mostrar solo las activas
+        where.activa = true
       }
 
       if (filters?.documento && filters.documento.trim()) {
