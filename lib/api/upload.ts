@@ -97,4 +97,9 @@ export const uploadApi = {
     )
     return response.data
   },
+
+  // Upload image genérico (alias para uploadPastorImage)
+  uploadImage: async (file: File): Promise<UploadResponse> => {
+    return uploadApi.uploadPastorImage(file)
+  },
 }
