@@ -29,6 +29,7 @@ import {
 } from '@/lib/hooks/use-credenciales-ministeriales'
 import { CredencialMinisterial } from '@/lib/api/credenciales-ministeriales'
 import { uploadApi } from '@/lib/api/upload'
+import { toast } from 'sonner'
 
 const credencialSchema = z.object({
   apellido: z.string().min(1, 'El apellido es requerido'),
@@ -146,18 +147,18 @@ export function CredencialEditorDialog({
           console.log('[CredencialEditorDialog] Creando credencial con datos:', data)
           const nuevaCredencial = await createMutation.mutateAsync(data)
           console.log('[CredencialEditorDialog] Credencial creada exitosamente:', nuevaCredencial)
-          
+
           // Verificar que la credencial se creó correctamente
           if (!nuevaCredencial || !nuevaCredencial.id) {
             console.error('[CredencialEditorDialog] La credencial creada no tiene ID:', nuevaCredencial)
             toast.error('Error: La credencial no se creó correctamente')
             return
           }
-          
+
           // Cerrar diálogo y resetear formulario
           onOpenChange(false)
           reset()
-          
+
           // Llamar al callback con la credencial creada para mostrar el diseño visual
           // El callback se ejecutará después de que el diálogo se cierre
           if (onCredencialCreated) {
