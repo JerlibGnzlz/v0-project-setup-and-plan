@@ -108,27 +108,4 @@ export function useDeleteCredencialMinisterial() {
   })
 }
 
-export function useSincronizarDesdePastorales() {
-  const queryClient = useQueryClient()
-  const { notifyChange } = useSmartSync()
-
-  return useMutation({
-    mutationFn: () => credencialesMinisterialesApi.sincronizarDesdePastorales(),
-    onSuccess: async (data) => {
-      await queryClient.invalidateQueries({ queryKey: ['credenciales-ministeriales'] })
-      notifyChange('credenciales-ministeriales')
-      toast.success('✅ Sincronización completada', {
-        description: `${data.creadas} creadas, ${data.actualizadas} actualizadas, ${data.errores} errores`,
-      })
-    },
-    onError: (error: unknown) => {
-      const errorMessage =
-        (error as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || 'Error al sincronizar credenciales'
-      toast.error('Error al sincronizar credenciales', {
-        description: errorMessage,
-      })
-    },
-  })
-}
 
