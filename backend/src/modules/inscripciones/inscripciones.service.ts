@@ -2720,11 +2720,9 @@ export class InscripcionesService {
             }
 
             return resultado
-        } catch (error) {
-            this.logger.error(`❌ Error enviando email directo a ${inscripcion.email}:`, {
-                error: error instanceof Error ? error.message : 'Unknown error',
-                stack: error instanceof Error ? error.stack : undefined,
-            })
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            this.logger.error(`❌ Error enviando email de recordatorio a ${inscripcion.email}:`, errorMessage)
             return false
         }
     }
