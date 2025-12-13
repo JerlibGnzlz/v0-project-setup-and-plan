@@ -124,17 +124,17 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             flex: 1;
           }
           .info-row {
-            margin-bottom: 8px;
-            font-size: 11px;
+            margin-bottom: 10px;
           }
           .info-label {
-            font-size: 8px;
+            font-size: 9px;
             margin-bottom: 2px;
             color: #0D374E;
+            opacity: 0.8;
           }
           .info-value {
             font-weight: bold;
-            font-size: 11px;
+            font-size: 12px;
             text-transform: uppercase;
             color: #000000;
           }
