@@ -237,8 +237,12 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
             </div>
             <div style="margin: 20px 0;">
-              <div style="text-align: center; font-size: 12px; font-weight: bold; margin-bottom: 10px;">FICHERO DE CULTO</div>
-              <div style="border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; margin-bottom: 5px;">FIRMA PRESIDENTE DEL C.E.N.</div>
+              <div style="text-align: center; font-size: 11px; font-weight: bold; margin-bottom: 8px; line-height: 1.4;">
+                FICHERO de CULTO N 2753<br/>
+                PERSO.-JURIDICA 000-318<br/>
+                C.U.I.T.30-68748687-7
+              </div>
+              <div style="border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; margin-bottom: 5px; text-align: center;">FIRMA PRESIDENTE DEL C.E.N.</div>
             </div>
             <div class="dorso-fecha">
               VENCE: ${fechaVencimiento}
@@ -454,7 +458,11 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                 </div>
                 <div className="mt-12 flex justify-center">
                   <div className="w-64 text-center">
-                    <div className="text-sm font-bold mb-3">FICHERO DE CULTO</div>
+                    <div className="text-xs font-bold mb-3 leading-tight">
+                      FICHERO de CULTO N 2753<br/>
+                      PERSO.-JURIDICA 000-318<br/>
+                      C.U.I.T.30-68748687-7
+                    </div>
                     <div className="border-b-2 border-white/40 pb-3">
                       <div className="text-sm font-semibold">FIRMA PRESIDENTE DEL C.E.N.</div>
                     </div>
