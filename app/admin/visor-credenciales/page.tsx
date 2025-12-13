@@ -30,6 +30,10 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  List,
+  Eye,
+  FileText,
+  ArrowRight,
 } from 'lucide-react'
 import { CredencialCard } from '@/components/admin/credenciales-ministeriales/credencial-card'
 import { CredencialEditorDialog } from '@/components/admin/credenciales-ministeriales/credencial-editor-dialog'
