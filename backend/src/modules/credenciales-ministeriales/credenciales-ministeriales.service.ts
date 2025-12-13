@@ -13,6 +13,7 @@ import {
 import { CredencialMinisterial, Prisma, TipoPastor } from '@prisma/client'
 import { BaseService } from '../../common/base.service'
 import { PrismaModelDelegate } from '../../common/types/prisma.types'
+import { NotificationsService } from '../notifications/notifications.service'
 
 export interface CredencialMinisterialWithEstado extends CredencialMinisterial {
   estado: 'vigente' | 'por_vencer' | 'vencida'
@@ -33,7 +34,10 @@ export class CredencialesMinisterialesService extends BaseService<
 > {
   private readonly logger = new Logger(CredencialesMinisterialesService.name)
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService
+  ) {
     super(
       prisma.credencialMinisterial as unknown as PrismaModelDelegate<CredencialMinisterial>,
       { entityName: 'CredencialMinisterial' }
@@ -75,10 +79,40 @@ export class CredencialesMinisterialesService extends BaseService<
       })
 
       if (credencialExistente) {
+        // Enviar notificación a todos los admins
+        const admins = await this.prisma.user.findMany({
+          where: { activo: true },
+        })
+
+        const titulo = 'Intento de crear credencial duplicada'
+        const mensaje = `Se intentó crear una credencial con el documento ${dto.documento} que ya existe. La credencial existente pertenece a ${credencialExistente.nombre} ${credencialExistente.apellido}.`
+
+        for (const admin of admins) {
+          await this.notificationsService.sendNotificationToAdmin(
+            admin.email,
+            titulo,
+            mensaje,
+            {
+              tipo: 'credencial_duplicada',
+              documento: dto.documento,
+              credencialExistenteId: credencialExistente.id,
+            }
+          )
+        }
+
+        this.logger.warn(
+          `⚠️ Intento de crear credencial duplicada: ${dto.documento} - ${dto.nombre} ${dto.apellido}`
+        )
+
         throw new ConflictException(
           `Ya existe una credencial con el documento ${dto.documento}`
         )
       }
+
+      // Parsear fechas correctamente (sin problemas de timezone)
+      // Las fechas vienen como string en formato YYYY-MM-DD
+      const fechaNacimiento = this.parseDateString(dto.fechaNacimiento)
+      const fechaVencimiento = this.parseDateString(dto.fechaVencimiento)
 
       const credencial = await this.prisma.credencialMinisterial.create({
         data: {
@@ -86,9 +120,9 @@ export class CredencialesMinisterialesService extends BaseService<
           nombre: dto.nombre,
           documento: dto.documento,
           nacionalidad: dto.nacionalidad,
-          fechaNacimiento: new Date(dto.fechaNacimiento),
+          fechaNacimiento,
           tipoPastor: dto.tipoPastor || 'PASTOR',
-          fechaVencimiento: new Date(dto.fechaVencimiento),
+          fechaVencimiento,
           fotoUrl: dto.fotoUrl,
           activa: dto.activa ?? true,
         },
@@ -104,6 +138,23 @@ export class CredencialesMinisterialesService extends BaseService<
       this.logger.error(`❌ Error al crear credencial ministerial: ${errorMessage}`)
       throw error
     }
+  }
+
+  /**
+   * Parsea un string de fecha (YYYY-MM-DD) a Date sin problemas de timezone
+   * Asegura que el día, mes y año se mantengan exactamente como se ingresaron
+   */
+  private parseDateString(dateString: string): Date {
+    // Si viene en formato YYYY-MM-DD, parsearlo correctamente
+    const parts = dateString.split('-')
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10)
+      const month = parseInt(parts[1], 10) - 1 // Los meses en JS son 0-indexed
+      const day = parseInt(parts[2], 10)
+      return new Date(Date.UTC(year, month, day, 12, 0, 0)) // Usar UTC para evitar problemas de timezone
+    }
+    // Fallback a parseo normal
+    return new Date(dateString)
   }
 
   /**
@@ -129,23 +180,48 @@ export class CredencialesMinisterialesService extends BaseService<
         })
 
         if (credencialExistente) {
+          // Enviar notificación a todos los admins
+          const admins = await this.prisma.user.findMany({
+            where: { activo: true },
+          })
+
+          const titulo = 'Intento de actualizar credencial con documento duplicado'
+          const mensaje = `Se intentó actualizar la credencial ${id} con el documento ${dto.documento} que ya existe. La credencial existente pertenece a ${credencialExistente.nombre} ${credencialExistente.apellido}.`
+
+          for (const admin of admins) {
+            await this.notificationsService.sendNotificationToAdmin(
+              admin.email,
+              titulo,
+              mensaje,
+              {
+                tipo: 'credencial_duplicada',
+                documento: dto.documento,
+                credencialExistenteId: credencialExistente.id,
+                credencialActualId: id,
+              }
+            )
+          }
+
           throw new ConflictException(
             `Ya existe una credencial con el documento ${dto.documento}`
           )
         }
       }
 
+      // Parsear fechas correctamente si se proporcionan
+      const updateData: Partial<CredencialMinisterial> = { ...dto }
+      
+      if (dto.fechaNacimiento) {
+        updateData.fechaNacimiento = this.parseDateString(dto.fechaNacimiento)
+      }
+      
+      if (dto.fechaVencimiento) {
+        updateData.fechaVencimiento = this.parseDateString(dto.fechaVencimiento)
+      }
+
       const updated = await this.prisma.credencialMinisterial.update({
         where: { id },
-        data: {
-          ...dto,
-          fechaNacimiento: dto.fechaNacimiento
-            ? new Date(dto.fechaNacimiento)
-            : undefined,
-          fechaVencimiento: dto.fechaVencimiento
-            ? new Date(dto.fechaVencimiento)
-            : undefined,
-        },
+        data: updateData,
       })
 
       this.logger.log(`✅ Credencial ministerial actualizada: ${id}`)
