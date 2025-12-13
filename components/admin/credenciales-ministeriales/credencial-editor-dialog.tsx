@@ -37,7 +37,7 @@ const credencialSchema = z.object({
   documento: z.string().min(1, 'El documento es requerido'),
   nacionalidad: z.string().min(1, 'La nacionalidad es requerida'),
   fechaNacimiento: z.string().min(1, 'La fecha de nacimiento es requerida'),
-  tipoPastor: z.string().default('PASTOR'),
+  tipoPastor: z.string().min(1, 'El tipo de pastor es requerido'),
   fechaVencimiento: z.string().min(1, 'La fecha de vencimiento es requerida'),
   fotoUrl: z.string().optional(),
 })
