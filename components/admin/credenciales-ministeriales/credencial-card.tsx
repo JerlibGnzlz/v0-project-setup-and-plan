@@ -496,35 +496,35 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         </div>
       </div>
 
-      {/* Card Container con Flip - Tamaño optimizado para previsualización */}
-      <div className="relative w-full flex justify-center" style={{ perspective: '1000px' }}>
-        <div
-          className="relative transition-transform duration-700"
-          style={{
-            transformStyle: 'preserve-3d',
-            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-            width: '600px',
-            height: '378px',
-            minWidth: '600px',
-            minHeight: '378px',
-          }}
-        >
-          {/* FRENTE - Tamaño optimizado para previsualización */}
-          <div
-            className="rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
-            style={{
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              width: '600px',
-              height: '378px',
-              minWidth: '600px',
-              minHeight: '378px',
-              maxWidth: '600px',
-              maxHeight: '378px',
-              padding: '20px',
-              background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
-            }}
-          >
+          {/* Card Container con Flip - Tamaño ampliado para mejor visualización */}
+          <div className="relative w-full flex justify-center" style={{ perspective: '1000px' }}>
+            <div
+              className="relative transition-transform duration-700"
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                width: '800px',
+                height: '504px',
+                minWidth: '800px',
+                minHeight: '504px',
+              }}
+            >
+              {/* FRENTE - Tamaño ampliado para mejor visualización */}
+              <div
+                className="rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
+                style={{
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  width: '800px',
+                  height: '504px',
+                  minWidth: '800px',
+                  minHeight: '504px',
+                  maxWidth: '800px',
+                  maxHeight: '504px',
+                  padding: '26px',
+                  background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
+                }}
+              >
             {/* Header */}
             <div className="text-center" style={{ marginBottom: '6px' }}>
               <h1 className="font-bold tracking-wide" style={{ fontSize: '13px', lineHeight: '1.1', margin: 0, color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', letterSpacing: '0.2px' }}>
@@ -537,7 +537,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
 
             {/* Sección principal con borde amarillo - Centrada */}
             <div className="flex justify-center items-center" style={{ marginBottom: '6px' }}>
-              <div 
+              <div
                 className="relative"
                 style={{
                   border: '3px solid #FCD34D',
