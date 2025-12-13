@@ -96,8 +96,8 @@ export class CredencialMinisterialFilterDto {
   @IsOptional()
   documento?: string
 
-  @IsString()
   @IsOptional()
-  estado?: 'vigente' | 'por_vencer' | 'vencida'
+  @IsString()
+  estado?: string
 }
 

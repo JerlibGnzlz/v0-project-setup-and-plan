@@ -182,14 +182,14 @@ export class CredencialesMinisterialesService extends BaseService<
         activa: true,
       }
 
-      if (filters?.documento) {
+      if (filters?.documento && filters.documento.trim()) {
         where.documento = {
-          contains: filters.documento,
+          contains: filters.documento.trim(),
           mode: 'insensitive',
         }
       }
 
-      if (filters?.estado) {
+      if (filters?.estado && filters.estado.trim()) {
         if (filters.estado === 'vencida') {
           where.fechaVencimiento = {
             lt: hoy,

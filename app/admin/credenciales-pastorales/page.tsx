@@ -292,11 +292,11 @@ export default function CredencialesPastoralesPage() {
             </Card>
           ) : (
             <>
-          <CredencialPastoralTable
-            credenciales={credenciales}
-            onEdit={handleEdit}
-            onView={handleView}
-          />
+              <CredencialPastoralTable
+                credenciales={credenciales}
+                onEdit={handleEdit}
+                onView={handleView}
+              />
               {totalPages > 1 && (
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">

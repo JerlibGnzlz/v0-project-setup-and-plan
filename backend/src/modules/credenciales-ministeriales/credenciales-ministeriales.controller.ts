@@ -55,10 +55,24 @@ export class CredencialesMinisterialesController {
     try {
       const page = Number(pagination.page || 1)
       const limit = Number(pagination.limit || 20)
+      
+      // Limpiar filtros: solo incluir si tienen valor
+      const cleanFilters: CredencialMinisterialFilterDto = {}
+      if (filters.documento && filters.documento.trim()) {
+        cleanFilters.documento = filters.documento.trim()
+      }
+      if (filters.estado && filters.estado.trim() && filters.estado !== 'todos') {
+        cleanFilters.estado = filters.estado.trim() as 'vigente' | 'por_vencer' | 'vencida'
+      }
+      
+      this.logger.log(
+        `Obteniendo credenciales ministeriales: page=${page}, limit=${limit}, filters=${JSON.stringify(cleanFilters)}`
+      )
+      
       return await this.credencialesMinisterialesService.findAllWithFilters(
         page,
         limit,
-        filters
+        Object.keys(cleanFilters).length > 0 ? cleanFilters : undefined
       )
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
