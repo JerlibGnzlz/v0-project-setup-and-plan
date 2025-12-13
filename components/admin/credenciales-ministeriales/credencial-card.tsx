@@ -45,7 +45,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           }
           @media print {
             @page {
-              size: 85.6mm 53.98mm;
+              size: 400px 252px;
               margin: 0;
             }
             html, body {
