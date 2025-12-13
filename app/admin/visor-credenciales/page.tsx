@@ -452,8 +452,20 @@ export default function VisorCredencialesPage() {
                   </tr>
                 ) : (
                   credenciales.map((credencial) => {
+                    // Parsear fecha correctamente para evitar problemas de timezone
+                    const parseDate = (dateString: string): Date => {
+                      if (dateString.includes('T')) {
+                        const datePart = dateString.split('T')[0]
+                        const [year, month, day] = datePart.split('-').map(Number)
+                        return new Date(year, month - 1, day)
+                      } else {
+                        const [year, month, day] = dateString.split('-').map(Number)
+                        return new Date(year, month - 1, day)
+                      }
+                    }
+
                     const fechaVencimiento = format(
-                      new Date(credencial.fechaVencimiento),
+                      parseDate(credencial.fechaVencimiento),
                       'dd/MM/yyyy',
                       { locale: es }
                     )

@@ -21,13 +21,29 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
     const printWindow = window.open('', '_blank')
     if (!printWindow) return
 
+    // Parsear fechas correctamente para evitar problemas de timezone
+    // Las fechas vienen en formato ISO (YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss)
+    const parseDate = (dateString: string): Date => {
+      // Si viene en formato YYYY-MM-DD, parsearlo correctamente
+      if (dateString.includes('T')) {
+        // Formato ISO completo, extraer solo la parte de fecha
+        const datePart = dateString.split('T')[0]
+        const [year, month, day] = datePart.split('-').map(Number)
+        return new Date(year, month - 1, day) // Mes es 0-indexed
+      } else {
+        // Formato YYYY-MM-DD
+        const [year, month, day] = dateString.split('-').map(Number)
+        return new Date(year, month - 1, day) // Mes es 0-indexed
+      }
+    }
+
     const fechaVencimiento = format(
-      new Date(credencial.fechaVencimiento),
+      parseDate(credencial.fechaVencimiento),
       'dd/MM/yyyy',
       { locale: es }
     )
     const fechaNacimiento = format(
-      new Date(credencial.fechaNacimiento),
+      parseDate(credencial.fechaNacimiento),
       'dd/MM/yyyy',
       { locale: es }
     )
@@ -407,13 +423,28 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
     }, 250)
   }
 
+  // Parsear fechas correctamente para evitar problemas de timezone
+  const parseDate = (dateString: string): Date => {
+    // Si viene en formato YYYY-MM-DD, parsearlo correctamente
+    if (dateString.includes('T')) {
+      // Formato ISO completo, extraer solo la parte de fecha
+      const datePart = dateString.split('T')[0]
+      const [year, month, day] = datePart.split('-').map(Number)
+      return new Date(year, month - 1, day) // Mes es 0-indexed
+    } else {
+      // Formato YYYY-MM-DD
+      const [year, month, day] = dateString.split('-').map(Number)
+      return new Date(year, month - 1, day) // Mes es 0-indexed
+    }
+  }
+
   const fechaVencimiento = format(
-    new Date(credencial.fechaVencimiento),
+    parseDate(credencial.fechaVencimiento),
     'dd/MM/yyyy',
     { locale: es }
   )
   const fechaNacimiento = format(
-    new Date(credencial.fechaNacimiento),
+    parseDate(credencial.fechaNacimiento),
     'dd/MM/yyyy',
     { locale: es }
   )
