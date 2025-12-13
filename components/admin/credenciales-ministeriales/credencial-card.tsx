@@ -132,11 +132,22 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             line-height: 1.2;
             text-shadow: 0 1px 2px rgba(255,255,255,0.9);
           }
+          .yellow-border-container {
+            border: 3px solid #FCD34D;
+            border-radius: 4px;
+            padding: 8px;
+            margin: 4px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
           .content {
             display: flex;
             gap: 8px;
             position: relative;
-            align-items: flex-start;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
           }
           .photo-section {
             width: 88px;
@@ -197,9 +208,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             word-break: break-word;
           }
           .logo-section {
-            position: absolute;
-            top: 2px;
-            right: 2px;
+            flex-shrink: 0;
             width: 100px;
             height: 100px;
             display: flex;
@@ -327,37 +336,39 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             <h1>ASOCIACIÓN MISIONERA</h1>
             <h1>VIDA ABUNDANTE</h1>
           </div>
-          <div class="content">
-            <div class="photo-section">
-              <div class="photo-placeholder">
-                ${credencial.fotoUrl ? `<img src="${credencial.fotoUrl}" alt="Foto" />` : 'FOTO'}
+          <div class="yellow-border-container">
+            <div class="content">
+              <div class="photo-section">
+                <div class="photo-placeholder">
+                  ${credencial.fotoUrl ? `<img src="${credencial.fotoUrl}" alt="Foto" />` : 'FOTO'}
+                </div>
+                <div class="tipo-pastor">${credencial.tipoPastor} / SHEPHERD</div>
               </div>
-              <div class="tipo-pastor">${credencial.tipoPastor} / SHEPHERD</div>
-            </div>
-            <div class="info-section">
-              <div class="info-row">
-                <div class="info-label">Apellido / Surname</div>
-                <div class="info-value">${credencial.apellido}</div>
+              <div class="info-section">
+                <div class="info-row">
+                  <div class="info-label">Apellido / Surname</div>
+                  <div class="info-value">${credencial.apellido}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Nombre / Name</div>
+                  <div class="info-value">${credencial.nombre}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Documento / Document</div>
+                  <div class="info-value">${credencial.documento}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Nacionalidad / Nationality</div>
+                  <div class="info-value">${credencial.nacionalidad}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Fecha de nacimiento / Birthdate</div>
+                  <div class="info-value">${fechaNacimiento}</div>
+                </div>
               </div>
-              <div class="info-row">
-                <div class="info-label">Nombre / Name</div>
-                <div class="info-value">${credencial.nombre}</div>
+              <div class="logo-section">
+                <img src="/mundo.png" alt="AMVA Logo" />
               </div>
-              <div class="info-row">
-                <div class="info-label">Documento / Document</div>
-                <div class="info-value">${credencial.documento}</div>
-              </div>
-              <div class="info-row">
-                <div class="info-label">Nacionalidad / Nationality</div>
-                <div class="info-value">${credencial.nacionalidad}</div>
-              </div>
-              <div class="info-row">
-                <div class="info-label">Fecha de nacimiento / Birthdate</div>
-                <div class="info-value">${fechaNacimiento}</div>
-              </div>
-            </div>
-            <div class="logo-section">
-              <img src="/mundo.png" alt="AMVA Logo" />
             </div>
           </div>
           <div class="footer">
