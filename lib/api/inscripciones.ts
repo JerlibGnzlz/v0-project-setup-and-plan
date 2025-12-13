@@ -88,10 +88,7 @@ export const inscripcionesApi = {
 
   create: async (data: CreateInscripcionDto): Promise<Inscripcion> => {
     try {
-      console.log('[inscripcionesApi] Enviando datos a /inscripciones:', data)
-      console.log('[inscripcionesApi] API_URL:', process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api")
       const response = await apiClient.post<Inscripcion>("/inscripciones", data)
-      console.log('[inscripcionesApi] Respuesta exitosa:', response.data)
       return response.data
     } catch (error: any) {
       console.error('[inscripcionesApi] Error en create:', error)

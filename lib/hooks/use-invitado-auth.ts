@@ -31,7 +31,6 @@ export function useInvitadoAuth() {
       if (!token) {
         throw new Error('No hay token disponible')
       }
-      console.log('[useInvitadoAuth] Obteniendo perfil del invitado...')
       const profile = await invitadoAuthApi.getProfile()
       return profile
     },
@@ -61,9 +60,6 @@ export function useInvitadoAuth() {
         const newToken = e.newValue
         // Solo invalidar si el token realmente cambió
         if (newToken && newToken !== lastToken) {
-          console.log(
-            '[useInvitadoAuth] Token detectado en storage (otra pestaña), invalidando query...'
-          )
           lastToken = newToken
           // Debounce: esperar 500ms antes de invalidar para evitar múltiples invalidaciones
           if (invalidateTimeout) clearTimeout(invalidateTimeout)
@@ -91,7 +87,6 @@ export function useInvitadoAuth() {
         lastToken = currentToken
         // Solo invalidar si la query no está cargando y no tiene datos válidos
         if (queryState && queryState.status !== 'loading' && !queryState.data) {
-          console.log('[useInvitadoAuth] Token nuevo detectado, invalidando query...')
           // Debounce: esperar antes de invalidar
           if (invalidateTimeout) clearTimeout(invalidateTimeout)
           invalidateTimeout = setTimeout(() => {
@@ -110,7 +105,6 @@ export function useInvitadoAuth() {
 
   // Función para invalidar y refetch manualmente (útil después de login/registro)
   const invalidateAndRefetch = useCallback(async () => {
-    console.log('[useInvitadoAuth] Invalidando y refetching perfil...')
     queryClient.invalidateQueries({ queryKey: ['invitado', 'profile'] })
     return await refetchUser()
   }, [queryClient, refetchUser])

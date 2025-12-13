@@ -54,15 +54,7 @@ export interface InvitadoRegisterCompleteResponse {
 export const invitadoAuthApi = {
   register: async (data: InvitadoRegisterRequest): Promise<InvitadoRegisterResponse> => {
     try {
-      console.log('[invitadoAuthApi] Enviando datos a /auth/invitado/register:', {
-        nombre: data.nombre,
-        apellido: data.apellido,
-        email: data.email,
-        telefono: data.telefono,
-        sede: data.sede,
-      })
       const response = await apiClient.post<InvitadoRegisterResponse>("/auth/invitado/register", data)
-      console.log('[invitadoAuthApi] Respuesta exitosa:', response.data)
       return response.data
     } catch (error: any) {
       console.error('[invitadoAuthApi] Error en register:', error)
@@ -72,15 +64,7 @@ export const invitadoAuthApi = {
 
   registerComplete: async (data: InvitadoRegisterCompleteRequest): Promise<InvitadoRegisterCompleteResponse> => {
     try {
-      console.log('[invitadoAuthApi] Enviando datos a /auth/invitado/register-complete:', {
-        nombre: data.nombre,
-        apellido: data.apellido,
-        email: data.email,
-        telefono: data.telefono,
-        sede: data.sede,
-      })
       const response = await apiClient.post<InvitadoRegisterCompleteResponse>("/auth/invitado/register-complete", data)
-      console.log('[invitadoAuthApi] Respuesta exitosa:', response.data)
       return response.data
     } catch (error: any) {
       console.error('[invitadoAuthApi] Error en registerComplete:', error)
@@ -100,9 +84,7 @@ export const invitadoAuthApi = {
 
   getProfile: async (): Promise<Invitado> => {
     try {
-      console.log('[invitadoAuthApi] Obteniendo perfil del invitado...')
       const response = await apiClient.get<Invitado>("/auth/invitado/me")
-      console.log('[invitadoAuthApi] Perfil obtenido exitosamente:', response.data)
       return response.data
     } catch (error: any) {
       console.error('[invitadoAuthApi] Error obteniendo perfil:', error)
@@ -112,9 +94,7 @@ export const invitadoAuthApi = {
 
   logout: async (refreshToken?: string): Promise<void> => {
     try {
-      console.log('[invitadoAuthApi] Cerrando sesión del invitado...')
       await apiClient.post("/auth/invitado/logout", { refreshToken })
-      console.log('[invitadoAuthApi] Logout exitoso')
     } catch (error: any) {
       console.error('[invitadoAuthApi] Error en logout:', error)
       // No lanzar error, siempre limpiar localStorage
