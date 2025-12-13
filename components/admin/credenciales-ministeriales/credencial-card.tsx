@@ -652,7 +652,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                 </div>
               </div>
 
-              {/* FICHERO DE CULTO - Posicionado justo después del header */}
+              {/* FICHERO DE CULTO - Posicionado justo después del texto de certificación */}
               <div style={{ marginBottom: '8px', marginTop: '4px' }}>
                 <div className="font-bold text-center break-words" style={{ fontSize: '10.5px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.2' }}>
                   FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
