@@ -308,7 +308,7 @@ export default function VisorCredencialesPage() {
               </h3>
               <p className="text-sm text-muted-foreground mb-6">
                 {total === 0
-                  ? 'Crea una nueva credencial o sincroniza desde credenciales pastorales para comenzar'
+                  ? 'Crea una nueva credencial para comenzar'
                   : 'No se encontraron credenciales con los filtros aplicados'}
               </p>
               <Button onClick={handleCreate}>

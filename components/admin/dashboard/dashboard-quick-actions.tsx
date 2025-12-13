@@ -168,7 +168,7 @@ export function DashboardQuickActions({
       </ScrollReveal>
 
       <ScrollReveal delay={600}>
-        <Link href="/admin/credenciales-pastorales">
+        <Link href="/admin/visor-credenciales">
           <Card className="hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer group border-purple-200/50 dark:border-purple-500/20 bg-gradient-to-br from-white to-purple-50/30 dark:from-background dark:to-purple-950/20 overflow-hidden">
             <div className="h-1 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -179,10 +179,10 @@ export function DashboardQuickActions({
                 <ArrowRight className="size-5 text-purple-500/50 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
               </div>
               <CardTitle className="mt-4 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                Credenciales Pastorales
+                Visor de Credenciales
               </CardTitle>
               <CardDescription>
-                Gestiona las credenciales ministeriales de los pastores y sus vencimientos
+                Gestiona las credenciales ministeriales físicas para impresión
               </CardDescription>
             </CardHeader>
             <CardContent>

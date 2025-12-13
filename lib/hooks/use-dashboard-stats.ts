@@ -1,7 +1,7 @@
 import { usePagos } from './use-pagos'
 import { usePastores } from './use-pastores'
 import { useInscripciones } from './use-inscripciones'
-import { useCredencialesPastorales, useCredencialPorVencer, useCredencialesVencidas } from './use-credenciales-pastorales'
+import { useCredencialesMinisteriales } from './use-credenciales-ministeriales'
 
 export interface DashboardStats {
   totalPastores: number
@@ -25,9 +25,7 @@ export function useDashboardStats() {
   const { data: pagosResponse } = usePagos()
   const { data: pastoresResponse } = usePastores()
   const { data: inscripcionesResponse } = useInscripciones()
-  const { data: credencialesResponse } = useCredencialesPastorales(1, 1000)
-  const { data: credencialesPorVencer } = useCredencialPorVencer()
-  const { data: credencialesVencidas } = useCredencialesVencidas()
+  const { data: credencialesResponse } = useCredencialesMinisteriales(1, 1000)
 
   // Manejar respuesta paginada o array directo (compatibilidad)
   const pagos = Array.isArray(pagosResponse) ? pagosResponse : pagosResponse?.data || []
@@ -36,8 +34,8 @@ export function useDashboardStats() {
     ? inscripcionesResponse
     : inscripcionesResponse?.data || []
   const credenciales = credencialesResponse?.data || []
-  const porVencer = credencialesPorVencer || []
-  const vencidas = credencialesVencidas || []
+  const porVencer = credenciales.filter((c: { estado: string }) => c.estado === 'por_vencer')
+  const vencidas = credenciales.filter((c: { estado: string }) => c.estado === 'vencida')
 
   const stats: DashboardStats = {
     totalPastores: pastores.length,
@@ -64,7 +62,7 @@ export function useDashboardStats() {
       (i: { origenRegistro?: string }) => i.origenRegistro === 'mobile'
     ).length,
     totalCredenciales: credenciales.filter((c: { activa: boolean }) => c.activa).length,
-    credencialesVigentes: credenciales.filter((c: { estado: string; activa: boolean }) => c.estado === 'VIGENTE' && c.activa).length,
+    credencialesVigentes: credenciales.filter((c: { estado: string; activa: boolean }) => c.estado === 'vigente' && c.activa).length,
     credencialesPorVencer: porVencer.length,
     credencialesVencidas: vencidas.length,
   }
