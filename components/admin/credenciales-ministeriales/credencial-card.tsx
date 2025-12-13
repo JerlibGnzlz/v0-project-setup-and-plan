@@ -205,7 +205,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               <div class="photo-placeholder">
                 ${credencial.fotoUrl ? `<img src="${credencial.fotoUrl}" alt="Foto" />` : 'FOTO'}
               </div>
-              <div class="tipo-pastor">${credencial.tipoPastor} / ${credencial.tipoPastor === 'PASTORA' ? 'SHEPHERD' : 'PASTOR'}</div>
+              <div class="tipo-pastor">${credencial.tipoPastor} / SHEPHERD</div>
             </div>
             <div class="info-section">
               <div class="info-row">
@@ -388,7 +388,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                   )}
                 </div>
                 <div className="text-[8px] text-center font-semibold text-[#0D374E] whitespace-nowrap">
-                  {credencial.tipoPastor} / {credencial.tipoPastor === 'PASTORA' ? 'SHEPHERD' : 'PASTOR'}
+                  {credencial.tipoPastor} / SHEPHERD
                 </div>
               </div>
 

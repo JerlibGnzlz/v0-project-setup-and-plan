@@ -292,7 +292,7 @@ export function CredencialEditorDialog({
                       <SelectValue placeholder="Selecciona un tipo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="PASTOR">PASTOR / PASTOR</SelectItem>
+                      <SelectItem value="PASTOR">PASTOR / SHEPHERD</SelectItem>
                       <SelectItem value="PASTORA">PASTORA / SHEPHERD</SelectItem>
                     </SelectContent>
                   </Select>
