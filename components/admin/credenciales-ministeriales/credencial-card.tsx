@@ -589,13 +589,13 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                 </div>
               </div>
 
-              {/* Logo AMVA */}
-              <div className="absolute top-0 right-0 flex items-center justify-center" style={{ width: '100px', height: '100px', top: '2px', right: '2px' }}>
+              {/* Logo AMVA - Ampliado visualmente */}
+              <div className="absolute top-0 right-0 flex items-center justify-center" style={{ width: '130px', height: '130px', top: '2px', right: '2px' }}>
                 <Image
                   src="/mundo.png"
                   alt="AMVA Logo"
-                  width={100}
-                  height={100}
+                  width={130}
+                  height={130}
                   className="object-contain"
                 />
               </div>
