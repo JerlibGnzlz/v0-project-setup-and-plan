@@ -80,9 +80,7 @@ export class CredencialesMinisterialesService extends BaseService<
 
       if (credencialExistente) {
         // Enviar notificación a todos los admins
-        const admins = await this.prisma.user.findMany({
-          where: { activo: true },
-        })
+        const admins = await this.prisma.user.findMany()
 
         const titulo = 'Intento de crear credencial duplicada'
         const mensaje = `Se intentó crear una credencial con el documento ${dto.documento} que ya existe. La credencial existente pertenece a ${credencialExistente.nombre} ${credencialExistente.apellido}.`
@@ -206,9 +204,19 @@ export class CredencialesMinisterialesService extends BaseService<
         }
       }
 
-      // Parsear fechas correctamente si se proporcionan
-      const updateData: Partial<CredencialMinisterial> = { ...dto }
+      // Construir updateData explícitamente para evitar problemas de tipos
+      const updateData: Prisma.CredencialMinisterialUpdateInput = {}
       
+      // Copiar campos que no son fechas
+      if (dto.apellido !== undefined) updateData.apellido = dto.apellido
+      if (dto.nombre !== undefined) updateData.nombre = dto.nombre
+      if (dto.documento !== undefined) updateData.documento = dto.documento
+      if (dto.nacionalidad !== undefined) updateData.nacionalidad = dto.nacionalidad
+      if (dto.tipoPastor !== undefined) updateData.tipoPastor = dto.tipoPastor
+      if (dto.fotoUrl !== undefined) updateData.fotoUrl = dto.fotoUrl
+      if (dto.activa !== undefined) updateData.activa = dto.activa
+      
+      // Parsear fechas a Date
       if (dto.fechaNacimiento) {
         updateData.fechaNacimiento = this.parseDateString(dto.fechaNacimiento)
       }
