@@ -89,11 +89,11 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             }
           }
           .credencial {
-            width: 85.6mm;
-            height: 53.98mm;
+            width: 400px;
+            height: 252px;
             background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%);
-            border-radius: 4mm;
-            padding: 3mm;
+            border-radius: 8px;
+            padding: 14px;
             color: white;
             position: relative;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
