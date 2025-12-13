@@ -16,6 +16,7 @@ import {
 import {
   useCredencialesMinisteriales,
   useDeleteCredencialMinisterial,
+  useSincronizarDesdePastorales,
 } from '@/lib/hooks/use-credenciales-ministeriales'
 import { CredencialMinisterial } from '@/lib/api/credenciales-ministeriales'
 import { format } from 'date-fns'
@@ -30,6 +31,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  RefreshCw,
 } from 'lucide-react'
 import { CredencialCard } from '@/components/admin/credenciales-ministeriales/credencial-card'
 import { CredencialEditorDialog } from '@/components/admin/credenciales-ministeriales/credencial-editor-dialog'
@@ -65,6 +67,7 @@ export default function VisorCredencialesPage() {
 
   const { data, isLoading, error } = useCredencialesMinisteriales(page, limit, filters)
   const deleteMutation = useDeleteCredencialMinisterial()
+  const sincronizarMutation = useSincronizarDesdePastorales()
 
   const handleCreate = () => {
     setSelectedCredencial(null)
@@ -140,10 +143,22 @@ export default function VisorCredencialesPage() {
             Gestiona las credenciales ministeriales físicas para impresión
           </p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nueva Credencial
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => sincronizarMutation.mutate()}
+            disabled={sincronizarMutation.isPending}
+          >
+            <RefreshCw
+              className={`w-4 h-4 mr-2 ${sincronizarMutation.isPending ? 'animate-spin' : ''}`}
+            />
+            Sincronizar desde Pastorales
+          </Button>
+          <Button onClick={handleCreate}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nueva Credencial
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}

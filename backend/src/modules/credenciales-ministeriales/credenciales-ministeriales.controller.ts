@@ -123,5 +123,19 @@ export class CredencialesMinisterialesController {
       throw error
     }
   }
+
+  @Post('sincronizar-desde-pastorales')
+  async sincronizarDesdePastorales(@Request() req: AuthenticatedRequest) {
+    try {
+      this.logger.log(
+        `Iniciando sincronización de credenciales pastorales por usuario ${req.user?.email}`
+      )
+      return await this.credencialesMinisterialesService.sincronizarDesdeCredencialesPastorales()
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en sincronizarDesdePastorales: ${errorMessage}`)
+      throw error
+    }
+  }
 }
 

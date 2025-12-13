@@ -266,5 +266,102 @@ export class CredencialesMinisterialesService extends BaseService<
       throw error
     }
   }
+
+  /**
+   * Sincroniza credenciales pastorales a credenciales ministeriales
+   * Toma las credenciales pastorales existentes y las convierte a credenciales ministeriales
+   */
+  async sincronizarDesdeCredencialesPastorales(): Promise<{
+    creadas: number
+    actualizadas: number
+    errores: number
+  }> {
+    try {
+      this.logger.log('🔄 Iniciando sincronización de credenciales pastorales...')
+
+      // Obtener todas las credenciales pastorales con sus pastores
+      const credencialesPastorales = await this.prisma.credencialPastoral.findMany({
+        where: {
+          activa: true,
+        },
+        include: {
+          pastor: true,
+        },
+      })
+
+      let creadas = 0
+      let actualizadas = 0
+      let errores = 0
+
+      for (const credencialPastoral of credencialesPastorales) {
+        try {
+          const pastor = credencialPastoral.pastor
+
+          // Usar número de credencial como documento si no hay teléfono
+          const documento =
+            pastor.telefono || credencialPastoral.numeroCredencial || `CP-${credencialPastoral.id.slice(0, 8)}`
+
+          // Verificar si ya existe una credencial ministerial con este documento
+          const credencialExistente = await this.prisma.credencialMinisterial.findUnique({
+            where: { documento },
+          })
+
+          // Preparar datos para la credencial ministerial
+          const datosCredencial = {
+            apellido: pastor.apellido || 'Sin apellido',
+            nombre: pastor.nombre || 'Sin nombre',
+            documento,
+            nacionalidad: pastor.pais || 'Argentina',
+            fechaNacimiento: credencialPastoral.fechaEmision, // Usar fecha de emisión como fecha de nacimiento por defecto
+            tipoPastor: pastor.tipo === 'PASTORA' ? 'PASTORA' : 'PASTOR',
+            fechaVencimiento: credencialPastoral.fechaVencimiento,
+            fotoUrl: pastor.fotoUrl || null,
+            activa: true,
+          }
+
+          if (credencialExistente) {
+            // Actualizar credencial existente
+            await this.prisma.credencialMinisterial.update({
+              where: { id: credencialExistente.id },
+              data: datosCredencial,
+            })
+            actualizadas++
+            this.logger.log(
+              `✅ Credencial ministerial actualizada: ${documento} - ${pastor.nombre} ${pastor.apellido}`
+            )
+          } else {
+            // Crear nueva credencial ministerial
+            await this.prisma.credencialMinisterial.create({
+              data: datosCredencial,
+            })
+            creadas++
+            this.logger.log(
+              `✅ Credencial ministerial creada: ${documento} - ${pastor.nombre} ${pastor.apellido}`
+            )
+          }
+        } catch (error: unknown) {
+          errores++
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+          this.logger.error(
+            `❌ Error al sincronizar credencial pastoral ${credencialPastoral.id}: ${errorMessage}`
+          )
+        }
+      }
+
+      this.logger.log(
+        `✅ Sincronización completada: ${creadas} creadas, ${actualizadas} actualizadas, ${errores} errores`
+      )
+
+      return {
+        creadas,
+        actualizadas,
+        errores,
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error en sincronización: ${errorMessage}`)
+      throw error
+    }
+  }
 }
 

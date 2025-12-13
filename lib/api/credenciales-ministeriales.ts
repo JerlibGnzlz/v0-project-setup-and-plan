@@ -104,5 +104,18 @@ export const credencialesMinisterialesApi = {
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/credenciales-ministeriales/${id}`)
   },
+
+  sincronizarDesdePastorales: async (): Promise<{
+    creadas: number
+    actualizadas: number
+    errores: number
+  }> => {
+    const response = await apiClient.post<{
+      creadas: number
+      actualizadas: number
+      errores: number
+    }>('/credenciales-ministeriales/sincronizar-desde-pastorales')
+    return response.data
+  },
 }
 
