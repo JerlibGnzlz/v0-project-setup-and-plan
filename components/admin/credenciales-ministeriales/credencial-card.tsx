@@ -629,9 +629,9 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                   background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
                 }}
               >
-            <div className="h-full flex flex-col" style={{ height: '100%', justifyContent: 'flex-start' }}>
+            <div className="h-full flex flex-col" style={{ height: '100%' }}>
               {/* Header con Logo y Texto al lado - Logo ampliado visualmente */}
-              <div className="flex items-start mb-1.5" style={{ gap: '15px', marginBottom: '9px' }}>
+              <div className="flex items-start" style={{ gap: '15px', marginBottom: '6px' }}>
                 <div className="flex-shrink-0">
                   <Image
                     src="/mundo.png"
@@ -642,25 +642,25 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                   />
                 </div>
                 <div className="flex-1" style={{ minWidth: 0 }}>
-                  <div className="font-bold mb-1 tracking-wide uppercase text-left" style={{ fontSize: '16.5px', lineHeight: '1.2', marginBottom: '4.5px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                  <div className="font-bold tracking-wide uppercase text-left" style={{ fontSize: '16.5px', lineHeight: '1.2', marginBottom: '3px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
                     EL CONSEJO EJECUTIVO NACIONAL
                   </div>
-                  <div className="leading-relaxed mb-1 text-left" style={{ fontSize: '12px', lineHeight: '1.25', marginBottom: '4.5px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                  <div className="leading-relaxed text-left" style={{ fontSize: '12px', lineHeight: '1.25', marginBottom: '0px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
                     CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
                     MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
                   </div>
                 </div>
               </div>
 
-              {/* FICHERO DE CULTO - Movido más arriba */}
-              <div className="mb-2" style={{ marginBottom: '12px', marginTop: '0px' }}>
+              {/* FICHERO DE CULTO - Posicionado justo después del header */}
+              <div style={{ marginBottom: '8px', marginTop: '4px' }}>
                 <div className="font-bold text-center break-words" style={{ fontSize: '10.5px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.2' }}>
                   FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
                 </div>
               </div>
 
-              {/* Footer: Firma (izquierda) y QR + Fecha (derecha) - Subido un poco */}
-              <div className="mt-auto flex justify-between items-end" style={{ paddingTop: '0px', gap: '15px', marginTop: 'auto' }}>
+              {/* Footer: Firma (izquierda) y QR + Fecha (derecha) - Subido para mejor distribución */}
+              <div className="flex justify-between items-end" style={{ marginTop: 'auto', gap: '15px', paddingTop: '0px' }}>
                 {/* Firma - Izquierda */}
                 <div className="flex-shrink-0" style={{ width: '232.5px' }}>
                   <div className="flex flex-col items-center justify-center" style={{ padding: '6px' }}>
