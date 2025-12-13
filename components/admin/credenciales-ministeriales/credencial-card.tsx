@@ -74,7 +74,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             margin-bottom: 15px;
           }
           .header h1 {
-            font-size: 14px;
+            font-size: 18px;
             font-weight: bold;
             margin: 0;
             letter-spacing: 1px;
@@ -107,9 +107,12 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             border-radius: 2px;
           }
           .tipo-pastor {
-            font-size: 10px;
+            font-size: 9px;
             text-align: center;
             font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .info-section {
             flex: 1;
@@ -220,7 +223,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               </div>
             </div>
             <div class="logo-section">
-              <img src="/mundo.png" alt="AMVA Logo" style="width: 80px; height: 80px; object-fit: contain;" />
+              <img src="/mundo.png" alt="AMVA Logo" style="width: 120px; height: 120px; object-fit: contain;" />
             </div>
           </div>
           <div class="footer">
@@ -333,10 +336,10 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           >
             {/* Header */}
             <div className="text-center mb-4">
-              <h1 className="text-sm font-bold tracking-wide text-gray-800 dark:text-gray-100">
+              <h1 className="text-lg font-bold tracking-wide text-gray-800 dark:text-gray-100">
                 ASOCIACIÓN MISIONERA
               </h1>
-              <h1 className="text-sm font-bold tracking-wide text-gray-800 dark:text-gray-100">
+              <h1 className="text-lg font-bold tracking-wide text-gray-800 dark:text-gray-100">
                 VIDA ABUNDANTE
               </h1>
             </div>
@@ -357,9 +360,8 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                     <span className="text-gray-400 text-[10px] text-center px-2">FOTO</span>
                   )}
                 </div>
-                <div className="text-[10px] text-center font-semibold text-gray-800 dark:text-gray-100">
-                  {credencial.tipoPastor} /{' '}
-                  {credencial.tipoPastor === 'PASTORA' ? 'SHEPHERD' : 'PASTOR'}
+                <div className="text-[9px] text-center font-semibold text-gray-800 dark:text-gray-100 whitespace-nowrap">
+                  {credencial.tipoPastor} / {credencial.tipoPastor === 'PASTORA' ? 'SHEPHERD' : 'PASTOR'}
                 </div>
               </div>
 
@@ -408,12 +410,12 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               </div>
 
               {/* Logo AMVA */}
-              <div className="absolute top-1 right-1 w-24 h-24 flex items-center justify-center">
+              <div className="absolute top-1 right-1 w-32 h-32 flex items-center justify-center">
                 <Image
                   src="/mundo.png"
                   alt="AMVA Logo"
-                  width={96}
-                  height={96}
+                  width={128}
+                  height={128}
                   className="object-contain"
                 />
               </div>
