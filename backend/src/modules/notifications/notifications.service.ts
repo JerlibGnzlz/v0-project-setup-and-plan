@@ -295,16 +295,34 @@ export class NotificationsService {
   async getNotificationHistory(
     email: string,
     options?: { limit?: number; offset?: number },
-  ): Promise<any[]> {
+  ): Promise<{
+    notifications: any[]
+    total: number
+    limit: number
+    offset: number
+  }> {
     const limit = options?.limit || 50
     const offset = options?.offset || 0
 
-    return this.prisma.notificationHistory.findMany({
+    // Obtener el total de notificaciones para este email
+    const total = await this.prisma.notificationHistory.count({
+      where: { email },
+    })
+
+    // Obtener las notificaciones paginadas
+    const notifications = await this.prisma.notificationHistory.findMany({
       where: { email },
       orderBy: { createdAt: 'desc' },
       take: limit,
       skip: offset,
     })
+
+    return {
+      notifications,
+      total,
+      limit,
+      offset,
+    }
   }
 
   /**
