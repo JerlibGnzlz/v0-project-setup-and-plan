@@ -88,16 +88,6 @@ function PagosPageContent() {
     if (error) {
       console.error('[PagosPage] Error al cargar pagos:', error)
     }
-    if (pagosResponse) {
-        isArray: Array.isArray(pagosResponse),
-        hasData: !!pagosResponse?.data,
-        dataLength: Array.isArray(pagosResponse)
-          ? pagosResponse.length
-          : pagosResponse?.data?.length,
-        meta: pagosResponse?.meta,
-        filters,
-      })
-    }
   }, [pagosResponse, error, filters])
 
   // Manejar respuesta paginada o array directo (compatibilidad)

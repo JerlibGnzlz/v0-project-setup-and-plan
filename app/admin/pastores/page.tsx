@@ -81,16 +81,6 @@ export default function PastoresPage() {
     if (error) {
       console.error('[PastoresPage] Error al cargar pastores:', error)
     }
-    if (pastoresResponse) {
-        isArray: Array.isArray(pastoresResponse),
-        hasData: !!pastoresResponse?.data,
-        dataLength: Array.isArray(pastoresResponse)
-          ? pastoresResponse.length
-          : pastoresResponse?.data?.length,
-        meta: pastoresResponse?.meta,
-        filters,
-      })
-    }
   }, [pastoresResponse, error, filters])
 
   // Manejar respuesta paginada o array directo (compatibilidad)
