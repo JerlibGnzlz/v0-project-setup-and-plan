@@ -352,10 +352,10 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           >
             {/* Header */}
             <div className="text-center mb-4">
-              <h1 className="text-lg font-bold tracking-wide text-gray-800 dark:text-gray-100">
+              <h1 className="text-lg font-bold tracking-wide text-white">
                 ASOCIACIÓN MISIONERA
               </h1>
-              <h1 className="text-lg font-bold tracking-wide text-gray-800 dark:text-gray-100">
+              <h1 className="text-lg font-bold tracking-wide text-white">
                 VIDA ABUNDANTE
               </h1>
             </div>
@@ -376,7 +376,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                     <span className="text-gray-400 text-[10px] text-center px-2">FOTO</span>
                   )}
                 </div>
-                <div className="text-[9px] text-center font-semibold text-gray-800 dark:text-gray-100 whitespace-nowrap">
+                <div className="text-[9px] text-center font-semibold text-white whitespace-nowrap">
                   {credencial.tipoPastor} / {credencial.tipoPastor === 'PASTORA' ? 'SHEPHERD' : 'PASTOR'}
                 </div>
               </div>
@@ -384,42 +384,42 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               {/* Información */}
               <div className="flex-1 space-y-2.5">
                 <div>
-                  <div className="text-[9px] text-gray-700 dark:text-gray-200 mb-1 font-medium">
+                  <div className="text-[9px] text-white/80 mb-1 font-medium">
                     Apellido / Surname
                   </div>
-                  <div className="text-sm font-bold uppercase text-gray-900 dark:text-white">
+                  <div className="text-sm font-bold uppercase text-white">
                     {credencial.apellido}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] text-gray-700 dark:text-gray-200 mb-1 font-medium">
+                  <div className="text-[9px] text-white/80 mb-1 font-medium">
                     Nombre / Name
                   </div>
-                  <div className="text-sm font-bold uppercase text-gray-900 dark:text-white">
+                  <div className="text-sm font-bold uppercase text-white">
                     {credencial.nombre}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] text-gray-700 dark:text-gray-200 mb-1 font-medium">
+                  <div className="text-[9px] text-white/80 mb-1 font-medium">
                     Documento / Document
                   </div>
-                  <div className="text-sm font-bold text-gray-900 dark:text-white font-mono">
+                  <div className="text-sm font-bold text-white font-mono">
                     {credencial.documento}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] text-gray-700 dark:text-gray-200 mb-1 font-medium">
+                  <div className="text-[9px] text-white/80 mb-1 font-medium">
                     Nacionalidad / Nationality
                   </div>
-                  <div className="text-sm font-bold text-gray-900 dark:text-white">
+                  <div className="text-sm font-bold text-white">
                     {credencial.nacionalidad}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] text-gray-700 dark:text-gray-200 mb-1 font-medium">
+                  <div className="text-[9px] text-white/80 mb-1 font-medium">
                     Fecha de nacimiento / Birthdate
                   </div>
-                  <div className="text-sm font-bold text-gray-900 dark:text-white">
+                  <div className="text-sm font-bold text-white">
                     {fechaNacimiento}
                   </div>
                 </div>
@@ -439,10 +439,10 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
 
             {/* Footer */}
             <div className="mt-8 text-center">
-              <div className="text-lg font-bold mb-1.5 text-gray-900 dark:text-white">
+              <div className="text-lg font-bold mb-1.5 text-white">
                 CREDENCIAL MINISTERIAL INTERNACIONAL
               </div>
-              <div className="text-[10px] text-gray-700 dark:text-gray-200">
+              <div className="text-[10px] text-white/80">
                 SEDE SOCIAL: PICO 1641 (1429) CAPITAL FEDERAL
               </div>
             </div>
