@@ -253,9 +253,11 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                 FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
               </div>
               <div style="text-align: left;">
-                <div style="border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; margin-bottom: 10px;">FIRMA PRESIDENTE DEL C.E.N.</div>
-                <div style="width: 200px; height: 80px; margin-top: 10px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">
-                  <img src="/firma-presidente.png" alt="Firma Presidente" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: rgba(255,255,255,0.5); font-size: 10px;\'>Firma</span>';" />
+                <div style="width: 200px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.3); padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                  <div style="font-size: 11px; font-weight: bold; margin-bottom: 8px; text-align: center;">FIRMA PRESIDENTE DEL C.E.N.</div>
+                  <div style="width: 100%; height: 80px; display: flex; align-items: center; justify-content: center;">
+                    <img src="/firma-presidente.png" alt="Firma Presidente" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: rgba(255,255,255,0.5); font-size: 10px;\'>Firma</span>';" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -478,29 +480,29 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                     FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
                   </div>
                   <div className="text-left">
-                    <div className="border-b-2 border-white/40 pb-3 mb-3">
-                      <div className="text-sm font-semibold">FIRMA PRESIDENTE DEL C.E.N.</div>
-                    </div>
-                    <div className="w-[200px] h-20 mt-2 bg-white/5 border border-dashed border-white/20 flex items-center justify-center overflow-hidden">
-                      <Image
-                        src="/firma-presidente.png"
-                        alt="Firma Presidente"
-                        width={200}
-                        height={80}
-                        className="object-contain max-w-full max-h-full"
-                        unoptimized
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.style.display = 'none'
-                          const parent = target.parentElement
-                          if (parent && !parent.querySelector('span')) {
-                            const placeholder = document.createElement('span')
-                            placeholder.className = 'text-white/50 text-[10px]'
-                            placeholder.textContent = 'Firma'
-                            parent.appendChild(placeholder)
-                          }
-                        }}
-                      />
+                    <div className="w-[200px] bg-white/5 border border-white/40 p-3 flex flex-col items-center justify-center">
+                      <div className="text-sm font-semibold mb-2 text-center">FIRMA PRESIDENTE DEL C.E.N.</div>
+                      <div className="w-full h-20 flex items-center justify-center overflow-hidden">
+                        <Image
+                          src="/firma-presidente.png"
+                          alt="Firma Presidente"
+                          width={200}
+                          height={80}
+                          className="object-contain max-w-full max-h-full"
+                          unoptimized
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                            const parent = target.parentElement
+                            if (parent && !parent.querySelector('span')) {
+                              const placeholder = document.createElement('span')
+                              placeholder.className = 'text-white/50 text-[10px]'
+                              placeholder.textContent = 'Firma'
+                              parent.appendChild(placeholder)
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
