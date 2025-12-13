@@ -2026,6 +2026,48 @@ export class InscripcionesService {
             this.eventEmitter.emit(NotificationEventType.PAGO_RECHAZADO, event)
             this.logger.log(`📬 Evento PAGO_RECHAZADO emitido para ${inscripcion.email}`)
 
+            // Enviar email directamente al usuario usando EmailService
+            if (this.notificationsService) {
+                try {
+                    const { getEmailTemplate } = await import('../notifications/templates/email.templates')
+                    const template = getEmailTemplate('pago_rechazado', {
+                        pagoId: pago.id,
+                        inscripcionId: inscripcion.id,
+                        monto,
+                        numeroCuota: pago.numeroCuota || 1,
+                        motivo: motivo || 'No especificado',
+                        convencionTitulo: inscripcionCompleta.convencion?.titulo || 'Convención',
+                        nombre: inscripcion.nombre,
+                        apellido: inscripcion.apellido || '',
+                    })
+
+                    const emailSent = await this.notificationsService.sendEmailToUser(
+                        inscripcion.email,
+                        template.title,
+                        template.body,
+                        {
+                            type: 'pago_rechazado',
+                            pagoId: pago.id,
+                            inscripcionId: inscripcion.id,
+                            monto,
+                            numeroCuota: pago.numeroCuota || 1,
+                            motivo: motivo || 'No especificado',
+                            convencionTitulo: inscripcionCompleta.convencion?.titulo || 'Convención',
+                            nombre: inscripcion.nombre,
+                            apellido: inscripcion.apellido || '',
+                        }
+                    )
+
+                    if (emailSent) {
+                        this.logger.log(`✅ Email de pago rechazado enviado exitosamente a ${inscripcion.email}`)
+                    } else {
+                        this.logger.warn(`⚠️ No se pudo enviar email de pago rechazado a ${inscripcion.email}`)
+                    }
+                } catch (emailError) {
+                    this.logger.error(`Error enviando email de pago rechazado a ${inscripcion.email}:`, emailError)
+                }
+            }
+
             // Enviar notificación a todos los admins
             if (this.notificationsService) {
                 try {
