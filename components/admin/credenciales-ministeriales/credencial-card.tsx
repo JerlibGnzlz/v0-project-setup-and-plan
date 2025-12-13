@@ -61,7 +61,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             height: 250px;
             background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%);
             border-radius: 12px;
-            padding: 15px;
+            padding: 16px;
             color: white;
             position: relative;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -72,10 +72,10 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           }
           .header {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
           }
           .header h1 {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
             margin: 0;
             letter-spacing: 1px;
@@ -83,24 +83,27 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           }
           .content {
             display: flex;
-            gap: 15px;
+            gap: 12px;
+            position: relative;
           }
           .photo-section {
-            width: 100px;
+            width: 96px;
+            flex-shrink: 0;
           }
           .photo-placeholder {
-            width: 100px;
-            height: 120px;
+            width: 96px;
+            height: 112px;
             background: white;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(156, 163, 175, 1);
             border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #3b82f6;
+            color: #9ca3af;
             font-size: 10px;
             text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            overflow: hidden;
           }
           .photo-placeholder img {
             width: 100%;
@@ -137,42 +140,41 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           }
           .logo-section {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 80px;
-            height: 80px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
+            top: 4px;
+            right: 4px;
+            width: 112px;
+            height: 112px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: #60a5fa;
+          }
+          .logo-section img {
+            width: 112px;
+            height: 112px;
+            object-fit: contain;
           }
           .footer {
-            position: absolute;
-            bottom: 15px;
-            left: 0;
-            right: 0;
+            margin-top: 32px;
             text-align: center;
           }
           .footer-title {
-            font-size: 14px;
+            font-size: 18px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             color: #0D374E;
           }
           .footer-address {
-            font-size: 9px;
+            font-size: 10px;
             color: #0D374E;
+            opacity: 0.8;
           }
           .dorso-content {
-            padding: 20px;
+            padding: 16px;
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            overflow: hidden;
           }
           .dorso-header {
             text-align: center;
