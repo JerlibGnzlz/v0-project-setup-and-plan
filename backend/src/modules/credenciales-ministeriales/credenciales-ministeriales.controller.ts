@@ -50,7 +50,7 @@ export class CredencialesMinisterialesController {
   @Get()
   async findAll(
     @Query() pagination: PaginationDto,
-    @Query() filters: CredencialMinisterialFilterDto
+    @Query() filters?: CredencialMinisterialFilterDto
   ) {
     try {
       // Convertir page y limit a números de forma segura
