@@ -367,22 +367,40 @@ export default function VisorCredencialesPage() {
                           <span className="text-sm">{credencial.tipoPastor}</span>
                         </td>
                         <td className="p-3">
-                          <span className="text-sm">{fechaVencimiento}</span>
-                          {credencial.diasRestantes !== undefined &&
-                            credencial.diasRestantes > 0 &&
-                            credencial.diasRestantes <= 30 && (
-                              <p className="text-xs text-amber-600">
-                                {credencial.diasRestantes} días restantes
-                              </p>
+                          <div>
+                            <span className="text-sm font-medium">{fechaVencimiento}</span>
+                            {credencial.diasRestantes !== undefined && (
+                              <>
+                                {credencial.diasRestantes > 0 && credencial.diasRestantes <= 30 && (
+                                  <p className="text-xs text-amber-600 font-medium">
+                                    {credencial.diasRestantes} días restantes
+                                  </p>
+                                )}
+                                {credencial.diasRestantes < 0 && (
+                                  <p className="text-xs text-red-600 font-medium">
+                                    Vencida hace {Math.abs(credencial.diasRestantes)} días
+                                  </p>
+                                )}
+                                {credencial.diasRestantes > 30 && (
+                                  <p className="text-xs text-emerald-600 font-medium">
+                                    {credencial.diasRestantes} días restantes
+                                  </p>
+                                )}
+                              </>
                             )}
+                          </div>
                         </td>
                         <td className="p-3">
-                          {credencial.estado && (
+                          {credencial.estado ? (
                             <Badge
                               variant="outline"
                               className={ESTADO_COLORS[credencial.estado]}
                             >
                               {ESTADO_LABELS[credencial.estado]}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-gray-500/10 text-gray-600">
+                              Sin estado
                             </Badge>
                           )}
                         </td>
