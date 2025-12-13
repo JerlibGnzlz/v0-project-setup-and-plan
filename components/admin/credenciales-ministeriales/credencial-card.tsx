@@ -105,108 +105,116 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           }
           .header {
             text-align: center;
-            margin-bottom: 2mm;
+            margin-bottom: 6px;
           }
           .header h1 {
-            font-size: 3.5mm;
+            font-size: 13px;
             font-weight: bold;
             margin: 0;
             letter-spacing: 0.5px;
             color: #0D374E;
             line-height: 1.2;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9);
           }
           .content {
             display: flex;
-            gap: 2.5mm;
+            gap: 8px;
             position: relative;
+            align-items: flex-start;
           }
           .photo-section {
-            width: 22mm;
+            width: 88px;
             flex-shrink: 0;
           }
           .photo-placeholder {
-            width: 22mm;
-            height: 26mm;
+            width: 88px;
+            height: 108px;
             background: white;
-            border: 0.5mm solid rgba(156, 163, 175, 1);
-            border-radius: 1mm;
+            border: 2px solid rgba(156, 163, 175, 1);
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #9ca3af;
-            font-size: 2mm;
+            font-size: 7px;
             text-align: center;
-            margin-bottom: 1.5mm;
+            margin-bottom: 4px;
             overflow: hidden;
           }
           .photo-placeholder img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 0.5mm;
+            border-radius: 2px;
           }
           .tipo-pastor {
-            font-size: 2mm;
+            font-size: 7px;
             text-align: center;
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             color: #0D374E;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9);
           }
           .info-section {
             flex: 1;
             min-width: 0;
+            padding-top: 0;
           }
           .info-row {
-            margin-bottom: 1.5mm;
+            margin-bottom: 2px;
           }
           .info-label {
-            font-size: 2mm;
-            margin-bottom: 0.5mm;
+            font-size: 7px;
+            margin-bottom: 2px;
             color: #0D374E;
-            opacity: 0.8;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9);
           }
           .info-value {
             font-weight: bold;
-            font-size: 2.8mm;
+            font-size: 10px;
             text-transform: uppercase;
             color: #000000;
             line-height: 1.2;
+            word-break: break-word;
           }
           .logo-section {
             position: absolute;
-            top: 1mm;
-            right: 1mm;
-            width: 26mm;
-            height: 26mm;
+            top: 2px;
+            right: 2px;
+            width: 100px;
+            height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
           }
           .logo-section img {
-            width: 26mm;
-            height: 26mm;
+            width: 100px;
+            height: 100px;
             object-fit: contain;
           }
           .footer {
-            margin-top: 2mm;
+            margin-top: 6px;
             text-align: center;
           }
           .footer-title {
-            font-size: 3.2mm;
+            font-size: 12px;
             font-weight: bold;
-            margin-bottom: 1mm;
+            margin-bottom: 2px;
             color: #0D374E;
             line-height: 1.2;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9);
           }
           .footer-address {
-            font-size: 2mm;
+            font-size: 7px;
             color: #0D374E;
-            opacity: 0.8;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9);
           }
           .dorso-content {
-            padding: 3mm;
+            padding: 14px;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -217,33 +225,38 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             flex-shrink: 0;
           }
           .dorso-header-logo img {
-            width: 20mm;
-            height: 20mm;
+            width: 70px;
+            height: 70px;
             object-fit: contain;
           }
           .dorso-title {
-            font-size: 3.2mm;
+            font-size: 11px;
             font-weight: bold;
-            margin-bottom: 1mm;
+            margin-bottom: 3px;
             color: #0D374E;
             line-height: 1.2;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9);
           }
           .dorso-certificacion {
-            font-size: 2.2mm;
-            line-height: 1.3;
-            margin-bottom: 1mm;
+            font-size: 8px;
+            line-height: 1.25;
+            margin-bottom: 3px;
             color: #0D374E;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9);
           }
           .dorso-fichero-text {
-            font-size: 2mm;
+            font-size: 7px;
             font-weight: bold;
-            white-space: nowrap;
             color: #0D374E;
-            overflow: hidden;
+            word-break: break-word;
+            text-align: center;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9);
+            line-height: 1.2;
           }
           .dorso-firma-box {
-            width: 38mm;
-            padding: 1.5mm;
+            width: 155px;
+            padding: 4px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -251,36 +264,43 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           }
           .dorso-firma-box img {
             width: 100%;
-            height: 9mm;
+            height: 45px;
             object-fit: contain;
             display: block;
-            margin-bottom: 1mm;
+            margin-bottom: 2px;
           }
           .dorso-firma-text {
-            font-size: 2mm;
-            font-weight: bold;
+            font-size: 7px;
+            font-weight: 600;
             text-align: center;
             color: #0D374E;
+            word-break: break-word;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9);
+            line-height: 1.2;
           }
           .dorso-qr-box {
-            width: 18mm;
-            height: 18mm;
+            width: 72px;
+            height: 72px;
             background: white;
-            border: 0.5mm solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 2px;
             display: flex;
             align-items: center;
             justify-content: center;
           }
           .dorso-qr-text {
             color: rgba(255,255,255,0.3);
-            font-size: 2mm;
+            font-size: 7px;
             text-align: center;
           }
           .dorso-vence-text {
-            font-size: 2mm;
+            font-size: 7px;
             font-weight: bold;
             text-align: right;
             color: #0D374E;
+            word-break: break-word;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9);
+            line-height: 1.2;
           }
         </style>
       </head>
