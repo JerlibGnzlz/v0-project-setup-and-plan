@@ -56,6 +56,12 @@ const navigation = [
     icon: CreditCard,
     description: 'Gestionar pagos',
   },
+  {
+    name: 'Visor de Credenciales',
+    href: '/admin/visor-credenciales',
+    icon: Shield,
+    description: 'Gestionar credenciales',
+  },
 ]
 
 export function AdminSidebar() {
