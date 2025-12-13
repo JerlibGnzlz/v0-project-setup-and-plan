@@ -36,6 +36,7 @@ import {
 import Link from 'next/link'
 import { CredencialPastoralDialog } from '@/components/admin/credenciales-pastorales/credencial-pastoral-dialog'
 import { CredencialPastoralTable } from '@/components/admin/credenciales-pastorales/credencial-pastoral-table'
+import { CredencialPastoralCard } from '@/components/admin/credenciales-pastorales/credencial-pastoral-card'
 import { toast } from 'sonner'
 
 const ESTADO_COLORS = {
@@ -59,6 +60,7 @@ export default function CredencialesPastoralesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedCredencial, setSelectedCredencial] = useState<CredencialPastoral | null>(null)
+  const [viewMode, setViewMode] = useState<'list' | 'view'>('list')
 
   const filters = {
     estado: estadoFilter !== 'todos' ? (estadoFilter as any) : undefined,
@@ -80,6 +82,11 @@ export default function CredencialesPastoralesPage() {
     setIsDialogOpen(true)
   }
 
+  const handleView = (credencial: CredencialPastoral) => {
+    setSelectedCredencial(credencial)
+    setViewMode('view')
+  }
+
   const handleActualizarEstados = async () => {
     try {
       await actualizarEstadosMutation.mutateAsync()
@@ -91,6 +98,32 @@ export default function CredencialesPastoralesPage() {
   const credenciales = data?.data || []
   const total = data?.total || 0
   const totalPages = data?.totalPages || 0
+
+  // Modo de visualización de credencial
+  if (viewMode === 'view' && selectedCredencial) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Visor de Credencial</h1>
+            <p className="text-muted-foreground">
+              Visualiza e imprime la credencial pastoral
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => setViewMode('list')}>
+            Volver a la Lista
+          </Button>
+        </div>
+        <CredencialPastoralCard
+          credencial={selectedCredencial}
+          onEdit={() => {
+            setViewMode('list')
+            handleEdit(selectedCredencial)
+          }}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -259,10 +292,11 @@ export default function CredencialesPastoralesPage() {
             </Card>
           ) : (
             <>
-              <CredencialPastoralTable
-                credenciales={credenciales}
-                onEdit={handleEdit}
-              />
+          <CredencialPastoralTable
+            credenciales={credenciales}
+            onEdit={handleEdit}
+            onView={handleView}
+          />
               {totalPages > 1 && (
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">

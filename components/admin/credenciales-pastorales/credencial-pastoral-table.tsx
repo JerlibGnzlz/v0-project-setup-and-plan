@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button'
 import { CredencialPastoral } from '@/lib/api/credenciales-pastorales'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale/es'
-import { Edit, Calendar, CreditCard, User } from 'lucide-react'
+import { Edit, Calendar, CreditCard, User, Eye } from 'lucide-react'
 
 interface CredencialPastoralTableProps {
   credenciales: CredencialPastoral[]
   onEdit: (credencial: CredencialPastoral) => void
+  onView?: (credencial: CredencialPastoral) => void
 }
 
 const ESTADO_COLORS = {
@@ -29,6 +30,7 @@ const ESTADO_LABELS = {
 export function CredencialPastoralTable({
   credenciales,
   onEdit,
+  onView,
 }: CredencialPastoralTableProps) {
   // El estado vacío se maneja en la página principal
   if (credenciales.length === 0) {
@@ -114,14 +116,26 @@ export function CredencialPastoralTable({
                   </Badge>
                 </td>
                 <td className="p-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEdit(credencial)}
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Editar
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {onView && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onView(credencial)}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Ver
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(credencial)}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Editar
+                    </Button>
+                  </div>
                 </td>
               </tr>
             )
