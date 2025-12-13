@@ -79,47 +79,48 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           }
           .header {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 2mm;
           }
           .header h1 {
-            font-size: 18px;
+            font-size: 3.5mm;
             font-weight: bold;
             margin: 0;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             color: #0D374E;
+            line-height: 1.2;
           }
           .content {
             display: flex;
-            gap: 12px;
+            gap: 2.5mm;
             position: relative;
           }
           .photo-section {
-            width: 96px;
+            width: 22mm;
             flex-shrink: 0;
           }
           .photo-placeholder {
-            width: 96px;
-            height: 112px;
+            width: 22mm;
+            height: 26mm;
             background: white;
-            border: 2px solid rgba(156, 163, 175, 1);
-            border-radius: 4px;
+            border: 0.5mm solid rgba(156, 163, 175, 1);
+            border-radius: 1mm;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #9ca3af;
-            font-size: 10px;
+            font-size: 2mm;
             text-align: center;
-            margin-bottom: 6px;
+            margin-bottom: 1.5mm;
             overflow: hidden;
           }
           .photo-placeholder img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 2px;
+            border-radius: 0.5mm;
           }
           .tipo-pastor {
-            font-size: 8px;
+            font-size: 2mm;
             text-align: center;
             font-weight: 600;
             white-space: nowrap;
@@ -129,74 +130,131 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           }
           .info-section {
             flex: 1;
+            min-width: 0;
           }
           .info-row {
-            margin-bottom: 10px;
+            margin-bottom: 1.5mm;
           }
           .info-label {
-            font-size: 9px;
-            margin-bottom: 2px;
+            font-size: 2mm;
+            margin-bottom: 0.5mm;
             color: #0D374E;
             opacity: 0.8;
           }
           .info-value {
             font-weight: bold;
-            font-size: 12px;
+            font-size: 2.8mm;
             text-transform: uppercase;
             color: #000000;
+            line-height: 1.2;
           }
           .logo-section {
             position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 112px;
-            height: 112px;
+            top: 1mm;
+            right: 1mm;
+            width: 26mm;
+            height: 26mm;
             display: flex;
             align-items: center;
             justify-content: center;
           }
           .logo-section img {
-            width: 112px;
-            height: 112px;
+            width: 26mm;
+            height: 26mm;
             object-fit: contain;
           }
           .footer {
-            margin-top: 32px;
+            margin-top: 2mm;
             text-align: center;
           }
           .footer-title {
-            font-size: 18px;
+            font-size: 3.2mm;
             font-weight: bold;
-            margin-bottom: 6px;
+            margin-bottom: 1mm;
             color: #0D374E;
+            line-height: 1.2;
           }
           .footer-address {
-            font-size: 10px;
+            font-size: 2mm;
             color: #0D374E;
             opacity: 0.8;
           }
           .dorso-content {
-            padding: 16px;
+            padding: 3mm;
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             overflow: hidden;
           }
-          .dorso-header {
-            text-align: center;
-            margin-bottom: 20px;
+          .dorso-header-logo {
+            flex-shrink: 0;
+          }
+          .dorso-header-logo img {
+            width: 20mm;
+            height: 20mm;
+            object-fit: contain;
+          }
+          .dorso-title {
+            font-size: 3.2mm;
+            font-weight: bold;
+            margin-bottom: 1mm;
+            color: #0D374E;
+            line-height: 1.2;
           }
           .dorso-certificacion {
-            font-size: 11px;
-            line-height: 1.6;
-            margin-bottom: 20px;
+            font-size: 2.2mm;
+            line-height: 1.3;
+            margin-bottom: 1mm;
+            color: #0D374E;
           }
-          .dorso-fecha {
-            text-align: right;
-            font-size: 12px;
+          .dorso-fichero-text {
+            font-size: 2mm;
             font-weight: bold;
-            margin-top: auto;
+            white-space: nowrap;
+            color: #0D374E;
+            overflow: hidden;
+          }
+          .dorso-firma-box {
+            width: 38mm;
+            padding: 1.5mm;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+          }
+          .dorso-firma-box img {
+            width: 100%;
+            height: 9mm;
+            object-fit: contain;
+            display: block;
+            margin-bottom: 1mm;
+          }
+          .dorso-firma-text {
+            font-size: 2mm;
+            font-weight: bold;
+            text-align: center;
+            color: #0D374E;
+          }
+          .dorso-qr-box {
+            width: 18mm;
+            height: 18mm;
+            background: white;
+            border: 0.5mm solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .dorso-qr-text {
+            color: rgba(255,255,255,0.3);
+            font-size: 2mm;
+            text-align: center;
+          }
+          .dorso-vence-text {
+            font-size: 2mm;
+            font-weight: bold;
+            text-align: right;
+            color: #0D374E;
           }
         </style>
       </head>
@@ -250,43 +308,43 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         <div class="credencial credencial-dorso">
           <div class="dorso-content">
             <!-- Header con Logo y Texto al lado -->
-            <div style="display: flex; align-items: flex-start; gap: 16px; margin-bottom: 10px;">
+            <div style="display: flex; align-items: flex-start; gap: 4mm; margin-bottom: 1.5mm;">
               <div style="flex-shrink: 0;">
-                <img src="/mundo.png" alt="AMVA Logo" style="width: 100px; height: 100px; object-fit: contain;" />
+                <img src="/mundo.png" alt="AMVA Logo" style="width: 20mm; height: 20mm; object-fit: contain;" />
               </div>
               <div style="flex: 1;">
-                <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px; color: #0D374E; text-align: left;">EL CONSEJO EJECUTIVO NACIONAL</div>
-                <div style="font-size: 11px; line-height: 1.4; margin-bottom: 8px; color: #0D374E; text-align: left;">
+                <div style="font-size: 3.2mm; font-weight: bold; margin-bottom: 1mm; color: #0D374E; text-align: left; line-height: 1.2;">EL CONSEJO EJECUTIVO NACIONAL</div>
+                <div style="font-size: 2.2mm; line-height: 1.3; margin-bottom: 1mm; color: #0D374E; text-align: left;">
                   CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
                 </div>
               </div>
             </div>
             
             <!-- FICHERO DE CULTO -->
-            <div style="margin-bottom: 10px;">
-              <div style="text-align: left; font-size: 10px; font-weight: bold; white-space: nowrap; color: #0D374E; overflow: hidden;">
+            <div style="margin-bottom: 1.5mm;">
+              <div style="text-align: left; font-size: 2mm; font-weight: bold; white-space: nowrap; color: #0D374E; overflow: hidden;">
                 FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
               </div>
             </div>
             
             <!-- Footer: Firma (izquierda) y QR + Fecha (derecha) -->
-            <div style="margin-top: auto; padding-top: 16px; display: flex; justify-content: space-between; align-items: flex-end; gap: 15px;">
+            <div style="margin-top: auto; padding-top: 3mm; display: flex; justify-content: space-between; align-items: flex-end; gap: 4mm;">
               <!-- Firma - Izquierda -->
-              <div style="flex-shrink: 0;">
-                <div style="width: 200px; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                  <div style="width: 100%; height: 48px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
-                    <img src="/firma-presidente.png" alt="Firma Presidente" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: rgba(255,255,255,0.5); font-size: 9px;\'>Firma</span>';" />
+              <div style="flex-shrink: 0; width: 38mm;">
+                <div style="padding: 1.5mm; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                  <div style="width: 100%; height: 9mm; display: flex; align-items: center; justify-content: center; margin-bottom: 1mm;">
+                    <img src="/firma-presidente.png" alt="Firma Presidente" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: rgba(255,255,255,0.5); font-size: 2mm;\'>Firma</span>';" />
                   </div>
-                  <div style="font-size: 10px; font-weight: bold; text-align: center; color: #0D374E;">FIRMA PRESIDENTE DEL C.E.N.</div>
+                  <div style="font-size: 2mm; font-weight: bold; text-align: center; color: #0D374E;">FIRMA PRESIDENTE DEL C.E.N.</div>
                 </div>
               </div>
               
               <!-- QR + Fecha - Derecha -->
-              <div style="flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
-                <div style="width: 96px; height: 96px; background: white; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;">
-                  <span style="color: rgba(255,255,255,0.3); font-size: 9px; text-align: center;">QR CODE</span>
+              <div style="flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 1.5mm;">
+                <div style="width: 18mm; height: 18mm; background: white; border: 0.5mm solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;">
+                  <span style="color: rgba(255,255,255,0.3); font-size: 2mm; text-align: center;">QR CODE</span>
                 </div>
-                <div style="font-size: 10px; font-weight: bold; text-align: right; color: #0D374E;">VENCE: ${fechaVencimiento}</div>
+                <div style="font-size: 2mm; font-weight: bold; text-align: right; color: #0D374E;">VENCE: ${fechaVencimiento}</div>
               </div>
             </div>
           </div>
@@ -351,118 +409,127 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
       </div>
 
       {/* Card Container con Flip */}
-      <div className="relative w-full" style={{ perspective: '1000px' }}>
+      <div className="relative w-full flex justify-center" style={{ perspective: '1000px' }}>
         <div
-          className="relative w-full transition-transform duration-700"
+          className="relative transition-transform duration-700"
           style={{
             transformStyle: 'preserve-3d',
             transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            width: '85.6mm',
+            height: '53.98mm',
+            minWidth: '85.6mm',
+            minHeight: '53.98mm',
           }}
         >
           {/* FRENTE */}
           <div
-            className="w-full rounded-lg p-4 text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
+            className="rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
-              minHeight: '320px',
-              maxHeight: '320px',
+              width: '85.6mm',
+              height: '53.98mm',
+              minWidth: '85.6mm',
+              minHeight: '53.98mm',
+              maxWidth: '85.6mm',
+              maxHeight: '53.98mm',
+              padding: '3mm',
               background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
             }}
           >
             {/* Header */}
-            <div className="text-center mb-3">
-              <h1 className="text-base font-bold tracking-wide text-[#0D374E]">
+            <div className="text-center mb-1.5" style={{ marginBottom: '1.5mm' }}>
+              <h1 className="font-bold tracking-wide text-[#0D374E]" style={{ fontSize: '3.5mm', lineHeight: '1.2', margin: 0 }}>
                 ASOCIACIÓN MISIONERA
               </h1>
-              <h1 className="text-base font-bold tracking-wide text-[#0D374E]">
+              <h1 className="font-bold tracking-wide text-[#0D374E]" style={{ fontSize: '3.5mm', lineHeight: '1.2', margin: 0 }}>
                 VIDA ABUNDANTE
               </h1>
             </div>
 
-            <div className="flex gap-3 relative">
+            <div className="flex relative" style={{ gap: '2.5mm' }}>
               {/* Foto */}
-              <div className="w-24 flex-shrink-0">
-                <div className="w-24 h-28 bg-white rounded border-2 border-gray-400 mb-1.5 flex items-center justify-center overflow-hidden shadow-md">
+              <div className="flex-shrink-0" style={{ width: '22mm' }}>
+                <div className="bg-white rounded border-2 border-gray-400 mb-1.5 flex items-center justify-center overflow-hidden shadow-md" style={{ width: '22mm', height: '26mm', borderWidth: '0.5mm', borderRadius: '1mm' }}>
                   {credencial.fotoUrl ? (
                     <Image
                       src={credencial.fotoUrl}
                       alt="Foto"
-                      width={96}
-                      height={112}
+                      width={88}
+                      height={104}
                       className="object-cover w-full h-full"
                     />
                   ) : (
-                    <span className="text-gray-400 text-[10px] text-center px-2">FOTO</span>
+                    <span className="text-gray-400 text-center px-1" style={{ fontSize: '2mm' }}>FOTO</span>
                   )}
                 </div>
-                <div className="text-[8px] text-center font-semibold text-[#0D374E] whitespace-nowrap">
+                <div className="text-center font-semibold text-[#0D374E] whitespace-nowrap" style={{ fontSize: '2mm' }}>
                   {credencial.tipoPastor} / SHEPHERD
                 </div>
               </div>
 
               {/* Información */}
-              <div className="flex-1 space-y-2 min-w-0">
+              <div className="flex-1 space-y-1 min-w-0" style={{ gap: '1.5mm' }}>
                 <div>
-                  <div className="text-[8px] text-[#0D374E] mb-0.5 font-medium">
+                  <div className="text-[#0D374E] mb-0.5 font-medium" style={{ fontSize: '2mm', opacity: 0.8 }}>
                     Apellido / Surname
                   </div>
-                  <div className="text-xs font-bold uppercase text-black truncate">
+                  <div className="font-bold uppercase text-black truncate" style={{ fontSize: '2.8mm', lineHeight: '1.2' }}>
                     {credencial.apellido}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[8px] text-[#0D374E] mb-0.5 font-medium">
+                  <div className="text-[#0D374E] mb-0.5 font-medium" style={{ fontSize: '2mm', opacity: 0.8 }}>
                     Nombre / Name
                   </div>
-                  <div className="text-xs font-bold uppercase text-black truncate">
+                  <div className="font-bold uppercase text-black truncate" style={{ fontSize: '2.8mm', lineHeight: '1.2' }}>
                     {credencial.nombre}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[8px] text-[#0D374E] mb-0.5 font-medium">
+                  <div className="text-[#0D374E] mb-0.5 font-medium" style={{ fontSize: '2mm', opacity: 0.8 }}>
                     Documento / Document
                   </div>
-                  <div className="text-xs font-bold text-black font-mono truncate">
+                  <div className="font-bold text-black font-mono truncate" style={{ fontSize: '2.8mm', lineHeight: '1.2' }}>
                     {credencial.documento}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[8px] text-[#0D374E] mb-0.5 font-medium">
+                  <div className="text-[#0D374E] mb-0.5 font-medium" style={{ fontSize: '2mm', opacity: 0.8 }}>
                     Nacionalidad / Nationality
                   </div>
-                  <div className="text-xs font-bold text-black truncate">
+                  <div className="font-bold text-black truncate" style={{ fontSize: '2.8mm', lineHeight: '1.2' }}>
                     {credencial.nacionalidad}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[8px] text-[#0D374E] mb-0.5 font-medium">
+                  <div className="text-[#0D374E] mb-0.5 font-medium" style={{ fontSize: '2mm', opacity: 0.8 }}>
                     Fecha de nacimiento / Birthdate
                   </div>
-                  <div className="text-xs font-bold text-black truncate">
+                  <div className="font-bold text-black truncate" style={{ fontSize: '2.8mm', lineHeight: '1.2' }}>
                     {fechaNacimiento}
                   </div>
                 </div>
               </div>
 
               {/* Logo AMVA */}
-              <div className="absolute top-0 right-0 w-28 h-28 flex items-center justify-center">
+              <div className="absolute top-0 right-0 flex items-center justify-center" style={{ width: '26mm', height: '26mm', top: '1mm', right: '1mm' }}>
                 <Image
                   src="/mundo.png"
                   alt="AMVA Logo"
-                  width={112}
-                  height={112}
+                  width={104}
+                  height={104}
                   className="object-contain"
                 />
               </div>
             </div>
 
             {/* Footer */}
-            <div className="mt-4 text-center">
-              <div className="text-sm font-bold mb-1 text-[#0D374E]">
+            <div className="text-center" style={{ marginTop: '2mm' }}>
+              <div className="font-bold mb-1 text-[#0D374E]" style={{ fontSize: '3.2mm', lineHeight: '1.2', marginBottom: '1mm' }}>
                 CREDENCIAL MINISTERIAL INTERNACIONAL
               </div>
-              <div className="text-[9px] text-[#0D374E]">
+              <div className="text-[#0D374E]" style={{ fontSize: '2mm', opacity: 0.8 }}>
                 SEDE SOCIAL: PICO 1641 (1429) CAPITAL FEDERAL
               </div>
             </div>
@@ -470,7 +537,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
 
           {/* DORSO */}
           <div
-            className="absolute inset-0 w-full rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
+            className="absolute inset-0 rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
@@ -487,7 +554,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           >
             <div className="h-full flex flex-col">
               {/* Header con Logo y Texto al lado */}
-              <div className="flex items-start gap-4 mb-2">
+              <div className="flex items-start mb-1.5" style={{ gap: '4mm', marginBottom: '1.5mm' }}>
                 <div className="flex-shrink-0">
                   <Image
                     src="/mundo.png"
@@ -495,13 +562,14 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                     width={100}
                     height={100}
                     className="object-contain"
+                    style={{ width: '20mm', height: '20mm' }}
                   />
                 </div>
                 <div className="flex-1">
-                  <div className="text-base font-bold mb-2 tracking-wide uppercase text-[#0D374E] text-left">
+                  <div className="font-bold mb-1 tracking-wide uppercase text-[#0D374E] text-left" style={{ fontSize: '3.2mm', lineHeight: '1.2', marginBottom: '1mm' }}>
                     EL CONSEJO EJECUTIVO NACIONAL
                   </div>
-                  <div className="text-xs leading-relaxed mb-2 text-[#0D374E] text-left">
+                  <div className="leading-relaxed mb-1 text-[#0D374E] text-left" style={{ fontSize: '2.2mm', lineHeight: '1.3', marginBottom: '1mm' }}>
                     CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
                     MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
                   </div>
@@ -509,48 +577,50 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               </div>
 
               {/* FICHERO DE CULTO */}
-              <div className="mb-2 flex-1 min-h-0">
-                <div className="text-[10px] font-bold whitespace-nowrap text-left text-[#0D374E] overflow-hidden">
+              <div className="mb-1.5 flex-1 min-h-0" style={{ marginBottom: '1.5mm' }}>
+                <div className="font-bold whitespace-nowrap text-left text-[#0D374E] overflow-hidden" style={{ fontSize: '2mm' }}>
                   FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
                 </div>
               </div>
 
               {/* Footer: Firma (izquierda) y QR + Fecha (derecha) */}
-              <div className="mt-auto pt-4 flex justify-between items-end gap-4">
+              <div className="mt-auto flex justify-between items-end" style={{ paddingTop: '3mm', gap: '4mm' }}>
                 {/* Firma - Izquierda */}
-                <div className="flex-shrink-0">
-                  <div className="w-[200px] p-2 flex flex-col items-center justify-center">
-                    <div className="w-full h-12 flex items-center justify-center overflow-hidden mb-1">
+                <div className="flex-shrink-0" style={{ width: '38mm' }}>
+                  <div className="p-1.5 flex flex-col items-center justify-center" style={{ padding: '1.5mm' }}>
+                    <div className="w-full flex items-center justify-center overflow-hidden mb-0.5" style={{ height: '9mm', marginBottom: '1mm' }}>
                       <Image
                         src="/firma-presidente.png"
                         alt="Firma Presidente"
-                        width={180}
-                        height={48}
+                        width={144}
+                        height={36}
                         className="object-contain max-w-full max-h-full"
                         unoptimized
+                        style={{ maxWidth: '100%', maxHeight: '100%' }}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
                           target.style.display = 'none'
                           const parent = target.parentElement
                           if (parent && !parent.querySelector('span')) {
                             const placeholder = document.createElement('span')
-                            placeholder.className = 'text-white/50 text-[9px]'
+                            placeholder.className = 'text-white/50'
+                            placeholder.style.fontSize = '2mm'
                             placeholder.textContent = 'Firma'
                             parent.appendChild(placeholder)
                           }
                         }}
                       />
                     </div>
-                    <div className="text-[10px] font-semibold text-center text-[#0D374E]">FIRMA PRESIDENTE DEL C.E.N.</div>
+                    <div className="font-semibold text-center text-[#0D374E]" style={{ fontSize: '2mm' }}>FIRMA PRESIDENTE DEL C.E.N.</div>
                   </div>
                 </div>
 
                 {/* QR + Fecha - Derecha */}
-                <div className="flex-shrink-0 flex flex-col items-end gap-1.5">
-                  <div className="w-24 h-24 bg-white border-2 border-white/30 flex items-center justify-center">
-                    <span className="text-white/30 text-[9px] text-center">QR CODE</span>
+                <div className="flex-shrink-0 flex flex-col items-end" style={{ gap: '1.5mm' }}>
+                  <div className="bg-white border-2 border-white/30 flex items-center justify-center" style={{ width: '18mm', height: '18mm', borderWidth: '0.5mm' }}>
+                    <span className="text-white/30 text-center" style={{ fontSize: '2mm' }}>QR CODE</span>
                   </div>
-                  <div className="text-[10px] font-bold text-right text-[#0D374E]">VENCE: {fechaVencimiento}</div>
+                  <div className="font-bold text-right text-[#0D374E]" style={{ fontSize: '2mm' }}>VENCE: {fechaVencimiento}</div>
                 </div>
               </div>
             </div>
@@ -560,4 +630,3 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
     </div>
   )
 }
-
