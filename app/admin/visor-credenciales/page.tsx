@@ -156,41 +156,111 @@ export default function VisorCredencialesPage() {
   const total = data?.total || 0
   const totalPages = data?.totalPages || 0
 
-  // Modo de visualización de credencial
+  // Modo de visualización de credencial (Paso 2 del wizard: Preview)
   if (viewMode === 'view' && selectedCredencial) {
     console.log('[VisorCredencialesPage] Renderizando modo view con credencial:', selectedCredencial.id)
     return (
-      <div className="container mx-auto py-6">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="container mx-auto py-6 space-y-6">
+        {/* Wizard Steps Indicator */}
+        <div className="flex items-center justify-center gap-4 mb-6 p-4 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 bg-muted text-muted-foreground border-muted">
+              <FileText className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-medium text-muted-foreground">
+              Crear
+            </span>
+          </div>
+          <ArrowRight className="w-5 h-5 text-muted-foreground" />
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 bg-primary text-primary-foreground border-primary">
+              <Eye className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-medium text-primary">
+              Previsualizar
+            </span>
+          </div>
+          <ArrowRight className="w-5 h-5 text-muted-foreground" />
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 bg-muted text-muted-foreground border-muted">
+              <List className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-medium text-muted-foreground">
+              Ver Lista
+            </span>
+          </div>
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Visor de Credencial</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Previsualización de Credencial</h1>
             <p className="text-muted-foreground">
-              Visualiza e imprime la credencial ministerial
+              Revisa la credencial antes de continuar a la lista
             </p>
           </div>
-          <Button variant="outline" onClick={() => setViewMode('list')}>
-            Volver a la Lista
-          </Button>
         </div>
+
+        {/* Credencial Card */}
         <CredencialCard
           credencial={selectedCredencial}
           onEdit={() => {
             setViewMode('list')
+            setWizardStep('list')
             handleEditFrente(selectedCredencial)
           }}
-          onBackToList={() => {
-            setViewMode('list')
-            setSelectedCredencial(null)
-            // Invalidar queries para refrescar la lista
-            // Esto se hace automáticamente cuando cambiamos el viewMode
-          }}
+          onBackToList={handleViewList}
         />
+
+        {/* Action Button to Continue to List */}
+        <div className="flex justify-center pt-6">
+          <Button
+            size="lg"
+            onClick={handleViewList}
+            className="flex items-center gap-2"
+          >
+            <List className="w-5 h-5" />
+            Ver Todas las Credenciales Creadas
+          </Button>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      {/* Wizard Steps Indicator (solo cuando estamos en modo lista) */}
+      {wizardStep === 'list' && (
+        <div className="flex items-center justify-center gap-4 mb-6 p-4 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 bg-muted text-muted-foreground border-muted">
+              <FileText className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-medium text-muted-foreground">
+              Crear
+            </span>
+          </div>
+          <ArrowRight className="w-5 h-5 text-muted-foreground" />
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 bg-muted text-muted-foreground border-muted">
+              <Eye className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-medium text-muted-foreground">
+              Previsualizar
+            </span>
+          </div>
+          <ArrowRight className="w-5 h-5 text-muted-foreground" />
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 bg-primary text-primary-foreground border-primary">
+              <List className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-medium text-primary">
+              Ver Lista
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
