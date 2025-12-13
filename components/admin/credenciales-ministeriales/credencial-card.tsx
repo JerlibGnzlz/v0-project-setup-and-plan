@@ -521,89 +521,89 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             }}
           >
             {/* Header */}
-            <div className="text-center" style={{ marginBottom: '8px' }}>
-              <h1 className="font-bold tracking-wide" style={{ fontSize: '17px', lineHeight: '1.1', margin: 0, color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', letterSpacing: '0.3px' }}>
+            <div className="text-center" style={{ marginBottom: '12px' }}>
+              <h1 className="font-bold tracking-wide" style={{ fontSize: '24px', lineHeight: '1.1', margin: 0, color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', letterSpacing: '0.4px' }}>
                 ASOCIACIÓN MISIONERA
               </h1>
-              <h1 className="font-bold tracking-wide" style={{ fontSize: '17px', lineHeight: '1.1', margin: 0, color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', letterSpacing: '0.3px' }}>
+              <h1 className="font-bold tracking-wide" style={{ fontSize: '24px', lineHeight: '1.1', margin: 0, color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', letterSpacing: '0.4px' }}>
                 VIDA ABUNDANTE
               </h1>
             </div>
 
             {/* Sección principal sin borde amarillo - Centrada */}
             <div className="flex justify-center items-center" style={{ marginBottom: 'auto', flex: 1 }}>
-              <div className="flex relative w-full" style={{ gap: '11px', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="flex relative w-full" style={{ gap: '16px', alignItems: 'center', justifyContent: 'center' }}>
                 {/* Foto */}
-                <div className="flex-shrink-0" style={{ width: '127px' }}>
-                  <div className="bg-white rounded border-2 border-gray-400 mb-0.5 flex items-center justify-center overflow-hidden shadow-md" style={{ width: '127px', height: '153px', borderRadius: '4px' }}>
+                <div className="flex-shrink-0" style={{ width: '180px' }}>
+                  <div className="bg-white rounded border-2 border-gray-400 mb-1 flex items-center justify-center overflow-hidden shadow-md" style={{ width: '180px', height: '216px', borderRadius: '6px' }}>
                     {credencial.fotoUrl ? (
                       <Image
                         src={credencial.fotoUrl}
                         alt="Foto"
-                        width={127}
-                        height={153}
+                        width={180}
+                        height={216}
                         className="object-cover w-full h-full"
                       />
                     ) : (
-                      <span className="text-gray-400 text-center px-1" style={{ fontSize: '9px' }}>FOTO</span>
+                      <span className="text-gray-400 text-center px-1" style={{ fontSize: '13px' }}>FOTO</span>
                     )}
                   </div>
-                  <div className="text-center font-semibold whitespace-nowrap" style={{ fontSize: '9px', color: '#0D374E', fontWeight: 600, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.1' }}>
+                  <div className="text-center font-semibold whitespace-nowrap" style={{ fontSize: '13px', color: '#0D374E', fontWeight: 600, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.1' }}>
                     {credencial.tipoPastor} / SHEPHERD
                   </div>
                 </div>
 
                 {/* Información */}
-                <div className="flex-1 space-y-0.5 min-w-0" style={{ paddingTop: '0px', maxWidth: '373px' }}>
+                <div className="flex-1 space-y-1 min-w-0" style={{ paddingTop: '0px', maxWidth: '530px' }}>
                   <div>
-                    <div className="mb-0.5 font-medium" style={{ fontSize: '9px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                    <div className="mb-1 font-medium" style={{ fontSize: '13px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
                       Apellido / Surname
                     </div>
-                    <div className="font-bold uppercase break-words" style={{ fontSize: '13px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
+                    <div className="font-bold uppercase break-words" style={{ fontSize: '18px', lineHeight: '1.2', color: '#000000', fontWeight: 700 }}>
                       {credencial.apellido}
                     </div>
                   </div>
                   <div>
-                    <div className="mb-0.5 font-medium" style={{ fontSize: '9px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                    <div className="mb-1 font-medium" style={{ fontSize: '13px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
                       Nombre / Name
                     </div>
-                    <div className="font-bold uppercase break-words" style={{ fontSize: '13px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
+                    <div className="font-bold uppercase break-words" style={{ fontSize: '18px', lineHeight: '1.2', color: '#000000', fontWeight: 700 }}>
                       {credencial.nombre}
                     </div>
                   </div>
                   <div>
-                    <div className="mb-0.5 font-medium" style={{ fontSize: '9px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                    <div className="mb-1 font-medium" style={{ fontSize: '13px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
                       Documento / Document
                     </div>
-                    <div className="font-bold text-black font-mono break-words" style={{ fontSize: '13px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
+                    <div className="font-bold text-black font-mono break-words" style={{ fontSize: '18px', lineHeight: '1.2', color: '#000000', fontWeight: 700 }}>
                       {credencial.documento}
                     </div>
                   </div>
                   <div>
-                    <div className="mb-0.5 font-medium" style={{ fontSize: '9px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                    <div className="mb-1 font-medium" style={{ fontSize: '13px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
                       Nacionalidad / Nationality
                     </div>
-                    <div className="font-bold break-words" style={{ fontSize: '13px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
+                    <div className="font-bold break-words" style={{ fontSize: '18px', lineHeight: '1.2', color: '#000000', fontWeight: 700 }}>
                       {credencial.nacionalidad}
                     </div>
                   </div>
                   <div>
-                    <div className="mb-0.5 font-medium" style={{ fontSize: '9px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+                    <div className="mb-1 font-medium" style={{ fontSize: '13px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
                       Fecha de nacimiento / Birthdate
                     </div>
-                    <div className="font-bold break-words" style={{ fontSize: '13px', lineHeight: '1.15', color: '#000000', fontWeight: 700 }}>
+                    <div className="font-bold break-words" style={{ fontSize: '18px', lineHeight: '1.2', color: '#000000', fontWeight: 700 }}>
                       {fechaNacimiento}
                     </div>
                   </div>
                 </div>
 
                 {/* Logo AMVA - Centrado y más grande */}
-                <div className="flex-shrink-0 flex items-center justify-center" style={{ width: '153px', height: '153px' }}>
+                <div className="flex-shrink-0 flex items-center justify-center" style={{ width: '216px', height: '216px' }}>
                   <Image
                     src="/mundo.png"
                     alt="AMVA Logo"
-                    width={153}
-                    height={153}
+                    width={216}
+                    height={216}
                     className="object-contain"
                   />
                 </div>
@@ -611,11 +611,11 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             </div>
 
             {/* Footer - Pie de página */}
-            <div className="text-center" style={{ marginTop: 'auto', paddingTop: '8px' }}>
-              <div className="font-bold mb-0.5" style={{ fontSize: '16px', lineHeight: '1.1', marginBottom: '2px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+            <div className="text-center" style={{ marginTop: 'auto', paddingTop: '12px' }}>
+              <div className="font-bold mb-1" style={{ fontSize: '22px', lineHeight: '1.1', marginBottom: '3px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
                 CREDENCIAL MINISTERIAL INTERNACIONAL
               </div>
-              <div style={{ fontSize: '9px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
+              <div style={{ fontSize: '13px', color: '#0D374E', fontWeight: 500, textShadow: '0 1px 2px rgba(255,255,255,0.9)' }}>
                 SEDE SOCIAL: PICO 1641 (1429) CAPITAL FEDERAL
               </div>
             </div>
