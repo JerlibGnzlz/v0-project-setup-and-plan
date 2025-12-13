@@ -10,7 +10,7 @@ import {
   UpdateCredencialMinisterialDto,
   CredencialMinisterialFilterDto,
 } from './dto/credencial-ministerial.dto'
-import { CredencialMinisterial, Prisma } from '@prisma/client'
+import { CredencialMinisterial, Prisma, TipoPastor } from '@prisma/client'
 import { BaseService } from '../../common/base.service'
 import { PrismaModelDelegate } from '../../common/types/prisma.types'
 
@@ -327,7 +327,7 @@ export class CredencialesMinisterialesService extends BaseService<
             documento,
             nacionalidad: pastor.pais || 'Argentina',
             fechaNacimiento: credencialPastoral.fechaEmision, // Usar fecha de emisión como fecha de nacimiento por defecto
-            tipoPastor: pastor.tipo === 'PASTORA' ? 'PASTORA' : 'PASTOR',
+            tipoPastor: pastor.tipo === TipoPastor.PASTORA ? 'PASTORA' : 'PASTOR',
             fechaVencimiento: credencialPastoral.fechaVencimiento,
             fotoUrl: pastor.fotoUrl || null,
             activa: true,
