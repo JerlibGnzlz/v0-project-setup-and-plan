@@ -219,7 +219,9 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                 <div class="info-value">${fechaNacimiento}</div>
               </div>
             </div>
-            <div class="logo-section">AMVA</div>
+            <div class="logo-section">
+              <img src="/mundo.png" alt="AMVA Logo" style="width: 80px; height: 80px; object-fit: contain;" />
+            </div>
           </div>
           <div class="footer">
             <div class="footer-title">CREDENCIAL MINISTERIAL INTERNACIONAL</div>
@@ -405,23 +407,15 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                 </div>
               </div>
 
-              {/* Logo Circular con Globo */}
+              {/* Logo AMVA */}
               <div className="absolute top-1 right-1 w-24 h-24 flex items-center justify-center">
-                <div className="relative w-full h-full">
-                  {/* Globo de fondo */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-400 via-green-500 to-blue-500 rounded-full shadow-lg flex items-center justify-center">
-                    <div className="text-white text-2xl font-bold">AMVA</div>
-                  </div>
-                  {/* Texto alrededor del globo */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-[6px] text-white font-semibold absolute -top-1 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                      ASOCIACIÓN MISIONERA
-                    </div>
-                    <div className="text-[6px] text-white font-semibold absolute -bottom-1 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                      VIDA ABUNDANTE
-                    </div>
-                  </div>
-                </div>
+                <Image
+                  src="/mundo.png"
+                  alt="AMVA Logo"
+                  width={96}
+                  height={96}
+                  className="object-contain"
+                />
               </div>
             </div>
 
@@ -449,6 +443,15 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             <div className="h-full flex flex-col justify-between">
               <div>
                 <div className="text-center mb-8">
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/mundo.png"
+                      alt="AMVA Logo"
+                      width={100}
+                      height={100}
+                      className="object-contain"
+                    />
+                  </div>
                   <div className="text-xl font-bold mb-3 tracking-wide uppercase">
                     EL CONSEJO EJECUTIVO NACIONAL
                   </div>
