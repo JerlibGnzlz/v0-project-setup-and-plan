@@ -236,19 +236,21 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         <div class="credencial credencial-dorso">
           <div class="dorso-content">
             <div class="dorso-header" style="text-align: center; margin-bottom: 20px;">
-              <img src="/mundo.png" alt="AMVA Logo" style="width: 100px; height: 100px; object-fit: contain; margin: 0 auto 15px;" />
               <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">EL CONSEJO EJECUTIVO NACIONAL</div>
             </div>
             <div class="dorso-certificacion">
               CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
             </div>
-            <div style="margin: 20px 0;">
-              <div style="text-align: center; font-size: 11px; font-weight: bold; margin-bottom: 8px; line-height: 1.4;">
-                FICHERO de CULTO N 2753<br/>
-                PERSO.-JURIDICA 000-318<br/>
-                C.U.I.T.30-68748687-7
+            <div style="margin: 20px 0; display: flex; align-items: center; justify-content: space-between;">
+              <div style="flex: 1;">
+                <div style="text-align: left; font-size: 11px; font-weight: bold; margin-bottom: 8px; white-space: nowrap;">
+                  FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
+                </div>
+                <div style="border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; margin-bottom: 5px; text-align: left;">FIRMA PRESIDENTE DEL C.E.N.</div>
               </div>
-              <div style="border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; margin-bottom: 5px; text-align: center;">FIRMA PRESIDENTE DEL C.E.N.</div>
+              <div style="margin-left: 20px;">
+                <img src="/mundo.png" alt="AMVA Logo" style="width: 100px; height: 100px; object-fit: contain;" />
+              </div>
             </div>
             <div class="dorso-fecha">
               VENCE: ${fechaVencimiento}
@@ -445,15 +447,6 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             <div className="h-full flex flex-col justify-between">
               <div>
                 <div className="text-center mb-8">
-                  <div className="flex justify-center mb-4">
-                    <Image
-                      src="/mundo.png"
-                      alt="AMVA Logo"
-                      width={100}
-                      height={100}
-                      className="object-contain"
-                    />
-                  </div>
                   <div className="text-xl font-bold mb-3 tracking-wide uppercase">
                     EL CONSEJO EJECUTIVO NACIONAL
                   </div>
@@ -462,16 +455,23 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                   CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
                   MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
                 </div>
-                <div className="mt-12 flex justify-center">
-                  <div className="w-64 text-center">
-                    <div className="text-xs font-bold mb-3 leading-tight">
-                      FICHERO de CULTO N 2753<br/>
-                      PERSO.-JURIDICA 000-318<br/>
-                      C.U.I.T.30-68748687-7
+                <div className="mt-12 flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="text-xs font-bold mb-3 whitespace-nowrap text-left">
+                      FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
                     </div>
-                    <div className="border-b-2 border-white/40 pb-3">
+                    <div className="border-b-2 border-white/40 pb-3 text-left">
                       <div className="text-sm font-semibold">FIRMA PRESIDENTE DEL C.E.N.</div>
                     </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <Image
+                      src="/mundo.png"
+                      alt="AMVA Logo"
+                      width={100}
+                      height={100}
+                      className="object-contain"
+                    />
                   </div>
                 </div>
               </div>
