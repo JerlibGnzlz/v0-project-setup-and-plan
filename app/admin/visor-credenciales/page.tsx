@@ -161,6 +161,12 @@ export default function VisorCredencialesPage() {
             setViewMode('list')
             handleEditFrente(selectedCredencial)
           }}
+          onBackToList={() => {
+            setViewMode('list')
+            setSelectedCredencial(null)
+            // Invalidar queries para refrescar la lista
+            // Esto se hace automáticamente cuando cambiamos el viewMode
+          }}
         />
       </div>
     )

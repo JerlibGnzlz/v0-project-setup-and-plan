@@ -11,9 +11,10 @@ import { Button } from '@/components/ui/button'
 interface CredencialCardProps {
   credencial: CredencialMinisterial
   onEdit?: () => void
+  onBackToList?: () => void
 }
 
-export function CredencialCard({ credencial, onEdit }: CredencialCardProps) {
+export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialCardProps) {
   const [isFlipped, setIsFlipped] = useState(false)
 
   const handlePrint = () => {
@@ -269,24 +270,37 @@ export function CredencialCard({ credencial, onEdit }: CredencialCardProps) {
   return (
     <div className="relative w-full max-w-2xl mx-auto">
       {/* Controles */}
-      <div className="flex justify-end gap-2 mb-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsFlipped(!isFlipped)}
-        >
-          <RotateCcw className="w-4 h-4 mr-2" />
-          {isFlipped ? 'Ver Frente' : 'Ver Dorso'}
-        </Button>
-        <Button variant="outline" size="sm" onClick={handlePrint}>
-          <Printer className="w-4 h-4 mr-2" />
-          Imprimir
-        </Button>
-        {onEdit && (
-          <Button variant="default" size="sm" onClick={onEdit}>
-            Editar
+      <div className="flex justify-between items-center gap-2 mb-4">
+        {onBackToList && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onBackToList}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Volver a la Lista
           </Button>
         )}
+        <div className="flex gap-2 ml-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsFlipped(!isFlipped)}
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            {isFlipped ? 'Ver Frente' : 'Ver Dorso'}
+          </Button>
+          <Button variant="outline" size="sm" onClick={handlePrint}>
+            <Printer className="w-4 h-4 mr-2" />
+            Imprimir
+          </Button>
+          {onEdit && (
+            <Button variant="default" size="sm" onClick={onEdit}>
+              Editar
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Card Container con Flip */}
