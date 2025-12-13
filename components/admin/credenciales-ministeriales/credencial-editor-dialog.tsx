@@ -107,15 +107,21 @@ export function CredencialEditorDialog({
       if (credencial) {
         // Si es modo dorso, solo actualizar fechaVencimiento
         if (editMode === 'dorso') {
-          await updateMutation.mutateAsync({
+          const updated = await updateMutation.mutateAsync({
             id: credencial.id,
             dto: {
               fechaVencimiento: data.fechaVencimiento,
             },
           })
+          onOpenChange(false)
+          reset()
+          // Si hay callback, llamarlo con la credencial actualizada
+          if (onCredencialCreated && updated) {
+            onCredencialCreated(updated)
+          }
         } else {
           // Modo frente: actualizar todos los campos editables
-          await updateMutation.mutateAsync({
+          const updated = await updateMutation.mutateAsync({
             id: credencial.id,
             dto: {
               apellido: data.apellido,
@@ -127,12 +133,23 @@ export function CredencialEditorDialog({
               fotoUrl: data.fotoUrl,
             },
           })
+          onOpenChange(false)
+          reset()
+          // Si hay callback, llamarlo con la credencial actualizada
+          if (onCredencialCreated && updated) {
+            onCredencialCreated(updated)
+          }
         }
       } else {
-        await createMutation.mutateAsync(data)
+        // Crear nueva credencial
+        const nuevaCredencial = await createMutation.mutateAsync(data)
+        onOpenChange(false)
+        reset()
+        // Llamar al callback con la credencial creada para mostrar el diseño visual
+        if (onCredencialCreated && nuevaCredencial) {
+          onCredencialCreated(nuevaCredencial)
+        }
       }
-      onOpenChange(false)
-      reset()
     } catch (error) {
       // Error ya manejado en el hook
     }
