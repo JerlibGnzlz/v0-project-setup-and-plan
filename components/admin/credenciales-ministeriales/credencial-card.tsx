@@ -237,6 +237,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
             </div>
             <div style="margin: 20px 0;">
+              <div style="text-align: center; font-size: 12px; font-weight: bold; margin-bottom: 10px;">FICHERO DE CULTO</div>
               <div style="border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; margin-bottom: 5px;">FIRMA PRESIDENTE DEL C.E.N.</div>
             </div>
             <div class="dorso-fecha">
