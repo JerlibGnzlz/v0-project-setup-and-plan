@@ -327,7 +327,9 @@ export class CredencialesMinisterialesService extends BaseService<
             documento,
             nacionalidad: pastor.pais || 'Argentina',
             fechaNacimiento: credencialPastoral.fechaEmision, // Usar fecha de emisión como fecha de nacimiento por defecto
-            tipoPastor: pastor.tipo === TipoPastor.PASTORA ? 'PASTORA' : 'PASTOR',
+            // El enum TipoPastor no tiene PASTORA, usar 'PASTOR' por defecto
+            // El usuario puede editar este campo después si es necesario
+            tipoPastor: 'PASTOR',
             fechaVencimiento: credencialPastoral.fechaVencimiento,
             fotoUrl: pastor.fotoUrl || null,
             activa: true,
