@@ -630,14 +630,14 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             }}
           >
             <div className="h-full flex flex-col" style={{ height: '100%', justifyContent: 'space-between' }}>
-              {/* Header con Logo y Texto al lado */}
+              {/* Header con Logo y Texto al lado - Logo ampliado visualmente */}
               <div className="flex items-start mb-1.5" style={{ gap: '10px', marginBottom: '6px' }}>
                 <div className="flex-shrink-0">
                   <Image
                     src="/mundo.png"
                     alt="AMVA Logo"
-                    width={70}
-                    height={70}
+                    width={90}
+                    height={90}
                     className="object-contain"
                   />
                 </div>
