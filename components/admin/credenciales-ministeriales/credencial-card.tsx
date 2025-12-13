@@ -75,10 +75,11 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             margin-bottom: 15px;
           }
           .header h1 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             margin: 0;
             letter-spacing: 1px;
+            color: #0D374E;
           }
           .content {
             display: flex;
@@ -108,12 +109,13 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             border-radius: 2px;
           }
           .tipo-pastor {
-            font-size: 9px;
+            font-size: 8px;
             text-align: center;
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: #0D374E;
           }
           .info-section {
             flex: 1;
@@ -123,14 +125,15 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             font-size: 11px;
           }
           .info-label {
-            font-size: 9px;
-            opacity: 0.9;
+            font-size: 8px;
             margin-bottom: 2px;
+            color: #0D374E;
           }
           .info-value {
             font-weight: bold;
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
+            color: #000000;
           }
           .logo-section {
             position: absolute;
@@ -155,13 +158,14 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             text-align: center;
           }
           .footer-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             margin-bottom: 5px;
+            color: #0D374E;
           }
           .footer-address {
             font-size: 9px;
-            opacity: 0.9;
+            color: #0D374E;
           }
           .dorso-content {
             padding: 20px;
