@@ -242,29 +242,31 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         <!-- DORSO -->
         <div class="credencial credencial-dorso">
           <div class="dorso-content">
-            <!-- Header con Logo -->
-            <div style="display: flex; justify-content: flex-start; align-items: flex-start; margin-bottom: 10px;">
+            <!-- Header con Logo y Texto al lado -->
+            <div style="display: flex; align-items: flex-start; gap: 16px; margin-bottom: 10px;">
               <div style="flex-shrink: 0;">
-                <img src="/mundo.png" alt="AMVA Logo" style="width: 60px; height: 60px; object-fit: contain;" />
+                <img src="/mundo.png" alt="AMVA Logo" style="width: 100px; height: 100px; object-fit: contain;" />
+              </div>
+              <div style="flex: 1;">
+                <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px; color: #0D374E; text-align: left;">EL CONSEJO EJECUTIVO NACIONAL</div>
+                <div style="font-size: 11px; line-height: 1.4; margin-bottom: 8px; color: #0D374E; text-align: left;">
+                  CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
+                </div>
               </div>
             </div>
             
-            <!-- Título y Certificación (Todo arriba) -->
-            <div style="text-align: center; margin-bottom: 10px;">
-              <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px; color: #0D374E;">EL CONSEJO EJECUTIVO NACIONAL</div>
-              <div style="font-size: 11px; line-height: 1.4; margin-bottom: 8px; color: #0D374E;">
-                CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
-              </div>
-              <div style="text-align: left; font-size: 10px; font-weight: bold; margin-top: 8px; white-space: nowrap; color: #0D374E; overflow: hidden;">
+            <!-- FICHERO DE CULTO -->
+            <div style="margin-bottom: 10px;">
+              <div style="text-align: left; font-size: 10px; font-weight: bold; white-space: nowrap; color: #0D374E; overflow: hidden;">
                 FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
               </div>
             </div>
             
             <!-- Footer: Firma (izquierda) y QR + Fecha (derecha) -->
-            <div style="margin-top: auto; padding-top: 10px; display: flex; justify-content: space-between; align-items: flex-end; gap: 15px;">
+            <div style="margin-top: auto; padding-top: 16px; display: flex; justify-content: space-between; align-items: flex-end; gap: 15px;">
               <!-- Firma - Izquierda -->
               <div style="flex-shrink: 0;">
-                <div style="width: 200px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.3); padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="width: 200px; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                   <div style="width: 100%; height: 48px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
                     <img src="/firma-presidente.png" alt="Firma Presidente" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: rgba(255,255,255,0.5); font-size: 9px;\'>Firma</span>';" />
                   </div>
@@ -274,7 +276,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               
               <!-- QR + Fecha - Derecha -->
               <div style="flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
-                <div style="width: 80px; height: 80px; background: white; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;">
+                <div style="width: 96px; height: 96px; background: white; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;">
                   <span style="color: rgba(255,255,255,0.3); font-size: 9px; text-align: center;">QR CODE</span>
                 </div>
                 <div style="font-size: 10px; font-weight: bold; text-align: right; color: #0D374E;">VENCE: ${fechaVencimiento}</div>
@@ -472,38 +474,40 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             }}
           >
             <div className="h-full flex flex-col">
-              {/* Header con Logo */}
-              <div className="flex justify-start items-start mb-2">
+              {/* Header con Logo y Texto al lado */}
+              <div className="flex items-start gap-4 mb-2">
                 <div className="flex-shrink-0">
                   <Image
                     src="/mundo.png"
                     alt="AMVA Logo"
-                    width={60}
-                    height={60}
+                    width={100}
+                    height={100}
                     className="object-contain"
                   />
                 </div>
+                <div className="flex-1">
+                  <div className="text-base font-bold mb-2 tracking-wide uppercase text-[#0D374E] text-left">
+                    EL CONSEJO EJECUTIVO NACIONAL
+                  </div>
+                  <div className="text-xs leading-relaxed mb-2 text-[#0D374E] text-left">
+                    CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
+                    MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
+                  </div>
+                </div>
               </div>
 
-              {/* Título, Certificación y FICHERO DE CULTO (Todo arriba) */}
-              <div className="text-center mb-2 flex-1 min-h-0">
-                <div className="text-base font-bold mb-2 tracking-wide uppercase text-[#0D374E]">
-                  EL CONSEJO EJECUTIVO NACIONAL
-                </div>
-                <div className="text-xs leading-relaxed mb-2 text-[#0D374E]">
-                  CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
-                  MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
-                </div>
-                <div className="text-[10px] font-bold whitespace-nowrap text-left mt-2 text-[#0D374E] overflow-hidden">
+              {/* FICHERO DE CULTO */}
+              <div className="mb-2 flex-1 min-h-0">
+                <div className="text-[10px] font-bold whitespace-nowrap text-left text-[#0D374E] overflow-hidden">
                   FICHERO de CULTO N 2753 PERSO.-JURIDICA 000-318 C.U.I.T.30-68748687-7
                 </div>
               </div>
 
               {/* Footer: Firma (izquierda) y QR + Fecha (derecha) */}
-              <div className="mt-auto pt-2 flex justify-between items-end gap-4">
+              <div className="mt-auto pt-4 flex justify-between items-end gap-4">
                 {/* Firma - Izquierda */}
                 <div className="flex-shrink-0">
-                  <div className="w-[200px] bg-white/5 border border-white/40 p-2 flex flex-col items-center justify-center">
+                  <div className="w-[200px] p-2 flex flex-col items-center justify-center">
                     <div className="w-full h-12 flex items-center justify-center overflow-hidden mb-1">
                       <Image
                         src="/firma-presidente.png"
@@ -531,7 +535,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
 
                 {/* QR + Fecha - Derecha */}
                 <div className="flex-shrink-0 flex flex-col items-end gap-1.5">
-                  <div className="w-20 h-20 bg-white border-2 border-white/30 flex items-center justify-center">
+                  <div className="w-24 h-24 bg-white border-2 border-white/30 flex items-center justify-center">
                     <span className="text-white/30 text-[9px] text-center">QR CODE</span>
                   </div>
                   <div className="text-[10px] font-bold text-right text-[#0D374E]">VENCE: {fechaVencimiento}</div>
