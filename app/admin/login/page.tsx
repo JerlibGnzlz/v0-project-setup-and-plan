@@ -33,11 +33,7 @@ export default function AdminLogin() {
     setLoginError(null)
     
     try {
-      console.log('[AdminLogin] Iniciando login...', { email: data.email })
-      console.log('[AdminLogin] Llamando a login()...')
       await login(data)
-      console.log('[AdminLogin] login() completado exitosamente')
-      console.log('[AdminLogin] Login exitoso, redirigiendo...')
 
       // Limpiar error solo cuando el login es exitoso
       setLoginError(null)

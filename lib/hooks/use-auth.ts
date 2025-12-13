@@ -50,18 +50,10 @@ export const useAuth = create<AuthState>()(set => ({
   isHydrated: false,
 
   login: async (data: LoginRequest & { rememberMe?: boolean }) => {
-    console.log('[useAuth] Iniciando proceso de login...')
     try {
       // Solo enviar email y password al backend, rememberMe es solo para el frontend
       const { rememberMe, ...loginData } = data
-      console.log('[useAuth] Llamando a authApi.login...')
       const response = await authApi.login(loginData)
-      console.log('[useAuth] Respuesta del servidor recibida:', {
-        hasToken: !!response.access_token,
-        hasUser: !!response.user,
-        token: response.access_token?.substring(0, 20) + '...',
-        userEmail: response.user?.email,
-      })
 
     // Limpiar ambos storages primero
     if (typeof window !== 'undefined') {
@@ -82,10 +74,6 @@ export const useAuth = create<AuthState>()(set => ({
         storage.setItem('auth_refresh_token', response.refresh_token)
       }
       storage.setItem('auth_user', JSON.stringify(response.user))
-      console.log(
-        '[useAuth] Tokens y usuario guardados en',
-        data.rememberMe ? 'localStorage' : 'sessionStorage'
-      )
 
       // Verificar que se guardó correctamente
       const verifyToken = storage.getItem('auth_token')
@@ -104,7 +92,6 @@ export const useAuth = create<AuthState>()(set => ({
       isHydrated: true, // Asegurar que está hidratado
     }
     set(newState)
-    console.log('[useAuth] Estado actualizado:', newState)
 
       // Retornar para que el login page pueda esperar
       return Promise.resolve()
@@ -143,7 +130,6 @@ export const useAuth = create<AuthState>()(set => ({
         refreshToken: response.refresh_token || null,
       })
 
-      console.log('[useAuth] Token refrescado exitosamente')
       return true
     } catch (error) {
       console.error('[useAuth] Error al refrescar token:', error)

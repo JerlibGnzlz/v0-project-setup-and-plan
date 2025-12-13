@@ -66,15 +66,6 @@ apiClient.interceptors.request.use((config: any) => {
 // Handle auth errors
 apiClient.interceptors.response.use(
   (response: any) => {
-    // Log para debugging en producción
-    if (response.config?.url?.includes('/auth/login')) {
-      console.log('[apiClient] Interceptor: Respuesta de login recibida', {
-        status: response.status,
-        hasData: !!response.data,
-        hasAccessToken: !!response.data?.access_token,
-        hasUser: !!response.data?.user,
-      })
-    }
     return response
   },
   (error: any) => {

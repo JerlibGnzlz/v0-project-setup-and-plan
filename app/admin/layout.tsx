@@ -59,7 +59,6 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       } else {
         // Si hay token en storage pero el estado no está actualizado, forzar verificación
         // Pero solo una vez para evitar loops
-        console.log('[AdminLayout] Token encontrado en storage, verificando...')
         const timeoutId = setTimeout(() => {
           checkAuth().catch((error: unknown) => {
             console.error('[AdminLayout] Error en checkAuth:', error)

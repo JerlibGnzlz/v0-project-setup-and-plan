@@ -144,9 +144,7 @@ export function CredencialEditorDialog({
       } else {
         // Crear nueva credencial
         try {
-          console.log('[CredencialEditorDialog] Creando credencial con datos:', data)
           const nuevaCredencial = await createMutation.mutateAsync(data)
-          console.log('[CredencialEditorDialog] Credencial creada exitosamente:', nuevaCredencial)
 
           // Verificar que la credencial se creó correctamente
           if (!nuevaCredencial || !nuevaCredencial.id) {
@@ -162,7 +160,6 @@ export function CredencialEditorDialog({
           // Llamar al callback con la credencial creada para mostrar el diseño visual
           // El callback se ejecutará después de que el diálogo se cierre
           if (onCredencialCreated) {
-            console.log('[CredencialEditorDialog] Llamando onCredencialCreated con credencial:', nuevaCredencial.id)
             // Usar setTimeout para asegurar que el diálogo se cierre completamente
             setTimeout(() => {
               onCredencialCreated(nuevaCredencial)

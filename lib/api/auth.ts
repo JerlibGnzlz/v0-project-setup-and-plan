@@ -24,10 +24,7 @@ export interface RefreshTokenResponse {
 
 export const authApi = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
-    console.log('[authApi] Enviando petición de login:', { email: data.email })
     try {
-      console.log('[authApi] Esperando respuesta del servidor...')
-      
       // Agregar timeout explícito para evitar que se quede colgado
       const timeout = 10000 // 10 segundos
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -36,15 +33,6 @@ export const authApi = {
       
       const responsePromise = apiClient.post<LoginResponse>('/auth/login', data)
       const response = await Promise.race([responsePromise, timeoutPromise])
-      
-      console.log('[authApi] Respuesta recibida (raw):', response)
-      console.log('[authApi] Respuesta data:', response.data)
-      console.log('[authApi] Respuesta recibida:', {
-        hasToken: !!response.data?.access_token,
-        hasUser: !!response.data?.user,
-        tokenLength: response.data?.access_token?.length || 0,
-        userEmail: response.data?.user?.email || 'N/A',
-      })
       
       // Validar que la respuesta tenga el formato correcto
       if (!response.data?.access_token || !response.data?.user) {

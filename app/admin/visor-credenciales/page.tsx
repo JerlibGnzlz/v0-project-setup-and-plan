@@ -75,15 +75,6 @@ export default function VisorCredencialesPage() {
   const [credencialToDelete, setCredencialToDelete] = useState<CredencialMinisterial | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  // Debug: Log cuando cambia el estado
-  useEffect(() => {
-    console.log('[VisorCredencialesPage] Estado actualizado:', {
-      viewMode,
-      hasSelectedCredencial: !!selectedCredencial,
-      selectedCredencialId: selectedCredencial?.id,
-      isDialogOpen,
-    })
-  }, [viewMode, selectedCredencial, isDialogOpen])
 
   const filters = {
     documento: documentoFilter || undefined,
@@ -101,8 +92,6 @@ export default function VisorCredencialesPage() {
   }
 
   const handleCredencialCreated = (credencial: CredencialMinisterial) => {
-    console.log('[VisorCredencialesPage] handleCredencialCreated llamado con:', credencial)
-    
     // Verificar que la credencial tenga todos los datos necesarios
     if (!credencial || !credencial.id) {
       console.error('[VisorCredencialesPage] Credencial inválida:', credencial)
@@ -125,7 +114,6 @@ export default function VisorCredencialesPage() {
       setSelectedCredencial(credencial)
       setViewMode('view')
       setWizardStep('preview')
-      console.log('[VisorCredencialesPage] Estado actualizado - viewMode: view, wizardStep: preview')
     }, 150)
   }
 
@@ -175,7 +163,6 @@ export default function VisorCredencialesPage() {
 
   // Modo de visualización de credencial (Paso 2 del wizard: Preview)
   if (viewMode === 'view' && selectedCredencial) {
-    console.log('[VisorCredencialesPage] Renderizando modo view con credencial:', selectedCredencial.id)
     return (
       <div className="w-full px-4 py-6 space-y-6">
         {/* Wizard Steps Indicator */}

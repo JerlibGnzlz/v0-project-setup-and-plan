@@ -89,7 +89,6 @@ function PagosPageContent() {
       console.error('[PagosPage] Error al cargar pagos:', error)
     }
     if (pagosResponse) {
-      console.log('[PagosPage] Respuesta recibida:', {
         isArray: Array.isArray(pagosResponse),
         hasData: !!pagosResponse?.data,
         dataLength: Array.isArray(pagosResponse)

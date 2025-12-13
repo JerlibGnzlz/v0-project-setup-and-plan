@@ -82,7 +82,6 @@ export default function PastoresPage() {
       console.error('[PastoresPage] Error al cargar pastores:', error)
     }
     if (pastoresResponse) {
-      console.log('[PastoresPage] Respuesta recibida:', {
         isArray: Array.isArray(pastoresResponse),
         hasData: !!pastoresResponse?.data,
         dataLength: Array.isArray(pastoresResponse)
