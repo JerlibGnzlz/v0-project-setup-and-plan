@@ -14,6 +14,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   useCredencialesMinisteriales,
   useDeleteCredencialMinisterial,
 } from '@/lib/hooks/use-credenciales-ministeriales'
@@ -62,6 +72,8 @@ export default function VisorCredencialesPage() {
   const [editMode, setEditMode] = useState<'frente' | 'dorso'>('frente')
   const [viewMode, setViewMode] = useState<'list' | 'view'>('list')
   const [wizardStep, setWizardStep] = useState<'create' | 'preview' | 'list'>('list')
+  const [credencialToDelete, setCredencialToDelete] = useState<CredencialMinisterial | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   // Debug: Log cuando cambia el estado
   useEffect(() => {
@@ -140,13 +152,18 @@ export default function VisorCredencialesPage() {
     setViewMode('view')
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar esta credencial?')) {
-      return
-    }
+  const handleDelete = (credencial: CredencialMinisterial) => {
+    setCredencialToDelete(credencial)
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!credencialToDelete) return
 
     try {
-      await deleteMutation.mutateAsync(id)
+      await deleteMutation.mutateAsync(credencialToDelete.id)
+      setShowDeleteDialog(false)
+      setCredencialToDelete(null)
     } catch (error) {
       // Error ya manejado en el hook
     }
@@ -526,7 +543,7 @@ export default function VisorCredencialesPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDelete(credencial.id)}
+                              onClick={() => handleDelete(credencial)}
                               disabled={deleteMutation.isPending}
                               title="Eliminar credencial"
                             >
@@ -578,6 +595,39 @@ export default function VisorCredencialesPage() {
         editMode={editMode}
         onCredencialCreated={handleCredencialCreated}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar credencial?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente la credencial de{' '}
+              <strong>
+                {credencialToDelete?.nombre} {credencialToDelete?.apellido}
+              </strong>{' '}
+              (Documento: {credencialToDelete?.documento}).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowDeleteDialog(false)
+                setCredencialToDelete(null)
+              }}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleteMutation.isPending}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {deleteMutation.isPending ? 'Eliminando...' : 'Eliminar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
