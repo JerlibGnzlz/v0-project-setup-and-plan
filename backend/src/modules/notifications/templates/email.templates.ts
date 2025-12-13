@@ -555,6 +555,141 @@ export function getInscripcionCreadaTemplate(data: EmailTemplateData): EmailTemp
 }
 
 /**
+ * Template para notificar a admins sobre nueva inscripción
+ */
+export function getNuevaInscripcionTemplate(data: EmailTemplateData): EmailTemplate {
+  const nombre = data.nombre || 'N/A'
+  const apellido = data.apellido || ''
+  const nombreCompleto = apellido ? `${nombre} ${apellido}` : nombre
+  const email = data.email || 'N/A'
+  const convencionTitulo = data.convencionTitulo || 'Convención'
+  const origenRegistro = data.origenRegistro || 'web'
+  const origenLabel =
+    origenRegistro === 'mobile'
+      ? 'Aplicación Móvil'
+      : origenRegistro === 'dashboard'
+      ? 'Panel Administrativo'
+      : 'Sitio Web'
+  
+  const montoTotalValue = data.montoTotal
+  const montoTotal =
+    typeof montoTotalValue === 'number'
+      ? montoTotalValue
+      : typeof montoTotalValue === 'string'
+      ? parseFloat(montoTotalValue) || 0
+      : 0
+  const montoFormateado = new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(montoTotal)
+  
+  const numeroCuotasValue = data.numeroCuotas
+  const numeroCuotas =
+    typeof numeroCuotasValue === 'number'
+      ? numeroCuotasValue
+      : typeof numeroCuotasValue === 'string'
+      ? parseInt(numeroCuotasValue) || 1
+      : 1
+  
+  const cuotasPendientesValue = data.cuotasPendientes
+  const cuotasPendientes =
+    typeof cuotasPendientesValue === 'number'
+      ? cuotasPendientesValue
+      : typeof cuotasPendientesValue === 'string'
+      ? parseInt(cuotasPendientesValue) || 0
+      : 0
+  
+  const cuotasPagadasValue = data.cuotasPagadas
+  const cuotasPagadas =
+    typeof cuotasPagadasValue === 'number'
+      ? cuotasPagadasValue
+      : typeof cuotasPagadasValue === 'string'
+      ? parseInt(cuotasPagadasValue) || 0
+      : 0
+
+  const inscripcionId = data.inscripcionId || 'N/A'
+
+  const body = `
+    <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px; font-weight: 700;">📝 Nueva Inscripción Recibida</h2>
+    <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.8;">
+      Se ha recibido una nueva inscripción que requiere tu atención.
+    </p>
+    
+    <div style="margin: 30px 0; padding: 25px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; border: 2px solid #f59e0b; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.1);">
+      <div style="display: flex; align-items: center; margin-bottom: 20px;">
+        <div style="width: 50px; height: 50px; background-color: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+          <span style="font-size: 24px;">👤</span>
+        </div>
+        <div>
+          <h3 style="margin: 0; color: #92400e; font-size: 18px; font-weight: 700;">Información del Participante</h3>
+          <p style="margin: 5px 0 0; color: #b45309; font-size: 14px;">Nueva inscripción pendiente</p>
+        </div>
+      </div>
+      
+      <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Nombre:</strong></td>
+            <td style="padding: 8px 0; color: #4b5563; font-size: 14px; text-align: right; border-bottom: 1px solid #e5e7eb;">${nombreCompleto}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Email:</strong></td>
+            <td style="padding: 8px 0; color: #4b5563; font-size: 14px; text-align: right; border-bottom: 1px solid #e5e7eb;">${email}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Convención:</strong></td>
+            <td style="padding: 8px 0; color: #4b5563; font-size: 14px; text-align: right; border-bottom: 1px solid #e5e7eb;">${convencionTitulo}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Origen:</strong></td>
+            <td style="padding: 8px 0; color: #4b5563; font-size: 14px; text-align: right; border-bottom: 1px solid #e5e7eb;">${origenLabel}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Monto Total:</strong></td>
+            <td style="padding: 8px 0; color: #3b82f6; font-size: 18px; font-weight: 700; text-align: right; border-bottom: 1px solid #e5e7eb;">${montoFormateado}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Número de Cuotas:</strong></td>
+            <td style="padding: 8px 0; color: #4b5563; font-size: 14px; text-align: right; border-bottom: 1px solid #e5e7eb;">${numeroCuotas} ${numeroCuotas === 1 ? 'cuota' : 'cuotas'}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Cuotas Pagadas:</strong></td>
+            <td style="padding: 8px 0; color: #10b981; font-size: 14px; font-weight: 700; text-align: right; border-bottom: 1px solid #e5e7eb;">${cuotasPagadas}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px;"><strong>Cuotas Pendientes:</strong></td>
+            <td style="padding: 8px 0; color: #ef4444; font-size: 14px; font-weight: 700; text-align: right;">${cuotasPendientes}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    
+    <div style="margin: 25px 0; padding: 20px; background-color: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+      <h3 style="margin: 0 0 15px; color: #1e40af; font-size: 16px; font-weight: 700;">🔔 Acción Requerida</h3>
+      <ul style="margin: 0; padding-left: 20px; color: #1e3a8a; font-size: 14px; line-height: 1.8;">
+        <li>Revisa la inscripción en el panel administrativo</li>
+        <li>Valida los pagos cuando el participante suba comprobantes</li>
+        <li>Confirma la inscripción cuando todas las cuotas estén pagadas</li>
+      </ul>
+    </div>
+    
+    <div style="margin: 25px 0; padding: 15px; background-color: #f3f4f6; border-radius: 8px; text-align: center;">
+      <p style="margin: 0; color: #6b7280; font-size: 12px;">
+        ID de Inscripción: <strong style="font-family: monospace;">${inscripcionId}</strong>
+      </p>
+    </div>
+  `
+
+  return {
+    title: `📝 Nueva Inscripción - ${nombreCompleto}`,
+    body: buildBaseTemplate('Nueva Inscripción', body, '📝', '#f59e0b'),
+    type: 'nueva_inscripcion',
+  }
+}
+
+/**
  * Template para inscripción confirmada
  */
 export function getInscripcionConfirmadaTemplate(data: EmailTemplateData): EmailTemplate {
@@ -809,6 +944,7 @@ export const emailTemplates = {
   pago_rehabilitado: getPagoRehabilitadoTemplate,
   pago_recordatorio: getPagoRecordatorioTemplate,
   inscripcion_creada: getInscripcionCreadaTemplate,
+  nueva_inscripcion: getNuevaInscripcionTemplate,
   inscripcion_confirmada: getInscripcionConfirmadaTemplate,
   inscripcion_cancelada: getInscripcionCanceladaTemplate,
   inscripcion_actualizada: getInscripcionActualizadaTemplate,

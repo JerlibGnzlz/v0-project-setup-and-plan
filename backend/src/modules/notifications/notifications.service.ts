@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
+import { EmailService } from './email.service'
+import { getEmailTemplate } from './templates/email.templates'
 import axios from 'axios'
 
 interface ExpoPushMessage {
@@ -16,7 +18,10 @@ export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name)
   private readonly expoPushUrl = 'https://exp.host/--/api/v2/push/send'
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService
+  ) {}
 
   /**
    * Envía una notificación push a un usuario por su email
@@ -166,7 +171,7 @@ export class NotificationsService {
   }
 
   /**
-   * Envía una notificación a un admin (guarda en NotificationHistory)
+   * Envía una notificación a un admin (guarda en NotificationHistory y envía email)
    * Busca el pastor por email para obtener el pastorId requerido
    */
   async sendNotificationToAdmin(
@@ -218,22 +223,44 @@ export class NotificationsService {
           },
         })
         this.logger.log(`📧 Notificación guardada para admin: ${email}`)
-        return
+      } else {
+        // Si es pastor, crear notificación normalmente
+        await this.prisma.notificationHistory.create({
+          data: {
+            pastorId: pastor.id,
+            email,
+            title,
+            body,
+            type: data?.type || 'info',
+            data: data ? JSON.parse(JSON.stringify(data)) : null,
+            read: false,
+          },
+        })
+        this.logger.log(`📧 Notificación guardada para admin: ${email}`)
       }
 
-      // Si es pastor, crear notificación normalmente
-      await this.prisma.notificationHistory.create({
-        data: {
-          pastorId: pastor.id,
+      // Enviar email al admin usando el template apropiado
+      try {
+        const notificationType = data?.type || 'nueva_inscripcion'
+        const template = getEmailTemplate(notificationType, data || {})
+        
+        const emailSent = await this.emailService.sendNotificationEmail(
           email,
-          title,
-          body,
-          type: data?.type || 'info',
-          data: data ? JSON.parse(JSON.stringify(data)) : null,
-          read: false,
-        },
-      })
-      this.logger.log(`📧 Notificación guardada para admin: ${email}`)
+          template.title,
+          template.body,
+          { ...data, type: notificationType }
+        )
+
+        if (emailSent) {
+          this.logger.log(`✅ Email enviado exitosamente a admin: ${email}`)
+        } else {
+          this.logger.warn(`⚠️ No se pudo enviar email a admin: ${email}`)
+        }
+      } catch (emailError: unknown) {
+        const errorMessage = emailError instanceof Error ? emailError.message : 'Error desconocido'
+        this.logger.error(`Error enviando email a admin ${email}:`, errorMessage)
+        // No lanzar error, solo loguear - la notificación ya está guardada
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       this.logger.error(`Error guardando notificación para admin ${email}:`, errorMessage)
