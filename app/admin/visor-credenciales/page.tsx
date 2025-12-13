@@ -73,10 +73,12 @@ export default function VisorCredencialesPage() {
   }
 
   const handleCredencialCreated = (credencial: CredencialMinisterial) => {
+    console.log('[VisorCredencialesPage] handleCredencialCreated llamado con:', credencial)
     // Después de crear, mostrar el diseño visual
     setSelectedCredencial(credencial)
     setViewMode('view')
     setIsDialogOpen(false)
+    console.log('[VisorCredencialesPage] Estado actualizado - viewMode:', 'view', 'selectedCredencial:', credencial.id)
   }
 
   const handleEditFrente = (credencial: CredencialMinisterial) => {

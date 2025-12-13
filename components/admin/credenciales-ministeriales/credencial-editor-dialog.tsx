@@ -143,11 +143,18 @@ export function CredencialEditorDialog({
       } else {
         // Crear nueva credencial
         const nuevaCredencial = await createMutation.mutateAsync(data)
+        console.log('[CredencialEditorDialog] Credencial creada:', nuevaCredencial)
+        
+        // Cerrar diálogo y resetear formulario
         onOpenChange(false)
         reset()
+        
         // Llamar al callback con la credencial creada para mostrar el diseño visual
-        if (onCredencialCreated && nuevaCredencial) {
+        if (onCredencialCreated) {
+          console.log('[CredencialEditorDialog] Llamando onCredencialCreated con:', nuevaCredencial)
           onCredencialCreated(nuevaCredencial)
+        } else {
+          console.warn('[CredencialEditorDialog] onCredencialCreated no está definido')
         }
       }
     } catch (error) {
