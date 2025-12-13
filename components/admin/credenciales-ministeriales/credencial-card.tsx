@@ -306,7 +306,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
       </head>
       <body>
         <!-- FRENTE -->
-        <div class="credencial" style="width: 85.6mm; height: 53.98mm; min-width: 85.6mm; min-height: 53.98mm; max-width: 85.6mm; max-height: 53.98mm;">
+        <div class="credencial" style="width: 400px; height: 252px; min-width: 400px; min-height: 252px; max-width: 400px; max-height: 252px;">
           <div class="header">
             <h1>ASOCIACIÓN MISIONERA</h1>
             <h1>VIDA ABUNDANTE</h1>
@@ -351,7 +351,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         </div>
 
         <!-- DORSO -->
-        <div class="credencial credencial-dorso" style="width: 85.6mm; height: 53.98mm; min-width: 85.6mm; min-height: 53.98mm; max-width: 85.6mm; max-height: 53.98mm;">
+        <div class="credencial credencial-dorso" style="width: 400px; height: 252px; min-width: 400px; min-height: 252px; max-width: 400px; max-height: 252px;">
           <div class="dorso-content">
             <!-- Header con Logo y Texto al lado -->
             <div style="display: flex; align-items: flex-start; gap: 4mm; margin-bottom: 1.5mm;">
