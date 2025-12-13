@@ -19,11 +19,25 @@ import { AuthenticatedRequest, AuthenticatedPastorRequest } from '../auth/types/
 export class NotificationsController {
   constructor(private notificationsService: NotificationsService) {}
 
-  // Endpoint para mobile (pastores)
+  // Endpoint para mobile (pastores) - DEPRECATED: usar /register/admin para admins
   @Post('register')
   @UseGuards(PastorJwtAuthGuard)
   async registerToken(
     @Req() req: AuthenticatedPastorRequest,
+    @Body() body: { token: string; platform: string; deviceId?: string }
+  ) {
+    const email = req.user.email
+    if (!email) {
+      throw new Error('Email no disponible en el usuario autenticado')
+    }
+    return this.notificationsService.registerToken(email, body.token, body.platform, body.deviceId)
+  }
+
+  // Endpoint para admins (desde app móvil)
+  @Post('register/admin')
+  @UseGuards(JwtAuthGuard)
+  async registerAdminToken(
+    @Req() req: AuthenticatedRequest,
     @Body() body: { token: string; platform: string; deviceId?: string }
   ) {
     const email = req.user.email

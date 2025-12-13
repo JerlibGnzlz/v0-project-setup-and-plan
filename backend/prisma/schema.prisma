@@ -17,6 +17,7 @@ model User {
   rol               UserRole             @default(ADMIN)
   avatar            String?
   passwordResets    PasswordResetToken[]
+  deviceTokens      AdminDeviceToken[]
   // NOTA: Columnas de seguridad removidas temporalmente porque no existen en la BD
   // Si las necesitas, crea una migración para agregarlas:
   // ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0;
@@ -169,6 +170,23 @@ model DeviceToken {
   @@index([pastorId])
   @@index([token])
   @@map("device_tokens")
+}
+
+model AdminDeviceToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  platform  String // 'ios' | 'android'
+  deviceId  String?  @map("device_id")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("admin_device_tokens")
 }
 
 model Invitado {

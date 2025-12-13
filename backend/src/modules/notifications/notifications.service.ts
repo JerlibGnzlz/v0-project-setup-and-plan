@@ -239,7 +239,67 @@ export class NotificationsService {
         this.logger.log(`📧 Notificación guardada para admin: ${email}`)
       }
 
-      // Enviar email al admin usando el template apropiado
+      // Enviar push notification al admin si tiene tokens registrados
+      try {
+        const user = await this.prisma.user.findUnique({
+          where: { email },
+          include: {
+            deviceTokens: {
+              where: { active: true },
+            },
+          },
+        })
+
+        if (user && user.deviceTokens.length > 0) {
+          const tokens = user.deviceTokens.map((dt) => dt.token)
+          const messages: ExpoPushMessage[] = tokens.map((token) => ({
+            to: token,
+            sound: 'default',
+            title,
+            body: body.replace(/<[^>]*>/g, ''), // Texto plano para push
+            data: data || {},
+            badge: 1,
+          }))
+
+          const response = await axios.post(this.expoPushUrl, messages, {
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'Accept-Encoding': 'gzip, deflate',
+            },
+          })
+
+          if (response.data && response.data.data) {
+            const results = response.data.data
+            const successCount = results.filter((r: any) => r.status === 'ok').length
+            const errorCount = results.filter((r: any) => r.status === 'error').length
+
+            this.logger.log(
+              `📱 Push notification enviada a admin ${email}: ${successCount} exitosas, ${errorCount} errores`,
+            )
+
+            // Desactivar tokens que fallaron
+            for (let i = 0; i < results.length; i++) {
+              if (results[i].status === 'error') {
+                const error = results[i].message
+                if (error?.includes('Invalid') || error?.includes('DeviceNotRegistered')) {
+                  await this.prisma.adminDeviceToken.updateMany({
+                    where: { token: tokens[i] },
+                    data: { active: false },
+                  })
+                  this.logger.warn(`Token de admin desactivado: ${tokens[i]}`)
+                }
+              }
+            }
+          }
+        }
+      } catch (pushError: unknown) {
+        const errorMessage = pushError instanceof Error ? pushError.message : 'Error desconocido'
+        this.logger.warn(`Error enviando push notification a admin ${email}:`, errorMessage)
+        // No lanzar error, solo loguear - continuar con email
+      }
+
+      // Enviar email al admin usando el template apropiado (como fallback o complemento)
       try {
         const notificationType = data?.type || 'nueva_inscripcion'
         const template = getEmailTemplate(notificationType, data || {})
