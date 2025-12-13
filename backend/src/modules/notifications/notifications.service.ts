@@ -24,6 +24,40 @@ export class NotificationsService {
   ) {}
 
   /**
+   * Envía un email directamente a un usuario (sin buscar si es pastor o no)
+   * Útil para enviar emails a participantes de convenciones (Invitado)
+   */
+  async sendEmailToUser(
+    email: string,
+    title: string,
+    body: string,
+    data?: any,
+  ): Promise<boolean> {
+    try {
+      this.logger.log(`📧 Enviando email a ${email}: ${title}`)
+      
+      const emailSent = await this.emailService.sendNotificationEmail(
+        email,
+        title,
+        body,
+        data || {}
+      )
+
+      if (emailSent) {
+        this.logger.log(`✅ Email enviado exitosamente a ${email}`)
+        return true
+      } else {
+        this.logger.warn(`⚠️ No se pudo enviar email a ${email}`)
+        return false
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error enviando email a ${email}:`, errorMessage)
+      return false
+    }
+  }
+
+  /**
    * Envía una notificación push a un usuario por su email
    */
   async sendNotificationToUser(

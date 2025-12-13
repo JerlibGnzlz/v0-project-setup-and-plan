@@ -693,11 +693,11 @@ export class InscripcionesService {
                         apellido: inscripcion.apellido || '',
                     })
 
-                    // Enviar email directamente (inmediato, sin cola)
-                    await this.notificationsService.sendNotificationToUser(
+                    // Enviar email directamente usando EmailService (sin depender de si es pastor)
+                    const emailSent = await this.notificationsService.sendEmailToUser(
                         inscripcion.email,
                         template.title,
-                        template.body.replace(/<[^>]*>/g, ''), // Texto plano para el método
+                        template.body, // Mantener HTML completo
                         {
                             type: 'inscripcion_creada',
                             inscripcionId: inscripcion.id,
@@ -709,7 +709,11 @@ export class InscripcionesService {
                             apellido: inscripcion.apellido || '',
                         }
                     )
-                    this.logger.log(`📧 Email enviado inmediatamente a ${inscripcion.email}`)
+                    if (emailSent) {
+                        this.logger.log(`✅ Email de inscripción enviado exitosamente a ${inscripcion.email}`)
+                    } else {
+                        this.logger.warn(`⚠️ No se pudo enviar email de inscripción a ${inscripcion.email}`)
+                    }
                 } catch (emailError) {
                     this.logger.error(`Error enviando email inmediato a ${inscripcion.email}:`, emailError)
                     // Continuar con el evento por si acaso
@@ -1420,6 +1424,52 @@ export class InscripcionesService {
             this.eventEmitter.emit(NotificationEventType.PAGO_VALIDADO, event)
             this.logger.log(`📬 Evento PAGO_VALIDADO emitido para ${inscripcion.email}`)
 
+            // Enviar email directamente al usuario usando EmailService
+            if (this.notificationsService) {
+                try {
+                    const { getEmailTemplate } = await import('../notifications/templates/email.templates')
+                    const template = getEmailTemplate('pago_validado', {
+                        pagoId: pago.id,
+                        inscripcionId: inscripcion.id,
+                        monto,
+                        numeroCuota,
+                        cuotasTotales: numeroCuotas,
+                        cuotasPagadas,
+                        convencionTitulo: convencion?.titulo || 'Convención',
+                        metodoPago: pago.metodoPago || undefined,
+                        nombre: inscripcion.nombre,
+                        apellido: inscripcion.apellido || '',
+                    })
+
+                    const emailSent = await this.notificationsService.sendEmailToUser(
+                        inscripcion.email,
+                        template.title,
+                        template.body,
+                        {
+                            type: 'pago_validado',
+                            pagoId: pago.id,
+                            inscripcionId: inscripcion.id,
+                            monto,
+                            numeroCuota,
+                            cuotasTotales: numeroCuotas,
+                            cuotasPagadas,
+                            convencionTitulo: convencion?.titulo || 'Convención',
+                            metodoPago: pago.metodoPago || undefined,
+                            nombre: inscripcion.nombre,
+                            apellido: inscripcion.apellido || '',
+                        }
+                    )
+
+                    if (emailSent) {
+                        this.logger.log(`✅ Email de pago validado enviado exitosamente a ${inscripcion.email}`)
+                    } else {
+                        this.logger.warn(`⚠️ No se pudo enviar email de pago validado a ${inscripcion.email}`)
+                    }
+                } catch (emailError) {
+                    this.logger.error(`Error enviando email de pago validado a ${inscripcion.email}:`, emailError)
+                }
+            }
+
             // Enviar notificación a todos los admins
             if (this.notificationsService) {
                 try {
@@ -1622,6 +1672,40 @@ export class InscripcionesService {
                     this.logger.log(
                         `📬 Evento INSCRIPCION_CONFIRMADA emitido para ${inscripcionCompleta.email}`
                     )
+
+                    // Enviar email directamente al usuario usando EmailService
+                    if (this.notificationsService) {
+                        try {
+                            const { getEmailTemplate } = await import('../notifications/templates/email.templates')
+                            const template = getEmailTemplate('inscripcion_confirmada', {
+                                inscripcionId: inscripcionCompleta.id,
+                                convencionTitulo: convencion?.titulo || 'Convención',
+                                nombre: inscripcionCompleta.nombre,
+                                apellido: inscripcionCompleta.apellido || '',
+                            })
+
+                            const emailSent = await this.notificationsService.sendEmailToUser(
+                                inscripcionCompleta.email,
+                                template.title,
+                                template.body,
+                                {
+                                    type: 'inscripcion_confirmada',
+                                    inscripcionId: inscripcionCompleta.id,
+                                    convencionTitulo: convencion?.titulo || 'Convención',
+                                    nombre: inscripcionCompleta.nombre,
+                                    apellido: inscripcionCompleta.apellido || '',
+                                }
+                            )
+
+                            if (emailSent) {
+                                this.logger.log(`✅ Email de inscripción confirmada enviado exitosamente a ${inscripcionCompleta.email}`)
+                            } else {
+                                this.logger.warn(`⚠️ No se pudo enviar email de inscripción confirmada a ${inscripcionCompleta.email}`)
+                            }
+                        } catch (emailError) {
+                            this.logger.error(`Error enviando email de inscripción confirmada a ${inscripcionCompleta.email}:`, emailError)
+                        }
+                    }
                 }
             } catch (error) {
                 this.logger.error(`Error emitiendo evento de inscripción confirmada:`, error)
