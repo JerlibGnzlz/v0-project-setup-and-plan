@@ -114,7 +114,9 @@ export default function VisorCredencialesPage() {
   const total = data?.total || 0
   const totalPages = data?.totalPages || 0
 
+  // Modo de visualización de credencial
   if (viewMode === 'view' && selectedCredencial) {
+    console.log('[VisorCredencialesPage] Renderizando modo view con credencial:', selectedCredencial.id)
     return (
       <div className="container mx-auto py-6">
         <div className="mb-6 flex items-center justify-between">
