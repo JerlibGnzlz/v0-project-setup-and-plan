@@ -40,12 +40,18 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
         <style>
           @media print {
             @page {
-              size: A4 landscape;
+              size: 85.6mm 53.98mm;
               margin: 0;
             }
             body {
               margin: 0;
               padding: 0;
+            }
+            .credencial {
+              width: 85.6mm !important;
+              height: 53.98mm !important;
+              border-radius: 0 !important;
+              box-shadow: none !important;
             }
           }
           body {
@@ -55,16 +61,17 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             display: flex;
             gap: 20px;
             justify-content: center;
+            background: #f5f5f5;
           }
           .credencial {
-            width: 400px;
-            height: 250px;
+            width: 85.6mm;
+            height: 53.98mm;
             background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%);
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 4mm;
+            padding: 3mm;
             color: white;
             position: relative;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             overflow: hidden;
           }
           .credencial-dorso {
@@ -463,13 +470,18 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
 
           {/* DORSO */}
           <div
-            className="absolute inset-0 w-full rounded-lg p-4 text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
+            className="absolute inset-0 w-full rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
-              minHeight: '320px',
-              maxHeight: '320px',
+              width: '85.6mm',
+              height: '53.98mm',
+              minWidth: '85.6mm',
+              minHeight: '53.98mm',
+              maxWidth: '85.6mm',
+              maxHeight: '53.98mm',
+              padding: '3mm',
               background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
             }}
           >
