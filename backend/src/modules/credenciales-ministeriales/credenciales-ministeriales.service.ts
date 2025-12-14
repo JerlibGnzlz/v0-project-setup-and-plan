@@ -363,5 +363,241 @@ export class CredencialesMinisterialesService extends BaseService<
     }
   }
 
+  /**
+   * Envía notificación push sobre el estado de una credencial a través de la app móvil
+   * Busca al pastor por documento y envía notificación push si tiene device tokens
+   */
+  async enviarNotificacionEstadoCredencial(
+    credencial: CredencialMinisterial
+  ): Promise<boolean> {
+    try {
+      const { estado, diasRestantes } = this.calcularEstado(credencial.fechaVencimiento)
+
+      // Buscar pastor por documento (las credenciales pueden estar asociadas a pastores)
+      // Intentar buscar por documento en la tabla de pastores
+      // Nota: Esto requiere que el documento de la credencial coincida con algún identificador del pastor
+      // Por ahora, buscaremos pastores que puedan tener el mismo documento
+      const pastores = await this.prisma.pastor.findMany({
+        where: {
+          activo: true,
+        },
+        include: {
+          auth: {
+            include: {
+              deviceTokens: {
+                where: { active: true },
+              },
+            },
+          },
+        },
+      })
+
+      // Buscar pastor que coincida con el documento de la credencial
+      // Nota: Esto es una aproximación - idealmente debería haber una relación directa
+      // Por ahora, buscaremos por nombre y apellido como aproximación
+      let pastorEncontrado = pastores.find(
+        (p) =>
+          p.nombre.toLowerCase() === credencial.nombre.toLowerCase() &&
+          p.apellido.toLowerCase() === credencial.apellido.toLowerCase() &&
+          p.auth &&
+          p.auth.deviceTokens.length > 0
+      )
+
+      // Si no encontramos por nombre/apellido, intentar buscar por email si hay algún campo relacionado
+      // Por ahora, si no encontramos, retornamos false
+      if (!pastorEncontrado) {
+        this.logger.warn(
+          `No se encontró pastor con device tokens para credencial ${credencial.id} (${credencial.nombre} ${credencial.apellido})`
+        )
+        return false
+      }
+
+      // Preparar mensaje según el estado
+      let titulo = ''
+      let mensaje = ''
+      const nombreCompleto = `${credencial.nombre} ${credencial.apellido}`
+
+      if (estado === 'vencida') {
+        titulo = '⚠️ Credencial Vencida'
+        mensaje = `${nombreCompleto}, tu credencial ministerial ha vencido hace ${diasRestantes} día(s). Por favor, renueva tu credencial para continuar ejerciendo tus funciones ministeriales.`
+      } else if (estado === 'por_vencer') {
+        titulo = '⏰ Credencial por Vencer'
+        mensaje = `${nombreCompleto}, tu credencial ministerial vence en ${diasRestantes} día(s). Por favor, renueva tu credencial antes de la fecha de vencimiento (${this.formatDate(credencial.fechaVencimiento)}).`
+      } else {
+        titulo = '✅ Credencial Vigente'
+        mensaje = `${nombreCompleto}, tu credencial ministerial está vigente. Vence en ${diasRestantes} día(s) (${this.formatDate(credencial.fechaVencimiento)}).`
+      }
+
+      // Enviar notificación push usando NotificationsService
+      if (pastorEncontrado.auth && pastorEncontrado.auth.email) {
+        const email = pastorEncontrado.auth.email
+        const resultado = await this.notificationsService.sendNotificationToUser(
+          email,
+          titulo,
+          mensaje,
+          {
+            type: 'credencial_estado',
+            credencialId: credencial.id,
+            estado,
+            diasRestantes,
+            fechaVencimiento: credencial.fechaVencimiento.toISOString(),
+            documento: credencial.documento,
+          }
+        )
+
+        if (resultado) {
+          this.logger.log(
+            `✅ Notificación push enviada a ${email} sobre estado de credencial ${credencial.id} (${estado})`
+          )
+        } else {
+          this.logger.warn(
+            `⚠️ No se pudo enviar notificación push a ${email} sobre credencial ${credencial.id}`
+          )
+        }
+
+        return resultado
+      }
+
+      return false
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(
+        `Error enviando notificación de estado de credencial ${credencial.id}:`,
+        errorMessage
+      )
+      return false
+    }
+  }
+
+  /**
+   * Envía recordatorios de estado de credenciales a todos los usuarios con credenciales
+   * Se puede ejecutar manualmente o mediante cron job
+   */
+  async enviarRecordatoriosEstadoCredenciales(): Promise<{
+    enviados: number
+    fallidos: number
+    detalles: Array<{
+      credencialId: string
+      documento: string
+      nombre: string
+      estado: string
+      exito: boolean
+    }>
+  }> {
+    try {
+      this.logger.log('📱 Iniciando envío de recordatorios de estado de credenciales...')
+
+      // Obtener todas las credenciales activas
+      const credenciales = await this.prisma.credencialMinisterial.findMany({
+        where: {
+          activa: true,
+        },
+      })
+
+      this.logger.log(`📋 Encontradas ${credenciales.length} credenciales activas`)
+
+      let enviados = 0
+      let fallidos = 0
+      const detalles: Array<{
+        credencialId: string
+        documento: string
+        nombre: string
+        estado: string
+        exito: boolean
+      }> = []
+
+      // Procesar cada credencial
+      for (const credencial of credenciales) {
+        try {
+          const { estado } = this.calcularEstado(credencial.fechaVencimiento)
+
+          // Solo enviar notificaciones para credenciales por vencer o vencidas
+          // Las vigentes se pueden notificar también, pero con menor prioridad
+          const resultado = await this.enviarNotificacionEstadoCredencial(credencial)
+
+          detalles.push({
+            credencialId: credencial.id,
+            documento: credencial.documento,
+            nombre: `${credencial.nombre} ${credencial.apellido}`,
+            estado,
+            exito: resultado,
+          })
+
+          if (resultado) {
+            enviados++
+          } else {
+            fallidos++
+          }
+
+          // Pequeño delay para evitar saturar
+          await new Promise((resolve) => setTimeout(resolve, 100))
+        } catch (error: unknown) {
+          fallidos++
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+          this.logger.error(
+            `Error procesando credencial ${credencial.id}:`,
+            errorMessage
+          )
+          detalles.push({
+            credencialId: credencial.id,
+            documento: credencial.documento,
+            nombre: `${credencial.nombre} ${credencial.apellido}`,
+            estado: 'error',
+            exito: false,
+          })
+        }
+      }
+
+      this.logger.log(
+        `📊 Recordatorios de credenciales: ${enviados} enviados, ${fallidos} fallidos`
+      )
+
+      return { enviados, fallidos, detalles }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error('Error en enviarRecordatoriosEstadoCredenciales:', errorMessage)
+      throw error
+    }
+  }
+
+  /**
+   * Formatea una fecha para mostrar en mensajes
+   */
+  private formatDate(date: Date): string {
+    return new Date(date).toLocaleDateString('es-AR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  }
+
+  /**
+   * Obtiene el estado de una credencial por documento
+   * Útil para que los usuarios consulten su credencial desde la app móvil
+   */
+  async obtenerEstadoPorDocumento(documento: string): Promise<CredencialMinisterialWithEstado | null> {
+    try {
+      const credencial = await this.prisma.credencialMinisterial.findUnique({
+        where: { documento },
+      })
+
+      if (!credencial) {
+        return null
+      }
+
+      const { estado, diasRestantes } = this.calcularEstado(credencial.fechaVencimiento)
+
+      return {
+        ...credencial,
+        estado,
+        diasRestantes,
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error obteniendo credencial por documento ${documento}:`, errorMessage)
+      throw error
+    }
+  }
+
 }
 

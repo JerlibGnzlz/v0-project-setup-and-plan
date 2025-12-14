@@ -18,11 +18,11 @@ import {
   CredencialMinisterialFilterDto,
 } from './dto/credencial-ministerial.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { PastorJwtAuthGuard } from '../auth/guards/pastor-jwt-auth.guard'
 import { PaginationDto } from '../../common/dto/pagination.dto'
 import { AuthenticatedRequest } from '../auth/types/request.types'
 
 @Controller('credenciales-ministeriales')
-@UseGuards(JwtAuthGuard)
 export class CredencialesMinisterialesController {
   private readonly logger = new Logger(CredencialesMinisterialesController.name)
 
@@ -31,6 +31,7 @@ export class CredencialesMinisterialesController {
   ) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   async create(
     @Body() createDto: CreateCredencialMinisterialDto,
     @Request() req: AuthenticatedRequest
@@ -48,6 +49,7 @@ export class CredencialesMinisterialesController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   async findAll(
     @Query() query: PaginationDto & CredencialMinisterialFilterDto
   ) {
@@ -107,6 +109,7 @@ export class CredencialesMinisterialesController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   async findOne(@Param('id') id: string) {
     try {
       return await this.credencialesMinisterialesService.findOneWithEstado(id)
@@ -118,6 +121,7 @@ export class CredencialesMinisterialesController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
   async update(
     @Param('id') id: string,
     @Body() updateDto: UpdateCredencialMinisterialDto,
@@ -136,6 +140,7 @@ export class CredencialesMinisterialesController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   async remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     try {
       this.logger.log(
@@ -145,6 +150,52 @@ export class CredencialesMinisterialesController {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       this.logger.error(`Error en remove: ${errorMessage}`)
+      throw error
+    }
+  }
+
+  /**
+   * Endpoint para enviar recordatorios de estado de credenciales manualmente
+   * Útil para testing o envío inmediato
+   */
+  @Post('recordatorios/enviar')
+  @UseGuards(JwtAuthGuard)
+  async enviarRecordatorios(@Request() req: AuthenticatedRequest) {
+    try {
+      this.logger.log(
+        `Enviando recordatorios de credenciales manualmente por usuario ${req.user?.email}`
+      )
+      return await this.credencialesMinisterialesService.enviarRecordatoriosEstadoCredenciales()
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en enviarRecordatorios: ${errorMessage}`)
+      throw error
+    }
+  }
+
+  /**
+   * Endpoint para consultar estado de credencial por documento
+   * Útil para que los usuarios consulten su credencial desde la app móvil
+   * Accesible para pastores autenticados
+   */
+  @Get('consultar/:documento')
+  @UseGuards(PastorJwtAuthGuard)
+  async consultarPorDocumento(@Param('documento') documento: string) {
+    try {
+      this.logger.log(`Consultando credencial por documento: ${documento}`)
+      const credencial = await this.credencialesMinisterialesService.obtenerEstadoPorDocumento(documento)
+      
+      if (!credencial) {
+        return { encontrada: false, mensaje: 'Credencial no encontrada' }
+      }
+
+      return {
+        encontrada: true,
+        credencial,
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en consultarPorDocumento: ${errorMessage}`)
       throw error
     }
   }
