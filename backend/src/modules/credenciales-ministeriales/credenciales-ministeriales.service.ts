@@ -392,19 +392,32 @@ export class CredencialesMinisterialesService extends BaseService<
         },
       })
 
-      // Buscar pastor que coincida con el documento de la credencial
-      // Nota: Esto es una aproximación - idealmente debería haber una relación directa
-      // Por ahora, buscaremos por nombre y apellido como aproximación
+      // Buscar pastor que coincida con la credencial
+      // Estrategia de búsqueda:
+      // 1. Buscar por nombre y apellido exactos (más confiable)
+      // 2. Si no se encuentra, buscar por nombre o apellido parcial (más flexible)
       let pastorEncontrado = pastores.find(
         (p) =>
-          p.nombre.toLowerCase() === credencial.nombre.toLowerCase() &&
-          p.apellido.toLowerCase() === credencial.apellido.toLowerCase() &&
+          p.nombre.toLowerCase().trim() === credencial.nombre.toLowerCase().trim() &&
+          p.apellido.toLowerCase().trim() === credencial.apellido.toLowerCase().trim() &&
           p.auth &&
           p.auth.deviceTokens.length > 0
       )
 
-      // Si no encontramos por nombre/apellido, intentar buscar por email si hay algún campo relacionado
-      // Por ahora, si no encontramos, retornamos false
+      // Si no encontramos coincidencia exacta, intentar búsqueda flexible
+      if (!pastorEncontrado) {
+        pastorEncontrado = pastores.find(
+          (p) =>
+            (p.nombre.toLowerCase().trim().includes(credencial.nombre.toLowerCase().trim()) ||
+              credencial.nombre.toLowerCase().trim().includes(p.nombre.toLowerCase().trim())) &&
+            (p.apellido.toLowerCase().trim().includes(credencial.apellido.toLowerCase().trim()) ||
+              credencial.apellido.toLowerCase().trim().includes(p.apellido.toLowerCase().trim())) &&
+            p.auth &&
+            p.auth.deviceTokens.length > 0
+        )
+      }
+
+      // Si aún no encontramos, retornar false
       if (!pastorEncontrado) {
         this.logger.warn(
           `No se encontró pastor con device tokens para credencial ${credencial.id} (${credencial.nombre} ${credencial.apellido})`
