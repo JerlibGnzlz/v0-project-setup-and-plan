@@ -337,9 +337,15 @@ export class EmailService {
       // Validar que el email "from" no sea un Gmail personal (SendGrid requiere verificación)
       if (fromEmail.includes('@gmail.com') && !fromEmail.includes('@ministerio')) {
         this.logger.warn(`⚠️ Usando email Gmail personal: ${fromEmail}`)
-        this.logger.warn('   Asegúrate de que este email esté verificado en SendGrid')
-        this.logger.warn('   → Ve a SendGrid → Settings → Sender Authentication')
-        this.logger.warn('   → Verifica el email antes de continuar')
+        this.logger.warn('   SendGrid requiere que este email esté verificado antes de enviar')
+        this.logger.warn('   📧 Pasos para verificar:')
+        this.logger.warn('   1. Ve a https://sendgrid.com → Settings → Sender Authentication')
+        this.logger.warn('   2. Haz clic en "Verify a Single Sender"')
+        this.logger.warn(`   3. Ingresa ${fromEmail} y completa el formulario`)
+        this.logger.warn('   4. Verifica el email que SendGrid envía a tu bandeja de entrada')
+        this.logger.warn('   5. Una vez verificado, los emails funcionarán correctamente')
+        this.logger.warn('   📖 Ver guía completa en: docs/VERIFICAR_EMAIL_SENDGRID.md')
+        this.logger.warn('   ⚠️ IMPORTANTE: SendGrid NO bloqueará el envío, pero puede rechazar emails si no está verificado')
       }
 
       const msg = {
