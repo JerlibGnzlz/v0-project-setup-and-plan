@@ -236,6 +236,15 @@ export class EmailService {
       return false
     }
 
+    // Log detallado del intento de envío
+    this.logger.log(`📧 [EmailService] Intentando enviar email:`)
+    this.logger.log(`   To: ${to}`)
+    this.logger.log(`   Title: ${title}`)
+    this.logger.log(`   Provider configurado: ${this.emailProvider}`)
+    this.logger.log(`   SendGrid configurado: ${this.sendgridConfigured}`)
+    this.logger.log(`   Resend configurado: ${this.resendConfigured}`)
+    this.logger.log(`   SMTP configurado: ${this.transporter ? 'Sí' : 'No'}`)
+
     // Respetar el proveedor configurado en EMAIL_PROVIDER
     // Si el usuario eligió 'gmail' o 'smtp', usar SOLO SMTP
     if (this.emailProvider === 'gmail' || this.emailProvider === 'smtp') {
