@@ -542,12 +542,17 @@ export class InscripcionesService {
                 day: 'numeric',
             })
 
-            // IMPORTANTE: Usar siempre el template centralizado y sendEmailToUser
-            // Esto asegura que todos los emails se envíen correctamente usando EmailService
+            // CRÍTICO: Verificar que NotificationsService esté disponible
+            // Si no está disponible, el email NO se enviará
             if (!this.notificationsService) {
-                this.logger.error('❌ NotificationsService no disponible, no se puede enviar email de inscripción')
+                this.logger.error('❌ CRÍTICO: NotificationsService no disponible, no se puede enviar email de inscripción')
+                this.logger.error(`   Email que NO se envió: ${inscripcion.email}`)
+                this.logger.error(`   Origen: ${origenRegistro}`)
+                this.logger.error(`   Esto puede pasar si hay problemas de inyección de dependencias`)
+                this.logger.error(`   Verifica que NotificationsModule esté importado correctamente en InscripcionesModule`)
             } else {
                 this.logger.log(`📧 Preparando email de confirmación para ${inscripcion.email}...`)
+                this.logger.log(`   Origen: ${origenRegistro}`)
 
                 // Usar template centralizado (más mantenible y consistente)
                 const { getEmailTemplate } = await import('../notifications/templates/email.templates')
