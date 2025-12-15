@@ -18,7 +18,8 @@
     "test:email-pago-pendiente": "ts-node scripts/test-email-pago-pendiente.ts",
     "verificar:email-enviado": "ts-node scripts/verificar-email-enviado.ts",
     "test:email-todos-usuarios": "ts-node scripts/test-email-todos-usuarios.ts",
-    "test:inscripcion-mobile": "ts-node scripts/test-inscripcion-mobile.ts"
+    "test:inscripcion-mobile": "ts-node scripts/test-inscripcion-mobile.ts",
+    "debug:email-mobile": "ts-node scripts/debug-email-mobile.ts"
   },
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",

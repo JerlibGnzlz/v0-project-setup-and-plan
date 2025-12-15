@@ -41,22 +41,22 @@ async function main() {
 
         console.log(`✅ Convención encontrada: ${convencion.titulo}\n`)
 
-    // 2. Crear servicios necesarios (simulando el módulo NestJS)
-    console.log('🔧 Inicializando servicios...')
-    const prismaService = new PrismaService()
-    const emailService = new EmailService()
-    const notificationsService = new NotificationsService(prismaService, emailService)
-    const eventEmitter = new EventEmitter2()
-    const auditService = new AuditService(prismaService)
-    
-    // Orden correcto del constructor: prisma, eventEmitter, auditService, notificationsService
-    const inscripcionesService = new InscripcionesService(
-      prismaService,
-      eventEmitter,
-      auditService,
-      notificationsService
-    )
-    console.log('✅ Servicios inicializados\n')
+        // 2. Crear servicios necesarios (simulando el módulo NestJS)
+        console.log('🔧 Inicializando servicios...')
+        const prismaService = new PrismaService()
+        const emailService = new EmailService()
+        const notificationsService = new NotificationsService(prismaService, emailService)
+        const eventEmitter = new EventEmitter2()
+        const auditService = new AuditService(prismaService)
+
+        // Orden correcto del constructor: prisma, eventEmitter, auditService, notificationsService
+        const inscripcionesService = new InscripcionesService(
+            prismaService,
+            eventEmitter,
+            auditService,
+            notificationsService
+        )
+        console.log('✅ Servicios inicializados\n')
 
         // 3. Crear inscripción simulando la app móvil
         console.log('📱 Simulando inscripción desde AMVA Digital (mobile)...')
@@ -91,16 +91,16 @@ async function main() {
         console.log('='.repeat(80))
         console.log('✅ INSCRIPCIÓN CREADA EXITOSAMENTE')
         console.log('='.repeat(80) + '\n')
-    console.log(`   ID: ${inscripcionCreada.id}`)
-    console.log(`   Email: ${inscripcionCreada.email}`)
-    console.log(`   Estado: ${inscripcionCreada.estado}`)
-    console.log(`   Origen: ${inscripcionCreada.origenRegistro}`)
-    
-    // Obtener pagos por separado ya que el tipo de retorno puede no incluirlos
-    const pagos = await prisma.pago.findMany({
-      where: { inscripcionId: inscripcionCreada.id },
-    })
-    console.log(`   Pagos creados: ${pagos.length}\n`)
+        console.log(`   ID: ${inscripcionCreada.id}`)
+        console.log(`   Email: ${inscripcionCreada.email}`)
+        console.log(`   Estado: ${inscripcionCreada.estado}`)
+        console.log(`   Origen: ${inscripcionCreada.origenRegistro}`)
+
+        // Obtener pagos por separado ya que el tipo de retorno puede no incluirlos
+        const pagos = await prisma.pago.findMany({
+            where: { inscripcionId: inscripcionCreada.id },
+        })
+        console.log(`   Pagos creados: ${pagos.length}\n`)
 
         // 4. Verificar que el email se envió
         console.log('='.repeat(80))
