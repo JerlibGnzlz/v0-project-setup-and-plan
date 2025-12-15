@@ -542,148 +542,34 @@ export class InscripcionesService {
                 day: 'numeric',
             })
 
-            const tituloEmail = `✅ Inscripción Recibida - ${convencion.titulo}`
-            // Obtener código de referencia de la inscripción actualizada
-            const inscripcionCompleta = await this.prisma.inscripcion.findUnique({
-                where: { id: inscripcion.id },
-            })
-            const codigoRef = inscripcionCompleta?.codigoReferencia || 'Pendiente'
-            const cuerpoEmail = `
-<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
-    <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px;">✅ Inscripción Recibida</h1>
-    </div>
-    
-    <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
-        <p style="font-size: 16px; margin-bottom: 20px;">¡Hola <strong>${inscripcion.nombre}</strong>!</p>
-        
-        <p style="font-size: 16px; margin-bottom: 20px;">
-            Tu inscripción a la convención <strong>"${convencion.titulo}"</strong> ha sido recibida exitosamente.
-        </p>
-        
-        <div style="background: #fef3c7; border: 2px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 5px; text-align: center;">
-            <h3 style="color: #92400e; margin: 0 0 10px 0; font-size: 18px;">🔖 Código de Referencia para Transferencia</h3>
-            <p style="font-size: 24px; font-weight: bold; color: #d97706; margin: 0; letter-spacing: 2px; font-family: monospace;">
-                ${codigoRef}
-            </p>
-            <p style="font-size: 12px; color: #78350f; margin: 10px 0 0 0;">
-                ⚠️ <strong>IMPORTANTE:</strong> Incluye este código en el concepto de tu transferencia para facilitar la validación del pago.
-            </p>
-        </div>
-        
-        <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 20px; margin: 25px 0; border-radius: 5px;">
-            <h2 style="color: #1e40af; margin-top: 0; margin-bottom: 15px; font-size: 20px;">📋 Detalles de tu inscripción</h2>
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                    <td style="padding: 8px 0; font-weight: bold; color: #374151; width: 160px;">Convención:</td>
-                    <td style="padding: 8px 0; color: #1f2937;">${convencion.titulo}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px 0; font-weight: bold; color: #374151;">Fechas:</td>
-                    <td style="padding: 8px 0; color: #1f2937;">${fechaInicio} al ${fechaFin}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px 0; font-weight: bold; color: #374151;">Ubicación:</td>
-                    <td style="padding: 8px 0; color: #1f2937;">${convencion.ubicacion}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px 0; font-weight: bold; color: #374151;">Costo total:</td>
-                    <td style="padding: 8px 0; color: #1f2937; font-weight: bold;">${costoTotalFormateado}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px 0; font-weight: bold; color: #374151;">Número de cuotas:</td>
-                    <td style="padding: 8px 0; color: #1f2937;">${numeroCuotas}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px 0; font-weight: bold; color: #374151;">Monto por cuota:</td>
-                    <td style="padding: 8px 0; color: #1f2937; font-weight: bold;">${montoPorCuotaFormateado}</td>
-                </tr>
-            </table>
-        </div>
-        
-        <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 5px;">
-            <p style="margin: 0; color: #92400e; font-weight: bold; font-size: 16px;">
-                ⏳ Estado actual: <span style="color: #d97706;">Pendiente de pago</span>
-            </p>
-        </div>
-        
-        <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; margin: 25px 0; border-radius: 5px;">
-            <h2 style="color: #059669; margin-top: 0; margin-bottom: 15px; font-size: 20px;">📝 Próximos Pasos</h2>
-            
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #047857; margin: 0 0 10px 0; font-size: 16px;">1. Realizar el pago de tu(s) cuota(s):</h3>
-                <ul style="margin: 0; padding-left: 20px; color: #1f2937;">
-                    <li style="margin-bottom: 8px;">Puedes pagar en <strong>${numeroCuotas} cuota(s)</strong> de <strong>${montoPorCuotaFormateado}</strong> cada una</li>
-                    <li style="margin-bottom: 8px;">O pagar el monto total de <strong>${costoTotalFormateado}</strong> de una vez</li>
-                    <li style="margin-bottom: 8px;"><strong>⚠️ No olvides incluir el código de referencia <span style="font-family: monospace; background: #fef3c7; padding: 2px 6px; border-radius: 3px;">${codigoRef}</span> en el concepto de tu transferencia</strong></li>
-                </ul>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #047857; margin: 0 0 10px 0; font-size: 16px;">2. Métodos de pago aceptados:</h3>
-                <ul style="margin: 0; padding-left: 20px; color: #1f2937;">
-                    <li style="margin-bottom: 8px;"><strong>Transferencia bancaria:</strong> Contacta a la administración para obtener los datos bancarios</li>
-                    <li style="margin-bottom: 8px;"><strong>Mercado Pago:</strong> Solicita el link de pago a la administración</li>
-                    <li style="margin-bottom: 8px;"><strong>Efectivo:</strong> Acércate a tu sede más cercana</li>
-                </ul>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #047857; margin: 0 0 10px 0; font-size: 16px;">3. Subir comprobante de pago:</h3>
-                <ul style="margin: 0; padding-left: 20px; color: #1f2937;">
-                    <li style="margin-bottom: 8px;">Una vez realizado el pago, puedes subir el comprobante desde el dashboard administrativo</li>
-                    <li style="margin-bottom: 8px;">O enviarlo por email a: <a href="mailto:contacto@vidaabundante.org" style="color: #3b82f6; text-decoration: none; font-weight: bold;">contacto@vidaabundante.org</a></li>
-                </ul>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #047857; margin: 0 0 10px 0; font-size: 16px;">4. Validación:</h3>
-                <ul style="margin: 0; padding-left: 20px; color: #1f2937;">
-                    <li style="margin-bottom: 8px;">Nuestro equipo validará tu pago y te notificará por email</li>
-                    <li style="margin-bottom: 8px;">Una vez validado, recibirás un email de confirmación</li>
-                </ul>
-            </div>
-            
-            <div style="margin-bottom: 0;">
-                <h3 style="color: #047857; margin: 0 0 10px 0; font-size: 16px;">5. Confirmación final:</h3>
-                <p style="margin: 0; color: #1f2937;">
-                    Cuando todas las cuotas estén pagadas y validadas, recibirás la confirmación final de tu inscripción.
-                </p>
-            </div>
-        </div>
-        
-        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 5px;">
-            <h3 style="color: #92400e; margin-top: 0; margin-bottom: 10px; font-size: 18px;">💡 Importante</h3>
-            <ul style="margin: 0; padding-left: 20px; color: #78350f;">
-                <li style="margin-bottom: 8px;">Guarda este email como comprobante de tu inscripción</li>
-                <li style="margin-bottom: 8px;">Si tienes alguna pregunta, contáctanos a: <a href="mailto:contacto@vidaabundante.org" style="color: #d97706; text-decoration: none; font-weight: bold;">contacto@vidaabundante.org</a></li>
-                <li style="margin-bottom: 0;">El estado de tu inscripción se actualizará automáticamente cuando valides tus pagos</li>
-            </ul>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 2px solid #e5e7eb;">
-            <p style="font-size: 18px; font-weight: bold; color: #059669; margin: 0;">
-                ¡Te esperamos en la convención!
-            </p>
-        </div>
-    </div>
-    
-    <div style="background: #f9fafb; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
-        <p style="font-size: 12px; color: #6b7280; margin: 0;">
-            Asociación Misionera Vida Abundante - AMVA Digital
-        </p>
-    </div>
-</div>
-            `.trim()
+            // IMPORTANTE: Usar siempre el template centralizado y sendEmailToUser
+            // Esto asegura que todos los emails se envíen correctamente usando EmailService
+            if (!this.notificationsService) {
+                this.logger.error('❌ NotificationsService no disponible, no se puede enviar email de inscripción')
+            } else {
+                this.logger.log(`📧 Preparando email de confirmación para ${inscripcion.email}...`)
+                
+                // Usar template centralizado (más mantenible y consistente)
+                const { getEmailTemplate } = await import('../notifications/templates/email.templates')
+                const template = getEmailTemplate('inscripcion_creada', {
+                    inscripcionId: inscripcion.id,
+                    convencionTitulo: convencion.titulo,
+                    numeroCuotas: numeroCuotas,
+                    montoTotal: costoTotal,
+                    origenRegistro: origenRegistro,
+                    nombre: inscripcion.nombre,
+                    apellido: inscripcion.apellido || '',
+                    inscripcionNombre: `${inscripcion.nombre} ${inscripcion.apellido || ''}`.trim(),
+                })
 
-            // Enviar email inmediatamente al usuario (sin pasar por cola para reducir latencia)
-            // Esto asegura que el email llegue rápido mientras push/web pueden ser asíncronos
-            if (this.notificationsService) {
-                try {
-                    // Enviar email directamente usando el servicio de notificaciones
-                    // que tiene acceso directo al EmailService
-                    const { getEmailTemplate } = await import('../notifications/templates/email.templates')
-                    const template = getEmailTemplate('inscripcion_creada', {
+                // Enviar email directamente usando sendEmailToUser
+                // Este método usa EmailService correctamente configurado (SendGrid, Resend, o SMTP)
+                const emailSent = await this.notificationsService.sendEmailToUser(
+                    inscripcion.email,
+                    template.title,
+                    template.body,
+                    {
+                        type: 'inscripcion_creada',
                         inscripcionId: inscripcion.id,
                         convencionTitulo: convencion.titulo,
                         numeroCuotas: numeroCuotas,
@@ -691,32 +577,15 @@ export class InscripcionesService {
                         origenRegistro: origenRegistro,
                         nombre: inscripcion.nombre,
                         apellido: inscripcion.apellido || '',
-                    })
-
-                    // Enviar email directamente usando EmailService (sin depender de si es pastor)
-                    const emailSent = await this.notificationsService.sendEmailToUser(
-                        inscripcion.email,
-                        template.title,
-                        template.body, // Mantener HTML completo
-                        {
-                            type: 'inscripcion_creada',
-                            inscripcionId: inscripcion.id,
-                            convencionTitulo: convencion.titulo,
-                            numeroCuotas: numeroCuotas,
-                            montoTotal: costoTotal,
-                            origenRegistro: origenRegistro,
-                            nombre: inscripcion.nombre,
-                            apellido: inscripcion.apellido || '',
-                        }
-                    )
-                    if (emailSent) {
-                        this.logger.log(`✅ Email de inscripción enviado exitosamente a ${inscripcion.email}`)
-                    } else {
-                        this.logger.warn(`⚠️ No se pudo enviar email de inscripción a ${inscripcion.email}`)
+                        inscripcionNombre: `${inscripcion.nombre} ${inscripcion.apellido || ''}`.trim(),
                     }
-                } catch (emailError) {
-                    this.logger.error(`Error enviando email inmediato a ${inscripcion.email}:`, emailError)
-                    // Continuar con el evento por si acaso
+                )
+                
+                if (emailSent) {
+                    this.logger.log(`✅ Email de inscripción enviado exitosamente a ${inscripcion.email} (origen: ${origenRegistro})`)
+                } else {
+                    this.logger.error(`❌ No se pudo enviar email de inscripción a ${inscripcion.email}`)
+                    this.logger.error(`   Verifica la configuración de EmailService y los logs anteriores`)
                 }
             }
 
