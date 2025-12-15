@@ -548,7 +548,7 @@ export class InscripcionesService {
                 this.logger.error('❌ NotificationsService no disponible, no se puede enviar email de inscripción')
             } else {
                 this.logger.log(`📧 Preparando email de confirmación para ${inscripcion.email}...`)
-                
+
                 // Usar template centralizado (más mantenible y consistente)
                 const { getEmailTemplate } = await import('../notifications/templates/email.templates')
                 const template = getEmailTemplate('inscripcion_creada', {
@@ -580,7 +580,7 @@ export class InscripcionesService {
                         inscripcionNombre: `${inscripcion.nombre} ${inscripcion.apellido || ''}`.trim(),
                     }
                 )
-                
+
                 if (emailSent) {
                     this.logger.log(`✅ Email de inscripción enviado exitosamente a ${inscripcion.email} (origen: ${origenRegistro})`)
                 } else {
@@ -2500,7 +2500,7 @@ export class InscripcionesService {
                             this.logger.log(
                                 `📬 Evento PAGO_RECORDATORIO emitido para ${inscripcion.email}`
                             )
-                            
+
                             // IMPORTANTE: Enviar email directamente usando sendEmailToUser
                             // Esto asegura que el email se envíe usando el EmailService correctamente configurado
                             this.logger.log(`📧 Enviando email directamente a ${inscripcion.email}...`)
