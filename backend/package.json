@@ -14,7 +14,8 @@
     "prisma:studio": "prisma studio",
     "seed": "node \"seed Data-prisma/seed.js\"",
     "seed:prod": "node \"seed Data-prisma/seed.js\"",
-    "create-test-pastor": "ts-node scripts/create-test-pastor.ts"
+    "create-test-pastor": "ts-node scripts/create-test-pastor.ts",
+    "test:email-pago-pendiente": "ts-node scripts/test-email-pago-pendiente.ts"
   },
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",
