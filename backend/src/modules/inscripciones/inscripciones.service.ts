@@ -589,30 +589,39 @@ export class InscripcionesService {
                 if (emailSent) {
                     this.logger.log(`✅ Email de inscripción enviado exitosamente a ${inscripcion.email} (origen: ${origenRegistro})`)
                 } else {
-                    this.logger.error(`❌ No se pudo enviar email de inscripción a ${inscripcion.email}`)
+                    this.logger.error(`❌ CRÍTICO: No se pudo enviar email de inscripción a ${inscripcion.email}`)
+                    this.logger.error(`   Origen: ${origenRegistro}`)
                     this.logger.error(`   Verifica la configuración de EmailService y los logs anteriores`)
+                    this.logger.error(`   Revisa que EmailService esté configurado correctamente (SendGrid/Resend/SMTP)`)
                 }
             }
 
             // Emitir evento de inscripción creada (para push/web notifications asíncronas)
-            const event = new InscripcionCreadaEvent({
-                email: inscripcion.email,
-                inscripcionId: inscripcion.id,
-                convencionTitulo: convencion.titulo,
-                numeroCuotas: numeroCuotas,
-                montoTotal: costoTotal,
-                origenRegistro: origenRegistro,
-                nombre: inscripcion.nombre,
-                apellido: inscripcion.apellido || '',
-            })
-
-            // Emitir evento como backup (para push/web notifications)
             // El email ya se envió directamente arriba, este evento es solo para notificaciones adicionales
-            this.eventEmitter.emit(NotificationEventType.INSCRIPCION_CREADA, event)
-            this.logger.log(`📬 Evento INSCRIPCION_CREADA emitido para ${inscripcion.email}`)
+            try {
+                const event = new InscripcionCreadaEvent({
+                    email: inscripcion.email,
+                    inscripcionId: inscripcion.id,
+                    convencionTitulo: convencion.titulo,
+                    numeroCuotas: numeroCuotas,
+                    montoTotal: costoTotal,
+                    origenRegistro: origenRegistro,
+                    nombre: inscripcion.nombre,
+                    apellido: inscripcion.apellido || '',
+                })
+
+                this.eventEmitter.emit(NotificationEventType.INSCRIPCION_CREADA, event)
+                this.logger.log(`📬 Evento INSCRIPCION_CREADA emitido para ${inscripcion.email}`)
+            } catch (eventError) {
+                this.logger.warn(`⚠️ Error emitiendo evento de inscripción creada (no crítico, email ya enviado):`, eventError)
+            }
         } catch (error) {
-            this.logger.error(`Error emitiendo evento de inscripción creada:`, error)
-            // No fallar si el evento falla (el email ya se envió directamente)
+            // CRÍTICO: Si hay un error aquí, el email NO se envió
+            this.logger.error(`❌ CRÍTICO: Error en el proceso de envío de email de inscripción:`, error)
+            this.logger.error(`   Email afectado: ${inscripcion.email}`)
+            this.logger.error(`   Origen: ${origenRegistro}`)
+            this.logger.error(`   El email NO se envió debido a este error`)
+            // No fallar la creación de inscripción, pero registrar el error crítico
         }
 
         // Retornar la inscripción con los pagos incluidos
