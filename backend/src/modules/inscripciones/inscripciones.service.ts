@@ -1292,9 +1292,8 @@ export class InscripcionesService {
                 apellido: inscripcion.apellido || '',
             })
 
-            this.eventEmitter.emit(NotificationEventType.PAGO_VALIDADO, event)
-            this.logger.log(`📬 Evento PAGO_VALIDADO emitido para ${inscripcion.email}`)
-
+            // IMPORTANTE: Enviar email directamente ANTES de emitir evento
+            // Esto asegura que el email se envíe incluso si el evento falla
             // Enviar email directamente al usuario usando EmailService
             if (this.notificationsService) {
                 try {
@@ -1334,7 +1333,7 @@ export class InscripcionesService {
                     if (emailSent) {
                         this.logger.log(`✅ Email de pago validado enviado exitosamente a ${inscripcion.email}`)
                     } else {
-                        this.logger.warn(`⚠️ No se pudo enviar email de pago validado a ${inscripcion.email}`)
+                        this.logger.error(`❌ No se pudo enviar email de pago validado a ${inscripcion.email}`)
                     }
                 } catch (emailError) {
                     this.logger.error(`Error enviando email de pago validado a ${inscripcion.email}:`, emailError)
