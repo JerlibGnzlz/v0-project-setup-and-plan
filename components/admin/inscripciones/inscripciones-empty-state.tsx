@@ -20,3 +20,5 @@ export function InscripcionesEmptyState({ hasInscripciones }: InscripcionesEmpty
 
 
 
+
+

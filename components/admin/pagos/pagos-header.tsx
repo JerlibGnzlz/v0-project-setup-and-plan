@@ -68,3 +68,5 @@ export function PagosHeader({ inscripcionFiltrada }: PagosHeaderProps) {
 
 
 
+
+
