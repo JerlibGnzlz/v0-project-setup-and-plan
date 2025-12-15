@@ -20,6 +20,9 @@ export class EmailService {
     const provider = (process.env.EMAIL_PROVIDER || 'gmail').toLowerCase() as EmailProvider
     this.emailProvider = provider
 
+    this.logger.log(`📧 Inicializando EmailService con proveedor: ${provider}`)
+    this.logger.log(`   EMAIL_PROVIDER=${provider}`)
+
     // Configurar SOLO el proveedor especificado, sin intentar otros
     if (provider === 'resend') {
       this.configureResend()
