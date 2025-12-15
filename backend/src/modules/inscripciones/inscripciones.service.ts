@@ -601,11 +601,13 @@ export class InscripcionesService {
                 apellido: inscripcion.apellido || '',
             })
 
+            // Emitir evento como backup (para push/web notifications)
+            // El email ya se envió directamente arriba, este evento es solo para notificaciones adicionales
             this.eventEmitter.emit(NotificationEventType.INSCRIPCION_CREADA, event)
             this.logger.log(`📬 Evento INSCRIPCION_CREADA emitido para ${inscripcion.email}`)
         } catch (error) {
             this.logger.error(`Error emitiendo evento de inscripción creada:`, error)
-            // No fallar si el evento falla
+            // No fallar si el evento falla (el email ya se envió directamente)
         }
 
         // Retornar la inscripción con los pagos incluidos
@@ -1339,6 +1341,10 @@ export class InscripcionesService {
                 }
             }
 
+            // Emitir evento como backup (para push/web notifications)
+            this.eventEmitter.emit(NotificationEventType.PAGO_VALIDADO, event)
+            this.logger.log(`📬 Evento PAGO_VALIDADO emitido para ${inscripcion.email}`)
+
             // Enviar notificación a todos los admins
             if (this.notificationsService) {
                 try {
@@ -1537,11 +1543,8 @@ export class InscripcionesService {
                         apellido: inscripcionCompleta.apellido || '',
                     })
 
-                    this.eventEmitter.emit(NotificationEventType.INSCRIPCION_CONFIRMADA, event)
-                    this.logger.log(
-                        `📬 Evento INSCRIPCION_CONFIRMADA emitido para ${inscripcionCompleta.email}`
-                    )
-
+                    // IMPORTANTE: Enviar email directamente ANTES de emitir evento
+                    // Esto asegura que el email se envíe incluso si el evento falla
                     // Enviar email directamente al usuario usando EmailService
                     if (this.notificationsService) {
                         try {
@@ -1575,6 +1578,12 @@ export class InscripcionesService {
                             this.logger.error(`Error enviando email de inscripción confirmada a ${inscripcionCompleta.email}:`, emailError)
                         }
                     }
+
+                    // Emitir evento como backup (para push/web notifications)
+                    this.eventEmitter.emit(NotificationEventType.INSCRIPCION_CONFIRMADA, event)
+                    this.logger.log(
+                        `📬 Evento INSCRIPCION_CONFIRMADA emitido para ${inscripcionCompleta.email}`
+                    )
                 }
             } catch (error) {
                 this.logger.error(`Error emitiendo evento de inscripción confirmada:`, error)
@@ -1892,9 +1901,8 @@ export class InscripcionesService {
                 apellido: inscripcion.apellido || '',
             })
 
-            this.eventEmitter.emit(NotificationEventType.PAGO_RECHAZADO, event)
-            this.logger.log(`📬 Evento PAGO_RECHAZADO emitido para ${inscripcion.email}`)
-
+            // IMPORTANTE: Enviar email directamente ANTES de emitir evento
+            // Esto asegura que el email se envíe incluso si el evento falla
             // Enviar email directamente al usuario usando EmailService
             if (this.notificationsService) {
                 try {
@@ -1930,12 +1938,16 @@ export class InscripcionesService {
                     if (emailSent) {
                         this.logger.log(`✅ Email de pago rechazado enviado exitosamente a ${inscripcion.email}`)
                     } else {
-                        this.logger.warn(`⚠️ No se pudo enviar email de pago rechazado a ${inscripcion.email}`)
+                        this.logger.error(`❌ No se pudo enviar email de pago rechazado a ${inscripcion.email}`)
                     }
                 } catch (emailError) {
                     this.logger.error(`Error enviando email de pago rechazado a ${inscripcion.email}:`, emailError)
                 }
             }
+
+            // Emitir evento como backup (para push/web notifications)
+            this.eventEmitter.emit(NotificationEventType.PAGO_RECHAZADO, event)
+            this.logger.log(`📬 Evento PAGO_RECHAZADO emitido para ${inscripcion.email}`)
 
             // Enviar notificación a todos los admins
             if (this.notificationsService) {
@@ -2003,6 +2015,48 @@ export class InscripcionesService {
                 apellido: inscripcion.apellido || '',
             })
 
+            // IMPORTANTE: Enviar email directamente ANTES de emitir evento
+            // Esto asegura que el email se envíe incluso si el evento falla
+            if (this.notificationsService) {
+                try {
+                    const { getEmailTemplate } = await import('../notifications/templates/email.templates')
+                    const template = getEmailTemplate('pago_rehabilitado', {
+                        pagoId: pago.id,
+                        inscripcionId: inscripcion.id,
+                        monto,
+                        numeroCuota: pago.numeroCuota || 1,
+                        convencionTitulo: inscripcionCompleta.convencion?.titulo || 'Convención',
+                        nombre: inscripcion.nombre,
+                        apellido: inscripcion.apellido || '',
+                    })
+
+                    const emailSent = await this.notificationsService.sendEmailToUser(
+                        inscripcion.email,
+                        template.title,
+                        template.body,
+                        {
+                            type: 'pago_rehabilitado',
+                            pagoId: pago.id,
+                            inscripcionId: inscripcion.id,
+                            monto,
+                            numeroCuota: pago.numeroCuota || 1,
+                            convencionTitulo: inscripcionCompleta.convencion?.titulo || 'Convención',
+                            nombre: inscripcion.nombre,
+                            apellido: inscripcion.apellido || '',
+                        }
+                    )
+
+                    if (emailSent) {
+                        this.logger.log(`✅ Email de pago rehabilitado enviado exitosamente a ${inscripcion.email}`)
+                    } else {
+                        this.logger.error(`❌ No se pudo enviar email de pago rehabilitado a ${inscripcion.email}`)
+                    }
+                } catch (emailError) {
+                    this.logger.error(`Error enviando email de pago rehabilitado a ${inscripcion.email}:`, emailError)
+                }
+            }
+
+            // Emitir evento como backup (para push/web notifications)
             this.eventEmitter.emit(NotificationEventType.PAGO_REHABILITADO, event)
             this.logger.log(`📬 Evento PAGO_REHABILITADO emitido para ${inscripcion.email}`)
 
