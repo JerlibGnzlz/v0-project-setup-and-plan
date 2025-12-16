@@ -3,16 +3,20 @@
 import { useEffect, useState } from 'react'
 import { Target, Eye, Sparkles } from 'lucide-react'
 import { AnimatedCounter } from './animated-counter'
-
-const stats = [
-  { end: 500, suffix: '+', label: 'Pastores Formados', color: 'from-sky-400 to-blue-500' },
-  { end: 5, suffix: '', label: 'Países', color: 'from-emerald-400 to-teal-500' },
-  { end: 15, suffix: '+', label: 'Años de Ministerio', color: 'from-amber-400 to-orange-500' },
-  { end: 50, suffix: '+', label: 'Convenciones', color: 'from-sky-400 to-emerald-500' },
-]
+import { useSedesCount } from '@/lib/hooks/use-sedes'
 
 export function AboutSection() {
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
+  const { data: totalPaisesResponse } = useSedesCount()
+  // Extraer el número del response de axios
+  const totalPaises = typeof totalPaisesResponse === 'number' ? totalPaisesResponse : totalPaisesResponse?.data || 0
+
+  const stats = [
+    { end: 500, suffix: '+', label: 'Pastores Formados', color: 'from-sky-400 to-blue-500' },
+    { end: totalPaises, suffix: '', label: 'Países', color: 'from-emerald-400 to-teal-500' },
+    { end: 15, suffix: '+', label: 'Años de Ministerio', color: 'from-amber-400 to-orange-500' },
+    { end: 50, suffix: '+', label: 'Convenciones', color: 'from-sky-400 to-emerald-500' },
+  ]
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {

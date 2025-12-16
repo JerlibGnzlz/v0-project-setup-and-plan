@@ -4,62 +4,11 @@ import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, MapPin, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImageWithSkeleton } from './image-with-skeleton'
-
-const locations = [
-  {
-    country: 'Colombia',
-    city: 'Bogotá',
-    description:
-      'Nuestra sede principal en América del Sur, alcanzando comunidades con el mensaje de esperanza.',
-    image: '/bogota-colombia-cityscape-with-mountains.jpg',
-    flag: '🇨🇴',
-  },
-  {
-    country: 'España',
-    city: 'Madrid',
-    description: 'Expandiendo el reino en Europa, conectando con la comunidad hispana y europea.',
-    image: '/madrid-spain-cityscape-with-architecture.jpg',
-    flag: '🇪🇸',
-  },
-  {
-    country: 'Argentina',
-    city: 'Buenos Aires',
-    description:
-      'Ministerio activo en el corazón de Argentina, transformando vidas con el evangelio.',
-    image: '/buenos-aires-argentina-cityscape.jpg',
-    flag: '🇦🇷',
-  },
-  {
-    country: 'Chile',
-    city: 'Santiago',
-    description: 'Presencia misionera en Chile, llevando luz a las comunidades locales.',
-    image: '/santiago-chile-cityscape-with-andes-mountains.jpg',
-    flag: '🇨🇱',
-  },
-  {
-    country: 'Uruguay',
-    city: 'Montevideo',
-    description: 'Alcanzando Uruguay con amor y servicio, edificando la iglesia local.',
-    image: '/montevideo-uruguay-cityscape-waterfront.jpg',
-    flag: '🇺🇾',
-  },
-  {
-    country: 'Brasil',
-    city: 'São Paulo',
-    description: 'Expandiendo el ministerio en el corazón de Sudamérica, alcanzando comunidades con el evangelio.',
-    image: '/placeholder.jpg',
-    flag: '🇧🇷',
-  },
-  {
-    country: 'Panamá',
-    city: 'Ciudad de Panamá',
-    description: 'Puente entre continentes, llevando el mensaje de vida abundante a Centroamérica.',
-    image: '/placeholder.jpg',
-    flag: '🇵🇦',
-  },
-]
+import { useSedesLanding } from '@/lib/hooks/use-sedes-landing'
+import type { Sede } from '@/lib/api/sedes'
 
 export function SedesSection() {
+  const { data: sedes = [], isLoading } = useSedesLanding()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
 
@@ -74,17 +23,35 @@ export function SedesSection() {
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
 
+  // Resetear índice si cambia el número de sedes
+  useEffect(() => {
+    if (sedes.length > 0 && currentIndex >= sedes.length) {
+      setCurrentIndex(0)
+    }
+  }, [sedes.length, currentIndex])
+
   const nextSlide = () => {
-    setCurrentIndex(prev => (prev + 1) % locations.length)
+    if (sedes.length === 0) return
+    setCurrentIndex(prev => (prev + 1) % sedes.length)
   }
 
   const prevSlide = () => {
-    setCurrentIndex(prev => (prev - 1 + locations.length) % locations.length)
+    if (sedes.length === 0) return
+    setCurrentIndex(prev => (prev - 1 + sedes.length) % sedes.length)
   }
 
   const goToSlide = (index: number) => {
-    setCurrentIndex(index)
+    if (index >= 0 && index < sedes.length) {
+      setCurrentIndex(index)
+    }
   }
+
+  // Si no hay sedes, no mostrar la sección
+  if (isLoading || sedes.length === 0) {
+    return null
+  }
+
+  const currentSede = sedes[currentIndex]
 
   return (
     <section id="sedes" className="relative py-24 overflow-hidden">
@@ -138,8 +105,8 @@ export function SedesSection() {
               {/* Image */}
               <div className="absolute inset-0">
                 <ImageWithSkeleton
-                  src={locations[currentIndex].image || '/placeholder.svg'}
-                  alt={`${locations[currentIndex].country} - ${locations[currentIndex].city}`}
+                  src={currentSede.imagenUrl || '/placeholder.svg'}
+                  alt={`${currentSede.pais} - ${currentSede.ciudad}`}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-[#0a1628]/60 to-transparent" />
@@ -148,19 +115,17 @@ export function SedesSection() {
               {/* Content */}
               <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 md:p-12">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="text-4xl">{locations[currentIndex].flag}</span>
+                  <span className="text-4xl">{currentSede.bandera}</span>
                   <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm">
                     <MapPin className="w-4 h-4 text-emerald-400" />
-                    <span className="text-white/90 font-medium">
-                      {locations[currentIndex].city}
-                    </span>
+                    <span className="text-white/90 font-medium">{currentSede.ciudad}</span>
                   </div>
                 </div>
                 <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
-                  {locations[currentIndex].country}
+                  {currentSede.pais}
                 </h3>
                 <p className="text-base sm:text-lg text-white/70 max-w-xl leading-relaxed">
-                  {locations[currentIndex].description}
+                  {currentSede.descripcion}
                 </p>
               </div>
 
@@ -186,9 +151,9 @@ export function SedesSection() {
 
           {/* Dots Indicator */}
           <div className="flex justify-center gap-2 mt-6">
-            {locations.map((_, index) => (
+            {sedes.map((sede: Sede, index: number) => (
               <button
-                key={index}
+                key={sede.id}
                 onClick={() => goToSlide(index)}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   index === currentIndex
@@ -202,9 +167,9 @@ export function SedesSection() {
 
           {/* Country Pills */}
           <div className="flex flex-wrap justify-center gap-3 mt-8">
-            {locations.map((location, index) => (
+            {sedes.map((sede: Sede, index: number) => (
               <button
-                key={location.country}
+                key={sede.id}
                 onClick={() => goToSlide(index)}
                 className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
                   index === currentIndex
@@ -212,8 +177,8 @@ export function SedesSection() {
                     : 'bg-white/5 text-white/70 hover:bg-white/10 border border-white/10'
                 }`}
               >
-                <span>{location.flag}</span>
-                {location.country}
+                <span>{sede.bandera}</span>
+                {sede.pais}
               </button>
             ))}
           </div>

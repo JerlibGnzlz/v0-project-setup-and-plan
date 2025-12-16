@@ -13,6 +13,7 @@ import {
   LogOut,
   ChevronRight,
   Shield,
+  Globe,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/hooks/use-auth'
@@ -67,6 +68,12 @@ const navigation = [
     href: '/admin/visor-credenciales-capellania',
     icon: Shield,
     description: 'Gestionar credenciales de capellanía',
+  },
+  {
+    name: 'Sedes',
+    href: '/admin/sedes',
+    icon: Globe,
+    description: 'Gestionar sedes y ubicaciones',
   },
 ]
 
