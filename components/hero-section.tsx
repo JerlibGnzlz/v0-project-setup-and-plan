@@ -107,26 +107,26 @@ export function HeroSection() {
         }}
       />
 
-      {/* Imagen del mundo con parallax y seguimiento del cursor */}
+      {/* Imagen del mundo con parallax y seguimiento del cursor - MEJORADO */}
       <div
         className="absolute inset-0 z-[2] flex items-center justify-center"
         style={{
           transform: `translateY(${parallaxY * 0.5}px)`,
-          opacity: Math.max(opacity * 0.7, 0.3),
+          opacity: Math.max(opacity * 0.85, 0.5),
           willChange: 'transform, opacity',
         }}
       >
         <div
-          className={`relative w-[500px] h-[500px] md:w-[650px] md:h-[650px] transition-transform duration-300 ease-out ${!isAnimated ? 'animate-world-entry' : ''}`}
+          className={`relative w-[700px] h-[700px] md:w-[900px] md:h-[900px] lg:w-[1000px] lg:h-[1000px] transition-transform duration-300 ease-out ${!isAnimated ? 'animate-world-entry' : ''}`}
           style={{
             transform: isClient && isAnimated
               ? `
-                  perspective(1000px)
-                  rotateY(${(mousePosition.x - 50) * 0.12}deg)
-                  rotateX(${(50 - mousePosition.y) * 0.12}deg)
-                  translateX(${(mousePosition.x - 50) * 0.2}px)
-                  translateY(${(mousePosition.y - 50) * 0.2}px)
-                  scale(${scaleValue * 0.9})
+                  perspective(1200px)
+                  rotateY(${(mousePosition.x - 50) * 0.15}deg)
+                  rotateX(${(50 - mousePosition.y) * 0.15}deg)
+                  translateX(${(mousePosition.x - 50) * 0.25}px)
+                  translateY(${(mousePosition.y - 50) * 0.25}px)
+                  scale(${scaleValue})
                 `
               : 'none',
             transformStyle: 'preserve-3d',
@@ -140,38 +140,48 @@ export function HeroSection() {
             }
           }}
         >
-          {/* Imagen principal con efecto de flotación */}
+          {/* Glow base layer - más intenso */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-sky-400/20 via-emerald-400/15 to-teal-400/20 blur-[120px] opacity-60 animate-pulse" />
+
+          {/* Glow ring that follows mouse - colores mejorados y más intensos */}
+          <div
+            className="absolute inset-0 rounded-full blur-[140px] animate-spin-slow pointer-events-none"
+            style={{
+              background: isClient
+                ? `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(56, 189, 248, 0.4) 0%, transparent 60%),
+                   radial-gradient(circle at ${100 - mousePosition.x}% ${100 - mousePosition.y}%, rgba(16, 185, 129, 0.35) 0%, transparent 60%),
+                   radial-gradient(circle at ${50 + (mousePosition.x - 50) * 0.3}% ${50 + (mousePosition.y - 50) * 0.3}%, rgba(34, 211, 238, 0.25) 0%, transparent 50%)`
+                : 'radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 50%)',
+            }}
+          />
+
+          {/* Imagen principal con efecto de flotación - MEJORADA */}
           <img
             src="/mundo.png"
             alt="Asociación Misionera Vida Abundante"
-            className={`w-full h-full object-contain drop-shadow-[0_0_80px_rgba(59,130,246,0.3)] ${isAnimated ? 'animate-float' : ''}`}
+            className={`w-full h-full object-contain ${isAnimated ? 'animate-float' : ''}`}
             style={{
               filter: `
-                drop-shadow(0 0 60px rgba(56, 189, 248, 0.35))
-                drop-shadow(0 0 100px rgba(16, 185, 129, 0.25))
-                drop-shadow(0 0 150px rgba(34, 211, 238, 0.15))
+                drop-shadow(0 0 100px rgba(56, 189, 248, 0.5))
+                drop-shadow(0 0 180px rgba(16, 185, 129, 0.4))
+                drop-shadow(0 0 250px rgba(34, 211, 238, 0.3))
+                drop-shadow(0 0 320px rgba(52, 211, 153, 0.2))
+                brightness(1.1)
+                contrast(1.05)
               `,
               willChange: 'transform',
               backfaceVisibility: 'hidden',
-              imageRendering: 'crisp-edges',
-              opacity: isAnimated ? 0.9 : 0.9,
+              imageRendering: 'auto',
+              opacity: 1,
             }}
             draggable={false}
           />
 
-          {/* Glow ring that follows mouse - colores mejorados */}
-          <div
-            className="absolute inset-0 rounded-full blur-3xl animate-spin-slow pointer-events-none"
-            style={{
-              background: isClient
-                ? `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(56, 189, 248, 0.2) 0%, transparent 50%),
-                   radial-gradient(circle at ${100 - mousePosition.x}% ${100 - mousePosition.y}%, rgba(16, 185, 129, 0.18) 0%, transparent 50%)`
-                : 'radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 50%)',
-            }}
-          />
+          {/* Outer glow ring - efecto adicional */}
+          <div className="absolute -inset-20 rounded-full bg-gradient-to-r from-sky-500/10 via-emerald-500/8 to-teal-500/10 blur-[100px] opacity-50" />
 
-          {/* Secondary glow layer - gradiente más sutil */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-sky-400/10 via-emerald-400/8 to-teal-400/10 blur-3xl opacity-40" />
+          {/* Inner glow highlight */}
+          <div className="absolute inset-8 rounded-full bg-gradient-to-br from-sky-400/15 via-transparent to-emerald-400/15 blur-2xl opacity-40" />
         </div>
       </div>
 
