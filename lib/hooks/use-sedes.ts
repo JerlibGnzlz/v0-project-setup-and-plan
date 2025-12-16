@@ -7,14 +7,21 @@ const QUERY_KEY = 'sedes'
 export function useSedes(filters?: SedeFilterDto) {
   return useQuery({
     queryKey: [QUERY_KEY, filters],
-    queryFn: () => sedesApi.getAll(filters),
+    queryFn: async () => {
+      const response = await sedesApi.getAll(filters)
+      return response.data
+    },
   })
 }
 
 export function useSede(id: string | null) {
   return useQuery({
     queryKey: [QUERY_KEY, id],
-    queryFn: () => (id ? sedesApi.getById(id) : null),
+    queryFn: async () => {
+      if (!id) return null
+      const response = await sedesApi.getById(id)
+      return response.data
+    },
     enabled: !!id,
   })
 }
@@ -23,7 +30,10 @@ export function useCreateSede() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: CreateSedeDto) => sedesApi.create(data),
+    mutationFn: async (data: CreateSedeDto) => {
+      const response = await sedesApi.create(data)
+      return response.data
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] })
       toast.success('Sede creada exitosamente')
@@ -41,7 +51,10 @@ export function useUpdateSede() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateSedeDto }) => sedesApi.update(id, data),
+    mutationFn: async ({ id, data }: { id: string; data: UpdateSedeDto }) => {
+      const response = await sedesApi.update(id, data)
+      return response.data
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] })
       toast.success('Sede actualizada exitosamente')
@@ -59,7 +72,10 @@ export function useDeleteSede() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (id: string) => sedesApi.delete(id),
+    mutationFn: async (id: string) => {
+      const response = await sedesApi.delete(id)
+      return response.data
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] })
       toast.success('Sede eliminada exitosamente')

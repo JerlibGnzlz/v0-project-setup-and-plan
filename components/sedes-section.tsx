@@ -155,11 +155,10 @@ export function SedesSection() {
               <button
                 key={sede.id}
                 onClick={() => goToSlide(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  index === currentIndex
-                    ? 'bg-emerald-400 w-8'
-                    : 'bg-white/20 hover:bg-white/40 w-2'
-                }`}
+                className={`h-2 rounded-full transition-all duration-300 ${index === currentIndex
+                  ? 'bg-emerald-400 w-8'
+                  : 'bg-white/20 hover:bg-white/40 w-2'
+                  }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
             ))}
@@ -171,11 +170,10 @@ export function SedesSection() {
               <button
                 key={sede.id}
                 onClick={() => goToSlide(index)}
-                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
-                  index === currentIndex
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
-                    : 'bg-white/5 text-white/70 hover:bg-white/10 border border-white/10'
-                }`}
+                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${index === currentIndex
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
+                  : 'bg-white/5 text-white/70 hover:bg-white/10 border border-white/10'
+                  }`}
               >
                 <span>{sede.bandera}</span>
                 {sede.pais}
