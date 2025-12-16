@@ -98,17 +98,17 @@ export default function VisorCredencialesPage() {
       toast.error('Error: La credencial creada no tiene datos válidos')
       return
     }
-    
+
     // Después de crear, mostrar el diseño visual automáticamente
     // Primero cerrar el diálogo
     setIsDialogOpen(false)
-    
+
     // Mostrar mensaje de éxito
     toast.success('✅ Credencial creada exitosamente', {
       description: 'La credencial se ha guardado y está disponible en la lista',
       duration: 3000,
     })
-    
+
     // Luego actualizar el estado para mostrar el flip card (paso 2 del wizard)
     setTimeout(() => {
       setSelectedCredencial(credencial)

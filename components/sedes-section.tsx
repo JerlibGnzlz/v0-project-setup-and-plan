@@ -43,6 +43,20 @@ const locations = [
     image: '/montevideo-uruguay-cityscape-waterfront.jpg',
     flag: '🇺🇾',
   },
+  {
+    country: 'Brasil',
+    city: 'São Paulo',
+    description: 'Expandiendo el ministerio en el corazón de Sudamérica, alcanzando comunidades con el evangelio.',
+    image: '/placeholder.jpg',
+    flag: '🇧🇷',
+  },
+  {
+    country: 'Panamá',
+    city: 'Ciudad de Panamá',
+    description: 'Puente entre continentes, llevando el mensaje de vida abundante a Centroamérica.',
+    image: '/placeholder.jpg',
+    flag: '🇵🇦',
+  },
 ]
 
 export function SedesSection() {
