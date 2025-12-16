@@ -61,7 +61,8 @@ export function scrollToSection(sectionId: string, offset: number = 80): void {
 }
 
 /**
- * Restaura la posición de scroll desde la URL hash o sessionStorage
+ * Restaura la posición de scroll solo desde la URL hash
+ * NO restaura desde sessionStorage al recargar la página para evitar desplazamientos no deseados
  */
 export function restoreScrollPosition(): void {
   if (typeof window === 'undefined') return
@@ -97,7 +98,8 @@ export function restoreScrollPosition(): void {
     }
   }
 
-  // Primero intentar desde el hash de la URL
+  // Solo restaurar si hay hash en la URL (navegación directa a una sección)
+  // NO restaurar desde sessionStorage al recargar la página
   const hash = window.location.hash.replace('#', '')
   if (hash) {
     if (isDOMReady()) {
@@ -105,16 +107,7 @@ export function restoreScrollPosition(): void {
     } else {
       window.addEventListener('load', () => attemptRestore(hash))
     }
-    return
   }
-
-  // Si no hay hash, intentar desde sessionStorage
-  const lastSection = getLastSection()
-  if (lastSection && lastSection !== 'inicio') {
-    if (isDOMReady()) {
-      attemptRestore(lastSection)
-    } else {
-      window.addEventListener('load', () => attemptRestore(lastSection))
-    }
-  }
+  // Removido: restauración desde sessionStorage al recargar la página
+  // Esto permite que la página siempre empiece desde el inicio al recargar
 }
