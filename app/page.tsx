@@ -45,68 +45,43 @@ function HomePageContent() {
     // Solo ejecutar en el cliente
     if (typeof window === 'undefined') return
 
-    // Asegurar que la página comience en el inicio al recargar
-    // Solo restaurar scroll si hay un hash explícito en la URL (navegación directa)
-    // NO restaurar al recargar sin hash
-    if (!window.location.hash) {
-      // Si no hay hash, asegurar que estamos en el inicio
-      window.scrollTo(0, 0)
-      
-      // Limpiar cualquier posición de scroll guardada al recargar
+    // Al recargar la página, SIEMPRE comenzar en el inicio
+    // Esto previene el scroll automático a cualquier sección (directiva, convenciones, etc.)
+    const ensureScrollToTop = () => {
+      // Limpiar cualquier posición de scroll guardada
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('amva_last_section')
       }
-      return
-    }
 
-    // Solo restaurar si hay hash en la URL
-    const restore = () => {
-      try {
-        // Esperar a que Next.js termine de hidratar
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-              try {
-                restoreScrollPosition()
-              } catch (error) {
-                console.warn('Error restaurando scroll position:', error)
-              }
-            }, 300)
-          })
-        } else {
-          setTimeout(() => {
-            try {
-              restoreScrollPosition()
-            } catch (error) {
-              console.warn('Error restaurando scroll position:', error)
-            }
-          }, 300)
-        }
-      } catch (error) {
-        console.warn('Error en restore scroll:', error)
-      }
-    }
-
-    restore()
-
-    // También escuchar cuando la página se carga completamente (solo si hay hash)
-    const handleLoad = () => {
+      // Limpiar hash de la URL para prevenir scroll automático del navegador
       if (window.location.hash) {
-        setTimeout(() => {
-          try {
-            restoreScrollPosition()
-          } catch (error) {
-            console.warn('Error restaurando scroll position en load:', error)
-          }
-        }, 200)
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
       }
+
+      // Forzar scroll al inicio
+      window.scrollTo(0, 0)
     }
 
-    window.addEventListener('load', handleLoad)
+    // Ejecutar inmediatamente
+    ensureScrollToTop()
+
+    // También asegurar después de que el DOM esté listo
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(ensureScrollToTop, 100)
+      })
+    } else {
+      setTimeout(ensureScrollToTop, 100)
+    }
+
+    // Y después de que la página se cargue completamente
+    window.addEventListener('load', () => {
+      setTimeout(ensureScrollToTop, 100)
+    }, { once: true })
 
     // Cleanup
     return () => {
-      window.removeEventListener('load', handleLoad)
+      window.removeEventListener('load', ensureScrollToTop)
     }
   }, [])
 
