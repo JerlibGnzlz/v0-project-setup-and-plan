@@ -122,23 +122,27 @@ export function HeroSection() {
         }}
       >
         <div
-          className={`relative w-[600px] h-[600px] md:w-[800px] md:h-[800px] transition-transform duration-300 ease-out ${isAnimated ? 'animate-world-entry' : ''}`}
+          className={`relative w-[600px] h-[600px] md:w-[800px] md:h-[800px] transition-transform duration-300 ease-out ${!isAnimated ? 'animate-world-entry' : ''}`}
           style={{
-            transform: isClient
-              ? isAnimated
-                ? `
-                    perspective(1000px)
-                    rotateY(${(mousePosition.x - 50) * 0.15}deg)
-                    rotateX(${(50 - mousePosition.y) * 0.15}deg)
-                    translateX(${(mousePosition.x - 50) * 0.3}px)
-                    translateY(${(mousePosition.y - 50) * 0.3}px)
-                    scale(${scaleValue})
-                  `
-                : 'perspective(1000px) scale(0.1) translateZ(-2000px) rotateY(720deg) rotateX(360deg)'
+            transform: isClient && isAnimated
+              ? `
+                  perspective(1000px)
+                  rotateY(${(mousePosition.x - 50) * 0.15}deg)
+                  rotateX(${(50 - mousePosition.y) * 0.15}deg)
+                  translateX(${(mousePosition.x - 50) * 0.3}px)
+                  translateY(${(mousePosition.y - 50) * 0.3}px)
+                  scale(${scaleValue})
+                `
               : 'none',
             transformStyle: 'preserve-3d',
             willChange: 'transform',
             backfaceVisibility: 'hidden',
+          }}
+          onAnimationEnd={() => {
+            // Después de que termine la animación CSS, activar el estado para usar transformaciones del mouse
+            if (!isAnimated) {
+              setIsAnimated(true)
+            }
           }}
         >
           {/* Imagen principal con efecto de flotación */}
