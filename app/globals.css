@@ -317,21 +317,64 @@
     animation: shimmer 3s ease-in-out infinite;
   }
 
-  /* World entry animation - el mundo viene desde lejos rotando */
+  /* World entry animation - el mundo viene desde una esquina rotando */
   @keyframes world-entry {
     0% {
-      transform: perspective(1000px) scale(0.1) translateZ(-2000px) rotateY(720deg) rotateX(360deg) rotateZ(180deg);
+      transform: perspective(1000px) 
+        translateX(-800px) 
+        translateY(-600px) 
+        translateZ(-2000px) 
+        scale(0.15) 
+        rotateY(1080deg) 
+        rotateX(720deg) 
+        rotateZ(540deg);
       opacity: 0;
     }
-    30% {
-      opacity: 0.3;
+    20% {
+      opacity: 0.4;
     }
-    60% {
-      transform: perspective(1000px) scale(0.5) translateZ(-800px) rotateY(360deg) rotateX(180deg) rotateZ(90deg);
+    40% {
+      transform: perspective(1000px) 
+        translateX(-400px) 
+        translateY(-300px) 
+        translateZ(-1200px) 
+        scale(0.4) 
+        rotateY(720deg) 
+        rotateX(540deg) 
+        rotateZ(360deg);
       opacity: 0.6;
     }
+    60% {
+      transform: perspective(1000px) 
+        translateX(-150px) 
+        translateY(-100px) 
+        translateZ(-600px) 
+        scale(0.65) 
+        rotateY(360deg) 
+        rotateX(270deg) 
+        rotateZ(180deg);
+      opacity: 0.8;
+    }
+    80% {
+      transform: perspective(1000px) 
+        translateX(-30px) 
+        translateY(-20px) 
+        translateZ(-150px) 
+        scale(0.85) 
+        rotateY(180deg) 
+        rotateX(90deg) 
+        rotateZ(45deg);
+      opacity: 0.9;
+    }
     100% {
-      transform: perspective(1000px) scale(1) translateZ(0) rotateY(0deg) rotateX(0deg) rotateZ(0deg);
+      transform: perspective(1000px) 
+        translateX(0) 
+        translateY(0) 
+        translateZ(0) 
+        scale(1) 
+        rotateY(0deg) 
+        rotateX(0deg) 
+        rotateZ(0deg);
       opacity: 1;
     }
   }
