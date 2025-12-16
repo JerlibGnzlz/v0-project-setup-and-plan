@@ -45,8 +45,21 @@ function HomePageContent() {
     // Solo ejecutar en el cliente
     if (typeof window === 'undefined') return
 
-    // Restaurar la posición de scroll cuando se carga la página
-    // Esperar a que el DOM y las queries estén listas
+    // Asegurar que la página comience en el inicio al recargar
+    // Solo restaurar scroll si hay un hash explícito en la URL (navegación directa)
+    // NO restaurar al recargar sin hash
+    if (!window.location.hash) {
+      // Si no hay hash, asegurar que estamos en el inicio
+      window.scrollTo(0, 0)
+      
+      // Limpiar cualquier posición de scroll guardada al recargar
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('amva_last_section')
+      }
+      return
+    }
+
+    // Solo restaurar si hay hash en la URL
     const restore = () => {
       try {
         // Esperar a que Next.js termine de hidratar
@@ -76,20 +89,24 @@ function HomePageContent() {
 
     restore()
 
-    // También escuchar cuando la página se carga completamente
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        try {
-          restoreScrollPosition()
-        } catch (error) {
-          console.warn('Error restaurando scroll position en load:', error)
-        }
-      }, 200)
-    })
+    // También escuchar cuando la página se carga completamente (solo si hay hash)
+    const handleLoad = () => {
+      if (window.location.hash) {
+        setTimeout(() => {
+          try {
+            restoreScrollPosition()
+          } catch (error) {
+            console.warn('Error restaurando scroll position en load:', error)
+          }
+        }, 200)
+      }
+    }
+
+    window.addEventListener('load', handleLoad)
 
     // Cleanup
     return () => {
-      window.removeEventListener('load', restore)
+      window.removeEventListener('load', handleLoad)
     }
   }, [])
 
