@@ -102,7 +102,7 @@ export function AdminSidebar() {
             }
             // Para otras rutas, usar startsWith con '/' siguiente
             else {
-              isActive = item.href !== '/admin' && (pathname?.startsWith(item.href + '/') || pathname === item.href) ?? false
+              isActive = item.href !== '/admin' && ((pathname?.startsWith(item.href + '/') || pathname === item.href) ?? false)
             }
             
             const Icon = item.icon
