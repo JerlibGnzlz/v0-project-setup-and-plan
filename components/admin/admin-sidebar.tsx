@@ -86,8 +86,25 @@ export function AdminSidebar() {
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-1">
           {navigation.map(item => {
-            const isActive =
-              pathname === item.href || (item.href !== '/admin' && pathname?.startsWith(item.href))
+            let isActive = false
+            
+            // Coincidencia exacta siempre activa
+            if (pathname === item.href) {
+              isActive = true
+            }
+            // Para credenciales de capellanía, verificar específicamente
+            else if (item.href === '/admin/visor-credenciales-capellania') {
+              isActive = pathname?.startsWith('/admin/visor-credenciales-capellania') ?? false
+            }
+            // Para credenciales ministeriales, verificar que no sea capellanía
+            else if (item.href === '/admin/visor-credenciales') {
+              isActive = (pathname?.startsWith('/admin/visor-credenciales') && !pathname?.startsWith('/admin/visor-credenciales-capellania')) ?? false
+            }
+            // Para otras rutas, usar startsWith con '/' siguiente
+            else {
+              isActive = item.href !== '/admin' && (pathname?.startsWith(item.href + '/') || pathname === item.href) ?? false
+            }
+            
             const Icon = item.icon
 
             return (
