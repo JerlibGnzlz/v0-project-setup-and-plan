@@ -268,7 +268,7 @@ export default function VisorCredencialesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Visor y Editor de Credenciales de Capellanía</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Credenciales de Capellanía</h1>
           <p className="text-muted-foreground">
             Gestiona las credenciales de capellanía físicas para impresión
           </p>
