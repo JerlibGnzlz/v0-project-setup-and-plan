@@ -67,24 +67,24 @@ export function HeroSection() {
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[#0a1628]" />
 
-        {/* Aurora/Mesh gradient effect */}
+        {/* Aurora/Mesh gradient effect - colores de marca mejorados */}
         <div
-          className="absolute inset-0 opacity-80"
+          className="absolute inset-0 opacity-90"
           style={{
             background: `
-              radial-gradient(ellipse 80% 50% at ${mousePosition.x}% ${mousePosition.y}%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
-              radial-gradient(ellipse 60% 40% at 20% 80%, rgba(16, 185, 129, 0.25) 0%, transparent 50%),
-              radial-gradient(ellipse 50% 60% at 80% 20%, rgba(245, 158, 11, 0.2) 0%, transparent 50%),
-              radial-gradient(ellipse 40% 40% at 50% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 50%)
+              radial-gradient(ellipse 80% 50% at ${mousePosition.x}% ${mousePosition.y}%, rgba(56, 189, 248, 0.4) 0%, transparent 50%),
+              radial-gradient(ellipse 60% 40% at 20% 80%, rgba(16, 185, 129, 0.35) 0%, transparent 50%),
+              radial-gradient(ellipse 50% 60% at 80% 20%, rgba(34, 211, 238, 0.3) 0%, transparent 50%),
+              radial-gradient(ellipse 40% 40% at 50% 50%, rgba(52, 211, 153, 0.25) 0%, transparent 50%)
             `,
             transition: 'background 0.3s ease-out',
           }}
         />
 
-        {/* Animated gradient orbs */}
-        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px] animate-blob" />
-        <div className="absolute top-1/3 -right-20 w-80 h-80 bg-emerald-500/20 rounded-full blur-[100px] animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-emerald-500/15 rounded-full blur-[100px] animate-blob animation-delay-4000" />
+        {/* Animated gradient orbs - colores más vibrantes */}
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-sky-400/25 rounded-full blur-[120px] animate-blob" />
+        <div className="absolute top-1/3 -right-20 w-80 h-80 bg-emerald-400/30 rounded-full blur-[120px] animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-teal-400/20 rounded-full blur-[120px] animate-blob animation-delay-4000" />
       </div>
 
       {/* Grid pattern overlay */}
@@ -147,8 +147,9 @@ export function HeroSection() {
             className={`w-full h-full object-contain drop-shadow-[0_0_80px_rgba(59,130,246,0.3)] ${isAnimated ? 'animate-float' : ''}`}
             style={{
               filter: `
-                drop-shadow(0 0 60px rgba(59, 130, 246, 0.3))
-                drop-shadow(0 0 120px rgba(16, 185, 129, 0.2))
+                drop-shadow(0 0 80px rgba(56, 189, 248, 0.4))
+                drop-shadow(0 0 140px rgba(16, 185, 129, 0.3))
+                drop-shadow(0 0 200px rgba(34, 211, 238, 0.2))
               `,
               willChange: 'transform',
               backfaceVisibility: 'hidden',
@@ -158,19 +159,20 @@ export function HeroSection() {
             draggable={false}
           />
 
-          {/* Glow ring that follows mouse */}
+          {/* Glow ring that follows mouse - colores mejorados */}
           <div
             className="absolute inset-0 rounded-full blur-3xl animate-spin-slow pointer-events-none"
             style={{
               background: isClient
-                ? `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
-                   radial-gradient(circle at ${100 - mousePosition.x}% ${100 - mousePosition.y}%, rgba(16, 185, 129, 0.15) 0%, transparent 50%)`
-                : 'radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 50%)',
+                ? `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(56, 189, 248, 0.3) 0%, transparent 50%),
+                   radial-gradient(circle at ${100 - mousePosition.x}% ${100 - mousePosition.y}%, rgba(16, 185, 129, 0.25) 0%, transparent 50%),
+                   radial-gradient(circle at ${50 + (mousePosition.x - 50) * 0.5}% ${50 + (mousePosition.y - 50) * 0.5}%, rgba(34, 211, 238, 0.2) 0%, transparent 40%)`
+                : 'radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, transparent 50%)',
             }}
           />
 
-          {/* Secondary glow layer */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/10 via-transparent to-emerald-500/10 blur-3xl opacity-50" />
+          {/* Secondary glow layer - gradiente más vibrante */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-sky-400/15 via-emerald-400/10 to-teal-400/15 blur-3xl opacity-60" />
         </div>
       </div>
 
@@ -186,25 +188,25 @@ export function HeroSection() {
 
       {/* Contenido principal */}
       <div className="container mx-auto px-4 z-10 text-center relative">
-        {/* Badge con shimmer effect */}
+        {/* Badge con shimmer effect - colores de marca */}
         <div
-          className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm animate-fade-in-up"
+          className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-gradient-to-r from-sky-500/10 to-emerald-500/10 border border-sky-400/20 backdrop-blur-sm animate-fade-in-up"
           style={{ animationDelay: '0s' }}
         >
-          <Sparkles className="w-4 h-4 text-white/80" />
-          <span className="text-sm text-white/80 font-medium">Transformando vidas desde 1989</span>
+          <Sparkles className="w-4 h-4 text-sky-300" />
+          <span className="text-sm text-white/90 font-medium">Transformando vidas desde 1989</span>
           <div className="absolute inset-0 rounded-full overflow-hidden">
-            <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
           </div>
         </div>
 
         {/* Título principal con gradient text */}
         <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight">
-            <span className="block text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+            <span className="block text-white drop-shadow-[0_0_40px_rgba(56,189,248,0.3)]">
               Llevando Vida
             </span>
-            <span className="block mt-2 text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+            <span className="block mt-2 bg-gradient-to-r from-sky-300 via-emerald-300 to-teal-300 bg-clip-text text-transparent drop-shadow-[0_0_50px_rgba(16,185,129,0.4)]">
               Abundante
             </span>
             <span className="block text-3xl sm:text-4xl md:text-5xl mt-4 font-light text-white/70">
@@ -228,11 +230,11 @@ export function HeroSection() {
           className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up"
           style={{ animationDelay: '0.5s' }}
         >
-          {/* Botón principal con glow */}
+          {/* Botón principal con glow - usando colores de marca */}
           <Button
             asChild
             size="lg"
-            className="group relative px-8 py-6 text-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/15 hover:border-white/30 border-0 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_60px_rgba(255,255,255,0.15)] transition-all duration-500 hover:scale-105"
+            className="group relative px-8 py-6 text-lg bg-gradient-to-r from-sky-500/20 to-emerald-500/20 backdrop-blur-md border border-sky-400/30 text-white hover:from-sky-500/30 hover:to-emerald-500/30 hover:border-sky-400/50 shadow-[0_0_40px_rgba(56,189,248,0.2)] hover:shadow-[0_0_60px_rgba(56,189,248,0.4)] transition-all duration-500 hover:scale-105"
           >
             <Link href="#convenciones">
               <span className="relative z-10 flex items-center gap-2">
@@ -242,12 +244,12 @@ export function HeroSection() {
             </Link>
           </Button>
 
-          {/* Botón secundario glassmorphism */}
+          {/* Botón secundario glassmorphism - con acento de marca */}
           <Button
             asChild
             size="lg"
             variant="outline"
-            className="px-8 py-6 text-lg bg-white/5 backdrop-blur-md border border-white/20 text-white hover:bg-white/10 hover:border-white/30 transition-all duration-500 hover:scale-105"
+            className="px-8 py-6 text-lg bg-white/5 backdrop-blur-md border border-emerald-400/30 text-white hover:bg-emerald-500/10 hover:border-emerald-400/50 transition-all duration-500 hover:scale-105"
           >
             <Link href="#nosotros">Conocer Más</Link>
           </Button>
