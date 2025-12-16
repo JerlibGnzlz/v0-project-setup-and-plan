@@ -209,7 +209,7 @@ export function HeroSection() {
             <span className="block mt-2 bg-gradient-to-r from-sky-300 via-emerald-300 to-teal-300 bg-clip-text text-transparent drop-shadow-[0_0_50px_rgba(16,185,129,0.4)]">
               Abundante
             </span>
-            <span className="block text-3xl sm:text-4xl md:text-5xl mt-4 font-light text-white/70">
+            <span className="block text-3xl sm:text-4xl md:text-5xl mt-4 font-light text-white/80 drop-shadow-[0_0_20px_rgba(34,211,238,0.2)]">
               al Mundo
             </span>
           </h1>
