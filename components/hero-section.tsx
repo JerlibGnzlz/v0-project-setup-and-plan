@@ -253,25 +253,6 @@ export function HeroSection() {
           </Button>
         </div>
 
-        {/* Stats badges */}
-        <div
-          className="flex flex-wrap justify-center gap-6 mt-16 animate-fade-in-up"
-          style={{ animationDelay: '0.7s' }}
-        >
-          {[
-            { number: '30+', label: 'Años de servicio' },
-            { number: '500+', label: 'Pastores formados' },
-            { number: '15+', label: 'Países alcanzados' },
-          ].map((stat, index) => (
-            <div
-              key={index}
-              className="flex flex-col items-center px-6 py-3 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10"
-            >
-              <span className="text-2xl md:text-3xl font-bold text-white">{stat.number}</span>
-              <span className="text-xs md:text-sm text-white/60">{stat.label}</span>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Scroll indicator mejorado */}
