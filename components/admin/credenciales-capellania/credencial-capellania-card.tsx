@@ -411,8 +411,8 @@ export function CredencialCapellaniaCard({ credencial, onEdit, onBackToList }: C
               
               <!-- QR + Fecha - Derecha -->
               <div style="flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                <div style="width: 72px; height: 72px; background: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 2px; display: flex; align-items: center; justify-content: center;">
-                  <span style="color: rgba(255,255,255,0.3); font-size: 7px; text-align: center;">QR CODE</span>
+                <div style="width: 72px; height: 72px; background: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 2px; display: flex; align-items: center; justify-content: center; padding: 4px;">
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodeURIComponent(`AMVA-CAPELLANIA-${credencial.documento}-${credencial.id}`)}" alt="QR Code" style="width: 100%; height: 100%; object-fit: contain;" />
                 </div>
                 <div style="font-size: 7px; font-weight: bold; text-align: right; color: #0D374E; word-break: break-word; text-shadow: 0 1px 2px rgba(255,255,255,0.9); line-height: 1.2;">VENCE: ${fechaVencimiento}</div>
               </div>
@@ -645,8 +645,8 @@ export function CredencialCapellaniaCard({ credencial, onEdit, onBackToList }: C
               <div className="flex items-start" style={{ gap: '16px', marginBottom: '8px' }}>
                 <div className="flex-shrink-0">
                   <Image
-                    src="/capellania.png"
-                    alt="Capellanía Logo"
+                    src="/mundo.png"
+                    alt="AMVA Logo"
                     width={140}
                     height={140}
                     className="object-contain"
@@ -709,8 +709,12 @@ export function CredencialCapellaniaCard({ credencial, onEdit, onBackToList }: C
 
                 {/* QR + Fecha - Derecha */}
                 <div className="flex-shrink-0 flex flex-col items-end" style={{ gap: '7px' }}>
-                  <div className="bg-white border-2 border-white/30 flex items-center justify-center" style={{ width: '103px', height: '103px', borderRadius: '4px' }}>
-                    <span className="text-white/30 text-center" style={{ fontSize: '15px' }}>QR CODE</span>
+                  <div className="bg-white border-2 border-white/30 flex items-center justify-center overflow-hidden" style={{ width: '103px', height: '103px', borderRadius: '4px', padding: '4px' }}>
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=95x95&data=${encodeURIComponent(`AMVA-CAPELLANIA-${credencial.documento}-${credencial.id}`)}`}
+                      alt="QR Code"
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    />
                   </div>
                   <div className="font-bold text-right break-words" style={{ fontSize: '15px', color: '#0D374E', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.1' }}>VENCE: {fechaVencimiento}</div>
                 </div>
