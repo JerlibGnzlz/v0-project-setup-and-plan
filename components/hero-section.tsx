@@ -10,10 +10,16 @@ export function HeroSection() {
   const [scrollY, setScrollY] = useState(0)
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
   const [isClient, setIsClient] = useState(false)
+  const [isAnimated, setIsAnimated] = useState(false)
   const heroRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     setIsClient(true)
+    // Activar animación después de un pequeño delay para que el componente esté montado
+    const timer = setTimeout(() => {
+      setIsAnimated(true)
+    }, 100)
+    return () => clearTimeout(timer)
   }, [])
 
   useEffect(() => {
@@ -116,17 +122,19 @@ export function HeroSection() {
         }}
       >
         <div
-          className="relative w-[600px] h-[600px] md:w-[800px] md:h-[800px] transition-transform duration-300 ease-out"
+          className={`relative w-[600px] h-[600px] md:w-[800px] md:h-[800px] transition-transform duration-300 ease-out ${isAnimated ? 'animate-world-entry' : ''}`}
           style={{
             transform: isClient
-              ? `
-                  perspective(1000px)
-                  rotateY(${(mousePosition.x - 50) * 0.15}deg)
-                  rotateX(${(50 - mousePosition.y) * 0.15}deg)
-                  translateX(${(mousePosition.x - 50) * 0.3}px)
-                  translateY(${(mousePosition.y - 50) * 0.3}px)
-                  scale(${scaleValue})
-                `
+              ? isAnimated
+                ? `
+                    perspective(1000px)
+                    rotateY(${(mousePosition.x - 50) * 0.15}deg)
+                    rotateX(${(50 - mousePosition.y) * 0.15}deg)
+                    translateX(${(mousePosition.x - 50) * 0.3}px)
+                    translateY(${(mousePosition.y - 50) * 0.3}px)
+                    scale(${scaleValue})
+                  `
+                : 'perspective(1000px) scale(0.1) translateZ(-2000px) rotateY(720deg) rotateX(360deg)'
               : 'none',
             transformStyle: 'preserve-3d',
             willChange: 'transform',
@@ -137,7 +145,7 @@ export function HeroSection() {
           <img
             src="/mundo.png"
             alt="Asociación Misionera Vida Abundante"
-            className="w-full h-full object-contain drop-shadow-[0_0_80px_rgba(59,130,246,0.3)] animate-float"
+            className={`w-full h-full object-contain drop-shadow-[0_0_80px_rgba(59,130,246,0.3)] ${isAnimated ? 'animate-float' : ''}`}
             style={{
               filter: `
                 drop-shadow(0 0 60px rgba(59, 130, 246, 0.3))
@@ -146,6 +154,8 @@ export function HeroSection() {
               willChange: 'transform',
               backfaceVisibility: 'hidden',
               imageRendering: 'crisp-edges',
+              opacity: isAnimated ? 1 : 0,
+              transition: 'opacity 0.5s ease-out 1s',
             }}
             draggable={false}
           />

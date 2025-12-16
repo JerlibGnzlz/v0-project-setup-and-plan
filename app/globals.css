@@ -317,6 +317,29 @@
     animation: shimmer 3s ease-in-out infinite;
   }
 
+  /* World entry animation - el mundo viene desde lejos rotando */
+  @keyframes world-entry {
+    0% {
+      transform: perspective(1000px) scale(0.1) translateZ(-2000px) rotateY(720deg) rotateX(360deg) rotateZ(180deg);
+      opacity: 0;
+    }
+    30% {
+      opacity: 0.3;
+    }
+    60% {
+      transform: perspective(1000px) scale(0.5) translateZ(-800px) rotateY(360deg) rotateX(180deg) rotateZ(90deg);
+      opacity: 0.6;
+    }
+    100% {
+      transform: perspective(1000px) scale(1) translateZ(0) rotateY(0deg) rotateX(0deg) rotateZ(0deg);
+      opacity: 1;
+    }
+  }
+
+  .animate-world-entry {
+    animation: world-entry 2.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
   /* Text gradient helper */
   .text-gradient {
     background-clip: text;
