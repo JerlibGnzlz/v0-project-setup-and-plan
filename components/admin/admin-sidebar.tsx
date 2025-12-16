@@ -57,7 +57,7 @@ const navigation = [
     description: 'Gestionar pagos',
   },
   {
-    name: 'Visor de Credenciales',
+    name: 'Credencial de Pastores',
     href: '/admin/visor-credenciales',
     icon: Shield,
     description: 'Gestionar credenciales',
