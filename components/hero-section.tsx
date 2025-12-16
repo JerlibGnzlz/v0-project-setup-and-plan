@@ -15,11 +15,6 @@ export function HeroSection() {
 
   useEffect(() => {
     setIsClient(true)
-    // Activar animación después de un pequeño delay para que el componente esté montado
-    const timer = setTimeout(() => {
-      setIsAnimated(true)
-    }, 100)
-    return () => clearTimeout(timer)
   }, [])
 
   useEffect(() => {
