@@ -192,7 +192,7 @@ export function HeroSection() {
           className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm animate-fade-in-up"
           style={{ animationDelay: '0s' }}
         >
-          <Sparkles className="w-4 h-4 text-amber-400" />
+          <Sparkles className="w-4 h-4 text-white/80" />
           <span className="text-sm text-white/80 font-medium">Transformando vidas desde 1995</span>
           <div className="absolute inset-0 rounded-full overflow-hidden">
             <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -205,14 +205,7 @@ export function HeroSection() {
             <span className="block text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
               Llevando Vida
             </span>
-            <span
-              className="block mt-2 bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 bg-clip-text text-transparent drop-shadow-2xl"
-              style={{
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                filter: 'drop-shadow(0 0 40px rgba(245, 158, 11, 0.4))',
-              }}
-            >
+            <span className="block mt-2 text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
               Abundante
             </span>
             <span className="block text-3xl sm:text-4xl md:text-5xl mt-4 font-light text-white/70">
@@ -240,7 +233,7 @@ export function HeroSection() {
           <Button
             asChild
             size="lg"
-            className="group relative px-8 py-6 text-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white border-0 shadow-[0_0_40px_rgba(245,158,11,0.3)] hover:shadow-[0_0_60px_rgba(245,158,11,0.5)] transition-all duration-500 hover:scale-105"
+            className="group relative px-8 py-6 text-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/15 hover:border-white/30 border-0 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_60px_rgba(255,255,255,0.15)] transition-all duration-500 hover:scale-105"
           >
             <Link href="#convenciones">
               <span className="relative z-10 flex items-center gap-2">
