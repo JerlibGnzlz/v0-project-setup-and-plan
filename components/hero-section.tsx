@@ -109,24 +109,24 @@ export function HeroSection() {
 
       {/* Imagen del mundo con parallax y seguimiento del cursor */}
       <div
-        className="absolute inset-0 z-[3] flex items-center justify-center"
+        className="absolute inset-0 z-[2] flex items-center justify-center"
         style={{
-          transform: `translateY(${parallaxY}px)`,
-          opacity: opacity,
+          transform: `translateY(${parallaxY * 0.5}px)`,
+          opacity: Math.max(opacity * 0.7, 0.3),
           willChange: 'transform, opacity',
         }}
       >
         <div
-          className={`relative w-[600px] h-[600px] md:w-[800px] md:h-[800px] transition-transform duration-300 ease-out ${!isAnimated ? 'animate-world-entry' : ''}`}
+          className={`relative w-[500px] h-[500px] md:w-[650px] md:h-[650px] transition-transform duration-300 ease-out ${!isAnimated ? 'animate-world-entry' : ''}`}
           style={{
             transform: isClient && isAnimated
               ? `
                   perspective(1000px)
-                  rotateY(${(mousePosition.x - 50) * 0.15}deg)
-                  rotateX(${(50 - mousePosition.y) * 0.15}deg)
-                  translateX(${(mousePosition.x - 50) * 0.3}px)
-                  translateY(${(mousePosition.y - 50) * 0.3}px)
-                  scale(${scaleValue})
+                  rotateY(${(mousePosition.x - 50) * 0.12}deg)
+                  rotateX(${(50 - mousePosition.y) * 0.12}deg)
+                  translateX(${(mousePosition.x - 50) * 0.2}px)
+                  translateY(${(mousePosition.y - 50) * 0.2}px)
+                  scale(${scaleValue * 0.9})
                 `
               : 'none',
             transformStyle: 'preserve-3d',
@@ -147,14 +147,14 @@ export function HeroSection() {
             className={`w-full h-full object-contain drop-shadow-[0_0_80px_rgba(59,130,246,0.3)] ${isAnimated ? 'animate-float' : ''}`}
             style={{
               filter: `
-                drop-shadow(0 0 80px rgba(56, 189, 248, 0.4))
-                drop-shadow(0 0 140px rgba(16, 185, 129, 0.3))
-                drop-shadow(0 0 200px rgba(34, 211, 238, 0.2))
+                drop-shadow(0 0 60px rgba(56, 189, 248, 0.35))
+                drop-shadow(0 0 100px rgba(16, 185, 129, 0.25))
+                drop-shadow(0 0 150px rgba(34, 211, 238, 0.15))
               `,
               willChange: 'transform',
               backfaceVisibility: 'hidden',
               imageRendering: 'crisp-edges',
-              opacity: isAnimated ? 1 : 1,
+              opacity: isAnimated ? 0.9 : 0.9,
             }}
             draggable={false}
           />
@@ -164,30 +164,32 @@ export function HeroSection() {
             className="absolute inset-0 rounded-full blur-3xl animate-spin-slow pointer-events-none"
             style={{
               background: isClient
-                ? `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(56, 189, 248, 0.3) 0%, transparent 50%),
-                   radial-gradient(circle at ${100 - mousePosition.x}% ${100 - mousePosition.y}%, rgba(16, 185, 129, 0.25) 0%, transparent 50%),
-                   radial-gradient(circle at ${50 + (mousePosition.x - 50) * 0.5}% ${50 + (mousePosition.y - 50) * 0.5}%, rgba(34, 211, 238, 0.2) 0%, transparent 40%)`
-                : 'radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, transparent 50%)',
+                ? `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(56, 189, 248, 0.2) 0%, transparent 50%),
+                   radial-gradient(circle at ${100 - mousePosition.x}% ${100 - mousePosition.y}%, rgba(16, 185, 129, 0.18) 0%, transparent 50%)`
+                : 'radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 50%)',
             }}
           />
 
-          {/* Secondary glow layer - gradiente más vibrante */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-sky-400/15 via-emerald-400/10 to-teal-400/15 blur-3xl opacity-60" />
+          {/* Secondary glow layer - gradiente más sutil */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-sky-400/10 via-emerald-400/8 to-teal-400/10 blur-3xl opacity-40" />
         </div>
       </div>
 
       {/* Spotlight que sigue el cursor */}
       {isClient && (
         <div
-          className="absolute inset-0 z-[4] pointer-events-none opacity-40"
+          className="absolute inset-0 z-[3] pointer-events-none opacity-30"
           style={{
-            background: `radial-gradient(600px circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(255,255,255,0.06), transparent 40%)`,
+            background: `radial-gradient(600px circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(255,255,255,0.05), transparent 40%)`,
           }}
         />
       )}
 
+      {/* Overlay oscuro para mejorar contraste del texto */}
+      <div className="absolute inset-0 z-[4] bg-gradient-to-b from-[#0a1628]/60 via-transparent to-[#0a1628]/80 pointer-events-none" />
+
       {/* Contenido principal */}
-      <div className="container mx-auto px-4 z-10 text-center relative">
+      <div className="container mx-auto px-4 z-[5] text-center relative">
         {/* Badge con shimmer effect - colores de marca */}
         <div
           className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-gradient-to-r from-sky-500/10 to-emerald-500/10 border border-sky-400/20 backdrop-blur-sm animate-fade-in-up"
@@ -200,24 +202,24 @@ export function HeroSection() {
           </div>
         </div>
 
-        {/* Título principal con gradient text */}
+        {/* Título principal con gradient text - mejor contraste */}
         <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight">
-            <span className="block text-white drop-shadow-[0_0_40px_rgba(56,189,248,0.3)]">
+            <span className="block text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] drop-shadow-[0_0_30px_rgba(56,189,248,0.4)]">
               Llevando Vida
             </span>
-            <span className="block mt-2 bg-gradient-to-r from-sky-300 via-emerald-300 to-teal-300 bg-clip-text text-transparent drop-shadow-[0_0_50px_rgba(16,185,129,0.4)]">
+            <span className="block mt-2 bg-gradient-to-r from-sky-300 via-emerald-300 to-teal-300 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] drop-shadow-[0_0_40px_rgba(16,185,129,0.5)]">
               Abundante
             </span>
-            <span className="block text-3xl sm:text-4xl md:text-5xl mt-4 font-light text-white/80 drop-shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+            <span className="block text-3xl sm:text-4xl md:text-5xl mt-4 font-light text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] drop-shadow-[0_0_25px_rgba(34,211,238,0.3)]">
               al Mundo
             </span>
           </h1>
         </div>
 
-        {/* Subtítulo */}
+        {/* Subtítulo - mejor contraste */}
         <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-          <p className="text-lg sm:text-xl md:text-2xl text-white/70 mb-10 max-w-2xl mx-auto leading-relaxed font-light">
+          <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed font-light drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]">
             <TypingEffect
               text="Formando pastores y líderes para transformar naciones a través del poder del evangelio"
               speed={40}
