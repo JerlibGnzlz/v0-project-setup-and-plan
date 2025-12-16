@@ -153,8 +153,7 @@ export function HeroSection() {
               willChange: 'transform',
               backfaceVisibility: 'hidden',
               imageRendering: 'crisp-edges',
-              opacity: isAnimated ? 1 : 0,
-              transition: 'opacity 0.5s ease-out 1s',
+              opacity: isAnimated ? 1 : 1,
             }}
             draggable={false}
           />

@@ -321,50 +321,69 @@
   @keyframes world-entry {
     0% {
       transform: perspective(1000px) 
-        translateX(-800px) 
-        translateY(-600px) 
-        translateZ(-2000px) 
-        scale(0.15) 
-        rotateY(1080deg) 
-        rotateX(720deg) 
-        rotateZ(540deg);
+        translateX(-1000px) 
+        translateY(-700px) 
+        translateZ(-2500px) 
+        scale(0.1) 
+        rotateY(1440deg) 
+        rotateX(1080deg) 
+        rotateZ(720deg);
       opacity: 0;
     }
-    20% {
-      opacity: 0.4;
-    }
-    40% {
+    15% {
+      opacity: 0.3;
       transform: perspective(1000px) 
-        translateX(-400px) 
-        translateY(-300px) 
+        translateX(-700px) 
+        translateY(-500px) 
+        translateZ(-1800px) 
+        scale(0.25) 
+        rotateY(1080deg) 
+        rotateX(810deg) 
+        rotateZ(540deg);
+    }
+    30% {
+      opacity: 0.5;
+      transform: perspective(1000px) 
+        translateX(-450px) 
+        translateY(-350px) 
         translateZ(-1200px) 
         scale(0.4) 
         rotateY(720deg) 
         rotateX(540deg) 
         rotateZ(360deg);
-      opacity: 0.6;
     }
-    60% {
+    50% {
+      opacity: 0.7;
       transform: perspective(1000px) 
-        translateX(-150px) 
-        translateY(-100px) 
-        translateZ(-600px) 
-        scale(0.65) 
+        translateX(-250px) 
+        translateY(-180px) 
+        translateZ(-700px) 
+        scale(0.6) 
         rotateY(360deg) 
         rotateX(270deg) 
         rotateZ(180deg);
-      opacity: 0.8;
     }
-    80% {
+    70% {
+      opacity: 0.85;
+      transform: perspective(1000px) 
+        translateX(-100px) 
+        translateY(-70px) 
+        translateZ(-300px) 
+        scale(0.8) 
+        rotateY(180deg) 
+        rotateX(135deg) 
+        rotateZ(90deg);
+    }
+    85% {
+      opacity: 0.95;
       transform: perspective(1000px) 
         translateX(-30px) 
         translateY(-20px) 
-        translateZ(-150px) 
-        scale(0.85) 
-        rotateY(180deg) 
-        rotateX(90deg) 
-        rotateZ(45deg);
-      opacity: 0.9;
+        translateZ(-80px) 
+        scale(0.92) 
+        rotateY(45deg) 
+        rotateX(30deg) 
+        rotateZ(20deg);
     }
     100% {
       transform: perspective(1000px) 
@@ -380,7 +399,7 @@
   }
 
   .animate-world-entry {
-    animation: world-entry 2.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation: world-entry 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
 
   /* Text gradient helper */
