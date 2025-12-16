@@ -155,6 +155,26 @@ model CredencialMinisterial {
   @@map("credenciales_ministeriales")
 }
 
+model CredencialCapellania {
+  id                String   @id @default(uuid())
+  apellido          String
+  nombre            String
+  documento         String   @unique
+  nacionalidad      String
+  fechaNacimiento   DateTime @map("fecha_nacimiento")
+  tipoCapellan      String   @default("CAPELLAN") @map("tipo_capellan") // CAPELLAN, CAPELLANA, etc.
+  fechaVencimiento  DateTime @map("fecha_vencimiento")
+  fotoUrl           String?  @map("foto_url")
+  activa             Boolean  @default(true)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@index([documento])
+  @@index([fechaVencimiento])
+  @@index([activa])
+  @@map("credenciales_capellania")
+}
+
 model DeviceToken {
   id        String   @id @default(uuid())
   pastorId  String   @map("pastor_id")
