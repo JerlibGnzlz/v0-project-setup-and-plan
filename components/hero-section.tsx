@@ -20,25 +20,34 @@ export function HeroSection() {
   useEffect(() => {
     if (!isClient) return
 
-    let ticking = false
+    let scrollTicking = false
+    let mouseTicking = false
+    let rafId: number | null = null
 
     const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
+      if (!scrollTicking) {
+        rafId = window.requestAnimationFrame(() => {
           setScrollY(window.scrollY)
-          ticking = false
+          scrollTicking = false
         })
-        ticking = true
+        scrollTicking = true
       }
     }
 
+    // Throttle mousemove para mejor rendimiento
     const handleMouseMove = (e: MouseEvent) => {
-      if (heroRef.current) {
-        const rect = heroRef.current.getBoundingClientRect()
-        setMousePosition({
-          x: ((e.clientX - rect.left) / rect.width) * 100,
-          y: ((e.clientY - rect.top) / rect.height) * 100,
+      if (!mouseTicking && heroRef.current) {
+        rafId = window.requestAnimationFrame(() => {
+          const rect = heroRef.current?.getBoundingClientRect()
+          if (rect) {
+            setMousePosition({
+              x: ((e.clientX - rect.left) / rect.width) * 100,
+              y: ((e.clientY - rect.top) / rect.height) * 100,
+            })
+          }
+          mouseTicking = false
         })
+        mouseTicking = true
       }
     }
 
@@ -48,6 +57,9 @@ export function HeroSection() {
     return () => {
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('mousemove', handleMouseMove)
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId)
+      }
     }
   }, [isClient])
 
@@ -67,17 +79,18 @@ export function HeroSection() {
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[#0a1628]" />
 
-        {/* Aurora/Mesh gradient effect - colores de marca mejorados */}
+        {/* Aurora/Mesh gradient effect - optimizado con useMemo implícito */}
         <div
-          className="absolute inset-0 opacity-90"
+          className="absolute inset-0 opacity-85"
           style={{
             background: `
-              radial-gradient(ellipse 80% 50% at ${mousePosition.x}% ${mousePosition.y}%, rgba(56, 189, 248, 0.4) 0%, transparent 50%),
-              radial-gradient(ellipse 60% 40% at 20% 80%, rgba(16, 185, 129, 0.35) 0%, transparent 50%),
-              radial-gradient(ellipse 50% 60% at 80% 20%, rgba(34, 211, 238, 0.3) 0%, transparent 50%),
-              radial-gradient(ellipse 40% 40% at 50% 50%, rgba(52, 211, 153, 0.25) 0%, transparent 50%)
+              radial-gradient(ellipse 70% 45% at ${mousePosition.x}% ${mousePosition.y}%, rgba(56, 189, 248, 0.3) 0%, transparent 55%),
+              radial-gradient(ellipse 50% 35% at 20% 80%, rgba(16, 185, 129, 0.25) 0%, transparent 55%),
+              radial-gradient(ellipse 45% 50% at 80% 20%, rgba(34, 211, 238, 0.2) 0%, transparent 55%),
+              radial-gradient(ellipse 35% 35% at 50% 50%, rgba(52, 211, 153, 0.18) 0%, transparent 55%)
             `,
-            transition: 'background 0.3s ease-out',
+            transition: 'background 0.2s ease-out',
+            willChange: 'background',
           }}
         />
 
@@ -137,18 +150,17 @@ export function HeroSection() {
             }
           }}
         >
-          {/* Glow base layer - más intenso */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-sky-400/20 via-emerald-400/15 to-teal-400/20 blur-[120px] opacity-60 animate-pulse" />
+          {/* Glow base layer - optimizado */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-sky-400/15 via-emerald-400/12 to-teal-400/15 blur-[80px] opacity-50" />
 
-          {/* Glow ring that follows mouse - colores mejorados y más intensos */}
+          {/* Glow ring that follows mouse - optimizado con menor blur */}
           <div
-            className="absolute inset-0 rounded-full blur-[140px] animate-spin-slow pointer-events-none"
+            className="absolute inset-0 rounded-full blur-[90px] pointer-events-none"
             style={{
               background: isClient
-                ? `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(56, 189, 248, 0.4) 0%, transparent 60%),
-                   radial-gradient(circle at ${100 - mousePosition.x}% ${100 - mousePosition.y}%, rgba(16, 185, 129, 0.35) 0%, transparent 60%),
-                   radial-gradient(circle at ${50 + (mousePosition.x - 50) * 0.3}% ${50 + (mousePosition.y - 50) * 0.3}%, rgba(34, 211, 238, 0.25) 0%, transparent 50%)`
-                : 'radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 50%)',
+                ? `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(56, 189, 248, 0.3) 0%, transparent 65%),
+                   radial-gradient(circle at ${100 - mousePosition.x}% ${100 - mousePosition.y}%, rgba(16, 185, 129, 0.25) 0%, transparent 65%)`
+                : 'radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, transparent 50%)',
             }}
           />
 
@@ -159,14 +171,11 @@ export function HeroSection() {
             className={`w-full h-full object-contain ${isAnimated ? 'animate-float' : ''}`}
             style={{
               filter: `
-                drop-shadow(0 0 100px rgba(56, 189, 248, 0.5))
-                drop-shadow(0 0 180px rgba(16, 185, 129, 0.4))
-                drop-shadow(0 0 250px rgba(34, 211, 238, 0.3))
-                drop-shadow(0 0 320px rgba(52, 211, 153, 0.2))
-                brightness(1.1)
-                contrast(1.05)
+                drop-shadow(0 0 60px rgba(56, 189, 248, 0.4))
+                drop-shadow(0 0 120px rgba(16, 185, 129, 0.3))
+                brightness(1.05)
               `,
-              willChange: 'transform',
+              willChange: isAnimated ? 'transform' : 'auto',
               backfaceVisibility: 'hidden',
               imageRendering: 'auto',
               opacity: 1,
@@ -174,11 +183,8 @@ export function HeroSection() {
             draggable={false}
           />
 
-          {/* Outer glow ring - efecto adicional */}
-          <div className="absolute -inset-20 rounded-full bg-gradient-to-r from-sky-500/10 via-emerald-500/8 to-teal-500/10 blur-[100px] opacity-50" />
-
-          {/* Inner glow highlight */}
-          <div className="absolute inset-8 rounded-full bg-gradient-to-br from-sky-400/15 via-transparent to-emerald-400/15 blur-2xl opacity-40" />
+          {/* Outer glow ring - optimizado */}
+          <div className="absolute -inset-16 rounded-full bg-gradient-to-r from-sky-500/8 via-emerald-500/6 to-teal-500/8 blur-[70px] opacity-40" />
         </div>
       </div>
 
