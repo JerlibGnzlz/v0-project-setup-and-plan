@@ -121,9 +121,6 @@ export function HeroSection() {
           style={{
             transform: isClient && isAnimated
               ? `
-                  perspective(1200px)
-                  rotateY(${(mousePosition.x - 50) * 0.15}deg)
-                  rotateX(${(50 - mousePosition.y) * 0.15}deg)
                   translateX(${(mousePosition.x - 50) * 0.25}px)
                   translateY(${(mousePosition.y - 50) * 0.25}px)
                   scale(${scaleValue})
