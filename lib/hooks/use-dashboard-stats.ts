@@ -2,6 +2,7 @@ import { usePagos } from './use-pagos'
 import { usePastores } from './use-pastores'
 import { useInscripciones } from './use-inscripciones'
 import { useCredencialesMinisteriales } from './use-credenciales-ministeriales'
+import { useCredencialesCapellania } from './use-credenciales-capellania'
 
 export interface DashboardStats {
   totalPastores: number
@@ -19,6 +20,10 @@ export interface DashboardStats {
   credencialesVigentes: number
   credencialesPorVencer: number
   credencialesVencidas: number
+  totalCredencialesCapellania: number
+  credencialesCapellaniaVigentes: number
+  credencialesCapellaniaPorVencer: number
+  credencialesCapellaniaVencidas: number
 }
 
 export function useDashboardStats() {
@@ -26,6 +31,7 @@ export function useDashboardStats() {
   const { data: pastoresResponse } = usePastores()
   const { data: inscripcionesResponse } = useInscripciones()
   const { data: credencialesResponse } = useCredencialesMinisteriales(1, 1000)
+  const { data: credencialesCapellaniaResponse } = useCredencialesCapellania(1, 1000)
 
   // Manejar respuesta paginada o array directo (compatibilidad)
   const pagos = Array.isArray(pagosResponse) ? pagosResponse : pagosResponse?.data || []
@@ -36,6 +42,9 @@ export function useDashboardStats() {
   const credenciales = credencialesResponse?.data || []
   const porVencer = credenciales.filter((c: { estado: string }) => c.estado === 'por_vencer')
   const vencidas = credenciales.filter((c: { estado: string }) => c.estado === 'vencida')
+  const credencialesCapellania = credencialesCapellaniaResponse?.data || []
+  const porVencerCapellania = credencialesCapellania.filter((c: { estado: string }) => c.estado === 'por_vencer')
+  const vencidasCapellania = credencialesCapellania.filter((c: { estado: string }) => c.estado === 'vencida')
 
   const stats: DashboardStats = {
     totalPastores: pastores.length,
@@ -65,6 +74,10 @@ export function useDashboardStats() {
     credencialesVigentes: credenciales.filter((c: { estado: string; activa: boolean }) => c.estado === 'vigente' && c.activa).length,
     credencialesPorVencer: porVencer.length,
     credencialesVencidas: vencidas.length,
+    totalCredencialesCapellania: credencialesCapellania.filter((c: { activa: boolean }) => c.activa).length,
+    credencialesCapellaniaVigentes: credencialesCapellania.filter((c: { estado: string; activa: boolean }) => c.estado === 'vigente' && c.activa).length,
+    credencialesCapellaniaPorVencer: porVencerCapellania.length,
+    credencialesCapellaniaVencidas: vencidasCapellania.length,
   }
 
   return {

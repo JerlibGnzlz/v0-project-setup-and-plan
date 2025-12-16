@@ -62,6 +62,12 @@ const navigation = [
     icon: Shield,
     description: 'Gestionar credenciales',
   },
+  {
+    name: 'Credenciales de Capellanía',
+    href: '/admin/visor-credenciales-capellania',
+    icon: Shield,
+    description: 'Gestionar credenciales de capellanía',
+  },
 ]
 
 export function AdminSidebar() {

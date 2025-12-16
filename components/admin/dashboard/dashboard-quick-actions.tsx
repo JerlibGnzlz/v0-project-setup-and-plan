@@ -203,6 +203,43 @@ export function DashboardQuickActions({
           </Card>
         </Link>
       </ScrollReveal>
+
+      <ScrollReveal delay={650}>
+        <Link href="/admin/visor-credenciales-capellania">
+          <Card className="hover:shadow-xl hover:shadow-green-500/10 transition-all duration-300 cursor-pointer group border-green-200/50 dark:border-green-500/20 bg-gradient-to-br from-white to-green-50/30 dark:from-background dark:to-green-950/20 overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20 group-hover:from-green-500/20 group-hover:to-emerald-500/20 transition-colors">
+                  <Shield className="size-6 text-green-600 dark:text-green-400" />
+                </div>
+                <ArrowRight className="size-5 text-green-500/50 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
+              </div>
+              <CardTitle className="mt-4 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                Credenciales de Capellanía
+              </CardTitle>
+              <CardDescription>
+                Gestiona las credenciales de capellanía físicas para impresión
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-green-600/70 dark:text-green-400/70">
+                {stats.totalCredencialesCapellania} credencial(es) activa(s)
+                {stats.credencialesCapellaniaPorVencer > 0 && (
+                  <span className="text-xs ml-1 text-amber-600 dark:text-amber-400">
+                    ({stats.credencialesCapellaniaPorVencer} por vencer)
+                  </span>
+                )}
+                {stats.credencialesCapellaniaVencidas > 0 && (
+                  <span className="text-xs ml-1 text-red-600 dark:text-red-400">
+                    ({stats.credencialesCapellaniaVencidas} vencidas)
+                  </span>
+                )}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      </ScrollReveal>
     </div>
   )
 }

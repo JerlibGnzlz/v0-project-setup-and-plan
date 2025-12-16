@@ -519,7 +519,7 @@ export function CredencialCapellaniaCard({ credencial, onEdit, onBackToList }: C
               maxWidth: '800px',
               maxHeight: '504px',
               padding: '26px',
-              background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
+              background: 'linear-gradient(135deg, #86efac 0%, #4ade80 10%, #22c55e 25%, #16a34a 40%, #15803d 60%, #166534 75%, #15803d 90%, #16a34a 100%)',
             }}
           >
             {/* Header */}
@@ -625,7 +625,7 @@ export function CredencialCapellaniaCard({ credencial, onEdit, onBackToList }: C
 
           {/* DORSO - Tamaño ampliado para mejor visualización */}
           <div
-            className="absolute inset-0 rounded-lg text-white shadow-xl border-2 border-blue-300/30 overflow-hidden"
+            className="absolute inset-0 rounded-lg text-white shadow-xl border-2 border-green-300/30 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
@@ -637,7 +637,7 @@ export function CredencialCapellaniaCard({ credencial, onEdit, onBackToList }: C
               maxWidth: '800px',
               maxHeight: '504px',
               padding: '26px',
-              background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
+              background: 'linear-gradient(135deg, #86efac 0%, #4ade80 10%, #22c55e 25%, #16a34a 40%, #15803d 60%, #166534 75%, #15803d 90%, #16a34a 100%)',
             }}
           >
             <div className="h-full flex flex-col" style={{ height: '100%' }}>
