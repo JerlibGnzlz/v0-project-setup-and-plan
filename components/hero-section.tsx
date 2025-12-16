@@ -193,7 +193,7 @@ export function HeroSection() {
           style={{ animationDelay: '0s' }}
         >
           <Sparkles className="w-4 h-4 text-white/80" />
-          <span className="text-sm text-white/80 font-medium">Transformando vidas desde 1995</span>
+          <span className="text-sm text-white/80 font-medium">Transformando vidas desde 1989</span>
           <div className="absolute inset-0 rounded-full overflow-hidden">
             <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           </div>
