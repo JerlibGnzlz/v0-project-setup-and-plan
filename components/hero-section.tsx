@@ -84,7 +84,7 @@ export function HeroSection() {
         {/* Animated gradient orbs */}
         <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px] animate-blob" />
         <div className="absolute top-1/3 -right-20 w-80 h-80 bg-emerald-500/20 rounded-full blur-[100px] animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-amber-500/15 rounded-full blur-[100px] animate-blob animation-delay-4000" />
+        <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-emerald-500/15 rounded-full blur-[100px] animate-blob animation-delay-4000" />
       </div>
 
       {/* Grid pattern overlay */}
