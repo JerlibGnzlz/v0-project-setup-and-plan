@@ -48,12 +48,13 @@ import type { Pago } from '@/lib/api/pagos'
 
 interface CreatePagoDto {
   inscripcionId: string
-  monto: number
+  monto: string | number
   metodoPago: string
   numeroCuota: number
   referencia?: string
   comprobanteUrl?: string
   notas?: string
+  estado?: 'PENDIENTE' | 'COMPLETADO' | 'CANCELADO' | 'REEMBOLSADO'
 }
 
 interface UpdatePagoDto {
