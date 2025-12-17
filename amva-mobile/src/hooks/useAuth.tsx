@@ -81,15 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           message: error?.message,
           stack: error?.stack,
         })
-        // En caso de error crítico, limpiar todo
-        if (isMounted) {
-          try {
-            await SecureStore.deleteItemAsync('access_token')
-            await SecureStore.deleteItemAsync('refresh_token')
-          } catch (cleanupError) {
-            console.error('❌ Error limpiando tokens:', cleanupError)
-          }
-        }
+        // En caso de error crítico, continuar sin autenticación
       } finally {
         if (timeoutId) {
           clearTimeout(timeoutId)
