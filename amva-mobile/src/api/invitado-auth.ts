@@ -63,5 +63,12 @@ export const invitadoAuthApi = {
     const response = await apiClient.get<Invitado>('/auth/invitado/me')
     return response.data
   },
+
+  loginWithGoogle: async (idToken: string): Promise<InvitadoAuthResponse> => {
+    const response = await apiClient.post<InvitadoAuthResponse>('/auth/invitado/google/mobile', {
+      idToken,
+    })
+    return response.data
+  },
 }
 

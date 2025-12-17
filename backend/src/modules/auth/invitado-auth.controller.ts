@@ -17,6 +17,7 @@ import {
   InvitadoRegisterDto,
   InvitadoLoginDto,
   InvitadoCompleteRegisterDto,
+  GoogleIdTokenDto,
 } from './dto/invitado-auth.dto'
 import { RefreshTokenDto } from './dto/auth.dto'
 import { InvitadoJwtAuthGuard } from './guards/invitado-jwt-auth.guard'
@@ -214,6 +215,29 @@ export class InvitadoAuthController {
       this.logger.log(`🔴 Redirigiendo a error: ${errorUrl}`)
 
       return res.redirect(errorUrl)
+    }
+  }
+
+  /**
+   * Autenticación con Google usando token de ID (para móvil)
+   */
+  @ThrottleAuth()
+  @Post('google/mobile')
+  @UseInterceptors(ClassSerializerInterceptor)
+  async googleAuthMobile(@Body() dto: GoogleIdTokenDto) {
+    try {
+      this.logger.log('🔐 Iniciando autenticación Google OAuth Mobile...')
+      const result = await this.invitadoAuthService.googleAuthMobile(dto.idToken)
+
+      this.logger.log('✅ Autenticación Google OAuth Mobile exitosa', {
+        email: result.invitado.email,
+      })
+
+      return result
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error en googleAuthMobile: ${errorMessage}`)
+      throw error
     }
   }
 }

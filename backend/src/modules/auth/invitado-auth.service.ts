@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt'
 import { PrismaService } from '../../prisma/prisma.service'
 import { Prisma } from '@prisma/client'
 import * as bcrypt from 'bcrypt'
+import { OAuth2Client } from 'google-auth-library'
 import {
   InvitadoRegisterDto,
   InvitadoLoginDto,
@@ -21,6 +22,7 @@ import { TokenBlacklistService } from './services/token-blacklist.service'
 @Injectable()
 export class InvitadoAuthService {
   private readonly logger = new Logger(InvitadoAuthService.name)
+  private readonly googleClient: OAuth2Client | null
 
   constructor(
     private prisma: PrismaService,
@@ -28,7 +30,17 @@ export class InvitadoAuthService {
     @Inject(forwardRef(() => NotificationsService))
     private notificationsService: NotificationsService,
     private tokenBlacklist: TokenBlacklistService
-  ) {}
+  ) {
+    // Inicializar cliente de Google si está configurado
+    const googleClientId = process.env.GOOGLE_CLIENT_ID
+    if (googleClientId) {
+      this.googleClient = new OAuth2Client(googleClientId)
+      this.logger.log('✅ Google OAuth2Client inicializado para verificación de tokens')
+    } else {
+      this.googleClient = null
+      this.logger.warn('⚠️ GOOGLE_CLIENT_ID no configurado, verificación de tokens de Google deshabilitada')
+    }
+  }
 
   /**
    * Registro de invitado - Crea invitado y cuenta de autenticación
@@ -599,6 +611,109 @@ export class InvitadoAuthService {
         timestamp: new Date().toISOString(),
       })
       // No lanzar error, logout debe siempre tener éxito
+    }
+  }
+
+  /**
+   * Autenticación con Google usando token de ID (para móvil)
+   *
+   * @param idToken - Token de ID de Google
+   * @returns Tokens de acceso y datos del invitado
+   * @throws BadRequestException si el token es inválido
+   */
+  async googleAuthMobile(idToken: string) {
+    try {
+      if (!this.googleClient) {
+        this.logger.error('❌ Google OAuth no configurado')
+        throw new BadRequestException('Google OAuth no está configurado')
+      }
+
+      if (!idToken) {
+        this.logger.error('❌ Google Auth Mobile: idToken faltante')
+        throw new BadRequestException('Token de Google requerido')
+      }
+
+      this.logger.log('🔐 Verificando token de ID de Google...')
+
+      // Verificar el token con Google
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      })
+
+      const payload = ticket.getPayload()
+      if (!payload) {
+        this.logger.error('❌ Google Auth Mobile: Payload inválido')
+        throw new BadRequestException('Token de Google inválido')
+      }
+
+      // Validar que el email esté verificado
+      if (!payload.email_verified) {
+        this.logger.error(`❌ Google Auth Mobile: Email no verificado: ${payload.email}`)
+        throw new BadRequestException('Email de Google no verificado')
+      }
+
+      // Extraer datos del usuario
+      const googleId = payload.sub
+      const email = payload.email
+      if (!email || !googleId) {
+        this.logger.error('❌ Google Auth Mobile: Email o googleId faltantes')
+        throw new BadRequestException('Datos de Google incompletos')
+      }
+
+      // Extraer nombre y apellido
+      let nombre = payload.given_name || payload.name?.split(' ')[0] || ''
+      let apellido = payload.family_name || payload.name?.split(' ').slice(1).join(' ') || ''
+
+      // Si no hay apellido pero hay nombre completo, usar la última palabra como apellido
+      if (!apellido && payload.name) {
+        const parts = payload.name.trim().split(/\s+/)
+        if (parts.length > 1) {
+          nombre = parts[0] || ''
+          apellido = parts.slice(1).join(' ') || ''
+        }
+      }
+
+      // Si aún no hay nombre ni apellido, usar el email como fallback
+      if (!nombre && !apellido) {
+        nombre = email.split('@')[0] || 'Usuario'
+        apellido = ''
+      }
+
+      // Asegurar que al menos nombre tenga un valor
+      if (!nombre) {
+        nombre = email.split('@')[0] || 'Usuario'
+      }
+
+      // Obtener foto del perfil
+      const fotoUrl = payload.picture || undefined
+
+      this.logger.log(`✅ Token de Google verificado para: ${email}`, {
+        googleId,
+        nombre,
+        apellido,
+        tieneFoto: !!fotoUrl,
+      })
+
+      // Usar el método googleAuth existente
+      return await this.googleAuth(googleId, email, nombre, apellido, fotoUrl)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorStack = error instanceof Error ? error.stack : undefined
+
+      this.logger.error(`❌ Error en googleAuthMobile: ${errorMessage}`, {
+        error: errorMessage,
+        stack: errorStack,
+        errorType: error?.constructor?.name,
+      })
+
+      // Re-lanzar errores de BadRequestException
+      if (error instanceof BadRequestException) {
+        throw error
+      }
+
+      // Re-lanzar otros errores
+      throw new BadRequestException(`Error al autenticar con Google: ${errorMessage}`)
     }
   }
 }

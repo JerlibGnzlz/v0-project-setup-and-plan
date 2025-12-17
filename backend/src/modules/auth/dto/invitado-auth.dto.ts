@@ -58,3 +58,8 @@ export class InvitadoCompleteRegisterDto {
   @IsString()
   sede?: string
 }
+
+export class GoogleIdTokenDto {
+  @IsString()
+  idToken: string
+}

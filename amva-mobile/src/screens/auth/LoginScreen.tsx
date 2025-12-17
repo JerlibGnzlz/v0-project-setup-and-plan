@@ -14,9 +14,15 @@ import {
   Keyboard,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import * as WebBrowser from 'expo-web-browser'
+import * as Google from 'expo-auth-session/providers/google'
 import { useAuth } from '@hooks/useAuth'
+import { invitadoAuthApi } from '@api/invitado-auth'
 import { testBackendConnection } from '../../utils/testConnection'
 import { RegisterScreen } from './RegisterScreen'
+
+// Necesario para que expo-auth-session funcione correctamente
+WebBrowser.maybeCompleteAuthSession()
 
 export function LoginScreen() {
   const { login, loading } = useAuth()
@@ -27,6 +33,85 @@ export function LoginScreen() {
   const [password, setPassword] = useState('')
   const [testingConnection, setTestingConnection] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+
+  // Configuración de Google OAuth
+  // NOTA: Necesitas configurar GOOGLE_CLIENT_ID en las variables de entorno
+  // El CLIENT_ID debe ser el mismo que el del backend
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '',
+    // Para desarrollo, puedes usar el clientId directamente aquí
+    // clientId: 'TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+  })
+
+  // Manejar respuesta de Google OAuth
+  useEffect(() => {
+    const handleGoogleAuth = async () => {
+      if (response?.type === 'success') {
+        const { id_token } = response.params
+        if (!id_token) {
+          Alert.alert('Error', 'No se recibió el token de Google')
+          setGoogleLoading(false)
+          return
+        }
+
+        try {
+          setGoogleLoading(true)
+          console.log('🔐 Iniciando login con Google...')
+          const result = await invitadoAuthApi.loginWithGoogle(id_token)
+          console.log('✅ Login con Google exitoso')
+
+          // Guardar tokens
+          const SecureStore = await import('expo-secure-store')
+          await SecureStore.default.setItemAsync('access_token', result.access_token)
+          await SecureStore.default.setItemAsync('refresh_token', result.refresh_token)
+
+          // Nota: El login con Google es para invitados (no pastores)
+          // Los tokens se guardan y la app debería detectar el cambio
+          // Si necesitas manejar invitados diferente a pastores, puedes hacerlo aquí
+
+          console.log('✅ Sesión iniciada con Google como invitado:', result.invitado.email)
+
+          // Recargar la app para que detecte el token
+          // La app debería detectar el token y mostrar la pantalla correspondiente
+          Alert.alert(
+            '¡Bienvenido!',
+            `Has iniciado sesión como ${result.invitado.nombre} ${result.invitado.apellido}`,
+            [{ text: 'OK' }]
+          )
+        } catch (error: unknown) {
+          console.error('❌ Error en login con Google:', error)
+          let errorMessage = 'No se pudo iniciar sesión con Google.'
+          if (error && typeof error === 'object') {
+            const axiosError = error as {
+              response?: { data?: { message?: string | string[] } }
+              message?: string
+            }
+            if (axiosError.response?.data?.message) {
+              const msg = axiosError.response.data.message
+              errorMessage = Array.isArray(msg) ? msg.join('\n') : msg
+            } else if (axiosError.message) {
+              errorMessage = axiosError.message
+            }
+          }
+          Alert.alert('Error de autenticación', errorMessage)
+        } finally {
+          setGoogleLoading(false)
+        }
+      } else if (response?.type === 'error') {
+        console.error('❌ Error en respuesta de Google:', response.error)
+        Alert.alert('Error', 'No se pudo completar la autenticación con Google')
+        setGoogleLoading(false)
+      } else if (response?.type === 'dismiss') {
+        console.log('ℹ️ Usuario canceló la autenticación con Google')
+        setGoogleLoading(false)
+      }
+    }
+
+    if (response) {
+      void handleGoogleAuth()
+    }
+  }, [response])
 
   // Probar conexión al montar el componente (solo en desarrollo)
   useEffect(() => {
@@ -213,6 +298,23 @@ export function LoginScreen() {
               <View style={styles.dividerLine} />
             </View>
 
+            <TouchableOpacity
+              style={[styles.googleButton, (googleLoading || !request) && styles.buttonDisabled]}
+              onPress={() => {
+                setGoogleLoading(true)
+                void promptAsync()
+              }}
+              disabled={googleLoading || !request}
+            >
+              {googleLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Text style={styles.googleButtonText}>🔵 Continuar con Google</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.registerButton} onPress={() => setShowRegister(true)}>
               <Text style={styles.registerButtonText}>📝 Crear nueva cuenta</Text>
             </TouchableOpacity>
@@ -398,6 +500,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   registerButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  googleButton: {
+    marginTop: 8,
+    backgroundColor: '#4285F4',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    shadowColor: '#4285F4',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    marginBottom: 12,
+  },
+  googleButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
