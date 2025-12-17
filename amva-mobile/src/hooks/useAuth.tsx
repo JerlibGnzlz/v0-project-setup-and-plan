@@ -24,23 +24,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log('🚀 Iniciando bootstrap de autenticación...')
 
-        // Timeout de seguridad: si tarda más de 8 segundos, continuar sin token
+        // Timeout de seguridad: si tarda más de 5 segundos, continuar sin token
         timeoutId = setTimeout(() => {
           if (isMounted && !bootstrapCompleted) {
-            console.log('⏱️ Timeout en bootstrap (8s), continuando sin autenticación')
+            console.log('⏱️ Timeout en bootstrap (5s), continuando sin autenticación')
             bootstrapCompleted = true
             setLoading(false)
           }
-        }, 8000)
+        }, 5000)
 
         const token = await SecureStore.getItemAsync('access_token')
         if (token) {
           console.log('🔍 Token encontrado, verificando validez...')
           try {
-            // Timeout más corto para la petición me() (5 segundos)
+            // Timeout más corto para la petición me() (3 segundos)
             const mePromise = authApi.me()
             const timeoutPromise = new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error('Request timeout')), 5000)
+              setTimeout(() => reject(new Error('Request timeout')), 3000)
             )
 
             const me = await Promise.race<Pastor>([mePromise, timeoutPromise])
