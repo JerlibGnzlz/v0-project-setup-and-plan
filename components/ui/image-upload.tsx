@@ -80,7 +80,6 @@ export function ImageUpload({
         setPreview(null) // Limpiar preview local después de subir
       } catch (err) {
         setError('Error al subir la imagen. Intenta de nuevo.')
-        console.error('Upload error:', err)
         setPreview(null)
       } finally {
         setIsUploading(false)

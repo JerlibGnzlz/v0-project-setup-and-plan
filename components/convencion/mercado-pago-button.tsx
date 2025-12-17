@@ -31,14 +31,6 @@ export function MercadoPagoButton({
   const createPreference = useCreatePaymentPreference()
   const { data: mercadoPagoStatus, isLoading: isLoadingStatus, error: statusError } = useMercadoPagoStatus()
 
-  // Logging para diagnóstico
-  console.log('[MercadoPagoButton] ==========================================')
-  console.log('[MercadoPagoButton] Estado del pago:', pago.estado)
-  console.log('[MercadoPagoStatus] Cargando:', isLoadingStatus)
-  console.log('[MercadoPagoStatus] Datos:', mercadoPagoStatus)
-  console.log('[MercadoPagoStatus] Error:', statusError)
-  console.log('[MercadoPagoButton] ==========================================')
-
   // Mostrar loading mientras se verifica el estado
   if (isLoadingStatus) {
     return (
@@ -51,7 +43,6 @@ export function MercadoPagoButton({
 
   // Si hay error al obtener el estado, mostrar mensaje
   if (statusError) {
-    console.error('[MercadoPagoButton] Error al obtener estado:', statusError)
     return (
       <Button disabled className="w-full sm:w-auto bg-red-500/20 text-red-400 border-red-500/30">
         <AlertCircle className="mr-2 h-4 w-4" />
@@ -62,7 +53,6 @@ export function MercadoPagoButton({
 
   // Si Mercado Pago no está configurado, mostrar mensaje en lugar de ocultar
   if (mercadoPagoStatus && !mercadoPagoStatus.configured) {
-    console.warn('[MercadoPagoButton] Mercado Pago no está configurado')
     return (
       <Button disabled className="w-full sm:w-auto bg-gray-500/20 text-gray-400 border-gray-500/30">
         <CreditCard className="mr-2 h-4 w-4" />
@@ -73,7 +63,6 @@ export function MercadoPagoButton({
 
   // Solo mostrar para pagos pendientes
   if (pago.estado !== 'PENDIENTE' && pago.estado !== 'Pendiente') {
-    console.log('[MercadoPagoButton] Pago no está pendiente, no se muestra el botón')
     return null
   }
 
@@ -108,7 +97,6 @@ export function MercadoPagoButton({
 
       // Validar que la preferencia se creó correctamente
       if (!preference || typeof preference !== 'object') {
-        console.error('[MercadoPagoButton] ❌ ERROR: Preferencia no válida:', preference)
         toast.error('Error al crear preferencia', {
           description: 'La respuesta del servidor no es válida. Por favor, intenta nuevamente.',
         })
@@ -125,8 +113,6 @@ export function MercadoPagoButton({
         // Modo test: OBLIGATORIO usar sandbox
         checkoutUrl = preference.sandbox_init_point
         if (!checkoutUrl || typeof checkoutUrl !== 'string') {
-          console.error('[MercadoPagoButton] ❌ ERROR: Modo test activo pero no hay sandbox_init_point válido')
-          console.error('[MercadoPagoButton] Preferencia recibida:', preference)
           toast.error('Error de configuración', {
             description: 'No se pudo obtener la URL de sandbox. Verifica las credenciales de Mercado Pago.',
           })
@@ -137,8 +123,6 @@ export function MercadoPagoButton({
         // Modo producción: usar init_point
         checkoutUrl = preference.init_point
         if (!checkoutUrl || typeof checkoutUrl !== 'string') {
-          console.error('[MercadoPagoButton] ❌ ERROR: No hay init_point válido')
-          console.error('[MercadoPagoButton] Preferencia recibida:', preference)
           toast.error('Error al crear preferencia', {
             description: 'No se pudo obtener la URL de pago',
           })
@@ -147,21 +131,8 @@ export function MercadoPagoButton({
         }
       }
 
-      // Logging detallado (solo si preference es válida)
-      if (preference && typeof preference === 'object') {
-        console.log('[MercadoPagoButton] ==========================================')
-        console.log('[MercadoPagoButton] Modo test:', mercadoPagoStatus?.testMode)
-        console.log('[MercadoPagoButton] Preferencia ID:', 'id' in preference ? preference.id : 'N/A')
-        console.log('[MercadoPagoButton] Init Point (prod):', 'init_point' in preference ? preference.init_point : 'N/A')
-        console.log('[MercadoPagoButton] Sandbox Init Point (test):', 'sandbox_init_point' in preference ? preference.sandbox_init_point : 'N/A')
-        console.log('[MercadoPagoButton] URL de checkout seleccionada:', checkoutUrl)
-        console.log('[MercadoPagoButton] ¿Es sandbox?', checkoutUrl?.includes('sandbox'))
-        console.log('[MercadoPagoButton] ==========================================')
-      }
-      
       // Validar que en modo test se use sandbox
-      if (mercadoPagoStatus?.testMode && !checkoutUrl.includes('sandbox')) {
-        console.error('[MercadoPagoButton] ❌ ERROR CRÍTICO: Modo test activo pero URL no es de sandbox!')
+      if (mercadoPagoStatus?.testMode && checkoutUrl && !checkoutUrl.includes('sandbox')) {
         toast.error('Error de configuración', {
           description: 'La URL de checkout no es de sandbox. Las tarjetas de prueba no funcionarán.',
         })

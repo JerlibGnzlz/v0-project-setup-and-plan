@@ -135,12 +135,7 @@ export function ComprobanteUpload({
         return
       }
     } catch (err) {
-      console.error('Error validando comprobante:', err)
-      // Si hay error en la validación, mostrar advertencia pero permitir continuar
-      console.warn(
-        'Advertencia: No se pudo validar completamente la imagen, pero se permitirá la subida.'
-      )
-      // No bloquear la subida si hay error en la validación
+      // Si hay error en la validación, permitir continuar (no bloquear la subida)
     }
 
     try {
@@ -148,7 +143,6 @@ export function ComprobanteUpload({
       onChange(url)
     } catch (err) {
       setError('Error al subir el comprobante. Por favor, intenta de nuevo.')
-      console.error('Upload error:', err)
     } finally {
       setIsUploading(false)
     }
