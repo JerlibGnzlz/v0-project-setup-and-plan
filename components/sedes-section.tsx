@@ -11,6 +11,7 @@ export function SedesSection() {
   const { data: sedes = [], isLoading } = useSedesLanding()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -31,18 +32,24 @@ export function SedesSection() {
   }, [sedes.length, currentIndex])
 
   const nextSlide = () => {
-    if (sedes.length === 0) return
+    if (sedes.length === 0 || isTransitioning) return
+    setIsTransitioning(true)
     setCurrentIndex(prev => (prev + 1) % sedes.length)
+    setTimeout(() => setIsTransitioning(false), 500)
   }
 
   const prevSlide = () => {
-    if (sedes.length === 0) return
+    if (sedes.length === 0 || isTransitioning) return
+    setIsTransitioning(true)
     setCurrentIndex(prev => (prev - 1 + sedes.length) % sedes.length)
+    setTimeout(() => setIsTransitioning(false), 500)
   }
 
   const goToSlide = (index: number) => {
-    if (index >= 0 && index < sedes.length) {
+    if (index >= 0 && index < sedes.length && !isTransitioning) {
+      setIsTransitioning(true)
       setCurrentIndex(index)
+      setTimeout(() => setIsTransitioning(false), 500)
     }
   }
 
@@ -101,15 +108,18 @@ export function SedesSection() {
         {/* Carousel modernizado */}
         <div className="relative max-w-5xl mx-auto">
           <div className="relative rounded-2xl overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10">
-            <div className="relative h-[450px] sm:h-[500px] md:h-[550px] bg-[#0d1f35]">
+            <div className="relative h-[450px] sm:h-[500px] md:h-[550px] bg-[#0d1f35] group">
               {/* Image */}
-              <div className="absolute inset-0">
+              <div className="absolute inset-0 overflow-hidden">
                 <ImageWithSkeleton
                   src={currentSede.imagenUrl || '/placeholder.svg'}
                   alt={`${currentSede.pais} - ${currentSede.ciudad}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-[#0a1628]/60 to-transparent" />
+                {/* Overlay mejorado - más oscuro en la parte inferior para mejor legibilidad */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/95 via-[#0a1628]/70 via-[#0a1628]/40 to-transparent" />
+                {/* Overlay adicional para mejorar contraste */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               </div>
 
               {/* Content */}
