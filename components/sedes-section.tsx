@@ -13,7 +13,6 @@ export function SedesSection() {
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [scrollY, setScrollY] = useState(0)
-  const [previousIndex, setPreviousIndex] = useState<number | null>(null)
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -83,34 +82,22 @@ export function SedesSection() {
   const nextSlide = () => {
     if (sedes.length === 0 || isTransitioning) return
     setIsTransitioning(true)
-    setPreviousIndex(currentIndex)
     setCurrentIndex(prev => (prev + 1) % sedes.length)
-    setTimeout(() => {
-      setIsTransitioning(false)
-      setPreviousIndex(null)
-    }, 600)
+    setTimeout(() => setIsTransitioning(false), 600)
   }
 
   const prevSlide = () => {
     if (sedes.length === 0 || isTransitioning) return
     setIsTransitioning(true)
-    setPreviousIndex(currentIndex)
     setCurrentIndex(prev => (prev - 1 + sedes.length) % sedes.length)
-    setTimeout(() => {
-      setIsTransitioning(false)
-      setPreviousIndex(null)
-    }, 600)
+    setTimeout(() => setIsTransitioning(false), 600)
   }
 
   const goToSlide = (index: number) => {
     if (index >= 0 && index < sedes.length && !isTransitioning && index !== currentIndex) {
       setIsTransitioning(true)
-      setPreviousIndex(currentIndex)
       setCurrentIndex(index)
-      setTimeout(() => {
-        setIsTransitioning(false)
-        setPreviousIndex(null)
-      }, 600)
+      setTimeout(() => setIsTransitioning(false), 600)
     }
   }
 
@@ -178,29 +165,11 @@ export function SedesSection() {
                   willChange: 'transform',
                 }}
               >
-                {/* Imagen anterior (para fade out) */}
-                {previousIndex !== null && sedes[previousIndex] && isTransitioning && (
-                  <div
-                    className="absolute inset-0 transition-opacity duration-600 ease-in-out"
-                    style={{
-                      opacity: 0,
-                      zIndex: 1,
-                    }}
-                  >
-                    <ImageWithSkeleton
-                      src={sedes[previousIndex].imagenUrl || '/placeholder.svg'}
-                      alt={`${sedes[previousIndex].pais} - ${sedes[previousIndex].ciudad}`}
-                      className="w-full h-full object-cover object-center"
-                    />
-                  </div>
-                )}
-
-                {/* Imagen actual */}
+                {/* Imagen actual con fade suave */}
                 <div
                   className="absolute inset-0 transition-opacity duration-600 ease-in-out"
                   style={{
-                    opacity: isTransitioning && previousIndex !== null ? 1 : 1,
-                    zIndex: 2,
+                    opacity: isTransitioning ? 0.7 : 1,
                   }}
                 >
                   <ImageWithSkeleton
