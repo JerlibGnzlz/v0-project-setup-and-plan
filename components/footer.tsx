@@ -43,8 +43,7 @@ export function Footer() {
                     <Image src="/mundo.png" alt="AMVA Logo" fill className="object-contain" />
                   </div>
                   <div>
-                    <span className="font-bold text-white text-xl block">A.M.V.A</span>
-                    <span className="text-sm text-white/60">Vida Abundante</span>
+                    <span className="font-bold text-white text-lg block">ASOCIACION MISIONERA VIDA ABUNDANTE</span>
                   </div>
                 </div>
                 <p className="text-white/70 text-sm leading-relaxed max-w-md">
