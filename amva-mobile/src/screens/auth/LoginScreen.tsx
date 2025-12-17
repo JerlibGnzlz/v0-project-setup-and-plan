@@ -138,9 +138,13 @@ export function LoginScreen() {
         
         // Mensajes más específicos según el tipo de error
         if (response.error?.message) {
-          if (response.error.message.includes('400') || response.error.message.includes('invalid_request')) {
+          if (
+            response.error.message.includes('400') ||
+            response.error.message.includes('invalid_request') ||
+            response.error.message.includes("doesn't comply")
+          ) {
             errorMessage =
-              'Error de configuración de Google OAuth.\n\nVerifica que:\n• El Client ID esté configurado correctamente\n• El Client ID sea válido para aplicaciones móviles\n• La configuración esté correcta en Google Cloud Console'
+              'Acceso bloqueado: La app está en modo de prueba.\n\nSOLUCIÓN:\n1. Ve a Google Cloud Console\n2. APIs & Services → OAuth consent screen\n3. Agrega tu email como "Test user"\n4. Intenta nuevamente\n\nO contacta al administrador para verificar la aplicación.'
           } else if (response.error.message.includes('access_denied')) {
             errorMessage = 'Acceso denegado. Por favor, autoriza la aplicación para continuar.'
           } else {
