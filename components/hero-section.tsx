@@ -141,7 +141,9 @@ export function HeroSection() {
                   translateY(${(mousePosition.y - 50) * 0.25}px)
                   scale(${scaleValue})
                 `
-              : 'none',
+              : scrollY === 0 && isClient
+                ? 'scale(1)'
+                : 'none',
             transformStyle: 'preserve-3d',
             willChange: 'transform',
             backfaceVisibility: 'hidden',
