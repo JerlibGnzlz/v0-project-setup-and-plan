@@ -35,7 +35,7 @@ export function Footer() {
       <div className="relative z-10">
         {/* Main Footer */}
         <div className="container mx-auto px-4 py-16">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
+          <div className="grid md:grid-cols-2 gap-12">
             {/* Brand */}
             <div className="lg:col-span-1">
               <div className="flex items-center gap-3 mb-6">
@@ -96,22 +96,6 @@ export function Footer() {
               </ul>
             </div>
 
-            {/* Newsletter / CTA */}
-            <div>
-              <h3 className="text-white font-semibold text-lg mb-6 flex items-center gap-2">
-                <div className="w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-500 rounded-full" />
-                Mantente Conectado
-              </h3>
-              <p className="text-white/60 text-sm mb-4 leading-relaxed">
-                Únete a nuestra comunidad y recibe actualizaciones sobre eventos y convenciones.
-              </p>
-              <Link
-                href="#inscripcion"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium hover:shadow-lg hover:shadow-amber-500/25 transition-all duration-300 hover:scale-105"
-              >
-                Inscríbete
-              </Link>
-            </div>
           </div>
         </div>
 
