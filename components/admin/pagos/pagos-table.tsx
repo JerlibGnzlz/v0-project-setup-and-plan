@@ -4,15 +4,23 @@ import { Button } from '@/components/ui/button'
 import { CardContent } from '@/components/ui/card'
 import { CheckSquare, Square, ChevronLeft, ChevronRight, AlertTriangle, XCircle } from 'lucide-react'
 import { PagoRow } from './pago-row'
+import type { Pago, PaginatedResponse } from '@/lib/api/pagos'
+
+interface PaginationMeta {
+  total: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}
 
 interface PagosTableProps {
-  pagos: any[]
+  pagos: Pago[]
   pagosSeleccionados: Set<string>
-  onToggleSeleccion: (pagoId: string, pago: any) => void
+  onToggleSeleccion: (pagoId: string, pago: Pago) => void
   onToggleSeleccionarTodos: () => void
-  onValidar: (pago: any) => void
-  onRechazar: (pago: any) => void
-  onRehabilitar: (pago: any) => void
+  onValidar: (pago: Pago) => void
+  onRechazar: (pago: Pago) => void
+  onRehabilitar: (pago: Pago) => void
   isValidando: boolean
   isRechazando: boolean
   isRehabilitando: boolean
@@ -20,7 +28,7 @@ interface PagosTableProps {
   onCerrarAdvertencia: () => void
   getOrigenIcon: (origen: string) => JSX.Element
   getOrigenLabel: (origen: string) => string
-  paginationMeta: any
+  paginationMeta: PaginationMeta | null
   currentPage: number
   pageSize: number
   onPageChange: (page: number) => void
@@ -48,10 +56,10 @@ export function PagosTable({
   onPageChange,
   isLoading,
 }: PagosTableProps) {
-  const pagosPendientes = pagos.filter((p: any) => p.estado === 'PENDIENTE')
+  const pagosPendientes = pagos.filter((p: Pago) => p.estado === 'PENDIENTE')
   const todosSeleccionados =
     pagosPendientes.length > 0 &&
-    pagosPendientes.every((p: any) => pagosSeleccionados.has(p.id))
+    pagosPendientes.every((p: Pago) => pagosSeleccionados.has(p.id))
 
   return (
     <CardContent>
@@ -132,7 +140,7 @@ export function PagosTable({
                 </td>
               </tr>
             ) : (
-              pagos.map((pago: any) => (
+              pagos.map((pago: Pago) => (
                 <PagoRow
                   key={pago.id}
                   pago={pago}

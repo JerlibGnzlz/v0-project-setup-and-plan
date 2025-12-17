@@ -17,6 +17,7 @@ import { CountdownTimer } from './countdown-timer'
 import { useConvencionActiva } from '@/lib/hooks/use-convencion'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import type { Convencion } from '@/lib/api/convenciones'
 
 // Decorative corner component for invitation
 function DecorativeCorner({
@@ -229,7 +230,7 @@ function HorizontalInvitationCard({
   convencion,
   fechaFormateada,
 }: {
-  convencion: any
+  convencion: Convencion
   fechaFormateada: string
 }) {
   return (
