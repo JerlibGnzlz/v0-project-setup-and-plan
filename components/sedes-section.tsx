@@ -103,11 +103,11 @@ export function SedesSection() {
           <div className="relative rounded-2xl overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10">
             <div className="relative h-[450px] sm:h-[500px] md:h-[550px] bg-[#0d1f35]">
               {/* Image */}
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0">
                 <ImageWithSkeleton
                   src={currentSede.imagenUrl || '/placeholder.svg'}
                   alt={`${currentSede.pais} - ${currentSede.ciudad}`}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-[#0a1628]/60 to-transparent" />
               </div>
