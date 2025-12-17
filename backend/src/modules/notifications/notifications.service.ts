@@ -4,6 +4,7 @@ import { EmailService } from './email.service'
 import { getEmailTemplate } from './templates/email.templates'
 import axios from 'axios'
 import type { Prisma } from '@prisma/client'
+import type { NotificationType } from './types/notification.types'
 
 interface ExpoPushMessage {
   to: string
@@ -30,7 +31,7 @@ export class NotificationsService {
   constructor(
     private prisma: PrismaService,
     private emailService: EmailService
-  ) {}
+  ) { }
 
   /**
    * Envía un email directamente a un usuario (sin buscar si es pastor o no)
@@ -44,7 +45,7 @@ export class NotificationsService {
   ): Promise<boolean> {
     try {
       this.logger.log(`📧 Enviando email a ${email}: ${title}`)
-      
+
       const emailSent = await this.emailService.sendNotificationEmail(
         email,
         title,
@@ -262,7 +263,7 @@ export class NotificationsService {
             email,
             title,
             body,
-            type: data?.type || 'info',
+            type: (data?.type && typeof data.type === 'string' ? data.type : 'info') as string,
             data: data ? JSON.parse(JSON.stringify(data)) : null,
             read: false,
           },
@@ -276,7 +277,7 @@ export class NotificationsService {
             email,
             title,
             body,
-            type: data?.type || 'info',
+            type: (data?.type && typeof data.type === 'string' ? data.type : 'info') as string,
             data: data ? JSON.parse(JSON.stringify(data)) : null,
             read: false,
           },
@@ -346,14 +347,14 @@ export class NotificationsService {
 
       // Enviar email al admin usando el template apropiado (como fallback o complemento)
       try {
-        const notificationType = data?.type || 'nueva_inscripcion'
+        const notificationType = (data?.type && typeof data.type === 'string' ? data.type : 'nueva_inscripcion') as NotificationType
         const template = getEmailTemplate(notificationType, data || {})
-        
+
         const emailSent = await this.emailService.sendNotificationEmail(
           email,
           template.title,
           template.body,
-          { ...data, type: notificationType }
+          { ...data, type: notificationType } as Record<string, unknown>
         )
 
         if (emailSent) {
