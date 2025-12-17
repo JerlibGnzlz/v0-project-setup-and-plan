@@ -91,6 +91,7 @@ function MainTabs() {
 export function AppNavigator() {
   const { pastor, loading } = useAuth()
 
+  // Mostrar loading solo mientras se verifica autenticación
   if (loading) {
     return (
       <View
@@ -113,6 +114,8 @@ export function AppNavigator() {
       </View>
     )
   }
+
+  // Siempre renderizar NavigationContainer, incluso si hay errores
 
   return (
     <NavigationContainer>

@@ -8,12 +8,8 @@ import { useNotifications } from '@hooks/useNotifications'
 const queryClient = new QueryClient()
 
 function AppContent() {
-  try {
-    useNotifications() // Inicializar notificaciones
-  } catch (error) {
-    console.error('❌ Error inicializando notificaciones:', error)
-    // Continuar sin notificaciones si hay error
-  }
+  // Inicializar notificaciones (el hook maneja errores internamente)
+  useNotifications()
   return <AppNavigator />
 }
 

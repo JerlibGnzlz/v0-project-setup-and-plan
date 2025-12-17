@@ -20,17 +20,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let timeoutId: ReturnType<typeof setTimeout> | null = null
     let bootstrapCompleted = false
 
+    const completeBootstrap = () => {
+      if (isMounted && !bootstrapCompleted) {
+        bootstrapCompleted = true
+        console.log('✅ Bootstrap completado')
+        setLoading(false)
+      }
+    }
+
     const bootstrap = async () => {
       try {
         console.log('🚀 Iniciando bootstrap de autenticación...')
 
         // Timeout de seguridad: si tarda más de 5 segundos, continuar sin token
         timeoutId = setTimeout(() => {
-          if (isMounted && !bootstrapCompleted) {
-            console.log('⏱️ Timeout en bootstrap (5s), continuando sin autenticación')
-            bootstrapCompleted = true
-            setLoading(false)
-          }
+          console.log('⏱️ Timeout en bootstrap (5s), continuando sin autenticación')
+          completeBootstrap()
         }, 5000)
 
         const token = await SecureStore.getItemAsync('access_token')
@@ -86,20 +91,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (timeoutId) {
           clearTimeout(timeoutId)
         }
-        if (isMounted && !bootstrapCompleted) {
-          bootstrapCompleted = true
-          console.log('✅ Bootstrap completado')
-          setLoading(false)
-        }
+        completeBootstrap()
       }
     }
 
     void bootstrap()
 
+    // Timeout de seguridad adicional: si después de 6 segundos aún está loading, forzar
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted) {
+        console.log('⚠️ Timeout de seguridad (6s), forzando carga completa')
+        completeBootstrap()
+      }
+    }, 6000)
+
     return () => {
       isMounted = false
       if (timeoutId) {
         clearTimeout(timeoutId)
+      }
+      if (safetyTimeout) {
+        clearTimeout(safetyTimeout)
       }
     }
   }, [])
