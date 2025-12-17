@@ -247,7 +247,6 @@ export function Step4Resumen({
                 : typeof err === 'object' && err !== null && 'field' in err && 'message' in err
                   ? `${err.field as string}: ${err.message as string}`
                   : String(err)
-              typeof err === 'string' ? err : `${err.field || 'campo'}: ${err.message || err}`
             )
             .join(', ')
           errorMessage = `Error de validación: ${validationErrors}`
