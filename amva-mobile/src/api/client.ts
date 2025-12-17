@@ -30,63 +30,37 @@ const EXPO_PUBLIC_API_URL =
 
 // Detectar automáticamente el entorno
 const getApiUrl = () => {
-  // Si hay variable de entorno, usarla
+  // ============================================
+  // PRIORIDAD 1: Variable de entorno (tiene máxima prioridad)
+  // ============================================
   if (EXPO_PUBLIC_API_URL) {
     console.log('🌐 Usando API URL desde variable de entorno:', EXPO_PUBLIC_API_URL)
     return EXPO_PUBLIC_API_URL
   }
 
   // ============================================
-  // PRODUCCIÓN: Usar API de producción
+  // PRIORIDAD 2: API de Producción (Vercel) - POR DEFECTO
   // ============================================
-  if (!__DEV__) {
-    return 'https://api.vidaabundante.org/api'
-  }
+  // El backend está desplegado en Vercel, usar producción por defecto
+  // tanto en desarrollo como en producción
+  const PRODUCTION_API_URL = 'https://api.vidaabundante.org/api'
+  console.log('🌐 Usando API de producción (Vercel):', PRODUCTION_API_URL)
+  return PRODUCTION_API_URL
 
   // ============================================
-  // DESARROLLO: Configuración de IP Local
+  // DESARROLLO LOCAL (Solo si necesitas usar backend local)
   // ============================================
-  // IMPORTANTE: Esta IP debe ser la IP local de tu computadora en la red WiFi
+  // Para usar backend local, configura EXPO_PUBLIC_API_URL en tu .env:
+  // EXPO_PUBLIC_API_URL=http://TU_IP:4000/api
   //
+  // IMPORTANTE: Esta IP debe ser la IP local de tu computadora en la red WiFi
   // Para encontrar tu IP:
   // - Linux: hostname -I | awk '{print $1}'
   // - Mac: ipconfig getifaddr en0
   // - Windows: ipconfig (busca "IPv4 Address")
   //
-  // Esta IP funciona tanto para:
-  // - Emulador Android (10.0.2.2 también funciona, pero esta es más universal)
-  // - Simulador iOS (localhost también funciona, pero esta es más universal)
-  // - Dispositivo físico Android (NECESITA esta IP)
-  // - Dispositivo físico iOS (NECESITA esta IP)
-  //
-  // ⚠️ Asegúrate de que tu dispositivo móvil y tu computadora estén en la misma red WiFi
-  const LOCAL_IP = '192.168.0.33' // ⚠️ CAMBIAR POR TU IP LOCAL si es diferente
-
-  // En desarrollo, detectar el entorno
-  const platform = Platform.OS
-  console.log('📱 Plataforma detectada:', platform)
-
-  // SOLUCIÓN UNIFICADA: Usar IP local para TODOS los casos
-  // Esto funciona tanto en emulador/simulador como en dispositivo físico
-  const apiUrl = `http://${LOCAL_IP}:4000/api`
-
-  if (platform === 'android') {
-    console.log('🤖 Android detectado')
-    console.log('📍 Usando IP local:', apiUrl)
-    console.log('💡 Esto funciona tanto en emulador como en dispositivo físico')
-    console.log('💡 Si no funciona, verifica que LOCAL_IP sea correcta:', LOCAL_IP)
-    return apiUrl
-  } else if (platform === 'ios') {
-    console.log('🍎 iOS detectado')
-    console.log('📍 Usando IP local:', apiUrl)
-    console.log('💡 Esto funciona tanto en simulador como en dispositivo físico')
-    console.log('💡 Si no funciona, verifica que LOCAL_IP sea correcta:', LOCAL_IP)
-    return apiUrl
-  } else {
-    // Web
-    console.log('🌐 Web detectado, usando:', apiUrl)
-    return apiUrl
-  }
+  // ⚠️ Solo usa esto si necesitas probar con un backend local
+  // Por defecto, la app se conecta a producción en Vercel
 }
 
 const API_URL = getApiUrl()
