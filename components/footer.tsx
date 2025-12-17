@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Facebook, Instagram, Heart } from 'lucide-react'
+import { Facebook, Heart } from 'lucide-react'
 import { DownloadAppButton } from '@/components/download-app-button'
 
 const quickLinks = [
@@ -18,7 +18,6 @@ const quickLinks = [
 
 const socialLinks = [
   { icon: Facebook, href: '#', label: 'Facebook', color: 'hover:bg-sky-500' },
-  { icon: Instagram, href: '#', label: 'Instagram', color: 'hover:bg-amber-500' },
 ]
 
 export function Footer() {
