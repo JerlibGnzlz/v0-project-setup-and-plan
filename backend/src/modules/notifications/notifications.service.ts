@@ -3,14 +3,23 @@ import { PrismaService } from '../../prisma/prisma.service'
 import { EmailService } from './email.service'
 import { getEmailTemplate } from './templates/email.templates'
 import axios from 'axios'
+import type { Prisma } from '@prisma/client'
 
 interface ExpoPushMessage {
   to: string
   sound?: 'default'
   title: string
   body: string
-  data?: any
+  data?: Record<string, unknown>
   badge?: number
+}
+
+interface ExpoPushResponse {
+  data: Array<{
+    status: 'ok' | 'error'
+    id?: string
+    message?: string
+  }>
 }
 
 @Injectable()
@@ -31,7 +40,7 @@ export class NotificationsService {
     email: string,
     title: string,
     body: string,
-    data?: any,
+    data?: Record<string, unknown>,
   ): Promise<boolean> {
     try {
       this.logger.log(`📧 Enviando email a ${email}: ${title}`)
@@ -64,7 +73,7 @@ export class NotificationsService {
     email: string,
     title: string,
     body: string,
-    data?: any,
+    data?: Record<string, unknown>,
   ): Promise<boolean> {
     try {
       // Buscar el pastor por email
@@ -113,10 +122,10 @@ export class NotificationsService {
         },
       })
 
-      if (response.data && response.data.data) {
-        const results = response.data.data
-        const successCount = results.filter((r: any) => r.status === 'ok').length
-        const errorCount = results.filter((r: any) => r.status === 'error').length
+      if (response.data && 'data' in response.data && Array.isArray(response.data.data)) {
+        const results = response.data.data as Array<{ status: 'ok' | 'error'; id?: string; message?: string }>
+        const successCount = results.filter((r) => r.status === 'ok').length
+        const errorCount = results.filter((r) => r.status === 'error').length
 
         this.logger.log(
           `📱 Notificación enviada a ${email}: ${successCount} exitosas, ${errorCount} errores`,
@@ -141,8 +150,9 @@ export class NotificationsService {
       }
 
       return false
-    } catch (error: any) {
-      this.logger.error(`Error enviando notificación a ${email}:`, error.message)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error enviando notificación a ${email}:`, errorMessage)
       return false
     }
   }
@@ -187,8 +197,9 @@ export class NotificationsService {
         })
         this.logger.log(`Token registrado para pastor ${pastorId}`)
       }
-    } catch (error: any) {
-      this.logger.error(`Error registrando token:`, error.message)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error registrando token:`, errorMessage)
       throw error
     }
   }
@@ -212,7 +223,7 @@ export class NotificationsService {
     email: string,
     title: string,
     body: string,
-    data?: any,
+    data?: Record<string, unknown>,
   ): Promise<void> {
     try {
       // Buscar pastor por email para obtener pastorId
@@ -303,10 +314,10 @@ export class NotificationsService {
             },
           })
 
-          if (response.data && response.data.data) {
-            const results = response.data.data
-            const successCount = results.filter((r: any) => r.status === 'ok').length
-            const errorCount = results.filter((r: any) => r.status === 'error').length
+          if (response.data && 'data' in response.data && Array.isArray(response.data.data)) {
+            const results = response.data.data as Array<{ status: 'ok' | 'error'; id?: string; message?: string }>
+            const successCount = results.filter((r) => r.status === 'ok').length
+            const errorCount = results.filter((r) => r.status === 'error').length
 
             this.logger.log(
               `📱 Push notification enviada a admin ${email}: ${successCount} exitosas, ${errorCount} errores`,
@@ -557,7 +568,7 @@ export class NotificationsService {
     email: string,
     options: { ids?: string[]; deleteRead?: boolean; olderThanDays?: number },
   ): Promise<void> {
-    const where: any = { email }
+    const where: Prisma.NotificationHistoryWhereInput = { email }
 
     if (options.ids && options.ids.length > 0) {
       where.id = { in: options.ids }
