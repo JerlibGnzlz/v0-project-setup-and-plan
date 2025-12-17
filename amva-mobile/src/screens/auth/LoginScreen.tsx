@@ -85,11 +85,22 @@ export function LoginScreen() {
             'Endpoint no encontrado.\n\nEl endpoint de autenticación no está disponible. Contacta al administrador.'
         } else if (axiosError.response?.status === 500) {
           errorMessage = 'Error del servidor.\n\nIntenta nuevamente más tarde.'
-        } else if (axiosError.response?.data?.message) {
-          const message = axiosError.response.data.message
-          errorMessage = Array.isArray(message) ? message.join('\n') : message
         } else if (axiosError.message) {
+          // El mensaje ya viene extraído del formato del backend en authApi.login
           errorMessage = axiosError.message
+        } else if (axiosError.response?.data) {
+          // Formato alternativo del backend: { error: { message: "..." } }
+          const responseData = axiosError.response.data as {
+            error?: { message?: string }
+            message?: string | string[]
+          }
+          if (responseData.error?.message) {
+            errorMessage = responseData.error.message
+          } else if (responseData.message) {
+            errorMessage = Array.isArray(responseData.message)
+              ? responseData.message.join('\n')
+              : responseData.message
+          }
         }
       } else if (error instanceof Error) {
         errorMessage = error.message

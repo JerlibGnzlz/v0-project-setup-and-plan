@@ -35,7 +35,14 @@ export const authApi = {
       // Log detallado del error
       if (error && typeof error === 'object') {
         const axiosError = error as {
-          response?: { status?: number; data?: unknown; statusText?: string }
+          response?: {
+            status?: number
+            data?: {
+              error?: { message?: string }
+              message?: string | string[]
+            }
+            statusText?: string
+          }
           message?: string
           code?: string
         }
@@ -48,18 +55,28 @@ export const authApi = {
           data: axiosError.response?.data,
         })
 
-        // Si hay una respuesta del servidor, incluir más detalles en el error
-        if (axiosError.response) {
-          const errorMessage = new Error(
-            axiosError.response.data && typeof axiosError.response.data === 'object'
-              ? JSON.stringify(axiosError.response.data)
-              : axiosError.message || 'Error al iniciar sesión'
-          )
-          // Mantener información del error original
-          ;(errorMessage as unknown as { response?: unknown }).response = axiosError.response
-          ;(errorMessage as unknown as { code?: string }).code = axiosError.code
-          throw errorMessage
+        // Extraer mensaje de error del formato del backend
+        let errorMessageText = 'Error al iniciar sesión'
+        if (axiosError.response?.data) {
+          const responseData = axiosError.response.data
+          // El backend devuelve: { error: { message: "..." } }
+          if (responseData.error?.message) {
+            errorMessageText = responseData.error.message
+          } else if (responseData.message) {
+            errorMessageText = Array.isArray(responseData.message)
+              ? responseData.message.join(', ')
+              : responseData.message
+          }
+        } else if (axiosError.message) {
+          errorMessageText = axiosError.message
         }
+
+        // Crear un error con el mensaje extraído
+        const errorWithMessage = new Error(errorMessageText)
+        // Mantener información del error original para el manejo en LoginScreen
+        ;(errorWithMessage as unknown as { response?: unknown }).response = axiosError.response
+        ;(errorWithMessage as unknown as { code?: string }).code = axiosError.code
+        throw errorWithMessage
       }
 
       // Si no es un error de axios conocido, lanzar el error original
