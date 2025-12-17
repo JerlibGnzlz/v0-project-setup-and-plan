@@ -10,7 +10,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Calendar, Newspaper, User, Sparkles, ArrowRight, Globe, Bell, Card } from 'lucide-react-native'
+import { Calendar, Newspaper, User, Sparkles, ArrowRight, Globe, Bell, CreditCard } from 'lucide-react-native'
 import { useAuth } from '@hooks/useAuth'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -65,7 +65,7 @@ export function HomeScreen({ navigation }: Props) {
       id: 'credenciales',
       title: 'Credenciales',
       description: 'Consulta el estado de tus credenciales',
-      icon: Card,
+      icon: CreditCard,
       color: '#f59e0b',
       gradient: ['#f59e0b', '#d97706'],
       onPress: () => handleNavigate('Credenciales'),

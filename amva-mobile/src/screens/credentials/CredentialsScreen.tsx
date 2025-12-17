@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Card, Badge, CheckCircle, AlertCircle, Clock, Search } from 'lucide-react-native'
+import { CreditCard, CheckCircle, AlertCircle, Clock, Search } from 'lucide-react-native'
 import { credencialesApi, type Credencial } from '@api/credenciales'
 import { useAuth } from '@hooks/useAuth'
 
@@ -115,12 +115,12 @@ export function CredentialsScreen() {
           style={styles.cardGradient}
         >
           <View style={styles.cardHeader}>
-            <View style={styles.cardTitleContainer}>
-              <Card size={24} color={estadoColor} />
-              <Text style={styles.cardTitle}>
-                Credencial {tipo === 'ministerial' ? 'Ministerial' : 'de Capellanía'}
-              </Text>
-            </View>
+          <View style={styles.cardTitleContainer}>
+            <CreditCard size={24} color={estadoColor} />
+            <Text style={styles.cardTitle}>
+              Credencial {tipo === 'ministerial' ? 'Ministerial' : 'de Capellanía'}
+            </Text>
+          </View>
             <View style={[styles.badgeContainer, { backgroundColor: `${estadoColor}20` }]}>
               <EstadoIcon size={16} color={estadoColor} />
               <Text style={[styles.badgeText, { color: estadoColor }]}>
@@ -231,7 +231,7 @@ export function CredentialsScreen() {
 
         {!loading && !credenciales.ministerial && !credenciales.capellania && documento && (
           <View style={styles.emptyContainer}>
-            <Card size={48} color="rgba(255, 255, 255, 0.3)" />
+            <CreditCard size={48} color="rgba(255, 255, 255, 0.3)" />
             <Text style={styles.emptyText}>
               Ingresa un número de documento y presiona "Consultar" para ver tus credenciales
             </Text>
