@@ -34,67 +34,70 @@ export function Footer() {
       <div className="relative z-10">
         {/* Main Footer */}
         <div className="container mx-auto px-4 py-16">
-          <div className="grid md:grid-cols-2 gap-12">
-            {/* Brand */}
-            <div className="lg:col-span-1">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="relative w-12 h-12">
-                  <Image src="/mundo.png" alt="AMVA Logo" fill className="object-contain" />
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-12 lg:gap-16">
+              {/* Brand */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="relative w-14 h-14">
+                    <Image src="/mundo.png" alt="AMVA Logo" fill className="object-contain" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-white text-xl block">A.M.V.A</span>
+                    <span className="text-sm text-white/60">Vida Abundante</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-bold text-white text-lg block">A.M.V.A</span>
-                  <span className="text-xs text-white/50">Vida Abundante</span>
+                <p className="text-white/70 text-sm leading-relaxed max-w-md">
+                  Llevando formación pastoral y vida abundante a las naciones a través de
+                  convenciones, seminarios y recursos de formación continua.
+                </p>
+
+                {/* Download App Button */}
+                <div className="max-w-xs">
+                  <DownloadAppButton />
+                </div>
+
+                {/* Social Links */}
+                <div className="flex gap-3">
+                  {socialLinks.map(social => {
+                    const Icon = social.icon
+                    return (
+                      <a
+                        key={social.label}
+                        href={social.href}
+                        aria-label={social.label}
+                        className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 transition-all duration-300 ${social.color} hover:border-transparent hover:text-white`}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </a>
+                    )
+                  })}
                 </div>
               </div>
-              <p className="text-white/60 text-sm leading-relaxed mb-6">
-                Llevando formación pastoral y vida abundante a las naciones a través de
-                convenciones, seminarios y recursos de formación continua.
-              </p>
 
-              {/* Download App Button */}
-              <div className="mb-6">
-                <DownloadAppButton />
-              </div>
-
-              {/* Social Links */}
-              <div className="flex gap-3">
-                {socialLinks.map(social => {
-                  const Icon = social.icon
-                  return (
-                    <a
-                      key={social.label}
-                      href={social.href}
-                      aria-label={social.label}
-                      className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 transition-all duration-300 ${social.color} hover:border-transparent hover:text-white`}
-                    >
-                      <Icon className="w-5 h-5" />
-                    </a>
-                  )
-                })}
+              {/* Quick Links */}
+              <div className="space-y-6">
+                <h3 className="text-white font-semibold text-xl mb-6 flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-sky-500 to-blue-500 rounded-full" />
+                  Enlaces Rápidos
+                </h3>
+                <ul className="grid grid-cols-2 gap-x-8 gap-y-3">
+                  {quickLinks.map(link => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="text-white/70 hover:text-white transition-colors duration-300 text-sm flex items-center gap-2 group"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-white/40 group-hover:bg-sky-400 transition-colors duration-300 flex-shrink-0" />
+                        <span className="group-hover:translate-x-1 transition-transform duration-300">
+                          {link.label}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
-
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-white font-semibold text-lg mb-6 flex items-center gap-2">
-                <div className="w-1 h-6 bg-gradient-to-b from-sky-500 to-blue-500 rounded-full" />
-                Enlaces Rápidos
-              </h3>
-              <ul className="space-y-3">
-                {quickLinks.map(link => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="text-white/60 hover:text-white transition-colors duration-300 text-sm flex items-center gap-2 group"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-white/30 group-hover:bg-sky-400 transition-colors duration-300" />
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
           </div>
         </div>
 

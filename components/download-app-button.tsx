@@ -65,7 +65,7 @@ export function DownloadAppButton() {
         size="lg"
       >
         <Smartphone className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-        {isMobile ? 'Abrir App' : 'Descargar App'}
+        AMVA app
         <Download className="w-4 h-4 ml-2 opacity-70" />
       </Button>
 
