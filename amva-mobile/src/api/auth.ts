@@ -31,8 +31,38 @@ export const authApi = {
       })
       console.log('✅ authApi.login: Respuesta recibida')
       return response.data
-    } catch (error: any) {
-      console.error('❌ authApi.login: Error:', error?.response?.data || error?.message || error)
+    } catch (error: unknown) {
+      // Log detallado del error
+      if (error && typeof error === 'object') {
+        const axiosError = error as {
+          response?: { status?: number; data?: unknown; statusText?: string }
+          message?: string
+          code?: string
+        }
+
+        console.error('❌ authApi.login: Error detallado:', {
+          code: axiosError.code,
+          message: axiosError.message,
+          status: axiosError.response?.status,
+          statusText: axiosError.response?.statusText,
+          data: axiosError.response?.data,
+        })
+
+        // Si hay una respuesta del servidor, incluir más detalles en el error
+        if (axiosError.response) {
+          const errorMessage = new Error(
+            axiosError.response.data && typeof axiosError.response.data === 'object'
+              ? JSON.stringify(axiosError.response.data)
+              : axiosError.message || 'Error al iniciar sesión'
+          )
+          // Mantener información del error original
+          ;(errorMessage as unknown as { response?: unknown }).response = axiosError.response
+          ;(errorMessage as unknown as { code?: string }).code = axiosError.code
+          throw errorMessage
+        }
+      }
+
+      // Si no es un error de axios conocido, lanzar el error original
       throw error
     }
   },

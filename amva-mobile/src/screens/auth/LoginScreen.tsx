@@ -59,24 +59,39 @@ export function LoginScreen() {
       console.log('🔐 Intentando login con:', email.trim())
       await login(email.trim(), password)
       console.log('✅ Login exitoso')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error en login:', error)
 
       // Detectar tipo de error
       let errorMessage = 'No se pudo iniciar sesión.'
 
-      if (error?.code === 'ECONNREFUSED' || error?.message?.includes('Network Error')) {
-        errorMessage =
-          'No se pudo conectar al servidor.\n\nVerifica que:\n• El backend esté corriendo\n• La URL del API sea correcta\n• Estés en la misma red WiFi'
-      } else if (error?.response?.status === 401) {
-        errorMessage = 'Credenciales incorrectas.\n\nVerifica tu email y contraseña.'
-      } else if (error?.response?.status === 404) {
-        errorMessage = 'Endpoint no encontrado.\n\nVerifica la URL del API en la configuración.'
-      } else if (error?.response?.data?.message) {
-        errorMessage = Array.isArray(error.response.data.message)
-          ? error.response.data.message.join('\n')
-          : error.response.data.message
-      } else if (error?.message) {
+      if (error && typeof error === 'object') {
+        const axiosError = error as {
+          code?: string
+          message?: string
+          response?: {
+            status?: number
+            data?: { message?: string | string[] }
+          }
+        }
+
+        if (axiosError.code === 'ECONNREFUSED' || axiosError.message?.includes('Network Error')) {
+          errorMessage =
+            'No se pudo conectar al servidor.\n\nVerifica que:\n• El backend esté accesible\n• La URL del API sea correcta\n• Tengas conexión a internet'
+        } else if (axiosError.response?.status === 401) {
+          errorMessage = 'Credenciales incorrectas.\n\nVerifica tu email y contraseña.'
+        } else if (axiosError.response?.status === 404) {
+          errorMessage =
+            'Endpoint no encontrado.\n\nEl endpoint de autenticación no está disponible. Contacta al administrador.'
+        } else if (axiosError.response?.status === 500) {
+          errorMessage = 'Error del servidor.\n\nIntenta nuevamente más tarde.'
+        } else if (axiosError.response?.data?.message) {
+          const message = axiosError.response.data.message
+          errorMessage = Array.isArray(message) ? message.join('\n') : message
+        } else if (axiosError.message) {
+          errorMessage = axiosError.message
+        }
+      } else if (error instanceof Error) {
         errorMessage = error.message
       }
 
