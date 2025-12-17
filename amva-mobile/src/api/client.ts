@@ -84,13 +84,11 @@ export const diagnoseConnection = () => {
   console.log('📍 API URL:', API_URL)
   console.log('📱 Plataforma:', Platform.OS)
   console.log('🌐 Modo:', __DEV__ ? 'DESARROLLO' : 'PRODUCCIÓN')
-  console.log('💡 IP Local configurada:', LOCAL_IP || 'No configurada')
+  console.log('💡 Variable de entorno EXPO_PUBLIC_API_URL:', EXPO_PUBLIC_API_URL || 'No configurada')
   console.log('💡 Para verificar:')
-  console.log('   1. Backend corriendo? → cd backend && npm run start:dev')
-  console.log('   2. Backend escucha en 0.0.0.0? → Verificar backend/src/main.ts línea 177')
-  console.log('   3. Firewall abierto? → sudo ufw allow 4000 (Linux)')
-  console.log('   4. Misma red WiFi? → Verificar que dispositivo y PC estén en la misma red')
-  console.log('   5. IP correcta? → hostname -I (Linux) o ipconfig (Windows/Mac)')
+  console.log('   1. La API está en producción: https://api.vidaabundante.org/api')
+  console.log('   2. Si necesitas usar backend local, configura EXPO_PUBLIC_API_URL en .env')
+  console.log('   3. Verifica conectividad: curl https://api.vidaabundante.org/api/noticias/publicadas')
 }
 
 export const apiClient = axios.create({
