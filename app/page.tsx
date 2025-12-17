@@ -14,6 +14,8 @@ import { GallerySection } from '@/components/gallery-section'
 import { EducacionSection } from '@/components/educacion-section'
 import { Footer } from '@/components/footer'
 import { ScrollReveal } from '@/components/scroll-reveal'
+import { ScrollProgress } from '@/components/scroll-progress'
+import { FloatingCTA } from '@/components/floating-cta'
 import { QueryProvider } from '@/lib/providers/query-provider'
 import { restoreScrollPosition } from '@/lib/utils/scroll-restore'
 
@@ -92,6 +94,8 @@ function HomePageContent() {
         colorScheme: 'dark',
       }}
     >
+      <ScrollProgress />
+      <FloatingCTA />
       <main>
         <Navbar />
         <div id="inicio">
