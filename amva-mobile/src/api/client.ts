@@ -36,12 +36,15 @@ const getApiUrl = () => {
     return EXPO_PUBLIC_API_URL
   }
 
+  // ============================================
+  // PRODUCCIÓN: Usar API de producción
+  // ============================================
   if (!__DEV__) {
     return 'https://api.vidaabundante.org/api'
   }
 
   // ============================================
-  // ⚙️ CONFIGURACIÓN DE IP LOCAL
+  // DESARROLLO: Configuración de IP Local
   // ============================================
   // IMPORTANTE: Esta IP debe ser la IP local de tu computadora en la red WiFi
   //
