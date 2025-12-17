@@ -107,7 +107,7 @@ export function SedesSection() {
                 <ImageWithSkeleton
                   src={currentSede.imagenUrl || '/placeholder.svg'}
                   alt={`${currentSede.pais} - ${currentSede.ciudad}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-[#0a1628]/60 to-transparent" />
               </div>
