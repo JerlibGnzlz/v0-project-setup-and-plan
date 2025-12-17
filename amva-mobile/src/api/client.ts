@@ -222,19 +222,36 @@ apiClient.interceptors.response.use(
         // NO resetear _retry aquí para evitar loops
         // Usar request() - el interceptor de request agregará el token automáticamente
         return apiClient.request(originalRequest)
-      } catch (refreshError: any) {
+      } catch (refreshError: unknown) {
+        const errorMessage =
+          refreshError instanceof Error
+            ? refreshError.message
+            : 'Error desconocido al refrescar token'
+        const axiosError = refreshError as { response?: { status?: number; data?: unknown } }
+        const errorCode = (refreshError as { code?: string })?.code
+
         console.error('❌ Error al refrescar token:', {
-          message: refreshError?.message,
-          status: refreshError?.response?.status,
-          data: refreshError?.response?.data,
+          message: errorMessage,
+          status: axiosError?.response?.status,
+          data: axiosError?.response?.data,
+          code: errorCode,
         })
 
-        // Si falla el refresh, limpiar tokens
-        try {
-          await SecureStore.deleteItemAsync('access_token')
-          await SecureStore.deleteItemAsync('refresh_token')
-        } catch (cleanupError) {
-          console.error('❌ Error limpiando tokens:', cleanupError)
+        // Si es un error de red (DNS, conexión, etc.), no limpiar tokens
+        // Solo limpiar si es 401 (token inválido) o 403 (no autorizado)
+        const shouldCleanTokens =
+          axiosError?.response?.status === 401 || axiosError?.response?.status === 403
+
+        if (shouldCleanTokens) {
+          try {
+            await SecureStore.deleteItemAsync('access_token')
+            await SecureStore.deleteItemAsync('refresh_token')
+            console.log('🧹 Tokens limpiados debido a error de autorización')
+          } catch (cleanupError) {
+            console.error('❌ Error limpiando tokens:', cleanupError)
+          }
+        } else {
+          console.log('⚠️ Error de red o conexión, manteniendo tokens para reintentar')
         }
 
         // Rechazar el error para que la app maneje el logout
