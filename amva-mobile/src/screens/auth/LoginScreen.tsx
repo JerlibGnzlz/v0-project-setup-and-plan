@@ -144,7 +144,7 @@ export function LoginScreen() {
             response.error.message.includes("doesn't comply")
           ) {
             errorMessage =
-              'Acceso bloqueado: La app está en modo de prueba.\n\nSOLUCIÓN:\n1. Ve a Google Cloud Console\n2. APIs & Services → OAuth consent screen\n3. Agrega tu email como "Test user"\n4. Intenta nuevamente\n\nO contacta al administrador para verificar la aplicación.'
+              'Error de autenticación con Google.\n\nSi la app fue publicada recientemente:\n• Espera 5-15 minutos y vuelve a intentar\n• Cierra completamente la app y ábrela de nuevo\n\nSi el problema persiste:\n• Verifica en Google Cloud Console que el estado sea "In production"\n• Contacta al administrador si necesitas ayuda'
           } else if (response.error.message.includes('access_denied')) {
             errorMessage = 'Acceso denegado. Por favor, autoriza la aplicación para continuar.'
           } else {
