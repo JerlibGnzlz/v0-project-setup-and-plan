@@ -42,16 +42,46 @@ import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { PagoWizard } from './pago-wizard'
+import type { Inscripcion, CreateInscripcionDto } from '@/lib/api/inscripciones'
+import type { Convencion } from '@/lib/api/convenciones'
+import type { Pago } from '@/lib/api/pagos'
+
+interface CreatePagoDto {
+  inscripcionId: string
+  monto: number
+  metodoPago: string
+  numeroCuota: number
+  referencia?: string
+  comprobanteUrl?: string
+  notas?: string
+}
+
+interface UpdatePagoDto {
+  monto?: number
+  metodoPago?: string
+  estado?: 'PENDIENTE' | 'COMPLETADO' | 'CANCELADO' | 'REEMBOLSADO'
+  referencia?: string
+  comprobanteUrl?: string
+  notas?: string
+}
+
+interface CuotaInfo {
+  numero: number
+  monto: number
+  estado: 'PENDIENTE' | 'COMPLETADO' | 'CANCELADO' | 'REEMBOLSADO'
+  pagoId?: string
+  fechaVencimiento?: string
+}
 
 interface InscripcionPagoWizardProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  convenciones: any[]
-  inscripcionExistente?: any // Si existe, es modo edición
-  onCreateInscripcion: (data: any) => Promise<any>
-  onUpdateInscripcion?: (id: string, data: any) => Promise<any>
-  onCreatePago: (data: any) => Promise<any>
-  onUpdatePago: (id: string, data: any) => Promise<any>
+  convenciones: Convencion[]
+  inscripcionExistente?: Inscripcion // Si existe, es modo edición
+  onCreateInscripcion: (data: CreateInscripcionDto) => Promise<Inscripcion>
+  onUpdateInscripcion?: (id: string, data: Partial<CreateInscripcionDto>) => Promise<Inscripcion>
+  onCreatePago: (data: CreatePagoDto) => Promise<Pago>
+  onUpdatePago: (id: string, data: UpdatePagoDto) => Promise<Pago>
   isCreating?: boolean
 }
 
@@ -71,7 +101,7 @@ export function InscripcionPagoWizard({
   const isEditMode = !!inscripcionExistente
 
   // Convención activa por defecto
-  const convencionActiva = convenciones.find((c: any) => c.activa)
+  const convencionActiva = convenciones.find((c: Convencion) => c.activa)
 
   // Formulario de inscripción
   const [formData, setFormData] = useState({
@@ -89,16 +119,16 @@ export function InscripcionPagoWizard({
   })
 
   // Estado de la inscripción creada/actualizada
-  const [inscripcionCreada, setInscripcionCreada] = useState<any>(inscripcionExistente || null)
+  const [inscripcionCreada, setInscripcionCreada] = useState<Inscripcion | null>(inscripcionExistente || null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Wizard de pago
   const [pagoWizardOpen, setPagoWizardOpen] = useState(false)
-  const [selectedCuota, setSelectedCuota] = useState<any>(null)
-  const [selectedPago, setSelectedPago] = useState<any>(null)
+  const [selectedCuota, setSelectedCuota] = useState<CuotaInfo | null>(null)
+  const [selectedPago, setSelectedPago] = useState<Pago | null>(null)
 
   // Calcular montos
-  const convencionSeleccionada = convenciones.find((c: any) => c.id === formData.convencionId)
+  const convencionSeleccionada = convenciones.find((c: Convencion) => c.id === formData.convencionId)
   const costoTotal = convencionSeleccionada?.costo ? Number(convencionSeleccionada.costo) : 0
   const montoPorCuota = formData.numeroCuotas > 0 ? costoTotal / formData.numeroCuotas : costoTotal
 
@@ -190,9 +220,11 @@ export function InscripcionPagoWizard({
           setInscripcionCreada(updated)
           toast.success('Inscripción actualizada exitosamente')
           setCurrentStep(2)
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+          const axiosError = error as { response?: { data?: { error?: { message?: string } } } }
           toast.error('Error al actualizar inscripción', {
-            description: error?.response?.data?.error?.message || error.message,
+            description: axiosError.response?.data?.error?.message || errorMessage,
           })
         } finally {
           setIsSubmitting(false)
@@ -219,9 +251,11 @@ export function InscripcionPagoWizard({
           setInscripcionCreada(nuevaInscripcion)
           toast.success('Inscripción creada exitosamente')
           setCurrentStep(2)
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+          const axiosError = error as { response?: { data?: { error?: { message?: string } } } }
           toast.error('Error al crear inscripción', {
-            description: error?.response?.data?.error?.message || error.message,
+            description: axiosError.response?.data?.error?.message || errorMessage,
           })
         } finally {
           setIsSubmitting(false)
@@ -236,7 +270,7 @@ export function InscripcionPagoWizard({
     }
   }
 
-  const handleOpenPagoWizard = (cuota: any, pago?: any) => {
+  const handleOpenPagoWizard = (cuota: CuotaInfo, pago?: Pago) => {
     setSelectedCuota(cuota)
     setSelectedPago(pago)
     setPagoWizardOpen(true)
@@ -285,9 +319,11 @@ export function InscripcionPagoWizard({
       setSelectedPago(null)
       // El componente padre ya recarga la inscripción a través de los callbacks
       // que actualizan inscripcionParaEditar, que se sincroniza con inscripcionCreada
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const axiosError = error as { response?: { data?: { error?: { message?: string } } } }
       toast.error('Error al procesar el pago', {
-        description: error?.response?.data?.error?.message || error.message,
+        description: axiosError.response?.data?.error?.message || errorMessage,
       })
     }
   }
@@ -301,7 +337,7 @@ export function InscripcionPagoWizard({
     const cuotas = []
 
     for (let i = 1; i <= numeroCuotas; i++) {
-      const pago = pagos.find((p: any) => p.numeroCuota === i)
+      const pago = pagos.find((p: Pago) => p.numeroCuota === i)
       cuotas.push({
         numero: i,
         monto: montoPorCuota,
@@ -311,14 +347,14 @@ export function InscripcionPagoWizard({
     }
 
     const totalPagado = pagos
-      .filter((p: any) => p.estado === 'COMPLETADO')
+      .filter((p: Pago) => p.estado === 'COMPLETADO')
       .reduce(
-        (sum: number, p: any) =>
+        (sum: number, p: Pago) =>
           sum + (typeof p.monto === 'number' ? p.monto : parseFloat(String(p.monto || 0))),
         0
       )
 
-    const cuotasPagadas = pagos.filter((p: any) => p.estado === 'COMPLETADO').length
+    const cuotasPagadas = pagos.filter((p: Pago) => p.estado === 'COMPLETADO').length
 
     return { cuotas, totalPagado, cuotasPagadas, numeroCuotas }
   }
@@ -412,7 +448,7 @@ export function InscripcionPagoWizard({
                   <Select
                     value={formData.convencionId}
                     onValueChange={value => {
-                      const conv = convenciones.find((c: any) => c.id === value)
+                      const conv = convenciones.find((c: Convencion) => c.id === value)
                       setFormData({
                         ...formData,
                         convencionId: value,
@@ -425,7 +461,7 @@ export function InscripcionPagoWizard({
                       <SelectValue placeholder="Selecciona una convención" />
                     </SelectTrigger>
                     <SelectContent>
-                      {convenciones.map((conv: any) => (
+                      {convenciones.map((conv: Convencion) => (
                         <SelectItem key={conv.id} value={conv.id}>
                           <div className="flex items-center gap-2">
                             {conv.activa && (
