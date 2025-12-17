@@ -12,6 +12,8 @@ export function SedesSection() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [scrollY, setScrollY] = useState(0)
+  const [previousIndex, setPreviousIndex] = useState<number | null>(null)
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -24,6 +26,53 @@ export function SedesSection() {
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
 
+  // Parallax effect al hacer scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const section = document.getElementById('sedes')
+      if (!section) return
+
+      const rect = section.getBoundingClientRect()
+      const sectionTop = rect.top
+      const sectionHeight = rect.height
+      const windowHeight = window.innerHeight
+
+      // Calcular posición de parallax (solo cuando la sección es visible)
+      if (sectionTop < windowHeight && sectionTop > -sectionHeight) {
+        const parallaxOffset = (windowHeight - sectionTop) * 0.1
+        setScrollY(parallaxOffset)
+      }
+    }
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Pre-cargar imágenes adyacentes para transiciones suaves
+  useEffect(() => {
+    if (sedes.length === 0) return
+
+    const preloadImages = () => {
+      const nextIndex = (currentIndex + 1) % sedes.length
+      const prevIndex = (currentIndex - 1 + sedes.length) % sedes.length
+
+      const imagesToPreload = [
+        sedes[nextIndex]?.imagenUrl,
+        sedes[prevIndex]?.imagenUrl,
+      ].filter(Boolean)
+
+      imagesToPreload.forEach(src => {
+        if (src && !src.includes('localhost')) {
+          const img = new Image()
+          img.src = src
+        }
+      })
+    }
+
+    preloadImages()
+  }, [currentIndex, sedes])
+
   // Resetear índice si cambia el número de sedes
   useEffect(() => {
     if (sedes.length > 0 && currentIndex >= sedes.length) {
@@ -34,22 +83,34 @@ export function SedesSection() {
   const nextSlide = () => {
     if (sedes.length === 0 || isTransitioning) return
     setIsTransitioning(true)
+    setPreviousIndex(currentIndex)
     setCurrentIndex(prev => (prev + 1) % sedes.length)
-    setTimeout(() => setIsTransitioning(false), 500)
+    setTimeout(() => {
+      setIsTransitioning(false)
+      setPreviousIndex(null)
+    }, 600)
   }
 
   const prevSlide = () => {
     if (sedes.length === 0 || isTransitioning) return
     setIsTransitioning(true)
+    setPreviousIndex(currentIndex)
     setCurrentIndex(prev => (prev - 1 + sedes.length) % sedes.length)
-    setTimeout(() => setIsTransitioning(false), 500)
+    setTimeout(() => {
+      setIsTransitioning(false)
+      setPreviousIndex(null)
+    }, 600)
   }
 
   const goToSlide = (index: number) => {
-    if (index >= 0 && index < sedes.length && !isTransitioning) {
+    if (index >= 0 && index < sedes.length && !isTransitioning && index !== currentIndex) {
       setIsTransitioning(true)
+      setPreviousIndex(currentIndex)
       setCurrentIndex(index)
-      setTimeout(() => setIsTransitioning(false), 500)
+      setTimeout(() => {
+        setIsTransitioning(false)
+        setPreviousIndex(null)
+      }, 600)
     }
   }
 
@@ -109,17 +170,50 @@ export function SedesSection() {
         <div className="relative max-w-5xl mx-auto">
           <div className="relative rounded-2xl overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10">
             <div className="relative h-[450px] sm:h-[500px] md:h-[550px] bg-[#0d1f35] group">
-              {/* Image */}
-              <div className="absolute inset-0 overflow-hidden">
-                <ImageWithSkeleton
-                  src={currentSede.imagenUrl || '/placeholder.svg'}
-                  alt={`${currentSede.pais} - ${currentSede.ciudad}`}
-                  className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
-                />
+              {/* Image Container con Parallax */}
+              <div
+                className="absolute inset-0 overflow-hidden"
+                style={{
+                  transform: `translateY(${scrollY * 0.3}px)`,
+                  willChange: 'transform',
+                }}
+              >
+                {/* Imagen anterior (para fade out) */}
+                {previousIndex !== null && sedes[previousIndex] && isTransitioning && (
+                  <div
+                    className="absolute inset-0 transition-opacity duration-600 ease-in-out"
+                    style={{
+                      opacity: 0,
+                      zIndex: 1,
+                    }}
+                  >
+                    <ImageWithSkeleton
+                      src={sedes[previousIndex].imagenUrl || '/placeholder.svg'}
+                      alt={`${sedes[previousIndex].pais} - ${sedes[previousIndex].ciudad}`}
+                      className="w-full h-full object-cover object-center"
+                    />
+                  </div>
+                )}
+
+                {/* Imagen actual */}
+                <div
+                  className="absolute inset-0 transition-opacity duration-600 ease-in-out"
+                  style={{
+                    opacity: isTransitioning && previousIndex !== null ? 1 : 1,
+                    zIndex: 2,
+                  }}
+                >
+                  <ImageWithSkeleton
+                    src={currentSede.imagenUrl || '/placeholder.svg'}
+                    alt={`${currentSede.pais} - ${currentSede.ciudad}`}
+                    className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                  />
+                </div>
+
                 {/* Overlay mejorado - más oscuro en la parte inferior para mejor legibilidad */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/95 via-[#0a1628]/70 via-[#0a1628]/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/95 via-[#0a1628]/70 via-[#0a1628]/40 to-transparent z-10" />
                 {/* Overlay adicional para mejorar contraste */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10" />
               </div>
 
               {/* Content */}
