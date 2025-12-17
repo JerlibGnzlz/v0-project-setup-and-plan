@@ -39,7 +39,8 @@
     "extra": {
       "eas": {
         "projectId": "amva-mobile-example"
-      }
+      },
+      "googleClientId": "TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
     }
   }
 }

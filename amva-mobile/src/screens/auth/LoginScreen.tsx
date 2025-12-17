@@ -36,13 +36,24 @@ export function LoginScreen() {
   const [googleLoading, setGoogleLoading] = useState(false)
 
   // Configuración de Google OAuth
-  // NOTA: Necesitas configurar GOOGLE_CLIENT_ID en las variables de entorno
-  // El CLIENT_ID debe ser el mismo que el del backend
+  // NOTA: Necesitas configurar EXPO_PUBLIC_GOOGLE_CLIENT_ID en app.json o variables de entorno
+  // Para apps móviles, necesitas un Client ID específico de Android/iOS (no el mismo que web)
+  // El CLIENT_ID debe ser el mismo que el del backend (o uno compatible)
+  const googleClientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || ''
+  
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '',
-    // Para desarrollo, puedes usar el clientId directamente aquí
+    clientId: googleClientId,
+    // Para desarrollo, puedes usar el clientId directamente aquí si no está en variables de entorno
     // clientId: 'TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
   })
+
+  // Validar que el clientId esté configurado
+  useEffect(() => {
+    if (!googleClientId) {
+      console.warn('⚠️ EXPO_PUBLIC_GOOGLE_CLIENT_ID no está configurado. El login con Google no funcionará.')
+      console.warn('   Configura EXPO_PUBLIC_GOOGLE_CLIENT_ID en app.json o variables de entorno.')
+    }
+  }, [googleClientId])
 
   // Manejar respuesta de Google OAuth
   useEffect(() => {
@@ -100,7 +111,21 @@ export function LoginScreen() {
         }
       } else if (response?.type === 'error') {
         console.error('❌ Error en respuesta de Google:', response.error)
-        Alert.alert('Error', 'No se pudo completar la autenticación con Google')
+        let errorMessage = 'No se pudo completar la autenticación con Google.'
+        
+        // Mensajes más específicos según el tipo de error
+        if (response.error?.message) {
+          if (response.error.message.includes('400') || response.error.message.includes('invalid_request')) {
+            errorMessage =
+              'Error de configuración de Google OAuth.\n\nVerifica que:\n• El Client ID esté configurado correctamente\n• El Client ID sea válido para aplicaciones móviles\n• La configuración esté correcta en Google Cloud Console'
+          } else if (response.error.message.includes('access_denied')) {
+            errorMessage = 'Acceso denegado. Por favor, autoriza la aplicación para continuar.'
+          } else {
+            errorMessage = `Error: ${response.error.message}`
+          }
+        }
+        
+        Alert.alert('Error de autenticación', errorMessage)
         setGoogleLoading(false)
       } else if (response?.type === 'dismiss') {
         console.log('ℹ️ Usuario canceló la autenticación con Google')
@@ -299,12 +324,22 @@ export function LoginScreen() {
             </View>
 
             <TouchableOpacity
-              style={[styles.googleButton, (googleLoading || !request) && styles.buttonDisabled]}
+              style={[
+                styles.googleButton,
+                (googleLoading || !request || !googleClientId) && styles.buttonDisabled,
+              ]}
               onPress={() => {
+                if (!googleClientId) {
+                  Alert.alert(
+                    'Configuración requerida',
+                    'El Client ID de Google no está configurado. Por favor, contacta al administrador.',
+                  )
+                  return
+                }
                 setGoogleLoading(true)
                 void promptAsync()
               }}
-              disabled={googleLoading || !request}
+              disabled={googleLoading || !request || !googleClientId}
             >
               {googleLoading ? (
                 <ActivityIndicator color="#fff" />
@@ -314,6 +349,11 @@ export function LoginScreen() {
                 </>
               )}
             </TouchableOpacity>
+            {!googleClientId && (
+              <Text style={styles.hint}>
+                ⚠️ Login con Google no disponible: Client ID no configurado
+              </Text>
+            )}
 
             <TouchableOpacity style={styles.registerButton} onPress={() => setShowRegister(true)}>
               <Text style={styles.registerButtonText}>📝 Crear nueva cuenta</Text>
