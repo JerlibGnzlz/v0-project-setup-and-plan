@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Facebook, Heart } from 'lucide-react'
+import { Facebook } from 'lucide-react'
 import { DownloadAppButton } from '@/components/download-app-button'
 
 const quickLinks = [
@@ -104,19 +104,15 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-white/10">
           <div className="container mx-auto px-4 py-6">
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4">
+            <div className="flex flex-col items-center gap-2 text-center">
               {/* Copyright */}
-              <p className="text-white/50 text-sm flex items-center gap-1">
-                &copy; {new Date().getFullYear()} Asociación Misionera Vida Abundante. Hecho con{' '}
-                <Heart className="w-4 h-4 text-red-500 fill-red-500 animate-pulse" /> para el Reino.
+              <p className="text-white/60 text-sm">
+                &copy; {new Date().getFullYear()} Asociación Misionera Vida Abundante. Todos los derechos reservados.
               </p>
 
-              {/* Separator - hidden on mobile */}
-              <span className="hidden sm:inline text-white/20">|</span>
-
               {/* Developer Credit */}
-              <p className="text-white/40 text-xs sm:text-sm">
-                Diseñado y desarrollado por{' '}
+              <p className="text-white/50 text-sm">
+                Desarrollado por{' '}
                 <span className="text-emerald-400 font-medium">Jerlib Gonzalez</span>
               </p>
             </div>
