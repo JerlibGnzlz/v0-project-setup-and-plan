@@ -104,9 +104,19 @@ const testConnection = async () => {
   }
 }
 
-// Solo en desarrollo, probar conexión
-if (__DEV__) {
-  // testConnection() // Comentado para no hacer petición innecesaria
+// Función helper para diagnosticar problemas de conexión
+export const diagnoseConnection = () => {
+  console.log('🔍 DIAGNÓSTICO DE CONEXIÓN')
+  console.log('📍 API URL:', API_URL)
+  console.log('📱 Plataforma:', Platform.OS)
+  console.log('🌐 Modo:', __DEV__ ? 'DESARROLLO' : 'PRODUCCIÓN')
+  console.log('💡 IP Local configurada:', LOCAL_IP || 'No configurada')
+  console.log('💡 Para verificar:')
+  console.log('   1. Backend corriendo? → cd backend && npm run start:dev')
+  console.log('   2. Backend escucha en 0.0.0.0? → Verificar backend/src/main.ts línea 177')
+  console.log('   3. Firewall abierto? → sudo ufw allow 4000 (Linux)')
+  console.log('   4. Misma red WiFi? → Verificar que dispositivo y PC estén en la misma red')
+  console.log('   5. IP correcta? → hostname -I (Linux) o ipconfig (Windows/Mac)')
 }
 
 export const apiClient = axios.create({

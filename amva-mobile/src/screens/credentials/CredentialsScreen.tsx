@@ -115,12 +115,12 @@ export function CredentialsScreen() {
           style={styles.cardGradient}
         >
           <View style={styles.cardHeader}>
-          <View style={styles.cardTitleContainer}>
-            <CreditCard size={24} color={estadoColor} />
-            <Text style={styles.cardTitle}>
-              Credencial {tipo === 'ministerial' ? 'Ministerial' : 'de Capellanía'}
-            </Text>
-          </View>
+            <View style={styles.cardTitleContainer}>
+              <CreditCard size={24} color={estadoColor} />
+              <Text style={styles.cardTitle}>
+                Credencial {tipo === 'ministerial' ? 'Ministerial' : 'de Capellanía'}
+              </Text>
+            </View>
             <View style={[styles.badgeContainer, { backgroundColor: `${estadoColor}20` }]}>
               <EstadoIcon size={16} color={estadoColor} />
               <Text style={[styles.badgeText, { color: estadoColor }]}>
@@ -165,8 +165,8 @@ export function CredentialsScreen() {
                   {credencial.diasRestantes > 0
                     ? `${credencial.diasRestantes} días`
                     : credencial.diasRestantes === 0
-                    ? 'Vence hoy'
-                    : `Vencida hace ${Math.abs(credencial.diasRestantes)} días`}
+                      ? 'Vence hoy'
+                      : `Vencida hace ${Math.abs(credencial.diasRestantes)} días`}
                 </Text>
               </View>
             )}
