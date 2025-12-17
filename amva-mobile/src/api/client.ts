@@ -39,12 +39,12 @@ const getApiUrl = () => {
   }
 
   // ============================================
-  // PRIORIDAD 2: API de Producción (Vercel) - POR DEFECTO
+  // PRIORIDAD 2: API de Producción (Render) - POR DEFECTO
   // ============================================
-  // El backend está desplegado en Vercel, usar producción por defecto
-  // tanto en desarrollo como en producción
-  const PRODUCTION_API_URL = 'https://api.vidaabundante.org/api'
-  console.log('🌐 Usando API de producción (Vercel):', PRODUCTION_API_URL)
+  // El backend está desplegado en Render.com
+  // Usar producción por defecto tanto en desarrollo como en producción
+  const PRODUCTION_API_URL = 'https://ministerio-backend-wdbj.onrender.com/api'
+  console.log('🌐 Usando API de producción (Render):', PRODUCTION_API_URL)
   return PRODUCTION_API_URL
 
   // ============================================

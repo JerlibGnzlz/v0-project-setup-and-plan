@@ -123,7 +123,7 @@ Este script verificará automáticamente:
 
 En producción, la app usa automáticamente:
 ```
-https://api.vidaabundante.org/api
+https://ministerio-backend-wdbj.onrender.com/api
 ```
 
 No necesitas configurar IP local en producción.
