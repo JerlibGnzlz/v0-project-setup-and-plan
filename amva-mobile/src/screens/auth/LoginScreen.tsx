@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as WebBrowser from 'expo-web-browser'
 import * as Google from 'expo-auth-session/providers/google'
+import Constants from 'expo-constants'
 import { useAuth } from '@hooks/useAuth'
 import { invitadoAuthApi } from '@api/invitado-auth'
 import { testBackendConnection } from '../../utils/testConnection'
@@ -36,24 +37,46 @@ export function LoginScreen() {
   const [googleLoading, setGoogleLoading] = useState(false)
 
   // Configuración de Google OAuth
-  // NOTA: Necesitas configurar EXPO_PUBLIC_GOOGLE_CLIENT_ID en app.json o variables de entorno
-  // Para apps móviles, necesitas un Client ID específico de Android/iOS (no el mismo que web)
-  // El CLIENT_ID debe ser el mismo que el del backend (o uno compatible)
-  const googleClientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || ''
+  // NOTA: Configura el Client ID en app.json en extra.googleClientId
+  // O crea un archivo .env en la raíz de amva-mobile con:
+  // EXPO_PUBLIC_GOOGLE_CLIENT_ID=tu-client-id.apps.googleusercontent.com
+  // El CLIENT_ID debe ser el mismo que el del backend (GOOGLE_CLIENT_ID)
   
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: googleClientId,
-    // Para desarrollo, puedes usar el clientId directamente aquí si no está en variables de entorno
-    // clientId: 'TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
-  })
+  // Intentar leer desde diferentes fuentes
+  const googleClientIdFromEnv = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || ''
+  const googleClientIdFromConfig =
+    Constants?.expoConfig?.extra?.googleClientId ||
+    Constants?.manifest?.extra?.googleClientId ||
+    ''
+  
+  const googleClientId = googleClientIdFromEnv || googleClientIdFromConfig
+  
+  // Filtrar valores placeholder
+  const isValidClientId =
+    googleClientId &&
+    googleClientId !== 'TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com' &&
+    googleClientId.includes('.apps.googleusercontent.com')
+  
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
+    isValidClientId
+      ? {
+          clientId: googleClientId,
+        }
+      : undefined
+  )
 
   // Validar que el clientId esté configurado
   useEffect(() => {
-    if (!googleClientId) {
-      console.warn('⚠️ EXPO_PUBLIC_GOOGLE_CLIENT_ID no está configurado. El login con Google no funcionará.')
-      console.warn('   Configura EXPO_PUBLIC_GOOGLE_CLIENT_ID en app.json o variables de entorno.')
+    if (!isValidClientId) {
+      console.warn('⚠️ Google Client ID no está configurado o es inválido.')
+      console.warn('   Opción 1: Agrega en app.json -> extra.googleClientId con tu Client ID real')
+      console.warn('   Opción 2: Crea .env en amva-mobile/ con EXPO_PUBLIC_GOOGLE_CLIENT_ID=tu-client-id')
+      console.warn('   El Client ID debe ser el mismo que GOOGLE_CLIENT_ID en el backend')
+      console.warn('   Formato esperado: xxxxxx.apps.googleusercontent.com')
+    } else {
+      console.log('✅ Google Client ID configurado:', googleClientId.substring(0, 30) + '...')
     }
-  }, [googleClientId])
+  }, [isValidClientId, googleClientId])
 
   // Manejar respuesta de Google OAuth
   useEffect(() => {
