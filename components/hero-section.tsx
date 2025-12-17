@@ -63,11 +63,14 @@ export function HeroSection() {
     }
   }, [isClient])
 
+  // Calcular valores de parallax y opacity de forma suave
+  // Cuando scrollY es 0, el mundo debe estar en su posición inicial
   const parallaxY = scrollY * 0.4
-  const opacity = Math.max(1 - scrollY / 600, 0.2)
+  const opacity = scrollY === 0 ? 0.85 : Math.max(1 - scrollY / 600, 0.2)
 
   // Limitar el scale para evitar deformaciones extremas
-  const scaleValue = Math.min(1 + scrollY * 0.0002, 1.1)
+  // Cuando scrollY es 0, mantener scale en 1
+  const scaleValue = scrollY === 0 ? 1 : Math.min(1 + scrollY * 0.0002, 1.1)
 
   return (
     <section
