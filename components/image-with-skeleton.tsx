@@ -29,12 +29,12 @@ export function ImageWithSkeleton({ src, alt, className = '' }: ImageWithSkeleto
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full flex items-center justify-center">
       {isLoading && <div className="absolute inset-0 bg-muted animate-pulse" />}
       <img
         src={effectiveSrc}
         alt={alt}
-        className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
+        className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500 max-w-full max-h-full`}
         onLoad={() => setIsLoading(false)}
         onError={() => {
           setIsLoading(false)

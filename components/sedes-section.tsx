@@ -101,9 +101,9 @@ export function SedesSection() {
         {/* Carousel modernizado */}
         <div className="relative max-w-5xl mx-auto">
           <div className="relative rounded-2xl overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10">
-            <div className="relative h-[450px] sm:h-[500px] md:h-[550px]">
+            <div className="relative h-[450px] sm:h-[500px] md:h-[550px] bg-[#0d1f35]">
               {/* Image */}
-              <div className="absolute inset-0">
+              <div className="absolute inset-0 flex items-center justify-center">
                 <ImageWithSkeleton
                   src={currentSede.imagenUrl || '/placeholder.svg'}
                   alt={`${currentSede.pais} - ${currentSede.ciudad}`}
