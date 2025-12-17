@@ -4,10 +4,17 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Calendar, ArrowRight, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useConvencionActiva } from '@/lib/hooks/use-convencion'
 
 export function FloatingCTA() {
   const [isVisible, setIsVisible] = useState(false)
   const [isNearFooter, setIsNearFooter] = useState(false)
+  const { data: convencion, isLoading } = useConvencionActiva()
+
+  // No mostrar nada si está cargando o no hay convención activa
+  if (isLoading || !convencion || !convencion.activa) {
+    return null
+  }
 
   useEffect(() => {
     const toggleVisibility = () => {
