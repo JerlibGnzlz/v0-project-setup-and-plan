@@ -4,11 +4,12 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { ActivityIndicator, View, Platform, Text } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Home, Calendar, Newspaper, User } from 'lucide-react-native'
+import { Home, Calendar, Newspaper, User, Card } from 'lucide-react-native'
 import { LoginScreen } from '@screens/auth/LoginScreen'
 import { HomeScreen } from '@screens/home/HomeScreen'
 import { NewsScreen } from '@screens/news/NewsScreen'
 import { ConventionInscripcionScreen } from '@screens/conventions/ConventionInscripcionScreen'
+import { CredentialsScreen } from '@screens/credentials/CredentialsScreen'
 import { ProfileScreen } from '@screens/profile/ProfileScreen'
 import NotificationsHistoryScreen from '@screens/notifications/NotificationsHistoryScreen'
 import { useAuth } from '@hooks/useAuth'
@@ -75,6 +76,13 @@ function MainTabs() {
         component={NewsScreen}
         options={{
           tabBarIcon: ({ color, size }) => <Newspaper size={size || 24} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="Credenciales"
+        component={CredentialsScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => <Card size={size || 24} color={color} />,
         }}
       />
       <Tab.Screen

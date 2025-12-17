@@ -26,3 +26,5 @@ AND column_name IN ('two_factor_enabled', 'two_factor_secret');
 
 
 
+
+

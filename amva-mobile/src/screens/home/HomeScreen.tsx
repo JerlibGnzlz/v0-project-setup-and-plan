@@ -10,7 +10,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Calendar, Newspaper, User, Sparkles, ArrowRight, Globe, Bell } from 'lucide-react-native'
+import { Calendar, Newspaper, User, Sparkles, ArrowRight, Globe, Bell, Card } from 'lucide-react-native'
 import { useAuth } from '@hooks/useAuth'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -19,6 +19,7 @@ type TabParamList = {
   Inicio: undefined
   Convenciones: undefined
   Noticias: undefined
+  Credenciales: undefined
   Perfil: undefined
 }
 
@@ -59,6 +60,15 @@ export function HomeScreen({ navigation }: Props) {
       color: '#3b82f6',
       gradient: ['#3b82f6', '#2563eb'],
       onPress: () => handleNavigate('Noticias'),
+    },
+    {
+      id: 'credenciales',
+      title: 'Credenciales',
+      description: 'Consulta el estado de tus credenciales',
+      icon: Card,
+      color: '#f59e0b',
+      gradient: ['#f59e0b', '#d97706'],
+      onPress: () => handleNavigate('Credenciales'),
     },
     {
       id: 'perfil',
