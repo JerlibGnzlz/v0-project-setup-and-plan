@@ -461,7 +461,21 @@ export class NotificationsService {
     email: string,
     options?: { limit?: number; offset?: number },
   ): Promise<{
-    notifications: any[]
+    notifications: Array<{
+      id: string
+      pastorId: string
+      email: string
+      title: string
+      body: string
+      type: string
+      data: Prisma.JsonValue
+      sentVia: string
+      pushSuccess: boolean
+      emailSuccess: boolean
+      read: boolean
+      readAt: Date | null
+      createdAt: Date
+    }>
     total: number
     limit: number
     offset: number
