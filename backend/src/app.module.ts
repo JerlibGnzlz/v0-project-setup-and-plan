@@ -17,6 +17,7 @@ import { MercadoPagoModule } from './modules/mercado-pago/mercado-pago.module'
 import { CredencialesMinisterialesModule } from './modules/credenciales-ministeriales/credenciales-ministeriales.module'
 import { CredencialesCapellaniaModule } from './modules/credenciales-capellania/credenciales-capellania.module'
 import { SedesModule } from './modules/sedes/sedes.module'
+import { PublicModule } from './modules/public/public.module'
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { SedesModule } from './modules/sedes/sedes.module'
     CredencialesMinisterialesModule,
     CredencialesCapellaniaModule,
     SedesModule,
+    PublicModule,
   ],
   providers: [
     // Guard global para rate limiting
