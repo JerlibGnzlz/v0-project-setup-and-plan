@@ -239,10 +239,15 @@ export function Step3Formulario({
       newErrors.sede = 'La sede no puede exceder 200 caracteres'
     }
 
-    if (!formData.tipoInscripcion || formData.tipoInscripcion.trim().length === 0) {
+    // Validar tipoInscripcion - asegurar que sea string y no esté vacío
+    const tipoInscripcionStr = formData.tipoInscripcion ? String(formData.tipoInscripcion).trim() : ''
+    if (!tipoInscripcionStr || tipoInscripcionStr.length === 0) {
       newErrors.tipoInscripcion = 'El tipo de inscripción es requerido'
-    } else if (formData.tipoInscripcion.trim().length > 50) {
+      console.warn('⚠️ Validación fallida: tipoInscripcion está vacío o es inválido:', formData.tipoInscripcion)
+    } else if (tipoInscripcionStr.length > 50) {
       newErrors.tipoInscripcion = 'El tipo de inscripción no puede exceder 50 caracteres'
+    } else {
+      console.log('✅ tipoInscripcion válido:', tipoInscripcionStr)
     }
 
     if (!formData.numeroCuotas || formData.numeroCuotas < 1 || formData.numeroCuotas > 3) {
@@ -297,7 +302,20 @@ export function Step3Formulario({
   }
 
   const handleSubmit = async () => {
+    console.log('🔍 Validando formulario antes de enviar...')
+    console.log('📊 Estado actual del formulario:', {
+      nombre: formData.nombre,
+      apellido: formData.apellido,
+      email: formData.email,
+      pais: formData.pais,
+      provincia: formData.provincia,
+      sede: formData.sede,
+      tipoInscripcion: formData.tipoInscripcion,
+      numeroCuotas: formData.numeroCuotas,
+    })
+    
     if (!validateForm()) {
+      console.error('❌ Validación fallida. Errores:', errors)
       Alert.alert(
         'Campos requeridos',
         'Por favor completa todos los campos requeridos correctamente.',
@@ -306,6 +324,8 @@ export function Step3Formulario({
       )
       return
     }
+    
+    console.log('✅ Validación exitosa, procediendo al siguiente paso')
 
     try {
       setLoading(true)
@@ -594,8 +614,17 @@ export function Step3Formulario({
                 <CustomPicker
                   selectedValue={formData.tipoInscripcion || 'Invitado'}
                   onValueChange={value => {
-                    if (value) {
-                      handleChange('tipoInscripcion', value)
+                    // Asegurar que el valor sea un string y no esté vacío
+                    if (value !== undefined && value !== null) {
+                      const stringValue = String(value).trim()
+                      if (stringValue.length > 0) {
+                        console.log('🔍 Actualizando tipoInscripcion:', stringValue)
+                        handleChange('tipoInscripcion', stringValue)
+                      } else {
+                        console.warn('⚠️ Valor de tipoInscripcion está vacío')
+                      }
+                    } else {
+                      console.warn('⚠️ Valor de tipoInscripcion es undefined o null')
                     }
                   }}
                   items={[
@@ -606,7 +635,9 @@ export function Step3Formulario({
                   ]}
                   placeholder="Selecciona tipo de inscripción"
                   label="Tipo de Inscripción"
+                  error={errors.tipoInscripcion}
                 />
+                {errors.tipoInscripcion && <Text style={styles.errorText}>{errors.tipoInscripcion}</Text>}
               </View>
 
               <View style={styles.halfInput}>
