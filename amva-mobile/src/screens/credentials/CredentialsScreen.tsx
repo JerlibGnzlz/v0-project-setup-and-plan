@@ -564,10 +564,12 @@ export function CredentialsScreen() {
               <Text style={styles.infoLabel}>Documento:</Text>
               <Text style={styles.infoValue}>{credencial.documento}</Text>
             </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Fecha de Emisión:</Text>
-              <Text style={styles.infoValue}>{formatDate(credencial.fechaEmision)}</Text>
-            </View>
+            {credencial.fechaEmision && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Fecha de Emisión:</Text>
+                <Text style={styles.infoValue}>{formatDate(credencial.fechaEmision)}</Text>
+              </View>
+            )}
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Fecha de Vencimiento:</Text>
               <Text style={[styles.infoValue, { color: estadoColor }]}>

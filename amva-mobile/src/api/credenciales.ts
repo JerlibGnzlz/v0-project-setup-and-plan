@@ -10,12 +10,18 @@ export interface Credencial {
   nombre: string
   apellido: string
   tipo: 'ministerial' | 'capellania'
-  fechaEmision: string
+  fechaEmision?: string // Mapeado desde createdAt del backend
+  createdAt?: string // Fecha de creación desde el backend
   fechaVencimiento: string
   estado: 'vigente' | 'por_vencer' | 'vencida'
   diasRestantes?: number
   activa: boolean
   observaciones?: string
+  nacionalidad?: string
+  fechaNacimiento?: string
+  fotoUrl?: string
+  tipoPastor?: string // Para credenciales ministeriales
+  tipoCapellan?: string // Para credenciales de capellanía
 }
 
 export interface CredencialResponse {
@@ -34,6 +40,23 @@ export const credencialesApi = {
     const response = await apiClient.get<CredencialResponse>(
       `/credenciales-ministeriales/consultar/${documento}`
     )
+    
+    // Mapear createdAt a fechaEmision para compatibilidad
+    if (response.data.credencial) {
+      response.data.credencial = {
+        ...response.data.credencial,
+        tipo: 'ministerial' as const,
+        fechaEmision: response.data.credencial.createdAt || response.data.credencial.fechaEmision,
+      }
+    }
+    if (response.data.credenciales) {
+      response.data.credenciales = response.data.credenciales.map(credencial => ({
+        ...credencial,
+        tipo: 'ministerial' as const,
+        fechaEmision: credencial.createdAt || credencial.fechaEmision,
+      }))
+    }
+    
     return response.data
   },
 
@@ -45,6 +68,23 @@ export const credencialesApi = {
     const response = await apiClient.get<CredencialResponse>(
       `/credenciales-capellania/consultar/${documento}`
     )
+    
+    // Mapear createdAt a fechaEmision para compatibilidad
+    if (response.data.credencial) {
+      response.data.credencial = {
+        ...response.data.credencial,
+        tipo: 'capellania' as const,
+        fechaEmision: response.data.credencial.createdAt || response.data.credencial.fechaEmision,
+      }
+    }
+    if (response.data.credenciales) {
+      response.data.credenciales = response.data.credenciales.map(credencial => ({
+        ...credencial,
+        tipo: 'capellania' as const,
+        fechaEmision: credencial.createdAt || credencial.fechaEmision,
+      }))
+    }
+    
     return response.data
   },
 
@@ -63,6 +103,23 @@ export const credencialesApi = {
         encontrada: response.data.encontrada,
         cantidad: response.data.credenciales?.length || 0,
       })
+      
+      // Mapear createdAt a fechaEmision para compatibilidad
+      if (response.data.credenciales) {
+        response.data.credenciales = response.data.credenciales.map(credencial => ({
+          ...credencial,
+          tipo: 'ministerial' as const,
+          fechaEmision: credencial.createdAt || credencial.fechaEmision,
+        }))
+      }
+      if (response.data.credencial) {
+        response.data.credencial = {
+          ...response.data.credencial,
+          tipo: 'ministerial' as const,
+          fechaEmision: response.data.credencial.createdAt || response.data.credencial.fechaEmision,
+        }
+      }
+      
       return response.data
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
@@ -86,6 +143,23 @@ export const credencialesApi = {
         encontrada: response.data.encontrada,
         cantidad: response.data.credenciales?.length || 0,
       })
+      
+      // Mapear createdAt a fechaEmision para compatibilidad
+      if (response.data.credenciales) {
+        response.data.credenciales = response.data.credenciales.map(credencial => ({
+          ...credencial,
+          tipo: 'capellania' as const,
+          fechaEmision: credencial.createdAt || credencial.fechaEmision,
+        }))
+      }
+      if (response.data.credencial) {
+        response.data.credencial = {
+          ...response.data.credencial,
+          tipo: 'capellania' as const,
+          fechaEmision: response.data.credencial.createdAt || response.data.credencial.fechaEmision,
+        }
+      }
+      
       return response.data
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
