@@ -48,6 +48,14 @@ export class CreateCredencialMinisterialDto {
   @IsBoolean()
   @IsOptional()
   activa?: boolean
+
+  @IsString()
+  @IsOptional()
+  invitadoId?: string
+
+  @IsString()
+  @IsOptional()
+  solicitudCredencialId?: string
 }
 
 export class UpdateCredencialMinisterialDto {

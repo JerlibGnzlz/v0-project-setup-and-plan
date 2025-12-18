@@ -177,13 +177,60 @@ export class CredencialesMinisterialesService extends BaseService<
 
         // Notificar al invitado
         if (solicitudCredencial.invitado) {
-          await this.notificarCredencialCreada(
-            solicitudCredencial.invitado.email,
-            solicitudCredencial.invitado.nombre,
-            solicitudCredencial.invitado.apellido,
-            'ministerial',
-            credencial.id
-          )
+          try {
+            // Buscar tokens de dispositivo del invitado para push notifications
+            const invitadoConTokens = await this.prisma.invitado.findUnique({
+              where: { id: solicitudCredencial.invitado.id },
+              include: {
+                auth: {
+                  include: {
+                    deviceTokens: {
+                      where: { active: true },
+                    },
+                  },
+                },
+              },
+            })
+
+            // Enviar push notifications a todos los dispositivos activos
+            if (invitadoConTokens?.auth?.deviceTokens && invitadoConTokens.auth.deviceTokens.length > 0) {
+              for (const deviceToken of invitadoConTokens.auth.deviceTokens) {
+                await this.notificationsService.sendPushNotification(
+                  deviceToken.token,
+                  'Credencial Ministerial Creada',
+                  `Tu credencial ministerial ha sido creada exitosamente. Documento: ${credencial.documento}`,
+                  {
+                    tipo: 'credencial_creada',
+                    credencialId: credencial.id,
+                    tipoCredencial: 'ministerial',
+                    documento: credencial.documento,
+                  }
+                )
+              }
+            }
+
+            // Enviar email
+            await this.notificationsService.sendEmailToInvitado(
+              solicitudCredencial.invitado.email,
+              'Credencial Ministerial Creada',
+              `Hola ${solicitudCredencial.invitado.nombre},\n\nTu credencial ministerial ha sido creada exitosamente.\n\nDocumento: ${credencial.documento}\nNombre: ${credencial.nombre} ${credencial.apellido}\nFecha de Vencimiento: ${credencial.fechaVencimiento.toLocaleDateString('es-ES')}\n\nPuedes consultarla en la aplicación móvil.`,
+              {
+                tipo: 'credencial_creada',
+                credencialId: credencial.id,
+                tipoCredencial: 'ministerial',
+              }
+            )
+
+            this.logger.log(
+              `✅ Notificación enviada a invitado ${solicitudCredencial.invitado.email} por credencial creada`
+            )
+          } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            this.logger.error(
+              `❌ Error enviando notificación a invitado: ${errorMessage}`
+            )
+            // No lanzar error, solo loggear (la credencial ya fue creada)
+          }
         }
       }
 
