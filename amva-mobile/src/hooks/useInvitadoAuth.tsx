@@ -99,15 +99,22 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     let isMounted = true
     let timeoutId: ReturnType<typeof setTimeout> | null = null
+    let hasLoaded = false // Prevenir múltiples cargas
 
     const bootstrap = async () => {
       try {
         const token = await SecureStore.getItemAsync('invitado_token')
-        if (token && isMounted) {
+        if (token && isMounted && !hasLoaded) {
+          hasLoaded = true
           await loadInvitado()
+        } else if (!token && isMounted) {
+          // Si no hay token, establecer invitado como null inmediatamente
+          setInvitado(null)
         }
       } catch (error: unknown) {
         console.error('Error en bootstrap de invitado:', error)
+        // No establecer hasLoaded = true si hay error, para permitir reintento
+        hasLoaded = false
       } finally {
         if (isMounted) {
           setLoading(false)
@@ -129,7 +136,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
         clearTimeout(timeoutId)
       }
     }
-  }, [loadInvitado])
+  }, []) // Remover loadInvitado de las dependencias para evitar loops
 
   const login = async (email: string, password: string) => {
     setLoading(true)

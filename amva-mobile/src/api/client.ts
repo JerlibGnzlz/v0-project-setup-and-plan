@@ -271,6 +271,39 @@ apiClient.interceptors.response.use(
       const retryCount = (originalRequest._retryCount || 0) + 1
       if (retryCount > 1) {
         console.error('❌ Máximo de reintentos alcanzado, rechazando request:', originalRequest.url)
+        
+        // Detectar si es un endpoint de invitados para limpiar los tokens correctos
+        const isInvitadoEndpoint =
+          originalRequest.url?.includes('/auth/invitado/me') ||
+          originalRequest.url?.includes('/auth/invitado/logout') ||
+          originalRequest.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
+          originalRequest.url?.includes('/credenciales-capellania/mis-credenciales') ||
+          originalRequest.url?.includes('/credenciales-ministeriales/consultar/') ||
+          originalRequest.url?.includes('/credenciales-capellania/consultar/') ||
+          originalRequest.url?.includes('/inscripciones/my') ||
+          originalRequest.url?.includes('/solicitudes-credenciales')
+        
+        // Limpiar tokens cuando se alcanza el máximo de reintentos
+        if (isInvitadoEndpoint) {
+          console.log('🧹 Limpiando tokens de invitado después de máximo de reintentos')
+          try {
+            await SecureStore.deleteItemAsync('invitado_token')
+            await SecureStore.deleteItemAsync('invitado_refresh_token')
+            console.log('✅ Tokens de invitado limpiados')
+          } catch (cleanError) {
+            console.error('❌ Error limpiando tokens:', cleanError)
+          }
+        } else {
+          console.log('🧹 Limpiando tokens de pastor después de máximo de reintentos')
+          try {
+            await SecureStore.deleteItemAsync('access_token')
+            await SecureStore.deleteItemAsync('refresh_token')
+            console.log('✅ Tokens de pastor limpiados')
+          } catch (cleanError) {
+            console.error('❌ Error limpiando tokens:', cleanError)
+          }
+        }
+        
         return Promise.reject(error)
       }
 
