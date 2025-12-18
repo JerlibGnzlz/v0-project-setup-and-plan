@@ -1,6 +1,8 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { LinearGradient } from 'expo-linear-gradient'
+import { User, Mail, Phone, MapPin, Tag, LogOut } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 
 export function ProfileScreen() {
@@ -39,61 +41,99 @@ export function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <View style={styles.logoGlow} />
-            <View style={styles.logoCircle}>
+        {/* Header con gradiente */}
+        <LinearGradient
+          colors={['rgba(34, 197, 94, 0.15)', 'rgba(59, 130, 246, 0.1)', 'transparent']}
+          style={styles.headerGradient}
+        >
+          <View style={styles.header}>
+            <View style={styles.avatarContainer}>
               {invitado.fotoUrl ? (
                 <Image source={{ uri: invitado.fotoUrl }} style={styles.profileImage} />
               ) : (
-                <Text style={styles.logoText}>👤</Text>
+                <View style={styles.avatarPlaceholder}>
+                  <User size={40} color="#22c55e" />
+                </View>
               )}
+              <View style={styles.avatarBorder} />
             </View>
+            <Text style={styles.title}>AMVA Móvil</Text>
+            <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
           </View>
-          <Text style={styles.title}>AMVA Móvil</Text>
-          <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
-        </View>
+        </LinearGradient>
 
-        {/* Profile Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Mi Perfil</Text>
+        {/* Profile Card con gradiente */}
+        <LinearGradient
+          colors={['rgba(255, 255, 255, 0.08)', 'rgba(255, 255, 255, 0.03)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.card}
+        >
+          <View style={styles.cardHeader}>
+            <User size={24} color="#22c55e" />
+            <Text style={styles.cardTitle}>Mi Perfil</Text>
+          </View>
 
           <View style={styles.profileSection}>
-            <Text style={styles.label}>👤 Nombre Completo</Text>
+            <View style={styles.sectionHeader}>
+              <User size={18} color="rgba(255, 255, 255, 0.6)" />
+              <Text style={styles.label}>Nombre Completo</Text>
+            </View>
             <Text style={styles.value}>
               {invitado.nombre} {invitado.apellido}
             </Text>
           </View>
 
           <View style={styles.profileSection}>
-            <Text style={styles.label}>📧 Correo Electrónico</Text>
+            <View style={styles.sectionHeader}>
+              <Mail size={18} color="rgba(255, 255, 255, 0.6)" />
+              <Text style={styles.label}>Correo Electrónico</Text>
+            </View>
             <Text style={styles.value}>{invitado.email}</Text>
           </View>
 
           {invitado.telefono && (
             <View style={styles.profileSection}>
-              <Text style={styles.label}>📱 Teléfono</Text>
+              <View style={styles.sectionHeader}>
+                <Phone size={18} color="rgba(255, 255, 255, 0.6)" />
+                <Text style={styles.label}>Teléfono</Text>
+              </View>
               <Text style={styles.value}>{invitado.telefono}</Text>
             </View>
           )}
 
           {invitado.sede && (
             <View style={styles.profileSection}>
-              <Text style={styles.label}>📍 Sede</Text>
+              <View style={styles.sectionHeader}>
+                <MapPin size={18} color="rgba(255, 255, 255, 0.6)" />
+                <Text style={styles.label}>Sede</Text>
+              </View>
               <Text style={styles.value}>{invitado.sede}</Text>
             </View>
           )}
 
-          <View style={styles.profileSection}>
-            <Text style={styles.label}>🏷️ Tipo de Usuario</Text>
-            <Text style={styles.value}>Invitado</Text>
+          <View style={[styles.profileSection, styles.lastSection]}>
+            <View style={styles.sectionHeader}>
+              <Tag size={18} color="rgba(255, 255, 255, 0.6)" />
+              <Text style={styles.label}>Tipo de Usuario</Text>
+            </View>
+            <View style={styles.badgeContainer}>
+              <Text style={styles.badgeText}>Invitado</Text>
+            </View>
           </View>
-        </View>
+        </LinearGradient>
 
-        {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>🚪 Cerrar Sesión</Text>
+        {/* Logout Button con gradiente */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
+          <LinearGradient
+            colors={['rgba(239, 68, 68, 0.2)', 'rgba(239, 68, 68, 0.1)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.logoutGradient}
+          >
+            <LogOut size={20} color="#ef4444" />
+            <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -114,38 +154,39 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 100,
   },
+  headerGradient: {
+    paddingTop: 24,
+    paddingBottom: 32,
+    marginBottom: 24,
+    borderRadius: 20,
+    marginHorizontal: -20,
+  },
   header: {
     alignItems: 'center',
-    marginBottom: 24,
-    paddingTop: 12,
   },
-  logoContainer: {
+  avatarContainer: {
     position: 'relative',
     marginBottom: 16,
   },
-  logoGlow: {
-    position: 'absolute',
-    top: -8,
-    left: -8,
-    right: -8,
-    bottom: -8,
-    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+  avatarPlaceholder: {
+    width: 100,
+    height: 100,
     borderRadius: 50,
-    opacity: 0.6,
-  },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderWidth: 3,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
   },
-  logoText: {
-    fontSize: 40,
+  avatarBorder: {
+    position: 'absolute',
+    top: -4,
+    left: -4,
+    right: -4,
+    bottom: -4,
+    borderRadius: 54,
+    borderWidth: 2,
+    borderColor: 'rgba(34, 197, 94, 0.2)',
   },
   title: {
     fontSize: 24,
@@ -160,51 +201,101 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 20,
+    padding: 24,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  profileSection: {
-    marginBottom: 16,
-    paddingBottom: 16,
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 24,
+    paddingBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  profileSection: {
+    marginBottom: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  lastSection: {
+    marginBottom: 0,
+    paddingBottom: 0,
+    borderBottomWidth: 0,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
   },
   label: {
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.6)',
-    marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    fontWeight: '600',
   },
   value: {
     fontSize: 16,
     color: '#fff',
     fontWeight: '500',
+    marginLeft: 26,
+  },
+  badgeContainer: {
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignSelf: 'flex-start',
+    marginLeft: 26,
+    marginTop: 4,
+  },
+  badgeText: {
+    color: '#22c55e',
+    fontSize: 14,
+    fontWeight: '600',
   },
   logoutButton: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 8,
+    shadowColor: '#ef4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  logoutGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 16,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.4)',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
   },
   logoutButtonText: {
     color: '#ef4444',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   text: {
     fontSize: 14,
@@ -212,8 +303,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
   },
 })

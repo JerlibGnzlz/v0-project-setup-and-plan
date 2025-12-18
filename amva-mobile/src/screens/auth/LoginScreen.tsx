@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  Animated,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as WebBrowser from 'expo-web-browser'
@@ -35,6 +36,10 @@ export function LoginScreen() {
   const [testingConnection, setTestingConnection] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [emailFocused, setEmailFocused] = useState(false)
+  const [passwordFocused, setPasswordFocused] = useState(false)
+  const emailFocusAnim = useRef(new Animated.Value(0)).current
+  const passwordFocusAnim = useRef(new Animated.Value(0)).current
 
   // Configuración de Google OAuth
   // NOTA: Configura el Client ID en app.json en extra.googleClientId
@@ -324,34 +329,104 @@ export function LoginScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>📧 Correo electrónico</Text>
-              <TextInput
-                ref={emailInputRef}
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="tu@email.com"
-                placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoCorrect={false}
-                returnKeyType="next"
-                onSubmitEditing={() => passwordInputRef.current?.focus()}
-              />
+              <Animated.View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: emailFocusAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['rgba(255, 255, 255, 0.2)', 'rgba(34, 197, 94, 0.6)'],
+                    }),
+                    shadowOpacity: emailFocusAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 0.2],
+                    }),
+                    shadowColor: '#22c55e',
+                  },
+                ]}
+              >
+                <TextInput
+                  ref={emailInputRef}
+                  style={styles.input}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="tu@email.com"
+                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                  onFocus={() => {
+                    setEmailFocused(true)
+                    Animated.spring(emailFocusAnim, {
+                      toValue: 1,
+                      useNativeDriver: false,
+                      tension: 100,
+                      friction: 8,
+                    }).start()
+                  }}
+                  onBlur={() => {
+                    setEmailFocused(false)
+                    Animated.spring(emailFocusAnim, {
+                      toValue: 0,
+                      useNativeDriver: false,
+                      tension: 100,
+                      friction: 8,
+                    }).start()
+                  }}
+                  onSubmitEditing={() => passwordInputRef.current?.focus()}
+                />
+              </Animated.View>
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>🔒 Contraseña</Text>
-              <TextInput
-                ref={passwordInputRef}
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="********"
-                placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                secureTextEntry
-                returnKeyType="done"
-                onSubmitEditing={handleSubmit}
-              />
+              <Animated.View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: passwordFocusAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['rgba(255, 255, 255, 0.2)', 'rgba(34, 197, 94, 0.6)'],
+                    }),
+                    shadowOpacity: passwordFocusAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 0.2],
+                    }),
+                    shadowColor: '#22c55e',
+                  },
+                ]}
+              >
+                <TextInput
+                  ref={passwordInputRef}
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="********"
+                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                  secureTextEntry
+                  returnKeyType="done"
+                  onFocus={() => {
+                    setPasswordFocused(true)
+                    Animated.spring(passwordFocusAnim, {
+                      toValue: 1,
+                      useNativeDriver: false,
+                      tension: 100,
+                      friction: 8,
+                    }).start()
+                  }}
+                  onBlur={() => {
+                    setPasswordFocused(false)
+                    Animated.spring(passwordFocusAnim, {
+                      toValue: 0,
+                      useNativeDriver: false,
+                      tension: 100,
+                      friction: 8,
+                    }).start()
+                  }}
+                  onSubmitEditing={handleSubmit}
+                />
+              </Animated.View>
             </View>
 
             <TouchableOpacity
@@ -494,23 +569,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.9)',
-    marginBottom: 8,
+    marginBottom: 10,
+  },
+  inputContainer: {
+    borderWidth: 2,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 4,
   },
   input: {
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 10,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     color: '#fff',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     fontSize: 16,
+    backgroundColor: 'transparent',
   },
   button: {
     marginTop: 8,
