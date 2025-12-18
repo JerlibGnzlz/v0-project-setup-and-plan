@@ -139,11 +139,14 @@ apiClient.interceptors.request.use(
         (config.url?.includes('/solicitudes-credenciales') && config.method === 'post')
 
       // Detectar si es un endpoint de invitados o inscripciones (que también usa invitados)
+      // NOTA: POST /inscripciones es público (no requiere autenticación)
+      const isPublicInscripcionPost = config.url === '/inscripciones' && config.method === 'post'
+      
       const isInvitadoEndpoint =
         config.url?.includes('/auth/invitado') ||
         config.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
         config.url?.includes('/credenciales-capellania/mis-credenciales') ||
-        config.url?.includes('/inscripciones') ||
+        (config.url?.includes('/inscripciones') && !isPublicInscripcionPost) ||
         config.url?.includes('/solicitudes-credenciales')
 
       // Detectar si es un endpoint de consulta de credenciales (acepta pastor o invitado)
@@ -168,6 +171,14 @@ apiClient.interceptors.request.use(
           // No agregar token de pastor, dejar que el backend responda con 401
           return config
         }
+      }
+
+      // POST /inscripciones es público, no requiere token
+      if (isPublicInscripcionPost) {
+        if (__DEV__) {
+          console.log('🌐 POST /inscripciones es público, no se requiere token')
+        }
+        return config
       }
 
       // Para otros endpoints de invitados o consulta de credenciales, intentar token de invitado primero
@@ -219,18 +230,38 @@ apiClient.interceptors.response.use(
       errorMessage.includes('timeout') ||
       errorMessage.includes('getaddrinfo')
     ) {
-      console.error('❌ Error de red:', {
+      const fullUrl = originalRequest?.url
+        ? `${apiClient.defaults.baseURL}${originalRequest.url}`
+        : 'URL desconocida'
+      
+      console.error('❌ Error de red detectado:', {
         code: errorCode,
         message: errorMessage,
         url: originalRequest?.url,
+        fullUrl: fullUrl,
+        baseURL: apiClient.defaults.baseURL,
+        method: originalRequest?.method?.toUpperCase(),
       })
+      
+      console.error('🔍 Diagnóstico de conexión:')
+      console.error('   - Base URL:', apiClient.defaults.baseURL)
+      console.error('   - Endpoint:', originalRequest?.url)
+      console.error('   - URL completa:', fullUrl)
+      console.error('   - Código de error:', errorCode)
+      console.error('   - Mensaje:', errorMessage)
+      console.error('💡 Verifica:')
+      console.error('   1. Tu conexión a internet está activa')
+      console.error('   2. El backend está disponible:', apiClient.defaults.baseURL)
+      console.error('   3. No hay firewall bloqueando la conexión')
+      console.error('   4. El servidor no está en mantenimiento')
 
       const networkError = new Error(
-        `Error de conexión: No se pudo conectar al servidor. Verifica tu conexión a internet.`
-      ) as Error & { code?: string; isNetworkError?: boolean; originalError?: unknown }
+        `Error de conexión: No se pudo conectar al servidor (${errorCode || 'ERR_NETWORK'}). Verifica tu conexión a internet y que el servidor esté disponible.`
+      ) as Error & { code?: string; isNetworkError?: boolean; originalError?: unknown; fullUrl?: string }
       networkError.code = errorCode
       networkError.isNetworkError = true
       networkError.originalError = error
+      networkError.fullUrl = fullUrl
       return Promise.reject(networkError)
     }
 
