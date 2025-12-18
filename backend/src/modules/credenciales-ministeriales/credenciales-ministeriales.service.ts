@@ -112,6 +112,31 @@ export class CredencialesMinisterialesService extends BaseService<
       const fechaNacimiento = this.parseDateString(dto.fechaNacimiento)
       const fechaVencimiento = this.parseDateString(dto.fechaVencimiento)
 
+      // Buscar si hay una solicitud pendiente para este DNI
+      let solicitudCredencial = null
+      let invitadoId = dto.invitadoId
+
+      if (!invitadoId && dto.documento) {
+        // Buscar solicitud por DNI y tipo ministerial
+        solicitudCredencial = await this.prisma.solicitudCredencial.findFirst({
+          where: {
+            dni: dto.documento,
+            tipo: 'ministerial',
+            estado: 'pendiente',
+          },
+          include: {
+            invitado: true,
+          },
+        })
+
+        if (solicitudCredencial) {
+          invitadoId = solicitudCredencial.invitadoId
+          this.logger.log(
+            `📋 Solicitud encontrada para DNI ${dto.documento}, vinculando con credencial`
+          )
+        }
+      }
+
       const credencial = await this.prisma.credencialMinisterial.create({
         data: {
           apellido: dto.apellido,
@@ -123,8 +148,44 @@ export class CredencialesMinisterialesService extends BaseService<
           fechaVencimiento,
           fotoUrl: dto.fotoUrl,
           activa: dto.activa ?? true,
+          invitadoId: invitadoId || dto.invitadoId,
+          solicitudCredencialId: solicitudCredencial?.id || dto.solicitudCredencialId,
+        },
+        include: {
+          invitado: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+              email: true,
+            },
+          },
+          solicitudCredencial: true,
         },
       })
+
+      // Si hay solicitud, actualizarla como completada
+      if (solicitudCredencial) {
+        await this.prisma.solicitudCredencial.update({
+          where: { id: solicitudCredencial.id },
+          data: {
+            estado: 'completada',
+            credencialMinisterialId: credencial.id,
+            completadaAt: new Date(),
+          },
+        })
+
+        // Notificar al invitado
+        if (solicitudCredencial.invitado) {
+          await this.notificarCredencialCreada(
+            solicitudCredencial.invitado.email,
+            solicitudCredencial.invitado.nombre,
+            solicitudCredencial.invitado.apellido,
+            'ministerial',
+            credencial.id
+          )
+        }
+      }
 
       this.logger.log(
         `✅ Credencial ministerial creada: ${dto.documento} - ${dto.nombre} ${dto.apellido}`

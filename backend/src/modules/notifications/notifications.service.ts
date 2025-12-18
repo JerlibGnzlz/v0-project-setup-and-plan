@@ -68,6 +68,66 @@ export class NotificationsService {
   }
 
   /**
+   * Envía un email a un invitado
+   */
+  async sendEmailToInvitado(
+    email: string,
+    title: string,
+    body: string,
+    data?: Record<string, unknown>,
+  ): Promise<boolean> {
+    return this.sendEmailToUser(email, title, body, data)
+  }
+
+  /**
+   * Envía una notificación push a un invitado por su ID
+   */
+  async sendPushNotification(
+    token: string,
+    title: string,
+    body: string,
+    data?: Record<string, unknown>,
+  ): Promise<boolean> {
+    try {
+      const message: ExpoPushMessage = {
+        to: token,
+        sound: 'default',
+        title,
+        body,
+        data: data || {},
+        badge: 1,
+      }
+
+      const response = await axios.post(this.expoPushUrl, [message], {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'Accept-Encoding': 'gzip, deflate',
+        },
+      })
+
+      if (response.data && 'data' in response.data && Array.isArray(response.data.data)) {
+        const results = response.data.data as Array<{ status: 'ok' | 'error'; id?: string; message?: string }>
+        const success = results[0]?.status === 'ok'
+
+        if (success) {
+          this.logger.log(`📱 Push notification enviada exitosamente`)
+        } else {
+          this.logger.warn(`⚠️ Error enviando push notification: ${results[0]?.message}`)
+        }
+
+        return success
+      }
+
+      return false
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error enviando push notification:`, errorMessage)
+      return false
+    }
+  }
+
+  /**
    * Envía una notificación push a un usuario por su email
    */
   async sendNotificationToUser(

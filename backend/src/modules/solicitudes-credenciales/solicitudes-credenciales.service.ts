@@ -1,0 +1,438 @@
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common'
+import { PrismaService } from '../../prisma/prisma.service'
+import {
+  CreateSolicitudCredencialDto,
+  UpdateSolicitudCredencialDto,
+  EstadoSolicitud,
+  TipoCredencial,
+} from './dto/solicitud-credencial.dto'
+import { SolicitudCredencial } from '@prisma/client'
+import { NotificationsService } from '../notifications/notifications.service'
+import { EventEmitter2 } from '@nestjs/event-emitter'
+
+export interface SolicitudCredencialWithRelations extends SolicitudCredencial {
+  invitado: {
+    id: string
+    nombre: string
+    apellido: string
+    email: string
+  }
+  credencialMinisterial?: {
+    id: string
+    documento: string
+    nombre: string
+    apellido: string
+  } | null
+  credencialCapellania?: {
+    id: string
+    documento: string
+    nombre: string
+    apellido: string
+  } | null
+}
+
+@Injectable()
+export class SolicitudesCredencialesService {
+  private readonly logger = new Logger(SolicitudesCredencialesService.name)
+
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+    private eventEmitter: EventEmitter2
+  ) {}
+
+  /**
+   * Crear una nueva solicitud de credencial desde la app móvil
+   */
+  async create(
+    invitadoId: string,
+    dto: CreateSolicitudCredencialDto
+  ): Promise<SolicitudCredencial> {
+    try {
+      // Verificar que el invitado existe
+      const invitado = await this.prisma.invitado.findUnique({
+        where: { id: invitadoId },
+      })
+
+      if (!invitado) {
+        throw new NotFoundException('Invitado no encontrado')
+      }
+
+      // Verificar que no haya una solicitud pendiente para este DNI y tipo
+      const solicitudExistente = await this.prisma.solicitudCredencial.findFirst({
+        where: {
+          invitadoId,
+          dni: dto.dni,
+          tipo: dto.tipo,
+          estado: EstadoSolicitud.PENDIENTE,
+        },
+      })
+
+      if (solicitudExistente) {
+        throw new BadRequestException(
+          'Ya existe una solicitud pendiente para este DNI y tipo de credencial'
+        )
+      }
+
+      // Crear la solicitud
+      const solicitud = await this.prisma.solicitudCredencial.create({
+        data: {
+          invitadoId,
+          tipo: dto.tipo,
+          dni: dto.dni,
+          nombre: dto.nombre,
+          apellido: dto.apellido,
+          nacionalidad: dto.nacionalidad,
+          fechaNacimiento: dto.fechaNacimiento
+            ? new Date(dto.fechaNacimiento)
+            : null,
+          motivo: dto.motivo,
+          estado: EstadoSolicitud.PENDIENTE,
+        },
+        include: {
+          invitado: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+              email: true,
+            },
+          },
+        },
+      })
+
+      this.logger.log(
+        `✅ Solicitud de credencial ${dto.tipo} creada para invitado ${invitado.email} (DNI: ${dto.dni})`
+      )
+
+      // Notificar a todos los admins
+      const admins = await this.prisma.user.findMany()
+      const tipoLabel = dto.tipo === TipoCredencial.MINISTERIAL ? 'Ministerial' : 'de Capellanía'
+
+      for (const admin of admins) {
+        await this.notificationsService.sendNotificationToAdmin(
+          admin.email,
+          'Nueva Solicitud de Credencial',
+          `${invitado.nombre} ${invitado.apellido} (${invitado.email}) ha solicitado una credencial ${tipoLabel}.\n\nDNI: ${dto.dni}\nMotivo: ${dto.motivo || 'No especificado'}`,
+          {
+            tipo: 'solicitud_credencial',
+            solicitudId: solicitud.id,
+            invitadoId,
+            tipoCredencial: dto.tipo,
+            dni: dto.dni,
+          }
+        )
+      }
+
+      return solicitud
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error creando solicitud de credencial: ${errorMessage}`)
+      throw error
+    }
+  }
+
+  /**
+   * Obtener todas las solicitudes de un invitado
+   */
+  async findByInvitadoId(invitadoId: string): Promise<SolicitudCredencial[]> {
+    return this.prisma.solicitudCredencial.findMany({
+      where: { invitadoId },
+      include: {
+        credencialMinisterial: {
+          select: {
+            id: true,
+            documento: true,
+            nombre: true,
+            apellido: true,
+            fechaVencimiento: true,
+            activa: true,
+          },
+        },
+        credencialCapellania: {
+          select: {
+            id: true,
+            documento: true,
+            nombre: true,
+            apellido: true,
+            fechaVencimiento: true,
+            activa: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+  }
+
+  /**
+   * Obtener todas las solicitudes (para admins)
+   */
+  async findAll(
+    page: number = 1,
+    limit: number = 20,
+    estado?: EstadoSolicitud,
+    tipo?: TipoCredencial
+  ): Promise<{
+    data: SolicitudCredencialWithRelations[]
+    meta: {
+      page: number
+      limit: number
+      total: number
+      totalPages: number
+    }
+  }> {
+    const skip = (page - 1) * limit
+
+    const where: {
+      estado?: EstadoSolicitud
+      tipo?: TipoCredencial
+    } = {}
+
+    if (estado) {
+      where.estado = estado
+    }
+
+    if (tipo) {
+      where.tipo = tipo
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.solicitudCredencial.findMany({
+        where,
+        include: {
+          invitado: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+              email: true,
+            },
+          },
+          credencialMinisterial: {
+            select: {
+              id: true,
+              documento: true,
+              nombre: true,
+              apellido: true,
+            },
+          },
+          credencialCapellania: {
+            select: {
+              id: true,
+              documento: true,
+              nombre: true,
+              apellido: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.solicitudCredencial.count({ where }),
+    ])
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    }
+  }
+
+  /**
+   * Obtener una solicitud por ID
+   */
+  async findOne(id: string): Promise<SolicitudCredencialWithRelations> {
+    const solicitud = await this.prisma.solicitudCredencial.findUnique({
+      where: { id },
+      include: {
+        invitado: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            email: true,
+            telefono: true,
+            sede: true,
+          },
+        },
+        credencialMinisterial: {
+          select: {
+            id: true,
+            documento: true,
+            nombre: true,
+            apellido: true,
+            fechaVencimiento: true,
+            activa: true,
+          },
+        },
+        credencialCapellania: {
+          select: {
+            id: true,
+            documento: true,
+            nombre: true,
+            apellido: true,
+            fechaVencimiento: true,
+            activa: true,
+          },
+        },
+      },
+    })
+
+    if (!solicitud) {
+      throw new NotFoundException(`Solicitud con ID "${id}" no encontrada`)
+    }
+
+    return solicitud
+  }
+
+  /**
+   * Actualizar una solicitud (para admins)
+   */
+  async update(
+    id: string,
+    dto: UpdateSolicitudCredencialDto
+  ): Promise<SolicitudCredencialWithRelations> {
+    const solicitud = await this.findOne(id)
+
+    const updateData: {
+      estado?: EstadoSolicitud
+      observaciones?: string
+      credencialMinisterialId?: string
+      credencialCapellaniaId?: string
+      aprobadaAt?: Date
+      completadaAt?: Date
+    } = {}
+
+    if (dto.estado) {
+      updateData.estado = dto.estado
+
+      if (dto.estado === EstadoSolicitud.APROBADA && !solicitud.aprobadaAt) {
+        updateData.aprobadaAt = new Date()
+      }
+
+      if (dto.estado === EstadoSolicitud.COMPLETADA && !solicitud.completadaAt) {
+        updateData.completadaAt = new Date()
+      }
+    }
+
+    if (dto.observaciones !== undefined) {
+      updateData.observaciones = dto.observaciones
+    }
+
+    if (dto.credencialMinisterialId) {
+      updateData.credencialMinisterialId = dto.credencialMinisterialId
+    }
+
+    if (dto.credencialCapellaniaId) {
+      updateData.credencialCapellaniaId = dto.credencialCapellaniaId
+    }
+
+    const updated = await this.prisma.solicitudCredencial.update({
+      where: { id },
+      data: updateData,
+      include: {
+        invitado: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            email: true,
+          },
+        },
+        credencialMinisterial: {
+          select: {
+            id: true,
+            documento: true,
+            nombre: true,
+            apellido: true,
+          },
+        },
+        credencialCapellania: {
+          select: {
+            id: true,
+            documento: true,
+            nombre: true,
+            apellido: true,
+          },
+        },
+      },
+    })
+
+    // Si se completó la solicitud, notificar al invitado
+    if (dto.estado === EstadoSolicitud.COMPLETADA) {
+      await this.notificarCredencialCompletada(updated)
+    }
+
+    return updated
+  }
+
+  /**
+   * Notificar al invitado cuando su credencial está lista
+   */
+  private async notificarCredencialCompletada(
+    solicitud: SolicitudCredencialWithRelations
+  ): Promise<void> {
+    try {
+      const tipoLabel =
+        solicitud.tipo === TipoCredencial.MINISTERIAL ? 'Ministerial' : 'de Capellanía'
+
+      // Enviar notificación push si tiene device token
+      const invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+        where: { invitadoId: solicitud.invitadoId },
+        include: {
+          deviceTokens: {
+            where: { active: true },
+          },
+        },
+      })
+
+      if (invitadoAuth && invitadoAuth.deviceTokens.length > 0) {
+        for (const deviceToken of invitadoAuth.deviceTokens) {
+          await this.notificationsService.sendPushNotification(
+            deviceToken.token,
+            'Credencial Lista',
+            `Tu credencial ${tipoLabel} ha sido creada y está disponible en la app.`,
+            {
+              tipo: 'credencial_completada',
+              solicitudId: solicitud.id,
+              tipoCredencial: solicitud.tipo,
+            }
+          )
+        }
+      }
+
+      // Enviar email de notificación
+      await this.notificationsService.sendEmailToInvitado(
+        solicitud.invitado.email,
+        `Credencial ${tipoLabel} Lista`,
+        `Tu credencial ${tipoLabel} ha sido creada exitosamente y está disponible en la aplicación móvil.`,
+        {
+          tipo: 'credencial_completada',
+          solicitudId: solicitud.id,
+          tipoCredencial: solicitud.tipo,
+          nombre: solicitud.invitado.nombre,
+          apellido: solicitud.invitado.apellido,
+        }
+      )
+
+      this.logger.log(
+        `✅ Notificación enviada a invitado ${solicitud.invitado.email} sobre credencial completada`
+      )
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error notificando credencial completada: ${errorMessage}`)
+      // No lanzar error, solo loggear
+    }
+  }
+}
+

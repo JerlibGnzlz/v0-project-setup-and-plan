@@ -18,6 +18,7 @@ import { CredencialesMinisterialesModule } from './modules/credenciales-minister
 import { CredencialesCapellaniaModule } from './modules/credenciales-capellania/credenciales-capellania.module'
 import { SedesModule } from './modules/sedes/sedes.module'
 import { PublicModule } from './modules/public/public.module'
+import { SolicitudesCredencialesModule } from './modules/solicitudes-credenciales/solicitudes-credenciales.module'
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { PublicModule } from './modules/public/public.module'
     CredencialesCapellaniaModule,
     SedesModule,
     PublicModule,
+    SolicitudesCredencialesModule,
   ],
   providers: [
     // Guard global para rate limiting
