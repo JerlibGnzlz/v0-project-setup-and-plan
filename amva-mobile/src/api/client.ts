@@ -133,14 +133,16 @@ apiClient.interceptors.request.use(
         config.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
         config.url?.includes('/credenciales-capellania/mis-credenciales') ||
         config.url?.includes('/inscripciones/my') ||
-        config.url?.includes('/auth/invitado/me')
+        config.url?.includes('/auth/invitado/me') ||
+        config.url?.includes('/solicitudes-credenciales/mis-solicitudes')
 
       // Detectar si es un endpoint de invitados o inscripciones (que también usa invitados)
       const isInvitadoEndpoint =
         config.url?.includes('/auth/invitado') ||
         config.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
         config.url?.includes('/credenciales-capellania/mis-credenciales') ||
-        config.url?.includes('/inscripciones')
+        config.url?.includes('/inscripciones') ||
+        config.url?.includes('/solicitudes-credenciales')
 
       // Detectar si es un endpoint de consulta de credenciales (acepta pastor o invitado)
       const isConsultaCredenciales =
