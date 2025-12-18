@@ -93,14 +93,14 @@ export function LoginScreen() {
           setGoogleLoading(true)
           console.log('🔐 Iniciando login con Google...')
           // Usar el hook para login con Google (ya maneja el guardado de tokens)
-          await loginWithGoogleHook(id_token)
+          await loginWithGoogle(id_token)
           console.log('✅ Login con Google exitoso')
 
-          // Recargar la app para que detecte el token
+          // El hook ya actualiza el estado del invitado, no necesitamos hacer nada más
           // La app debería detectar el token y mostrar la pantalla correspondiente
           Alert.alert(
             '¡Bienvenido!',
-            `Has iniciado sesión como ${result.invitado.nombre} ${result.invitado.apellido}`,
+            'Has iniciado sesión exitosamente',
             [{ text: 'OK' }]
           )
         } catch (error: unknown) {
