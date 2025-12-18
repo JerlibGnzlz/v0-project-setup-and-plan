@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Image,
   ScrollView,
   KeyboardAvoidingView,
@@ -185,7 +184,8 @@ export function LoginScreen() {
         Alert.alert(
           '⚠️ Problema de Conexión',
           'No se pudo conectar al servidor.\n\nVerifica que:\n• El backend esté corriendo\n• La URL del API sea correcta\n• Estés en la misma red WiFi (si usas dispositivo físico)',
-          [{ text: 'OK' }]
+          [{ text: 'OK' }],
+          'warning',
         )
       }
       setTestingConnection(false)
