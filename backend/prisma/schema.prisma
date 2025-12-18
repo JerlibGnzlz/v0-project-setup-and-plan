@@ -135,43 +135,85 @@ model CredencialPastoral {
   @@map("credenciales_pastorales")
 }
 
+model SolicitudCredencial {
+  id                      String    @id @default(uuid())
+  invitadoId              String    @map("invitado_id")
+  tipo                    String // 'ministerial' | 'capellania'
+  dni                     String
+  nombre                  String
+  apellido                String
+  nacionalidad            String?
+  fechaNacimiento         DateTime? @map("fecha_nacimiento")
+  motivo                  String? // Motivo de la solicitud
+  estado                  String    @default("pendiente") // 'pendiente' | 'aprobada' | 'rechazada' | 'completada'
+  observaciones           String? // Observaciones del admin
+  credencialMinisterialId String?   @unique @map("credencial_ministerial_id")
+  credencialCapellaniaId  String?   @unique @map("credencial_capellania_id")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+  aprobadaAt              DateTime? @map("aprobada_at")
+  completadaAt            DateTime? @map("completada_at")
+
+  invitado              Invitado               @relation(fields: [invitadoId], references: [id], onDelete: Cascade)
+  credencialMinisterial CredencialMinisterial?
+  credencialCapellania  CredencialCapellania?
+
+  @@index([invitadoId])
+  @@index([estado])
+  @@index([tipo])
+  @@index([dni])
+  @@map("solicitudes_credenciales")
+}
+
 model CredencialMinisterial {
-  id               String   @id @default(uuid())
-  apellido         String
-  nombre           String
-  documento        String   @unique
-  nacionalidad     String
-  fechaNacimiento  DateTime @map("fecha_nacimiento")
-  tipoPastor       String   @default("PASTOR") @map("tipo_pastor") // PASTOR, PASTORA, etc.
-  fechaVencimiento DateTime @map("fecha_vencimiento")
-  fotoUrl          String?  @map("foto_url")
-  activa           Boolean  @default(true)
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  id                    String   @id @default(uuid())
+  apellido              String
+  nombre                String
+  documento             String   @unique
+  nacionalidad          String
+  fechaNacimiento       DateTime @map("fecha_nacimiento")
+  tipoPastor            String   @default("PASTOR") @map("tipo_pastor") // PASTOR, PASTORA, etc.
+  fechaVencimiento      DateTime @map("fecha_vencimiento")
+  fotoUrl               String?  @map("foto_url")
+  activa                Boolean  @default(true)
+  invitadoId            String?  @map("invitado_id") // Relación opcional con invitado
+  solicitudCredencialId String?  @unique @map("solicitud_credencial_id") // Relación con solicitud
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  invitado            Invitado?            @relation(fields: [invitadoId], references: [id], onDelete: SetNull)
+  solicitudCredencial SolicitudCredencial? @relation(fields: [solicitudCredencialId], references: [id])
 
   @@index([documento])
   @@index([fechaVencimiento])
   @@index([activa])
+  @@index([invitadoId])
   @@map("credenciales_ministeriales")
 }
 
 model CredencialCapellania {
-  id               String   @id @default(uuid())
-  apellido         String
-  nombre           String
-  documento        String   @unique
-  nacionalidad     String
-  fechaNacimiento  DateTime @map("fecha_nacimiento")
-  tipoCapellan     String   @default("CAPELLAN") @map("tipo_capellan") // CAPELLAN, CAPELLANA, etc.
-  fechaVencimiento DateTime @map("fecha_vencimiento")
-  fotoUrl          String?  @map("foto_url")
-  activa           Boolean  @default(true)
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  id                    String   @id @default(uuid())
+  apellido              String
+  nombre                String
+  documento             String   @unique
+  nacionalidad          String
+  fechaNacimiento       DateTime @map("fecha_nacimiento")
+  tipoCapellan          String   @default("CAPELLAN") @map("tipo_capellan") // CAPELLAN, CAPELLANA, etc.
+  fechaVencimiento      DateTime @map("fecha_vencimiento")
+  fotoUrl               String?  @map("foto_url")
+  activa                Boolean  @default(true)
+  invitadoId            String?  @map("invitado_id") // Relación opcional con invitado
+  solicitudCredencialId String?  @unique @map("solicitud_credencial_id") // Relación con solicitud
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  invitado            Invitado?            @relation(fields: [invitadoId], references: [id], onDelete: SetNull)
+  solicitudCredencial SolicitudCredencial? @relation(fields: [solicitudCredencialId], references: [id])
 
   @@index([documento])
   @@index([fechaVencimiento])
   @@index([activa])
+  @@index([invitadoId])
   @@map("credenciales_capellania")
 }
 
@@ -210,17 +252,20 @@ model AdminDeviceToken {
 }
 
 model Invitado {
-  id            String        @id @default(uuid())
-  nombre        String
-  apellido      String
-  email         String        @unique
-  telefono      String?
-  sede          String?
-  fotoUrl       String?       @map("foto_url")
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
-  auth          InvitadoAuth?
-  inscripciones Inscripcion[]
+  id                        String                  @id @default(uuid())
+  nombre                    String
+  apellido                  String
+  email                     String                  @unique
+  telefono                  String?
+  sede                      String?
+  fotoUrl                   String?                 @map("foto_url")
+  createdAt                 DateTime                @default(now()) @map("created_at")
+  updatedAt                 DateTime                @updatedAt @map("updated_at")
+  auth                      InvitadoAuth?
+  inscripciones             Inscripcion[]
+  solicitudesCredenciales   SolicitudCredencial[]
+  credencialesMinisteriales CredencialMinisterial[]
+  credencialesCapellania    CredencialCapellania[]
 
   @@index([email])
   @@map("invitados")
