@@ -108,7 +108,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
             <div className="relative">
               <div className="absolute -inset-2 bg-gradient-to-r from-sky-500/20 via-emerald-500/20 to-amber-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
               <Image
-                src="/mundo.png"
+                src="/amvadigital.png"
                 alt="Logo AMVA"
                 width={48}
                 height={48}
@@ -171,7 +171,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
               {/* Logo */}
               <div className="flex h-16 items-center gap-3 border-b border-sky-200/50 dark:border-sky-500/20 px-6 bg-gradient-to-r from-sky-50/50 to-emerald-50/50 dark:from-sky-950/30 dark:to-emerald-950/30">
                 <Image
-                  src="/mundo.png"
+                  src="/amvadigital.png"
                   alt="Logo AMVA"
                   width={40}
                   height={40}
@@ -288,7 +288,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         {/* Logo visible en el header móvil */}
         <Link href="/admin" className="flex items-center gap-3">
           <Image
-            src="/mundo.png"
+            src="/amvadigital.png"
             alt="Logo AMVA"
             width={56}
             height={56}

@@ -9,7 +9,7 @@ export function LoginLogo() {
         {/* Logo glow */}
         <div className="absolute -inset-3 bg-gradient-to-r from-sky-500/30 via-emerald-500/30 to-amber-500/30 rounded-full blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
         <Image
-          src="/mundo.png"
+          src="/amvadigital.png"
           alt="Logo AMVA"
           width={100}
           height={100}
