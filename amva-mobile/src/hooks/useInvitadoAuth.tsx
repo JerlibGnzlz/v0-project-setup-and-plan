@@ -87,12 +87,19 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
   const login = async (email: string, password: string) => {
     setLoading(true)
     try {
+      console.log('🔐 Iniciando login de invitado...')
       const result = await invitadoAuthApi.login(email, password)
+      console.log('✅ Login exitoso, guardando tokens...')
+      
       await SecureStore.setItemAsync('invitado_token', result.access_token)
       await SecureStore.setItemAsync('invitado_refresh_token', result.refresh_token)
+      
+      console.log('✅ Tokens guardados, estableciendo invitado...')
       setInvitado(result.invitado)
+      console.log('✅ Invitado establecido:', result.invitado.email)
     } catch (error: unknown) {
-      console.error('Error en login de invitado:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('❌ Error en login de invitado:', errorMessage)
       throw error
     } finally {
       setLoading(false)
