@@ -474,7 +474,6 @@ export function Step3Formulario({
                 error={errors.pais}
                 required
               />
-              {errors.pais && <Text style={styles.errorText}>{errors.pais}</Text>}
             </View>
 
             {/* Provincia (solo para Argentina) */}
@@ -499,7 +498,6 @@ export function Step3Formulario({
                   error={errors.provincia}
                   required
                 />
-                {errors.provincia && <Text style={styles.errorText}>{errors.provincia}</Text>}
               </View>
             )}
 

@@ -41,8 +41,16 @@ export function CustomPicker({
   const selectedItem = items.find(item => item.value === selectedValue)
 
   const handleSelect = (value: string | number) => {
+    console.log('🔍 CustomPicker: Seleccionando valor:', value)
     onValueChange(value)
     setModalVisible(false)
+  }
+
+  const handleOpenModal = () => {
+    if (!disabled) {
+      console.log('🔍 CustomPicker: Abriendo modal, items disponibles:', items.length)
+      setModalVisible(true)
+    }
   }
 
   return (
@@ -58,7 +66,7 @@ export function CustomPicker({
           error && styles.pickerButtonError,
           disabled && styles.pickerButtonDisabled,
         ]}
-        onPress={() => !disabled && setModalVisible(true)}
+        onPress={handleOpenModal}
         disabled={disabled}
         activeOpacity={0.7}
       >
@@ -79,13 +87,25 @@ export function CustomPicker({
         transparent
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}
+        statusBarTranslucent
       >
         <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalOverlayTouchable}
+            activeOpacity={1}
+            onPress={() => {
+              console.log('🔍 CustomPicker: Cerrando modal desde overlay')
+              setModalVisible(false)
+            }}
+          />
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{label || 'Selecciona una opción'}</Text>
               <TouchableOpacity
-                onPress={() => setModalVisible(false)}
+                onPress={() => {
+                  console.log('🔍 CustomPicker: Cerrando modal desde botón')
+                  setModalVisible(false)
+                }}
                 style={styles.modalCloseButton}
               >
                 <Text style={styles.modalCloseText}>✕</Text>
@@ -120,9 +140,10 @@ export function CustomPicker({
               }}
               style={styles.modalList}
               contentContainerStyle={styles.modalListContent}
+              showsVerticalScrollIndicator={true}
             />
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
     </View>
   )
@@ -177,8 +198,11 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'flex-end',
+  },
+  modalOverlayTouchable: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   modalContent: {
     backgroundColor: '#0d1f35',
@@ -186,6 +210,11 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     maxHeight: '80%',
     paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 20,
   },
   modalHeader: {
     flexDirection: 'row',
