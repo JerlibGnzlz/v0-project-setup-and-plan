@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
+  Image,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -700,6 +701,24 @@ export function CredentialsScreen() {
         {/* Mostrar loading automático si es invitado */}
         {isInvitadoAuthenticated && invitado && autoLoading && (
           <View style={styles.autoLoadingContainer}>
+            <View
+              style={{
+                width: 120,
+                height: 120,
+                marginBottom: 16,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.15,
+                shadowRadius: 12,
+                elevation: 8,
+              }}
+            >
+              <Image
+                source={require('../../../assets/images/amvamobil.png')}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="contain"
+              />
+            </View>
             <ActivityIndicator color="#22c55e" size="large" />
             <Text style={styles.autoLoadingText}>Buscando tus credenciales...</Text>
           </View>
@@ -1241,10 +1260,9 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   autoLoadingContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 24,
     gap: 12,
   },
   autoLoadingText: {

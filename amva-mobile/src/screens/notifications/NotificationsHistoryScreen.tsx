@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, ScrollView, RefreshControl, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notificationsApi } from '@api/notifications'
@@ -83,6 +83,25 @@ export default function NotificationsHistoryScreen() {
       >
         {isLoading ? (
           <View style={styles.emptyContainer}>
+            <View
+              style={{
+                width: 180,
+                height: 180,
+                marginBottom: 24,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.15,
+                shadowRadius: 12,
+                elevation: 8,
+              }}
+            >
+              <Image
+                source={require('../../../assets/images/amvamobil.png')}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="contain"
+              />
+            </View>
+            <ActivityIndicator size="large" color="#22c55e" />
             <Text style={styles.emptyText}>Cargando notificaciones...</Text>
           </View>
         ) : history?.notifications.length === 0 ? (

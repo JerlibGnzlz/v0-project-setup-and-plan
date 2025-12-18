@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  Image,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
@@ -135,10 +136,11 @@ export function ConventionInscripcionScreen() {
         <View style={styles.loadingContainer}>
           <View style={styles.loadingContent}>
             <View style={styles.logoContainer}>
-              <View style={styles.logoGlow} />
-              <View style={styles.logoCircle}>
-                <Text style={styles.logoText}>🌍</Text>
-              </View>
+              <Image
+                source={require('../../../assets/images/amvamobil.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
             <ActivityIndicator size="large" color="#22c55e" style={styles.loader} />
             <Text style={styles.loadingText}>Cargando información...</Text>
@@ -292,32 +294,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoContainer: {
-    position: 'relative',
     marginBottom: 24,
-  },
-  logoGlow: {
-    position: 'absolute',
-    top: -12,
-    left: -12,
-    right: -12,
-    bottom: -12,
-    backgroundColor: 'rgba(34, 197, 94, 0.3)',
-    borderRadius: 50,
-    opacity: 0.6,
-  },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 2,
-    borderColor: 'rgba(34, 197, 94, 0.3)',
+    width: 200,
+    height: 200,
+    alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  logoText: {
-    fontSize: 40,
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   loader: {
     marginVertical: 16,

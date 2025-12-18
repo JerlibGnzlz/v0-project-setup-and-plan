@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  Image,
 } from 'react-native'
 import { inscripcionesApi } from '@api/inscripciones'
 import { convencionesApi, type Convencion, normalizeBoolean } from '@api/convenciones'
@@ -125,6 +126,24 @@ export function ConventionRegistrationScreen() {
   if (loadingConvencion) {
     return (
       <View style={styles.centered}>
+        <View
+          style={{
+            width: 200,
+            height: 200,
+            marginBottom: 24,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 12,
+            elevation: 8,
+          }}
+        >
+          <Image
+            source={require('../../../assets/images/amvamobil.png')}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="contain"
+          />
+        </View>
         <ActivityIndicator size="large" color="#22c55e" />
         <Text style={styles.loadingText}>Cargando información...</Text>
       </View>

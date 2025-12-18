@@ -2,7 +2,7 @@ import React from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { ActivityIndicator, View, Platform, Text } from 'react-native'
+import { ActivityIndicator, View, Platform, Text, Image } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Home, Calendar, Newspaper, User, CreditCard } from 'lucide-react-native'
 import { LoginScreen } from '@screens/auth/LoginScreen'
@@ -113,13 +113,25 @@ export function AppNavigator() {
         }}
       >
         <View style={{ alignItems: 'center' }}>
-          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
-            AMVA Móvil
-          </Text>
+          <View
+            style={{
+              width: 200,
+              height: 200,
+              marginBottom: 24,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.15,
+              shadowRadius: 12,
+              elevation: 8,
+            }}
+          >
+            <Image
+              source={require('../../assets/images/amvamobil.png')}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="contain"
+            />
+          </View>
           <ActivityIndicator size="large" color="#22c55e" />
-          <Text style={{ marginTop: 16, color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>
-            Cargando...
-          </Text>
         </View>
       </View>
     )
