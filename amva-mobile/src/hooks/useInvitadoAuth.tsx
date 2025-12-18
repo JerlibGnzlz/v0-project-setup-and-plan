@@ -21,18 +21,31 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
   const loadInvitado = useCallback(async () => {
     try {
       const token = await SecureStore.getItemAsync('invitado_token')
-      if (token) {
-        const profile = await invitadoAuthApi.me()
-        setInvitado(profile)
-      } else {
+      if (!token) {
         setInvitado(null)
+        return
       }
+
+      console.log('🔍 Intentando cargar perfil de invitado...')
+      const profile = await invitadoAuthApi.me()
+      console.log('✅ Perfil de invitado cargado:', profile.email)
+      setInvitado(profile)
     } catch (error: unknown) {
-      console.error('Error cargando invitado:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('❌ Error cargando invitado:', errorMessage)
+      
+      // Si es un error 401, el interceptor debería haber intentado refrescar el token
+      // Si aún así falla, limpiar tokens
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } }
+        if (axiosError.response?.status === 401) {
+          console.log('⚠️ Token inválido o expirado, limpiando tokens...')
+          await SecureStore.deleteItemAsync('invitado_token')
+          await SecureStore.deleteItemAsync('invitado_refresh_token')
+        }
+      }
+      
       setInvitado(null)
-      // Limpiar token si es inválido
-      await SecureStore.deleteItemAsync('invitado_token')
-      await SecureStore.deleteItemAsync('invitado_refresh_token')
     }
   }, [])
 
