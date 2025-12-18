@@ -21,7 +21,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { PastorJwtAuthGuard } from '../auth/guards/pastor-jwt-auth.guard'
 import { InvitadoJwtAuthGuard } from '../auth/guards/invitado-jwt-auth.guard'
 import { PaginationDto } from '../../common/dto/pagination.dto'
-import { AuthenticatedRequest } from '../auth/types/request.types'
+import { AuthenticatedRequest, AuthenticatedInvitadoRequest } from '../auth/types/request.types'
 import { PrismaService } from '../../prisma/prisma.service'
 
 @Controller('credenciales-ministeriales')
@@ -210,9 +210,9 @@ export class CredencialesMinisterialesController {
    */
   @Get('mis-credenciales')
   @UseGuards(InvitadoJwtAuthGuard)
-  async obtenerMisCredenciales(@Request() req: AuthenticatedRequest) {
+  async obtenerMisCredenciales(@Request() req: AuthenticatedInvitadoRequest) {
     try {
-      const invitadoId = req.user?.sub
+      const invitadoId = req.user?.id
       if (!invitadoId) {
         return { encontrada: false, mensaje: 'Usuario no autenticado' }
       }
