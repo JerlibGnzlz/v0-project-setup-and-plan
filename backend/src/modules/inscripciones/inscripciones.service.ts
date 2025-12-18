@@ -354,7 +354,7 @@ export class InscripcionesService {
                 }
             }
 
-            // Crear invitado si no existe (para que pueda autenticarse después)
+            // Crear o actualizar invitado (para que pueda autenticarse después)
             // Esto permite que los invitados puedan usar la app móvil después de inscribirse
             // IMPORTANTE: Usamos el modelo 'invitado' de Prisma, NO 'pastor'
             // El cast es necesario porque Prisma TransactionClient tiene tipos específicos
@@ -364,6 +364,7 @@ export class InscripcionesService {
             })
 
             if (!invitado) {
+                // Crear nuevo invitado
                 invitado = await txInvitado.create({
                     data: {
                         nombre: dto.nombre,
@@ -374,11 +375,24 @@ export class InscripcionesService {
                     },
                 })
                 this.logger.log(
-                    `✅ Invitado creado automáticamente en tabla 'invitados': ${invitado.email}`
+                    `✅ Invitado creado automáticamente en tabla 'invitados': ${invitado.email} (origen: ${origenRegistro})`
                 )
                 this.logger.log(`📋 NOTA: Este invitado NO se guarda en tabla 'pastores'`)
             } else {
-                this.logger.log(`✅ Invitado ya existe: ${invitado.email}`)
+                // Actualizar invitado existente con datos más recientes
+                // Esto asegura que los datos estén actualizados cuando se inscribe desde mobile
+                invitado = await txInvitado.update({
+                    where: { email: dto.email.toLowerCase() },
+                    data: {
+                        nombre: dto.nombre,
+                        apellido: dto.apellido,
+                        telefono: dto.telefono || invitado.telefono,
+                        sede: dto.sede || invitado.sede,
+                    },
+                })
+                this.logger.log(
+                    `✅ Invitado actualizado en tabla 'invitados': ${invitado.email} (origen: ${origenRegistro})`
+                )
             }
 
             // Crear la inscripción vinculada al invitado
