@@ -15,13 +15,13 @@ import {
 } from 'react-native'
 import { Picker } from '@react-native-picker/picker'
 import { type Convencion } from '@api/convenciones'
-import { type Pastor } from '@api/auth'
+import { type Invitado } from '@api/invitado-auth'
 import { inscripcionesApi } from '@api/inscripciones'
 import { uploadApi, pickImage } from '@api/upload'
 
 interface Step3FormularioProps {
   convencion: Convencion
-  pastor: Pastor
+  invitado: Invitado
   initialData?: any
   onComplete: () => void
   onBack: () => void
@@ -29,7 +29,7 @@ interface Step3FormularioProps {
 
 export function Step3Formulario({
   convencion,
-  pastor,
+  invitado,
   initialData,
   onComplete,
   onBack,
@@ -37,18 +37,17 @@ export function Step3Formulario({
   const scrollViewRef = useRef<ScrollView>(null)
   const inputRefs = useRef<{ [key: string]: TextInput | null }>({})
 
-  // Pre-llenar con datos del pastor
-  const nombreCompleto = pastor.nombre?.split(' ') || []
-  const nombreDefault = nombreCompleto[0] || ''
-  const apellidoDefault = nombreCompleto.slice(1).join(' ') || pastor.apellido || ''
+  // Pre-llenar con datos del invitado
+  const nombreDefault = invitado.nombre || ''
+  const apellidoDefault = invitado.apellido || ''
 
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || nombreDefault,
     apellido: initialData?.apellido || apellidoDefault,
-    email: initialData?.email || pastor.email || '',
-    telefono: initialData?.telefono || (pastor as any).telefono || '',
-    sede: initialData?.sede || pastor.sede || '',
-    tipoInscripcion: initialData?.tipoInscripcion || 'pastor',
+    email: initialData?.email || invitado.email || '',
+    telefono: initialData?.telefono || invitado.telefono || '',
+    sede: initialData?.sede || invitado.sede || '',
+    tipoInscripcion: initialData?.tipoInscripcion || 'invitado',
     numeroCuotas:
       typeof initialData?.numeroCuotas === 'number'
         ? initialData.numeroCuotas

@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import { convencionesApi, type Convencion, normalizeBoolean } from '@api/convenciones'
 import { inscripcionesApi } from '@api/inscripciones'
-import { useAuth } from '@hooks/useAuth'
+import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { Step2ConvencionInfo } from './steps/Step2ConvencionInfo'
 import { Step3Formulario } from './steps/Step3Formulario'
 import { Step4Confirmacion } from './steps/Step4Confirmacion'
@@ -27,7 +27,7 @@ type TabParamList = {
 
 export function ConventionInscripcionScreen() {
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>()
-  const { pastor } = useAuth()
+  const { invitado } = useInvitadoAuth()
   const [convencion, setConvencion] = useState<Convencion | null>(null)
   const [loadingConvencion, setLoadingConvencion] = useState(true)
   const [currentStep, setCurrentStep] = useState(2) // Empezar en step 2 porque ya está autenticado
@@ -61,9 +61,9 @@ export function ConventionInscripcionScreen() {
             setConvencion(convencionNormalizada)
 
             // Verificar si el usuario ya está inscrito (silenciosamente)
-            if (pastor?.email) {
+            if (invitado?.email) {
               try {
-                const inscripcion = await inscripcionesApi.checkInscripcion(activa.id, pastor.email)
+                const inscripcion = await inscripcionesApi.checkInscripcion(activa.id, invitado.email)
                 if (inscripcion) {
                   setYaInscrito(true)
                   setInscripcionExistente(inscripcion)
@@ -108,7 +108,7 @@ export function ConventionInscripcionScreen() {
       isMounted = false
       clearInterval(interval)
     }
-  }, [pastor?.email])
+  }, [invitado?.email])
 
   const handleStepComplete = (step: number, data?: any) => {
     if (data) {
@@ -242,10 +242,10 @@ export function ConventionInscripcionScreen() {
             />
           )}
 
-          {currentStep === 3 && convencion && pastor && (
+          {currentStep === 3 && convencion && invitado && (
             <Step3Formulario
               convencion={convencion}
-              pastor={pastor}
+              invitado={invitado}
               initialData={formData}
               onComplete={() => handleStepComplete(3)}
               onBack={handleBack}

@@ -37,6 +37,7 @@ export interface CreateInscripcionDto {
   origenRegistro?: string // ✅ IMPORTANTE: Usar 'mobile' desde la app
   documentoUrl?: string // URL del documento/comprobante subido
   notas?: string
+  dni?: string // DNI para relacionar con credenciales ministeriales y de capellanía
 }
 
 export const inscripcionesApi = {
