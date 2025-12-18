@@ -19,6 +19,7 @@ export interface Inscripcion {
   fechaInscripcion: string
   origenRegistro?: string // 'web', 'mobile', 'dashboard'
   notas?: string
+  dni?: string // DNI para relacionar con credenciales ministeriales y de capellanía
   convencion?: {
     id: string
     titulo: string
