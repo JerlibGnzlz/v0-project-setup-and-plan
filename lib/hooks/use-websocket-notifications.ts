@@ -128,17 +128,91 @@ export function useWebSocketNotifications() {
           }
         })
 
-        socket.on('connect_error', (error: unknown) => {
+        socket.on('connect_error', async (error: unknown) => {
           // Solo loguear errores, no romper la aplicación
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-          console.warn('⚠️ Error conectando a WebSocket (no crítico):', errorMessage)
+          console.warn('⚠️ Error conectando a WebSocket:', errorMessage)
+          
+          // Si el error indica token expirado, intentar refrescar
+          if (errorMessage.includes('expired') || errorMessage.includes('jwt expired')) {
+            console.log('🔄 Token expirado detectado, intentando refrescar...')
+            try {
+              const { refreshAccessToken } = await import('./use-auth')
+              const authStore = (await import('./use-auth')).useAuth.getState()
+              const refreshed = await authStore.refreshAccessToken()
+              
+              if (refreshed) {
+                console.log('✅ Token refrescado exitosamente, reconectando WebSocket...')
+                // Reconectar con el nuevo token
+                const newToken = typeof window !== 'undefined'
+                  ? localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+                  : null
+                
+                if (newToken && socketRef.current) {
+                  socketRef.current.disconnect()
+                  socketRef.current.auth = { token: newToken.replace('Bearer ', '') }
+                  socketRef.current.connect()
+                }
+              } else {
+                console.warn('⚠️ No se pudo refrescar el token, el usuario necesitará iniciar sesión nuevamente')
+              }
+            } catch (refreshError) {
+              console.error('❌ Error al refrescar token:', refreshError)
+            }
+          }
           // No establecer isConnected en false aquí, dejar que el sistema de reconexión maneje
         })
 
-        // Manejar errores no capturados
-        socket.on('error', (error: unknown) => {
-          const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-          console.warn('⚠️ Error en WebSocket (no crítico):', errorMessage)
+        // Manejar errores específicos del servidor (evento 'error' personalizado)
+        socket.on('error', async (data: unknown) => {
+          try {
+            if (data && typeof data === 'object' && 'type' in data) {
+              const errorData = data as { type: string; message?: string }
+              
+              if (errorData.type === 'TOKEN_EXPIRED') {
+                console.log('🔄 Token expirado recibido del servidor, intentando refrescar...')
+                try {
+                  const { refreshAccessToken } = await import('./use-auth')
+                  const authStore = (await import('./use-auth')).useAuth.getState()
+                  const refreshed = await authStore.refreshAccessToken()
+                  
+                  if (refreshed) {
+                    console.log('✅ Token refrescado exitosamente, reconectando WebSocket...')
+                    // Reconectar con el nuevo token
+                    const newToken = typeof window !== 'undefined'
+                      ? localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+                      : null
+                    
+                    if (newToken && socketRef.current) {
+                      socketRef.current.disconnect()
+                      socketRef.current.auth = { token: newToken.replace('Bearer ', '') }
+                      socketRef.current.connect()
+                    }
+                  } else {
+                    console.warn('⚠️ No se pudo refrescar el token')
+                    toast.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
+                  }
+                } catch (refreshError) {
+                  console.error('❌ Error al refrescar token:', refreshError)
+                  toast.error('Error al renovar tu sesión. Por favor, inicia sesión nuevamente.')
+                }
+              } else if (errorData.type === 'INVALID_TOKEN') {
+                console.warn('⚠️ Token inválido:', errorData.message)
+                toast.error(errorData.message || 'Token inválido. Por favor, inicia sesión nuevamente.')
+              } else if (errorData.type === 'AUTH_ERROR') {
+                console.warn('⚠️ Error de autenticación:', errorData.message)
+                toast.error(errorData.message || 'Error de autenticación.')
+              } else {
+                const errorMessage = errorData.message || 'Error desconocido'
+                console.warn('⚠️ Error en WebSocket:', errorMessage)
+              }
+            } else {
+              const errorMessage = data instanceof Error ? data.message : 'Error desconocido'
+              console.warn('⚠️ Error en WebSocket (no crítico):', errorMessage)
+            }
+          } catch (error) {
+            console.warn('⚠️ Error procesando evento de error del WebSocket:', error)
+          }
         })
       } catch (error) {
         // Capturar cualquier error durante la inicialización
