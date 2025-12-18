@@ -254,6 +254,79 @@ export function CredentialsScreen() {
     }
   }
 
+  // Normalizar credenciales a arrays para facilitar navegación
+  const credencialesList = useMemo(() => {
+    const list: Array<{ credencial: Credencial; tipo: 'ministerial' | 'capellania' }> = []
+    
+    if (credenciales.ministerial) {
+      const ministerial = Array.isArray(credenciales.ministerial) 
+        ? credenciales.ministerial 
+        : [credenciales.ministerial]
+      ministerial.forEach(c => list.push({ credencial: c, tipo: 'ministerial' }))
+    }
+    
+    if (credenciales.capellania) {
+      const capellania = Array.isArray(credenciales.capellania) 
+        ? credenciales.capellania 
+        : [credenciales.capellania]
+      capellania.forEach(c => list.push({ credencial: c, tipo: 'capellania' }))
+    }
+    
+    return list
+  }, [credenciales])
+
+  const totalSteps = credencialesList.length > 0 ? credencialesList.length + 1 : 1 // +1 para el paso de resumen
+
+  const handleNext = () => {
+    if (currentStep < totalSteps) {
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start()
+      setCurrentStep(prev => prev + 1)
+      if (currentStep > 1) {
+        setCurrentCredencialIndex(prev => prev + 1)
+      }
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start()
+      setCurrentStep(prev => prev - 1)
+      if (currentStep > 2) {
+        setCurrentCredencialIndex(prev => prev - 1)
+      }
+    }
+  }
+
+  // Resetear wizard cuando cambian las credenciales
+  useEffect(() => {
+    if (credencialesList.length > 0) {
+      setCurrentStep(1)
+      setCurrentCredencialIndex(0)
+    }
+  }, [credencialesList.length])
+
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString)
