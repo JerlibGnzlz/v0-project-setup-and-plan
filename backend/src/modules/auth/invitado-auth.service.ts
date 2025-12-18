@@ -257,6 +257,79 @@ export class InvitadoAuthService {
   }
 
   /**
+   * Refrescar access token (con rotación)
+   */
+  async refreshAccessToken(refreshToken: string) {
+    try {
+      // Verificar si el refresh token está en blacklist
+      const isBlacklisted = await this.tokenBlacklist.isBlacklisted(refreshToken)
+      if (isBlacklisted) {
+        this.logger.warn(`❌ Refresh token revocado intentado usar`, {
+          timestamp: new Date().toISOString(),
+        })
+        throw new UnauthorizedException('Refresh token revocado')
+      }
+
+      const payload = this.jwtService.verify(refreshToken)
+
+      if (payload.type !== 'refresh') {
+        throw new UnauthorizedException('Token inválido')
+      }
+
+      // Verificar que el invitado existe
+      const invitado = await this.prisma.invitado.findUnique({
+        where: { id: payload.sub },
+      })
+
+      if (!invitado) {
+        throw new UnauthorizedException('Invitado no encontrado')
+      }
+
+      const invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+        where: { invitadoId: invitado.id },
+      })
+
+      if (!invitadoAuth) {
+        throw new UnauthorizedException('Autenticación de invitado no encontrada')
+      }
+
+      // Generar nuevos tokens (rotación)
+      const { accessToken, refreshToken: newRefreshToken } = this.generateTokenPair(
+        invitado.id,
+        invitado.email,
+        'invitado'
+      )
+
+      // Invalidar el refresh token anterior (rotación de seguridad)
+      await this.tokenBlacklist.addToBlacklist(refreshToken, 30 * 24 * 60 * 60) // 30 días
+
+      this.logger.log(`✅ Token refrescado para invitado: ${invitado.email}`)
+
+      return {
+        access_token: accessToken,
+        refresh_token: newRefreshToken,
+        invitado: {
+          id: invitado.id,
+          nombre: invitado.nombre,
+          apellido: invitado.apellido,
+          email: invitado.email,
+          telefono: invitado.telefono,
+          sede: invitado.sede,
+          fotoUrl: invitado.fotoUrl,
+          tipo: 'INVITADO',
+        },
+      }
+    } catch (error: unknown) {
+      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+        throw error
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error refrescando token de invitado: ${errorMessage}`)
+      throw new UnauthorizedException('Error al refrescar token')
+    }
+  }
+
+  /**
    * Validar invitado desde JWT payload
    */
   async validateInvitado(invitadoId: string) {

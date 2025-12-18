@@ -73,6 +73,15 @@ export class InvitadoAuthController {
   }
 
   /**
+   * Refrescar access token
+   */
+  @ThrottleAuth()
+  @Post('refresh')
+  async refreshToken(@Body() dto: RefreshTokenDto) {
+    return this.invitadoAuthService.refreshAccessToken(dto.refreshToken)
+  }
+
+  /**
    * Logout: invalidar tokens actuales
    */
   @UseGuards(InvitadoJwtAuthGuard)

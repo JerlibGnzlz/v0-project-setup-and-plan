@@ -40,7 +40,7 @@ export function CredentialsScreen() {
       try {
         console.log('🔍 Obteniendo DNI del invitado desde sus inscripciones...')
         const inscripciones = await inscripcionesApi.getMyInscripciones()
-        
+
         if (!isMounted) return
 
         // Buscar el primer DNI válido en las inscripciones
