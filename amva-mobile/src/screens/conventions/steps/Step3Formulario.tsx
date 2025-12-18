@@ -12,7 +12,7 @@ import {
   Platform,
   Keyboard,
 } from 'react-native'
-import { Picker } from '@react-native-picker/picker'
+import { CustomPicker } from '@components/ui/CustomPicker'
 import { type Convencion } from '@api/convenciones'
 import { type Invitado } from '@api/invitado-auth'
 import { inscripcionesApi } from '@api/inscripciones'
@@ -461,25 +461,22 @@ export function Step3Formulario({
               <Text style={styles.label}>
                 País <Text style={styles.required}>*</Text>
               </Text>
-              <View style={[styles.pickerContainer, errors.pais && styles.inputError]}>
-                <Picker
-                  selectedValue={formData.pais || 'Argentina'}
-                  onValueChange={value => {
-                    if (value) {
-                      handleChange('pais', value)
-                      if (value !== 'Argentina') {
-                        handleChange('provincia', '')
-                      }
+              <CustomPicker
+                selectedValue={formData.pais || 'Argentina'}
+                onValueChange={value => {
+                  if (value) {
+                    handleChange('pais', value)
+                    if (value !== 'Argentina') {
+                      handleChange('provincia', '')
                     }
-                  }}
-                  style={styles.picker}
-                  dropdownIconColor="#fff"
-                >
-                  {paises.map(pais => (
-                    <Picker.Item key={pais} label={pais} value={pais} color="#fff" />
-                  ))}
-                </Picker>
-              </View>
+                  }
+                }}
+                items={paises.map(pais => ({ label: pais, value: pais }))}
+                placeholder="Selecciona un país"
+                label="País"
+                error={errors.pais}
+                required
+              />
               {errors.pais && <Text style={styles.errorText}>{errors.pais}</Text>}
             </View>
 
@@ -489,23 +486,22 @@ export function Step3Formulario({
                 <Text style={styles.label}>
                   Provincia <Text style={styles.required}>*</Text>
                 </Text>
-                <View style={[styles.pickerContainer, errors.provincia && styles.inputError]}>
-                  <Picker
-                    selectedValue={formData.provincia || ''}
-                    onValueChange={value => {
-                      if (value !== undefined) {
-                        handleChange('provincia', value || '')
-                      }
-                    }}
-                    style={styles.picker}
-                    dropdownIconColor="#fff"
-                  >
-                    <Picker.Item label="Selecciona una provincia" value="" color="rgba(255, 255, 255, 0.5)" />
-                    {provinciasArgentina.map(provincia => (
-                      <Picker.Item key={provincia} label={provincia} value={provincia} color="#fff" />
-                    ))}
-                  </Picker>
-                </View>
+                <CustomPicker
+                  selectedValue={formData.provincia || ''}
+                  onValueChange={value => {
+                    if (value !== undefined) {
+                      handleChange('provincia', value || '')
+                    }
+                  }}
+                  items={[
+                    { label: 'Selecciona una provincia', value: '' },
+                    ...provinciasArgentina.map(provincia => ({ label: provincia, value: provincia })),
+                  ]}
+                  placeholder="Selecciona una provincia"
+                  label="Provincia"
+                  error={errors.provincia}
+                  required
+                />
                 {errors.provincia && <Text style={styles.errorText}>{errors.provincia}</Text>}
               </View>
             )}
@@ -565,57 +561,44 @@ export function Step3Formulario({
             <View style={styles.row}>
               <View style={styles.halfInput}>
                 <Text style={styles.label}>Tipo de Inscripción</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={formData.tipoInscripcion || 'Invitado'}
-                    onValueChange={value => {
-                      if (value) {
-                        handleChange('tipoInscripcion', value)
-                      }
-                    }}
-                    style={styles.picker}
-                    dropdownIconColor="#fff"
-                  >
-                    <Picker.Item label="Invitado" value="Invitado" color="#fff" />
-                    <Picker.Item label="Pastor" value="Pastor" color="#fff" />
-                    <Picker.Item label="Líder" value="Líder" color="#fff" />
-                    <Picker.Item label="Miembro" value="Miembro" color="#fff" />
-                  </Picker>
-                </View>
+                <CustomPicker
+                  selectedValue={formData.tipoInscripcion || 'Invitado'}
+                  onValueChange={value => {
+                    if (value) {
+                      handleChange('tipoInscripcion', value)
+                    }
+                  }}
+                  items={[
+                    { label: 'Invitado', value: 'Invitado' },
+                    { label: 'Pastor', value: 'Pastor' },
+                    { label: 'Líder', value: 'Líder' },
+                    { label: 'Miembro', value: 'Miembro' },
+                  ]}
+                  placeholder="Selecciona tipo de inscripción"
+                  label="Tipo de Inscripción"
+                />
               </View>
 
               <View style={styles.halfInput}>
                 <Text style={styles.label}>
                   Número de Cuotas <Text style={styles.required}>*</Text>
                 </Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={formData.numeroCuotas || 3}
-                    onValueChange={value => {
-                      if (value !== undefined && value !== null) {
-                        handleChange('numeroCuotas', Number(value))
-                      }
-                    }}
-                    style={styles.picker}
-                    dropdownIconColor="#fff"
-                  >
-                    <Picker.Item
-                      label={`1 Cuota ($${Number(costo).toFixed(2)})`}
-                      value={1}
-                      color="#fff"
-                    />
-                    <Picker.Item
-                      label={`2 Cuotas ($${Number(costo / 2).toFixed(2)} c/u)`}
-                      value={2}
-                      color="#fff"
-                    />
-                    <Picker.Item
-                      label={`3 Cuotas ($${Number(costo / 3).toFixed(2)} c/u)`}
-                      value={3}
-                      color="#fff"
-                    />
-                  </Picker>
-                </View>
+                <CustomPicker
+                  selectedValue={formData.numeroCuotas || 3}
+                  onValueChange={value => {
+                    if (value !== undefined && value !== null) {
+                      handleChange('numeroCuotas', Number(value))
+                    }
+                  }}
+                  items={[
+                    { label: `1 Cuota ($${Number(costo).toFixed(2)})`, value: 1 },
+                    { label: `2 Cuotas ($${Number(costo / 2).toFixed(2)} c/u)`, value: 2 },
+                    { label: `3 Cuotas ($${Number(costo / 3).toFixed(2)} c/u)`, value: 3 },
+                  ]}
+                  placeholder="Selecciona número de cuotas"
+                  label="Número de Cuotas"
+                  required
+                />
               </View>
             </View>
 
@@ -815,17 +798,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#ef4444',
     marginTop: 4,
-  },
-  pickerContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  picker: {
-    color: '#fff',
-    backgroundColor: 'transparent',
   },
   actions: {
     flexDirection: 'row',

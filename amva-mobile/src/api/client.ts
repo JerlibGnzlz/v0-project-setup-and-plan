@@ -358,9 +358,13 @@ apiClient.interceptors.response.use(
           originalRequest.headers = {}
         }
         originalRequest.headers.Authorization = `Bearer ${access_token}`
+        
+        // Limpiar el flag _retry para permitir reintentos si es necesario
+        // Pero mantener _retryCount para evitar loops infinitos
+        delete originalRequest._retry
 
-        // NO resetear _retry aquí para evitar loops
         // Usar request() - el interceptor de request agregará el token automáticamente
+        console.log('🔄 Reintentando request original con nuevo token...')
         return apiClient.request(originalRequest)
       } catch (refreshError: unknown) {
         const errorMessage =
