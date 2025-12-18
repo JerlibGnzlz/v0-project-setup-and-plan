@@ -351,11 +351,14 @@ apiClient.interceptors.response.use(
 
         // Detectar si es un endpoint de invitados para limpiar los tokens correctos
         const isInvitadoEndpoint =
-          originalRequest.url?.includes('/auth/invitado') ||
+          originalRequest.url?.includes('/auth/invitado/me') ||
+          originalRequest.url?.includes('/auth/invitado/logout') ||
           originalRequest.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-capellania/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-ministeriales/consultar/') ||
-          originalRequest.url?.includes('/credenciales-capellania/consultar/')
+          originalRequest.url?.includes('/credenciales-capellania/consultar/') ||
+          originalRequest.url?.includes('/inscripciones/my') ||
+          originalRequest.url?.includes('/solicitudes-credenciales')
 
         // Si es un error de red (DNS, conexión, etc.), no limpiar tokens
         if (
