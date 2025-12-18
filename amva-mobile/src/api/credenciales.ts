@@ -105,7 +105,7 @@ export const credencialesApi = {
   }> => {
     try {
       console.log('🔍 Obteniendo credenciales del invitado autenticado...')
-      
+
       const [ministerial, capellania] = await Promise.allSettled([
         credencialesApi.obtenerMisCredencialesMinisteriales(),
         credencialesApi.obtenerMisCredencialesCapellania(),
@@ -123,7 +123,7 @@ export const credencialesApi = {
           cantidad: ministerial.value.credenciales?.length || 0,
           mensaje: ministerial.value.mensaje,
         })
-        
+
         if (ministerial.value.encontrada && ministerial.value.credenciales) {
           result.ministerial = ministerial.value.credenciales
         } else if (ministerial.value.mensaje) {
@@ -140,7 +140,7 @@ export const credencialesApi = {
           cantidad: capellania.value.credenciales?.length || 0,
           mensaje: capellania.value.mensaje,
         })
-        
+
         if (capellania.value.encontrada && capellania.value.credenciales) {
           result.capellania = capellania.value.credenciales
         } else if (capellania.value.mensaje) {

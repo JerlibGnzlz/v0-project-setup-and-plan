@@ -257,13 +257,29 @@ export class CredencialesMinisterialesController {
       const credenciales = []
       for (const dni of dniUnicos) {
         try {
-          this.logger.log(`Buscando credencial ministerial para DNI: ${dni}`)
-          const credencial = await this.credencialesMinisterialesService.obtenerEstadoPorDocumento(dni)
+          // Normalizar DNI antes de buscar (remover espacios, guiones, convertir a mayúsculas)
+          const dniNormalizado = dni.trim().replace(/[\s-]/g, '').toUpperCase()
+          this.logger.log(`Buscando credencial ministerial para DNI: "${dni}" (normalizado: "${dniNormalizado}")`)
+          
+          const credencial = await this.credencialesMinisterialesService.obtenerEstadoPorDocumento(dniNormalizado)
+          
           if (credencial) {
-            this.logger.log(`✅ Credencial encontrada para DNI: ${dni}`)
+            this.logger.log(`✅ Credencial encontrada para DNI: "${dni}" (documento en credencial: "${credencial.documento}")`)
             credenciales.push(credencial)
           } else {
-            this.logger.log(`⚠️ No se encontró credencial para DNI: ${dni}`)
+            // Intentar también con el DNI original (sin normalizar) por si acaso
+            if (dniNormalizado !== dni) {
+              this.logger.log(`Intentando búsqueda con DNI original: "${dni}"`)
+              const credencialOriginal = await this.credencialesMinisterialesService.obtenerEstadoPorDocumento(dni)
+              if (credencialOriginal) {
+                this.logger.log(`✅ Credencial encontrada con DNI original: "${dni}"`)
+                credenciales.push(credencialOriginal)
+              } else {
+                this.logger.log(`⚠️ No se encontró credencial para DNI: "${dni}" (ni normalizado ni original)`)
+              }
+            } else {
+              this.logger.log(`⚠️ No se encontró credencial para DNI: "${dni}"`)
+            }
           }
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido'

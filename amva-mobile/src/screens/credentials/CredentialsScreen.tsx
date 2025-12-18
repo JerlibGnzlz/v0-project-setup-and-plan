@@ -41,7 +41,7 @@ export function CredentialsScreen() {
             cantidadMinisterial: result.ministerial?.length || 0,
             cantidadCapellania: result.capellania?.length || 0,
           })
-          
+
           if (result.ministerial || result.capellania) {
             setCredenciales(result)
             console.log('✅ Credenciales cargadas automáticamente')
@@ -78,7 +78,7 @@ export function CredentialsScreen() {
           cantidadMinisterial: result.ministerial?.length || 0,
           cantidadCapellania: result.capellania?.length || 0,
         })
-        
+
         if (result.ministerial || result.capellania) {
           setCredenciales(result)
           console.log('✅ Credenciales encontradas y cargadas')
@@ -101,7 +101,7 @@ export function CredentialsScreen() {
         if (error instanceof Error && error.stack) {
           console.error('Stack trace:', error.stack)
         }
-        
+
         // Mensaje más específico según el tipo de error
         let mensajeUsuario = 'Error al consultar credenciales'
         if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
@@ -111,7 +111,7 @@ export function CredentialsScreen() {
         } else {
           mensajeUsuario = `Error: ${errorMessage}`
         }
-        
+
         Alert.alert('Error', mensajeUsuario)
       } finally {
         setLoading(false)

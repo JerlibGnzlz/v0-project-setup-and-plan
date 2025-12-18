@@ -588,13 +588,45 @@ export class CredencialesMinisterialesService extends BaseService<
    * Obtiene el estado de una credencial por documento
    * Útil para que los usuarios consulten su credencial desde la app móvil
    */
+  /**
+   * Normaliza un documento removiendo espacios, guiones y convirtiendo a mayúsculas
+   * para hacer búsquedas más flexibles
+   */
+  private normalizarDocumento(documento: string): string {
+    return documento.trim().replace(/[\s-]/g, '').toUpperCase()
+  }
+
   async obtenerEstadoPorDocumento(documento: string): Promise<CredencialMinisterialWithEstado | null> {
     try {
-      const credencial = await this.prisma.credencialMinisterial.findUnique({
+      // Normalizar el documento para búsqueda flexible
+      const documentoNormalizado = this.normalizarDocumento(documento)
+      this.logger.log(`Buscando credencial ministerial con documento: "${documento}" (normalizado: "${documentoNormalizado}")`)
+
+      // Primero intentar búsqueda exacta
+      let credencial = await this.prisma.credencialMinisterial.findUnique({
         where: { documento },
       })
 
+      // Si no se encuentra, intentar con documento normalizado
       if (!credencial) {
+        // Buscar todas las credenciales y comparar documentos normalizados
+        const todasLasCredenciales = await this.prisma.credencialMinisterial.findMany({
+          where: { activa: true },
+        })
+
+        credencial = todasLasCredenciales.find(
+          c => this.normalizarDocumento(c.documento) === documentoNormalizado
+        ) || null
+
+        if (credencial) {
+          this.logger.log(`✅ Credencial encontrada con búsqueda normalizada para documento: "${documento}"`)
+        }
+      } else {
+        this.logger.log(`✅ Credencial encontrada con búsqueda exacta para documento: "${documento}"`)
+      }
+
+      if (!credencial) {
+        this.logger.warn(`⚠️ No se encontró credencial ministerial para documento: "${documento}" (normalizado: "${documentoNormalizado}")`)
         return null
       }
 
