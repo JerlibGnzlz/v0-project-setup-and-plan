@@ -134,7 +134,7 @@ export function HomeScreen({ navigation }: Props) {
             <View style={styles.logoContainer}>
               <View style={styles.logoGlow} />
               <Image
-                source={require('../../assets/images/logo-amva-movil.png')}
+                source={require('../../assets/images/amvamobil.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               />
