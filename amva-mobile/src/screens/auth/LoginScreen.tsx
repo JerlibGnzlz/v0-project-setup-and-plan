@@ -452,12 +452,12 @@ const styles = StyleSheet.create({
   },
   logoGlow: {
     position: 'absolute',
-    top: -8,
-    left: -8,
-    right: -8,
-    bottom: -8,
+    top: -12,
+    left: -12,
+    right: -12,
+    bottom: -12,
     backgroundColor: 'rgba(34, 197, 94, 0.2)',
-    borderRadius: 50,
+    borderRadius: 90,
     opacity: 0.6,
   },
   logoImage: {
