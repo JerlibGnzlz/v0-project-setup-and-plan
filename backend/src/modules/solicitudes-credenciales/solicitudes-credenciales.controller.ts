@@ -50,7 +50,7 @@ export class SolicitudesCredencialesController {
 
   /**
    * Obtener mis solicitudes (para invitados)
-   * IMPORTANTE: Esta ruta debe estar ANTES de @Get(':id') para evitar conflictos
+   * IMPORTANTE: Rutas específicas deben ir ANTES de rutas con parámetros dinámicos
    */
   @Get('mis-solicitudes')
   @UseGuards(InvitadoJwtAuthGuard)
@@ -64,18 +64,8 @@ export class SolicitudesCredencialesController {
   }
 
   /**
-   * Obtener una solicitud por ID (para admins)
-   * IMPORTANTE: Esta ruta debe estar DESPUÉS de rutas específicas como 'mis-solicitudes'
-   */
-  @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  async findOne(@Param('id') id: string) {
-    return this.solicitudesCredencialesService.findOne(id)
-  }
-
-  /**
    * Obtener todas las solicitudes (para admins)
-   * IMPORTANTE: Esta ruta debe estar DESPUÉS de @Get(':id') para evitar conflictos
+   * IMPORTANTE: Esta ruta debe ir ANTES de @Get(':id') para evitar que :id capture todas las rutas
    */
   @Get()
   @UseGuards(JwtAuthGuard)
@@ -91,6 +81,16 @@ export class SolicitudesCredencialesController {
       query.estado,
       query.tipo
     )
+  }
+
+  /**
+   * Obtener una solicitud por ID (para admins)
+   * IMPORTANTE: Rutas con parámetros dinámicos deben ir AL FINAL
+   */
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Param('id') id: string) {
+    return this.solicitudesCredencialesService.findOne(id)
   }
 
   /**
