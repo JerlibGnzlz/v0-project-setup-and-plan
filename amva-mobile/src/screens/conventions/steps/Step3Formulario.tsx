@@ -314,14 +314,50 @@ export function Step3Formulario({
       numeroCuotas: formData.numeroCuotas,
     })
     
-    if (!validateForm()) {
+    const isValid = validateForm()
+    
+    if (!isValid) {
       console.error('❌ Validación fallida. Errores:', errors)
-      Alert.alert(
-        'Campos requeridos',
-        'Por favor completa todos los campos requeridos correctamente.',
-        undefined,
-        'warning'
-      )
+      
+      // Construir mensaje con los campos que tienen errores
+      const errorFields = Object.keys(errors)
+      const errorMessages = errorFields.map(field => {
+        const fieldName = {
+          nombre: 'Nombre',
+          apellido: 'Apellido',
+          email: 'Correo electrónico',
+          telefono: 'Teléfono',
+          pais: 'País',
+          provincia: 'Provincia',
+          sede: 'Iglesia / Sede',
+          tipoInscripcion: 'Tipo de inscripción',
+          numeroCuotas: 'Número de cuotas',
+          dni: 'DNI',
+        }[field] || field
+        
+        return `• ${fieldName}: ${errors[field]}`
+      })
+      
+      const errorMessage = errorMessages.length > 0
+        ? `Por favor corrige los siguientes campos:\n\n${errorMessages.join('\n')}`
+        : 'Por favor completa todos los campos requeridos correctamente.'
+      
+      Alert.alert('Campos requeridos', errorMessage, undefined, 'warning')
+      
+      // Hacer scroll al primer campo con error
+      if (errorFields.length > 0) {
+        const firstErrorField = errorFields[0]
+        setTimeout(() => {
+          const position = inputPositions.current[firstErrorField]
+          if (position !== undefined && scrollViewRef.current) {
+            scrollViewRef.current.scrollTo({
+              y: position - 120,
+              animated: true,
+            })
+          }
+        }, 500)
+      }
+      
       return
     }
     
