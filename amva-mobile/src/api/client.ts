@@ -128,6 +128,13 @@ apiClient.interceptors.request.use(
         return config
       }
 
+      // Detectar endpoints exclusivos de invitados (NO aceptan token de pastor)
+      const isExclusiveInvitadoEndpoint = 
+        config.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
+        config.url?.includes('/credenciales-capellania/mis-credenciales') ||
+        config.url?.includes('/inscripciones/my') ||
+        config.url?.includes('/auth/invitado/me')
+
       // Detectar si es un endpoint de invitados o inscripciones (que también usa invitados)
       const isInvitadoEndpoint =
         config.url?.includes('/auth/invitado') ||
@@ -140,27 +147,30 @@ apiClient.interceptors.request.use(
         config.url?.includes('/credenciales-ministeriales/consultar/') ||
         config.url?.includes('/credenciales-capellania/consultar/')
 
-      // Intentar obtener token de invitado primero si es endpoint de invitados, inscripciones o consulta de credenciales
-      if (isInvitadoEndpoint || isConsultaCredenciales) {
+      // Para endpoints exclusivos de invitados, SOLO usar token de invitado
+      if (isExclusiveInvitadoEndpoint) {
         const invitadoToken = await SecureStore.getItemAsync('invitado_token')
         if (invitadoToken) {
           config.headers.Authorization = `Bearer ${invitadoToken}`
           console.log('🔑 Token de invitado agregado a request:', config.url?.substring(0, 50))
           return config
         } else {
-          // Si es un endpoint exclusivo de invitados (no consulta), no usar token de pastor como fallback
-          const isExclusiveInvitadoEndpoint = 
-            config.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
-            config.url?.includes('/credenciales-capellania/mis-credenciales') ||
-            config.url?.includes('/inscripciones/my') ||
-            config.url?.includes('/auth/invitado/me')
-          
-          if (isExclusiveInvitadoEndpoint) {
-            console.warn('⚠️ Endpoint de invitado requiere token de invitado, pero no se encontró')
-            // No agregar token de pastor, dejar que el backend responda con 401
-            return config
-          }
+          console.warn('⚠️ Endpoint exclusivo de invitado requiere token de invitado, pero no se encontró')
+          console.warn('⚠️ NO se usará token de pastor como fallback para este endpoint')
+          // No agregar token de pastor, dejar que el backend responda con 401
+          return config
         }
+      }
+
+      // Para otros endpoints de invitados o consulta de credenciales, intentar token de invitado primero
+      if (isInvitadoEndpoint || isConsultaCredenciales) {
+        const invitadoToken = await SecureStore.getItemAsync('invitado_token')
+        if (invitadoToken) {
+          config.headers.Authorization = `Bearer ${invitadoToken}`
+          console.log('🔑 Token de invitado agregado a request:', config.url?.substring(0, 50))
+          return config
+        }
+        // Si no hay token de invitado pero es consulta de credenciales, permitir fallback a token de pastor
       }
 
       // Intentar obtener token de pastor (fallback o para endpoints de pastores)
