@@ -64,14 +64,35 @@ export const solicitudesCredencialesApi = {
    */
   create: async (dto: CreateSolicitudCredencialDto): Promise<SolicitudCredencial> => {
     try {
+      console.log('📤 Enviando solicitud de credencial:', {
+        tipo: dto.tipo,
+        dni: dto.dni,
+        nombre: dto.nombre,
+        apellido: dto.apellido,
+      })
+      console.log('🌐 URL base del cliente:', apiClient.defaults.baseURL)
+      console.log('🔗 Endpoint completo:', `${apiClient.defaults.baseURL}/solicitudes-credenciales`)
+      
       const response = await apiClient.post<SolicitudCredencial>(
         '/solicitudes-credenciales',
         dto
       )
       console.log('✅ Solicitud de credencial creada:', response.data)
       return response.data
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('❌ Error creando solicitud de credencial:', error)
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: unknown; statusText?: string } }
+        console.error('📊 Detalles del error:', {
+          status: axiosError.response?.status,
+          statusText: axiosError.response?.statusText,
+          data: axiosError.response?.data,
+        })
+      }
+      if (error && typeof error === 'object' && 'request' in error) {
+        const axiosError = error as { request?: { responseURL?: string } }
+        console.error('🔗 URL intentada:', axiosError.request?.responseURL)
+      }
       throw error
     }
   },
@@ -81,13 +102,25 @@ export const solicitudesCredencialesApi = {
    */
   getMisSolicitudes: async (): Promise<SolicitudCredencial[]> => {
     try {
+      console.log('📤 Obteniendo mis solicitudes...')
+      console.log('🌐 URL base del cliente:', apiClient.defaults.baseURL)
+      console.log('🔗 Endpoint completo:', `${apiClient.defaults.baseURL}/solicitudes-credenciales/mis-solicitudes`)
+      
       const response = await apiClient.get<SolicitudCredencial[]>(
         '/solicitudes-credenciales/mis-solicitudes'
       )
       console.log('✅ Mis solicitudes obtenidas:', response.data)
       return response.data
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('❌ Error obteniendo mis solicitudes:', error)
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: unknown; statusText?: string } }
+        console.error('📊 Detalles del error:', {
+          status: axiosError.response?.status,
+          statusText: axiosError.response?.statusText,
+          data: axiosError.response?.data,
+        })
+      }
       throw error
     }
   },
