@@ -205,6 +205,24 @@ export class InscripcionesService {
     }
 
     /**
+     * Obtiene todas las inscripciones de un invitado por su ID
+     */
+    async findInscripcionesByInvitadoId(invitadoId: string): Promise<InscripcionWithRelations[]> {
+        this.logger.log(`Buscando inscripciones para invitado: ${invitadoId}`)
+        
+        const inscripciones = await this.prisma.inscripcion.findMany({
+            where: {
+                invitadoId,
+            },
+            include: this.inscripcionIncludes,
+            orderBy: { fechaInscripcion: 'desc' },
+        })
+
+        this.logger.log(`Encontradas ${inscripciones.length} inscripciones para invitado ${invitadoId}`)
+        return inscripciones
+    }
+
+    /**
      * Crea una nueva inscripción
      *
      * IMPORTANTE: Este método SOLO crea inscripciones en la tabla 'inscripciones'.

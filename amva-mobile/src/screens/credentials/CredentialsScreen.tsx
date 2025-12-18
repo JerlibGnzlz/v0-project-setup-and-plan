@@ -257,21 +257,21 @@ export function CredentialsScreen() {
   // Normalizar credenciales a arrays para facilitar navegación
   const credencialesList = useMemo(() => {
     const list: Array<{ credencial: Credencial; tipo: 'ministerial' | 'capellania' }> = []
-    
+
     if (credenciales.ministerial) {
-      const ministerial = Array.isArray(credenciales.ministerial) 
-        ? credenciales.ministerial 
+      const ministerial = Array.isArray(credenciales.ministerial)
+        ? credenciales.ministerial
         : [credenciales.ministerial]
       ministerial.forEach(c => list.push({ credencial: c, tipo: 'ministerial' }))
     }
-    
+
     if (credenciales.capellania) {
-      const capellania = Array.isArray(credenciales.capellania) 
-        ? credenciales.capellania 
+      const capellania = Array.isArray(credenciales.capellania)
+        ? credenciales.capellania
         : [credenciales.capellania]
       capellania.forEach(c => list.push({ credencial: c, tipo: 'capellania' }))
     }
-    
+
     return list
   }, [credenciales])
 
@@ -355,7 +355,7 @@ export function CredentialsScreen() {
               <CreditCard size={32} color="#22c55e" />
               <Text style={styles.resumenTitle}>Resumen de Credenciales</Text>
             </View>
-            
+
             <View style={styles.resumenStats}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{credencialesList.length}</Text>
@@ -383,7 +383,7 @@ export function CredentialsScreen() {
                   </View>
                 </View>
               )}
-              
+
               {totalCapellania > 0 && (
                 <View style={styles.breakdownItem}>
                   <View style={styles.breakdownIconContainer}>
@@ -598,7 +598,7 @@ export function CredentialsScreen() {
                 const stepNumber = index + 1
                 const isCompleted = stepNumber < currentStep
                 const isActive = stepNumber === currentStep
-                
+
                 return (
                   <View key={stepNumber} style={styles.stepRow}>
                     <View style={styles.stepItem}>
@@ -647,7 +647,7 @@ export function CredentialsScreen() {
             {/* Wizard Content */}
             <Animated.View style={[styles.wizardContent, { opacity: fadeAnim }]}>
               {currentStep === 1 && renderResumenStep()}
-              
+
               {currentStep > 1 && currentCredencialIndex < credencialesList.length && (
                 <View style={styles.wizardStepContainer}>
                   {renderCredencialCardSingle(
@@ -669,7 +669,7 @@ export function CredentialsScreen() {
                   <Text style={styles.navButtonText}>Anterior</Text>
                 </TouchableOpacity>
               )}
-              
+
               {currentStep < totalSteps && (
                 <TouchableOpacity
                   style={[styles.navButton, styles.navButtonPrimary]}
@@ -679,7 +679,7 @@ export function CredentialsScreen() {
                   <ChevronRight size={20} color="#fff" />
                 </TouchableOpacity>
               )}
-              
+
               {currentStep === totalSteps && (
                 <TouchableOpacity
                   style={[styles.navButton, styles.navButtonPrimary]}

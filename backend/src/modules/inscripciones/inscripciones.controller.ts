@@ -57,6 +57,20 @@ export class InscripcionesController {
     return this.inscripcionesService.findAllInscripciones(pageNum, limitNum, filters)
   }
 
+  /**
+   * Obtener inscripciones del invitado autenticado
+   */
+  @UseGuards(InvitadoJwtAuthGuard)
+  @Get('my')
+  async getMyInscripciones(@Request() req: AuthenticatedInvitadoRequest) {
+    const invitadoId = req.user?.id
+    if (!invitadoId) {
+      throw new BadRequestException('Usuario no autenticado')
+    }
+    this.logger.log(`Obteniendo inscripciones para invitado: ${invitadoId}`)
+    return this.inscripcionesService.findInscripcionesByInvitadoId(invitadoId)
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.inscripcionesService.findOneInscripcion(id)
