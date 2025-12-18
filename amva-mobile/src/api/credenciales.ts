@@ -54,10 +54,21 @@ export const credencialesApi = {
    * Requiere autenticación de invitado
    */
   obtenerMisCredencialesMinisteriales: async (): Promise<CredencialResponse> => {
-    const response = await apiClient.get<CredencialResponse>(
-      `/credenciales-ministeriales/mis-credenciales`
-    )
-    return response.data
+    try {
+      console.log('🔍 Obteniendo credenciales ministeriales...')
+      const response = await apiClient.get<CredencialResponse>(
+        `/credenciales-ministeriales/mis-credenciales`
+      )
+      console.log('✅ Respuesta ministerial recibida:', {
+        encontrada: response.data.encontrada,
+        cantidad: response.data.credenciales?.length || 0,
+      })
+      return response.data
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('❌ Error obteniendo credenciales ministeriales:', errorMessage)
+      throw error
+    }
   },
 
   /**
@@ -66,10 +77,21 @@ export const credencialesApi = {
    * Requiere autenticación de invitado
    */
   obtenerMisCredencialesCapellania: async (): Promise<CredencialResponse> => {
-    const response = await apiClient.get<CredencialResponse>(
-      `/credenciales-capellania/mis-credenciales`
-    )
-    return response.data
+    try {
+      console.log('🔍 Obteniendo credenciales de capellanía...')
+      const response = await apiClient.get<CredencialResponse>(
+        `/credenciales-capellania/mis-credenciales`
+      )
+      console.log('✅ Respuesta capellanía recibida:', {
+        encontrada: response.data.encontrada,
+        cantidad: response.data.credenciales?.length || 0,
+      })
+      return response.data
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('❌ Error obteniendo credenciales de capellanía:', errorMessage)
+      throw error
+    }
   },
 
   /**
@@ -82,6 +104,8 @@ export const credencialesApi = {
     capellania?: Credencial[]
   }> => {
     try {
+      console.log('🔍 Obteniendo credenciales del invitado autenticado...')
+      
       const [ministerial, capellania] = await Promise.allSettled([
         credencialesApi.obtenerMisCredencialesMinisteriales(),
         credencialesApi.obtenerMisCredencialesCapellania(),
@@ -92,25 +116,54 @@ export const credencialesApi = {
         capellania?: Credencial[]
       } = {}
 
-      if (
-        ministerial.status === 'fulfilled' &&
-        ministerial.value.encontrada &&
-        ministerial.value.credenciales
-      ) {
-        result.ministerial = ministerial.value.credenciales
+      // Manejar resultado de credenciales ministeriales
+      if (ministerial.status === 'fulfilled') {
+        console.log('✅ Respuesta ministerial:', {
+          encontrada: ministerial.value.encontrada,
+          cantidad: ministerial.value.credenciales?.length || 0,
+          mensaje: ministerial.value.mensaje,
+        })
+        
+        if (ministerial.value.encontrada && ministerial.value.credenciales) {
+          result.ministerial = ministerial.value.credenciales
+        } else if (ministerial.value.mensaje) {
+          console.log('⚠️ Mensaje ministerial:', ministerial.value.mensaje)
+        }
+      } else {
+        console.error('❌ Error obteniendo credenciales ministeriales:', ministerial.reason)
       }
 
-      if (
-        capellania.status === 'fulfilled' &&
-        capellania.value.encontrada &&
-        capellania.value.credenciales
-      ) {
-        result.capellania = capellania.value.credenciales
+      // Manejar resultado de credenciales de capellanía
+      if (capellania.status === 'fulfilled') {
+        console.log('✅ Respuesta capellanía:', {
+          encontrada: capellania.value.encontrada,
+          cantidad: capellania.value.credenciales?.length || 0,
+          mensaje: capellania.value.mensaje,
+        })
+        
+        if (capellania.value.encontrada && capellania.value.credenciales) {
+          result.capellania = capellania.value.credenciales
+        } else if (capellania.value.mensaje) {
+          console.log('⚠️ Mensaje capellanía:', capellania.value.mensaje)
+        }
+      } else {
+        console.error('❌ Error obteniendo credenciales de capellanía:', capellania.reason)
       }
+
+      console.log('📊 Resultado final:', {
+        tieneMinisterial: !!result.ministerial,
+        tieneCapellania: !!result.capellania,
+        totalMinisterial: result.ministerial?.length || 0,
+        totalCapellania: result.capellania?.length || 0,
+      })
 
       return result
-    } catch (error) {
-      console.error('Error obteniendo mis credenciales:', error)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('❌ Error obteniendo mis credenciales:', errorMessage)
+      if (error instanceof Error && error.stack) {
+        console.error('Stack trace:', error.stack)
+      }
       return {}
     }
   },

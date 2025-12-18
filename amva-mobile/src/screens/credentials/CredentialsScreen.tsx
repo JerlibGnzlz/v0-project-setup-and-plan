@@ -33,15 +33,29 @@ export function CredentialsScreen() {
       if (isInvitadoAuthenticated && invitado && !autoLoading) {
         setAutoLoading(true)
         try {
+          console.log('🔍 Buscando credenciales automáticamente para invitado:', invitado.email)
           const result = await credencialesApi.obtenerMisCredenciales()
+          console.log('📊 Resultado de búsqueda automática:', {
+            tieneMinisterial: !!result.ministerial,
+            tieneCapellania: !!result.capellania,
+            cantidadMinisterial: result.ministerial?.length || 0,
+            cantidadCapellania: result.capellania?.length || 0,
+          })
+          
           if (result.ministerial || result.capellania) {
             setCredenciales(result)
+            console.log('✅ Credenciales cargadas automáticamente')
+          } else {
+            console.log('⚠️ No se encontraron credenciales automáticamente')
           }
         } catch (error: unknown) {
           const errorMessage =
             error instanceof Error ? error.message : 'Error al obtener credenciales'
-          console.error('Error obteniendo credenciales automáticamente:', errorMessage)
-          // No mostrar alerta, solo loggear el error
+          console.error('❌ Error obteniendo credenciales automáticamente:', errorMessage)
+          if (error instanceof Error && error.stack) {
+            console.error('Stack trace:', error.stack)
+          }
+          // No mostrar alerta, solo loggear el error (el usuario puede buscar manualmente)
         } finally {
           setAutoLoading(false)
         }
@@ -56,19 +70,49 @@ export function CredentialsScreen() {
     if (isInvitadoAuthenticated && invitado) {
       setLoading(true)
       try {
+        console.log('🔍 Consultando credenciales para invitado:', invitado.email)
         const result = await credencialesApi.obtenerMisCredenciales()
+        console.log('📊 Resultado de consulta:', {
+          tieneMinisterial: !!result.ministerial,
+          tieneCapellania: !!result.capellania,
+          cantidadMinisterial: result.ministerial?.length || 0,
+          cantidadCapellania: result.capellania?.length || 0,
+        })
+        
         if (result.ministerial || result.capellania) {
           setCredenciales(result)
+          console.log('✅ Credenciales encontradas y cargadas')
         } else {
+          console.log('⚠️ No se encontraron credenciales')
           Alert.alert(
             'No se encontraron credenciales',
-            'No se encontraron credenciales asociadas a tus inscripciones. Asegúrate de haber ingresado tu DNI al inscribirte a una convención.'
+            'No se encontraron credenciales asociadas a tus inscripciones.\n\n' +
+            'Posibles causas:\n' +
+            '• No has ingresado tu DNI al inscribirte a una convención\n' +
+            '• Tu credencial no está registrada en el sistema\n' +
+            '• El DNI ingresado no coincide con el de tu credencial\n\n' +
+            'Verifica que hayas ingresado tu DNI correctamente al inscribirte.'
           )
         }
       } catch (error: unknown) {
         const errorMessage =
           error instanceof Error ? error.message : 'Error al consultar credenciales'
-        Alert.alert('Error', errorMessage)
+        console.error('❌ Error consultando credenciales:', errorMessage)
+        if (error instanceof Error && error.stack) {
+          console.error('Stack trace:', error.stack)
+        }
+        
+        // Mensaje más específico según el tipo de error
+        let mensajeUsuario = 'Error al consultar credenciales'
+        if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+          mensajeUsuario = 'No estás autenticado. Por favor, inicia sesión nuevamente.'
+        } else if (errorMessage.includes('Network')) {
+          mensajeUsuario = 'Error de conexión. Verifica tu conexión a internet.'
+        } else {
+          mensajeUsuario = `Error: ${errorMessage}`
+        }
+        
+        Alert.alert('Error', mensajeUsuario)
       } finally {
         setLoading(false)
       }

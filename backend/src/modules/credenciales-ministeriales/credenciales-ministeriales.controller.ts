@@ -229,29 +229,54 @@ export class CredencialesMinisterialesController {
         select: {
           dni: true,
         },
-        distinct: ['dni'],
       })
 
-      if (!inscripciones || inscripciones.length === 0 || !inscripciones[0].dni) {
-        return { encontrada: false, mensaje: 'No se encontró DNI en tus inscripciones' }
+      this.logger.log(`Inscripciones encontradas: ${inscripciones.length}`)
+
+      if (!inscripciones || inscripciones.length === 0) {
+        this.logger.warn(`No se encontraron inscripciones con DNI para invitado ${invitadoId}`)
+        return { encontrada: false, mensaje: 'No se encontró DNI en tus inscripciones. Asegúrate de haber ingresado tu DNI al inscribirte a una convención.' }
+      }
+
+      // Obtener DNIs únicos (filtrar nulls y duplicados)
+      const dniUnicos = Array.from(
+        new Set(
+          inscripciones
+            .map((i) => i.dni)
+            .filter((dni): dni is string => dni !== null && dni !== undefined && dni.trim() !== '')
+        )
+      )
+
+      this.logger.log(`DNIs únicos encontrados: ${dniUnicos.length} - ${dniUnicos.join(', ')}`)
+
+      if (dniUnicos.length === 0) {
+        return { encontrada: false, mensaje: 'No se encontró DNI válido en tus inscripciones' }
       }
 
       // Obtener credenciales para cada DNI único
-      const dniUnicos = inscripciones
-        .map((i) => i.dni)
-        .filter((dni): dni is string => dni !== null && dni !== undefined)
-
       const credenciales = []
       for (const dni of dniUnicos) {
-        const credencial = await this.credencialesMinisterialesService.obtenerEstadoPorDocumento(dni)
-        if (credencial) {
-          credenciales.push(credencial)
+        try {
+          this.logger.log(`Buscando credencial ministerial para DNI: ${dni}`)
+          const credencial = await this.credencialesMinisterialesService.obtenerEstadoPorDocumento(dni)
+          if (credencial) {
+            this.logger.log(`✅ Credencial encontrada para DNI: ${dni}`)
+            credenciales.push(credencial)
+          } else {
+            this.logger.log(`⚠️ No se encontró credencial para DNI: ${dni}`)
+          }
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+          this.logger.error(`Error buscando credencial para DNI ${dni}: ${errorMessage}`)
         }
       }
 
       if (credenciales.length === 0) {
-        return { encontrada: false, mensaje: 'No se encontraron credenciales para tu DNI' }
+        this.logger.warn(`No se encontraron credenciales para ningún DNI del invitado ${invitadoId}`)
+        return { encontrada: false, mensaje: 'No se encontraron credenciales ministeriales para tu DNI. Verifica que tu credencial esté registrada en el sistema.' }
       }
+
+      this.logger.log(`✅ Total credenciales encontradas: ${credenciales.length}`)
 
       return {
         encontrada: true,
