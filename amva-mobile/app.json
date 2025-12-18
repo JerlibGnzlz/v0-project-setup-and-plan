@@ -1,15 +1,17 @@
 {
   "expo": {
-    "name": "AMVA Go",
-    "slug": "amva-go",
+    "name": "AMVA Móvil",
+    "slug": "amva-movil",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "amva-app",
     "userInterfaceStyle": "automatic",
     "splash": {
+      "image": "./assets/images/amvamobil.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a1628"
     },
+    "icon": "./assets/images/amvamobil.png",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.vidaabundante.app"

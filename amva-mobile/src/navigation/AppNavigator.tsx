@@ -112,17 +112,23 @@ export function AppNavigator() {
           backgroundColor: '#0a1628',
         }}
       >
-        <View style={{ alignItems: 'center' }}>
+        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+          {/* Logo Container */}
           <View
             style={{
-              width: 200,
-              height: 200,
-              marginBottom: 24,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.15,
-              shadowRadius: 12,
-              elevation: 8,
+              width: 240,
+              height: 240,
+              marginBottom: 32,
+              shadowColor: '#22c55e',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.3,
+              shadowRadius: 20,
+              elevation: 12,
+              borderRadius: 24,
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              padding: 20,
+              borderWidth: 1,
+              borderColor: 'rgba(34, 197, 94, 0.2)',
             }}
           >
             <Image
@@ -131,7 +137,46 @@ export function AppNavigator() {
               resizeMode="contain"
             />
           </View>
+          
+          {/* App Name */}
+          <Text
+            style={{
+              fontSize: 28,
+              fontWeight: 'bold',
+              color: '#fff',
+              marginBottom: 8,
+              letterSpacing: 0.5,
+            }}
+          >
+            AMVA Móvil
+          </Text>
+          
+          {/* Subtitle */}
+          <Text
+            style={{
+              fontSize: 14,
+              color: 'rgba(255, 255, 255, 0.7)',
+              marginBottom: 32,
+              textAlign: 'center',
+              paddingHorizontal: 40,
+            }}
+          >
+            Asociación Misionera Vida Abundante
+          </Text>
+          
+          {/* Loading Indicator */}
           <ActivityIndicator size="large" color="#22c55e" />
+          
+          {/* Loading Text */}
+          <Text
+            style={{
+              fontSize: 12,
+              color: 'rgba(255, 255, 255, 0.5)',
+              marginTop: 16,
+            }}
+          >
+            Cargando...
+          </Text>
         </View>
       </View>
     )
