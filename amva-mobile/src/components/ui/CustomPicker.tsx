@@ -252,10 +252,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   modalList: {
-    flex: 1,
+    maxHeight: 400,
   },
   modalListContent: {
     padding: 8,
+    paddingBottom: 20,
   },
   modalItem: {
     flexDirection: 'row',
@@ -283,6 +284,15 @@ const styles = StyleSheet.create({
   },
   checkIcon: {
     marginLeft: 12,
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 16,
   },
 })
 
