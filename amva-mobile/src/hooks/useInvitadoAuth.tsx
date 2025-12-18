@@ -31,7 +31,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
       console.log('✅ Perfil de invitado cargado:', profile.email)
       setInvitado(profile)
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorMessage = error instanceof Error ? (error.message || 'Error desconocido') : 'Error desconocido'
       console.error('❌ Error cargando invitado:', errorMessage)
       
       // Si es un error 401, el interceptor debería haber intentado refrescar el token
