@@ -302,11 +302,13 @@ export function LoginScreen() {
           <View style={styles.header}>
             <View style={styles.logoContainer}>
               <View style={styles.logoGlow} />
-              <View style={styles.logoCircle}>
-                <Text style={styles.logoText}>🌍</Text>
-              </View>
+              <Image
+                source={require('../../assets/images/logo-amva-movil.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
-            <Text style={styles.title}>AMVA Go</Text>
+            <Text style={styles.title}>AMVA Móvil</Text>
             <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
           </View>
 
@@ -458,19 +460,9 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     opacity: 0.6,
   },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  logoText: {
-    fontSize: 40,
+  logoImage: {
+    width: 120,
+    height: 120,
   },
   title: {
     fontSize: 28,
