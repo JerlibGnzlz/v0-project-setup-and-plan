@@ -157,11 +157,21 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
       })
 
       console.log('✅ Registro exitoso:', response.invitado.email)
+      console.log('🔍 Verificando tokens recibidos:', {
+        hasAccessToken: !!response.access_token,
+        hasRefreshToken: !!response.refresh_token,
+        accessTokenLength: response.access_token?.length || 0,
+        refreshTokenLength: response.refresh_token?.length || 0,
+      })
 
       // Guardar tokens automáticamente para que el usuario quede autenticado
       await SecureStore.setItemAsync('invitado_token', response.access_token)
       if (response.refresh_token) {
         await SecureStore.setItemAsync('invitado_refresh_token', response.refresh_token)
+        console.log('✅ Refresh token guardado correctamente')
+      } else {
+        console.error('❌ ERROR: No se recibió refresh_token en la respuesta de registro')
+        console.error('❌ Esto causará problemas cuando el token expire')
       }
 
       // Refrescar el estado del invitado en el contexto

@@ -26,7 +26,7 @@ import { RegisterScreen } from './RegisterScreen'
 WebBrowser.maybeCompleteAuthSession()
 
 export function LoginScreen() {
-  const { login, loading } = useInvitadoAuth()
+  const { login, loginWithGoogle, loading } = useInvitadoAuth()
   const scrollViewRef = useRef<ScrollView>(null)
   const emailInputRef = useRef<TextInput>(null)
   const passwordInputRef = useRef<TextInput>(null)
@@ -92,15 +92,9 @@ export function LoginScreen() {
         try {
           setGoogleLoading(true)
           console.log('🔐 Iniciando login con Google...')
-          const result = await invitadoAuthApi.loginWithGoogle(id_token)
+          // Usar el hook para login con Google (ya maneja el guardado de tokens)
+          await loginWithGoogleHook(id_token)
           console.log('✅ Login con Google exitoso')
-
-          // Guardar tokens de invitado
-          const SecureStore = await import('expo-secure-store')
-          await SecureStore.default.setItemAsync('invitado_token', result.access_token)
-          await SecureStore.default.setItemAsync('invitado_refresh_token', result.refresh_token)
-
-          console.log('✅ Sesión iniciada con Google:', result.invitado.email)
 
           // Recargar la app para que detecte el token
           // La app debería detectar el token y mostrar la pantalla correspondiente

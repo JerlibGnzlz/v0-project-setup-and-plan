@@ -292,10 +292,22 @@ apiClient.interceptors.response.use(
           refreshTokenKey = 'refresh_token'
         }
 
-        // Si no hay refresh token, NO limpiar tokens - solo rechazar el error
-        // El usuario puede tener un token válido pero sin refresh token (ej: registro reciente)
+        // Si no hay refresh token, limpiar tokens y forzar re-login
         if (!refreshToken) {
-          console.log(`⚠️ No hay ${refreshTokenKey} disponible para refrescar`)
+          console.warn(`⚠️ No hay ${refreshTokenKey} disponible para refrescar`)
+          console.warn('⚠️ Limpiando tokens y forzando re-login...')
+          
+          // Limpiar tokens de invitado si es endpoint de invitado
+          if (isInvitadoEndpoint) {
+            try {
+              await SecureStore.deleteItemAsync('invitado_token')
+              await SecureStore.deleteItemAsync('invitado_refresh_token')
+              console.log('✅ Tokens de invitado limpiados')
+            } catch (cleanError) {
+              console.error('❌ Error limpiando tokens:', cleanError)
+            }
+          }
+          
           return Promise.reject(error)
         }
 
