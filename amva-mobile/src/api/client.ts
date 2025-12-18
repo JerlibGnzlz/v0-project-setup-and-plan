@@ -152,9 +152,13 @@ apiClient.interceptors.request.use(
       // Para endpoints exclusivos de invitados, SOLO usar token de invitado
       if (isExclusiveInvitadoEndpoint) {
         const invitadoToken = await SecureStore.getItemAsync('invitado_token')
+        const invitadoRefreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
+        
         if (invitadoToken) {
           config.headers.Authorization = `Bearer ${invitadoToken}`
           console.log('🔑 Token de invitado agregado a request:', config.url?.substring(0, 50))
+          console.log('🔍 Token length:', invitadoToken.length, 'chars')
+          console.log('🔍 Refresh token disponible:', !!invitadoRefreshToken, invitadoRefreshToken ? `(${invitadoRefreshToken.length} chars)` : '(no disponible)')
           return config
         } else {
           console.warn('⚠️ Endpoint exclusivo de invitado requiere token de invitado, pero no se encontró')
