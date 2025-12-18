@@ -26,6 +26,87 @@ interface Noticia {
   imagenUrl?: string
 }
 
+interface NewsCardProps {
+  item: Noticia
+  index: number
+  formatDate: (dateString: string | null) => string
+}
+
+function NewsCard({ item, index, formatDate }: NewsCardProps) {
+  const fadeAnim = React.useRef(new Animated.Value(0)).current
+  const slideAnim = React.useRef(new Animated.Value(30)).current
+
+  React.useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 8,
+        delay: index * 100,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }, [fadeAnim, slideAnim, index])
+
+  return (
+    <Animated.View
+      style={{
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+      }}
+    >
+      <TouchableOpacity style={styles.card} activeOpacity={0.85}>
+        <LinearGradient
+          colors={['rgba(34, 197, 94, 0.12)', 'rgba(59, 130, 246, 0.08)', 'rgba(15, 23, 42, 0.95)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.cardGradient}
+        >
+          {item.imagenUrl && (
+            <View style={styles.imageContainer}>
+              <Image source={{ uri: item.imagenUrl }} style={styles.cardImage} resizeMode="cover" />
+              <View style={styles.imageOverlay} />
+            </View>
+          )}
+          
+          <View style={styles.cardHeader}>
+            <View style={styles.categoryBadge}>
+              <Text style={styles.categoryText}>{item.categoria}</Text>
+            </View>
+            {item.fechaPublicacion && (
+              <View style={styles.dateContainer}>
+                <CalendarIcon size={14} color="rgba(255, 255, 255, 0.6)" />
+                <Text style={styles.dateText}>{formatDate(item.fechaPublicacion)}</Text>
+              </View>
+            )}
+          </View>
+          
+          <Text style={styles.cardTitle} numberOfLines={2}>{item.titulo}</Text>
+          
+          {item.extracto && (
+            <Text style={styles.cardText} numberOfLines={3}>
+              {item.extracto}
+            </Text>
+          )}
+          
+          <View style={styles.cardFooter}>
+            <View style={styles.readMoreContainer}>
+              <Text style={styles.readMoreText}>Leer más</Text>
+              <ArrowRight size={16} color="#22c55e" />
+            </View>
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
+    </Animated.View>
+  )
+}
+
 export function NewsScreen() {
   const [news, setNews] = useState<Noticia[]>([])
   const [loading, setLoading] = useState(true)
@@ -125,80 +206,9 @@ export function NewsScreen() {
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
             }
-            renderItem={({ item, index }) => {
-              const fadeAnim = React.useRef(new Animated.Value(0)).current
-              const slideAnim = React.useRef(new Animated.Value(30)).current
-
-              React.useEffect(() => {
-                Animated.parallel([
-                  Animated.timing(fadeAnim, {
-                    toValue: 1,
-                    duration: 400,
-                    delay: index * 100,
-                    useNativeDriver: true,
-                  }),
-                  Animated.spring(slideAnim, {
-                    toValue: 0,
-                    tension: 50,
-                    friction: 8,
-                    delay: index * 100,
-                    useNativeDriver: true,
-                  }),
-                ]).start()
-              }, [])
-
-              return (
-                <Animated.View
-                  style={{
-                    opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }],
-                  }}
-                >
-                  <TouchableOpacity style={styles.card} activeOpacity={0.85}>
-                    <LinearGradient
-                      colors={['rgba(34, 197, 94, 0.12)', 'rgba(59, 130, 246, 0.08)', 'rgba(15, 23, 42, 0.95)']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.cardGradient}
-                    >
-                      {item.imagenUrl && (
-                        <View style={styles.imageContainer}>
-                          <Image source={{ uri: item.imagenUrl }} style={styles.cardImage} resizeMode="cover" />
-                          <View style={styles.imageOverlay} />
-                        </View>
-                      )}
-                      
-                      <View style={styles.cardHeader}>
-                        <View style={styles.categoryBadge}>
-                          <Text style={styles.categoryText}>{item.categoria}</Text>
-                        </View>
-                        {item.fechaPublicacion && (
-                          <View style={styles.dateContainer}>
-                            <CalendarIcon size={14} color="rgba(255, 255, 255, 0.6)" />
-                            <Text style={styles.dateText}>{formatDate(item.fechaPublicacion)}</Text>
-                          </View>
-                        )}
-                      </View>
-                      
-                      <Text style={styles.cardTitle} numberOfLines={2}>{item.titulo}</Text>
-                      
-                      {item.extracto && (
-                        <Text style={styles.cardText} numberOfLines={3}>
-                          {item.extracto}
-                        </Text>
-                      )}
-                      
-                      <View style={styles.cardFooter}>
-                        <View style={styles.readMoreContainer}>
-                          <Text style={styles.readMoreText}>Leer más</Text>
-                          <ArrowRight size={16} color="#22c55e" />
-                        </View>
-                      </View>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </Animated.View>
-              )
-            }}
+            renderItem={({ item, index }) => (
+              <NewsCard item={item} index={index} formatDate={formatDate} />
+            )}
           />
         )}
       </View>
