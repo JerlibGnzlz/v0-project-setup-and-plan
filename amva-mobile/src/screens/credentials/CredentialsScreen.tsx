@@ -798,11 +798,236 @@ export function CredentialsScreen() {
               <CreditCard size={48} color="rgba(255, 255, 255, 0.3)" />
               <Text style={styles.emptyText}>
                 {isInvitadoAuthenticated && invitado
-                  ? 'No se encontraron credenciales asociadas a tus inscripciones. Asegúrate de haber ingresado tu DNI al inscribirte a una convención.'
+                  ? 'No se encontraron credenciales asociadas a tu DNI.\n\nSi necesitas una credencial, puedes solicitarla desde aquí.'
                   : 'Ingresa un número de documento y presiona "Consultar" para ver tus credenciales'}
               </Text>
+              {isInvitadoAuthenticated && invitado && (
+                <TouchableOpacity
+                  style={styles.solicitarButton}
+                  onPress={() => setShowSolicitarModal(true)}
+                >
+                  <Plus size={20} color="#fff" />
+                  <Text style={styles.solicitarButtonText}>Solicitar Credencial</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
+
+        {/* Lista de Solicitudes */}
+        {isInvitadoAuthenticated && invitado && solicitudes.length > 0 && (
+          <View style={styles.solicitudesContainer}>
+            <Text style={styles.solicitudesTitle}>Mis Solicitudes</Text>
+            {solicitudes.map(solicitud => {
+              const estadoColor = getEstadoSolicitudColor(solicitud.estado)
+              return (
+                <View key={solicitud.id} style={styles.solicitudCard}>
+                  <LinearGradient
+                    colors={[`${estadoColor}15`, 'rgba(15, 23, 42, 0.8)']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.cardGradient}
+                  >
+                    <View style={styles.cardHeader}>
+                      <View style={styles.cardTitleContainer}>
+                        <FileText size={20} color={estadoColor} />
+                        <Text style={styles.cardTitle}>
+                          Credencial {solicitud.tipo === TipoCredencial.MINISTERIAL ? 'Ministerial' : 'de Capellanía'}
+                        </Text>
+                      </View>
+                      <View style={[styles.badgeContainer, { backgroundColor: `${estadoColor}20` }]}>
+                        <Text style={[styles.badgeText, { color: estadoColor }]}>
+                          {getEstadoSolicitudLabel(solicitud.estado)}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.cardContent}>
+                      <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>DNI:</Text>
+                        <Text style={styles.infoValue}>{solicitud.dni}</Text>
+                      </View>
+                      <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Nombre:</Text>
+                        <Text style={styles.infoValue}>
+                          {solicitud.nombre} {solicitud.apellido}
+                        </Text>
+                      </View>
+                      {solicitud.motivo && (
+                        <View style={styles.infoRow}>
+                          <Text style={styles.infoLabel}>Motivo:</Text>
+                          <Text style={styles.infoValue}>{solicitud.motivo}</Text>
+                        </View>
+                      )}
+                      {solicitud.observaciones && (
+                        <View style={styles.observacionesContainer}>
+                          <Text style={styles.observacionesLabel}>Observaciones:</Text>
+                          <Text style={styles.observacionesText}>{solicitud.observaciones}</Text>
+                        </View>
+                      )}
+                      <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Fecha de solicitud:</Text>
+                        <Text style={styles.infoValue}>{formatDate(solicitud.createdAt)}</Text>
+                      </View>
+                    </View>
+                  </LinearGradient>
+                </View>
+              )
+            })}
+            <TouchableOpacity
+              style={styles.solicitarButton}
+              onPress={() => setShowSolicitarModal(true)}
+            >
+              <Plus size={20} color="#fff" />
+              <Text style={styles.solicitarButtonText}>Nueva Solicitud</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Modal para Solicitar Credencial */}
+        {showSolicitarModal && (
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Solicitar Credencial</Text>
+                <TouchableOpacity
+                  onPress={() => setShowSolicitarModal(false)}
+                  style={styles.modalCloseButton}
+                >
+                  <X size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.modalBody}>
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>Tipo de Credencial *</Text>
+                  <View style={styles.radioGroup}>
+                    <TouchableOpacity
+                      style={[
+                        styles.radioOption,
+                        formSolicitud.tipo === TipoCredencial.MINISTERIAL && styles.radioOptionSelected,
+                      ]}
+                      onPress={() => setFormSolicitud(prev => ({ ...prev, tipo: TipoCredencial.MINISTERIAL }))}
+                    >
+                      <Text
+                        style={[
+                          styles.radioText,
+                          formSolicitud.tipo === TipoCredencial.MINISTERIAL && styles.radioTextSelected,
+                        ]}
+                      >
+                        Ministerial
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.radioOption,
+                        formSolicitud.tipo === TipoCredencial.CAPELLANIA && styles.radioOptionSelected,
+                      ]}
+                      onPress={() => setFormSolicitud(prev => ({ ...prev, tipo: TipoCredencial.CAPELLANIA }))}
+                    >
+                      <Text
+                        style={[
+                          styles.radioText,
+                          formSolicitud.tipo === TipoCredencial.CAPELLANIA && styles.radioTextSelected,
+                        ]}
+                      >
+                        Capellanía
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>DNI *</Text>
+                  <TextInput
+                    style={styles.formInput}
+                    placeholder="Número de documento"
+                    placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                    value={formSolicitud.dni}
+                    onChangeText={value => setFormSolicitud(prev => ({ ...prev, dni: value }))}
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>Nombre *</Text>
+                  <TextInput
+                    style={styles.formInput}
+                    placeholder="Tu nombre"
+                    placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                    value={formSolicitud.nombre}
+                    onChangeText={value => setFormSolicitud(prev => ({ ...prev, nombre: value }))}
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>Apellido *</Text>
+                  <TextInput
+                    style={styles.formInput}
+                    placeholder="Tu apellido"
+                    placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                    value={formSolicitud.apellido}
+                    onChangeText={value => setFormSolicitud(prev => ({ ...prev, apellido: value }))}
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>Nacionalidad</Text>
+                  <TextInput
+                    style={styles.formInput}
+                    placeholder="Ej: Argentina"
+                    placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                    value={formSolicitud.nacionalidad}
+                    onChangeText={value => setFormSolicitud(prev => ({ ...prev, nacionalidad: value }))}
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>Fecha de Nacimiento</Text>
+                  <TextInput
+                    style={styles.formInput}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                    value={formSolicitud.fechaNacimiento}
+                    onChangeText={value => setFormSolicitud(prev => ({ ...prev, fechaNacimiento: value }))}
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>Motivo de la Solicitud</Text>
+                  <TextInput
+                    style={[styles.formInput, styles.formTextArea]}
+                    placeholder="Explica el motivo de tu solicitud..."
+                    placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                    value={formSolicitud.motivo}
+                    onChangeText={value => setFormSolicitud(prev => ({ ...prev, motivo: value }))}
+                    multiline
+                    numberOfLines={4}
+                    textAlignVertical="top"
+                  />
+                </View>
+              </ScrollView>
+
+              <View style={styles.modalFooter}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalButtonCancel]}
+                  onPress={() => setShowSolicitarModal(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalButtonSubmit]}
+                  onPress={handleSolicitarCredencial}
+                  disabled={solicitandoCredencial}
+                >
+                  {solicitandoCredencial ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.modalButtonText}>Enviar Solicitud</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   )
@@ -1203,6 +1428,151 @@ const styles = StyleSheet.create({
   },
   stepLineCompleted: {
     backgroundColor: '#22c55e',
+  },
+  solicitarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#22c55e',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    marginTop: 24,
+    gap: 8,
+  },
+  solicitarButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  solicitudesContainer: {
+    marginTop: 24,
+    gap: 16,
+  },
+  solicitudesTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  solicitudCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  modalContent: {
+    backgroundColor: '#0f172a',
+    borderRadius: 20,
+    width: '90%',
+    maxHeight: '80%',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalBody: {
+    padding: 20,
+    maxHeight: 400,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalButtonSubmit: {
+    backgroundColor: '#22c55e',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  formGroup: {
+    marginBottom: 20,
+  },
+  formLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  formInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    padding: 14,
+    color: '#fff',
+    fontSize: 16,
+  },
+  formTextArea: {
+    minHeight: 100,
+    paddingTop: 14,
+  },
+  radioGroup: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  radioOption: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+  },
+  radioOptionSelected: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
+  },
+  radioText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  radioTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
   },
 })
 
