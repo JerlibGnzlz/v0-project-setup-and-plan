@@ -109,10 +109,27 @@ console.log('📡 Axios configurado con baseURL:', apiClient.defaults.baseURL)
 apiClient.interceptors.request.use(
   async config => {
     try {
+      // Detectar si es un endpoint de invitados o de pastores
+      const isInvitadoEndpoint =
+        config.url?.includes('/auth/invitado') ||
+        config.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
+        config.url?.includes('/credenciales-capellania/mis-credenciales')
+
+      // Intentar obtener token de invitado primero si es endpoint de invitados
+      if (isInvitadoEndpoint) {
+        const invitadoToken = await SecureStore.getItemAsync('invitado_token')
+        if (invitadoToken) {
+          config.headers.Authorization = `Bearer ${invitadoToken}`
+          console.log('🔑 Token de invitado agregado a request:', config.url?.substring(0, 50))
+          return config
+        }
+      }
+
+      // Intentar obtener token de pastor (fallback o para endpoints de pastores)
       const token = await SecureStore.getItemAsync('access_token')
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
-        console.log('🔑 Token agregado a request:', config.url?.substring(0, 50))
+        console.log('🔑 Token de pastor agregado a request:', config.url?.substring(0, 50))
       } else {
         console.log('⚠️ No hay token disponible para:', config.url?.substring(0, 50))
       }

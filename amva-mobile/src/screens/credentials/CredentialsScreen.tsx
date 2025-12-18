@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -14,17 +14,68 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { CreditCard, CheckCircle, AlertCircle, Clock, Search, Badge } from 'lucide-react-native'
 import { credencialesApi, type Credencial } from '@api/credenciales'
 import { useAuth } from '@hooks/useAuth'
+import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 
 export function CredentialsScreen() {
   const { pastor } = useAuth()
+  const { invitado, isAuthenticated: isInvitadoAuthenticated } = useInvitadoAuth()
   const [documento, setDocumento] = useState('')
   const [loading, setLoading] = useState(false)
+  const [autoLoading, setAutoLoading] = useState(false)
   const [credenciales, setCredenciales] = useState<{
-    ministerial?: Credencial
-    capellania?: Credencial
+    ministerial?: Credencial | Credencial[]
+    capellania?: Credencial | Credencial[]
   }>({})
 
+  // Buscar automáticamente credenciales si el usuario está autenticado como invitado
+  useEffect(() => {
+    const buscarCredencialesAutomaticamente = async () => {
+      if (isInvitadoAuthenticated && invitado && !autoLoading) {
+        setAutoLoading(true)
+        try {
+          const result = await credencialesApi.obtenerMisCredenciales()
+          if (result.ministerial || result.capellania) {
+            setCredenciales(result)
+          }
+        } catch (error: unknown) {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Error al obtener credenciales'
+          console.error('Error obteniendo credenciales automáticamente:', errorMessage)
+          // No mostrar alerta, solo loggear el error
+        } finally {
+          setAutoLoading(false)
+        }
+      }
+    }
+
+    void buscarCredencialesAutomaticamente()
+  }, [isInvitadoAuthenticated, invitado, autoLoading])
+
   const handleConsultar = async () => {
+    // Si es invitado autenticado, usar el endpoint automático
+    if (isInvitadoAuthenticated && invitado) {
+      setLoading(true)
+      try {
+        const result = await credencialesApi.obtenerMisCredenciales()
+        if (result.ministerial || result.capellania) {
+          setCredenciales(result)
+        } else {
+          Alert.alert(
+            'No se encontraron credenciales',
+            'No se encontraron credenciales asociadas a tus inscripciones. Asegúrate de haber ingresado tu DNI al inscribirte a una convención.'
+          )
+        }
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Error al consultar credenciales'
+        Alert.alert('Error', errorMessage)
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
+
+    // Si no es invitado o no está autenticado, usar búsqueda manual por documento
     if (!documento.trim()) {
       Alert.alert('Campo requerido', 'Por favor ingresa tu número de documento')
       return
@@ -102,7 +153,19 @@ export function CredentialsScreen() {
     }
   }
 
-  const renderCredencialCard = (credencial: Credencial, tipo: 'ministerial' | 'capellania') => {
+  const renderCredencialCard = (
+    credencial: Credencial | Credencial[],
+    tipo: 'ministerial' | 'capellania'
+  ) => {
+    // Si es un array, renderizar múltiples cards
+    if (Array.isArray(credencial)) {
+      return credencial.map(c => renderCredencialCardSingle(c, tipo))
+    }
+    // Si es un solo objeto, renderizar una card
+    return renderCredencialCardSingle(credencial, tipo)
+  }
+
+  const renderCredencialCardSingle = (credencial: Credencial, tipo: 'ministerial' | 'capellania') => {
     const estadoColor = getEstadoColor(credencial.estado)
     const EstadoIcon = getEstadoIcon(credencial.estado)
 
@@ -188,39 +251,72 @@ export function CredentialsScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Consultar Credenciales</Text>
           <Text style={styles.subtitle}>
-            Ingresa tu número de documento para consultar tus credenciales
+            {isInvitadoAuthenticated && invitado
+              ? 'Tus credenciales se cargan automáticamente basándose en tu DNI de inscripciones'
+              : 'Ingresa tu número de documento para consultar tus credenciales'}
           </Text>
         </View>
 
-        <View style={styles.searchContainer}>
-          <View style={styles.searchInputContainer}>
-            <Search size={20} color="rgba(255, 255, 255, 0.5)" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Número de documento"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              value={documento}
-              onChangeText={setDocumento}
-              keyboardType="numeric"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+        {/* Mostrar búsqueda manual solo si NO es invitado autenticado */}
+        {!isInvitadoAuthenticated && (
+          <View style={styles.searchContainer}>
+            <View style={styles.searchInputContainer}>
+              <Search size={20} color="rgba(255, 255, 255, 0.5)" style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Número de documento"
+                placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                value={documento}
+                onChangeText={setDocumento}
+                keyboardType="numeric"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            <TouchableOpacity
+              style={[styles.searchButton, loading && styles.searchButtonDisabled]}
+              onPress={handleConsultar}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Search size={20} color="#fff" />
+                  <Text style={styles.searchButtonText}>Consultar</Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={[styles.searchButton, loading && styles.searchButtonDisabled]}
-            onPress={handleConsultar}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Search size={20} color="#fff" />
-                <Text style={styles.searchButtonText}>Consultar</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
+        )}
+
+        {/* Mostrar botón de actualizar si es invitado autenticado */}
+        {isInvitadoAuthenticated && invitado && (
+          <View style={styles.searchContainer}>
+            <TouchableOpacity
+              style={[styles.searchButton, (loading || autoLoading) && styles.searchButtonDisabled]}
+              onPress={handleConsultar}
+              disabled={loading || autoLoading}
+            >
+              {(loading || autoLoading) ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Search size={20} color="#fff" />
+                  <Text style={styles.searchButtonText}>Actualizar Credenciales</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Mostrar loading automático si es invitado */}
+        {isInvitadoAuthenticated && invitado && autoLoading && (
+          <View style={styles.autoLoadingContainer}>
+            <ActivityIndicator color="#22c55e" size="small" />
+            <Text style={styles.autoLoadingText}>Buscando tus credenciales...</Text>
+          </View>
+        )}
 
         {(credenciales.ministerial || credenciales.capellania) && (
           <View style={styles.credentialsContainer}>
@@ -229,14 +325,20 @@ export function CredentialsScreen() {
           </View>
         )}
 
-        {!loading && !credenciales.ministerial && !credenciales.capellania && documento && (
-          <View style={styles.emptyContainer}>
-            <CreditCard size={48} color="rgba(255, 255, 255, 0.3)" />
-            <Text style={styles.emptyText}>
-              Ingresa un número de documento y presiona "Consultar" para ver tus credenciales
-            </Text>
-          </View>
-        )}
+        {!loading &&
+          !autoLoading &&
+          !credenciales.ministerial &&
+          !credenciales.capellania &&
+          (documento || (isInvitadoAuthenticated && invitado)) && (
+            <View style={styles.emptyContainer}>
+              <CreditCard size={48} color="rgba(255, 255, 255, 0.3)" />
+              <Text style={styles.emptyText}>
+                {isInvitadoAuthenticated && invitado
+                  ? 'No se encontraron credenciales asociadas a tus inscripciones. Asegúrate de haber ingresado tu DNI al inscribirte a una convención.'
+                  : 'Ingresa un número de documento y presiona "Consultar" para ver tus credenciales'}
+              </Text>
+            </View>
+          )}
       </ScrollView>
     </SafeAreaView>
   )
@@ -397,6 +499,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     lineHeight: 20,
+  },
+  autoLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 12,
+  },
+  autoLoadingText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
   },
 })
 
