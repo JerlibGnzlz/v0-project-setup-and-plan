@@ -129,7 +129,7 @@ apiClient.interceptors.request.use(
       }
 
       // Detectar endpoints exclusivos de invitados (NO aceptan token de pastor)
-      const isExclusiveInvitadoEndpoint = 
+      const isExclusiveInvitadoEndpoint =
         config.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
         config.url?.includes('/credenciales-capellania/mis-credenciales') ||
         config.url?.includes('/inscripciones/my') ||
@@ -155,7 +155,7 @@ apiClient.interceptors.request.use(
       if (isExclusiveInvitadoEndpoint) {
         const invitadoToken = await SecureStore.getItemAsync('invitado_token')
         const invitadoRefreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
-        
+
         if (invitadoToken) {
           config.headers.Authorization = `Bearer ${invitadoToken}`
           console.log('🔑 Token de invitado agregado a request:', config.url?.substring(0, 50))
@@ -208,7 +208,7 @@ apiClient.interceptors.response.use(
     // Manejar errores de red antes de intentar refresh
     const errorCode = (error as { code?: string })?.code
     const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-    
+
     // Si es un error de red, proporcionar mensaje más útil y no intentar refresh
     if (
       errorCode === 'ERR_NETWORK' ||
@@ -224,7 +224,7 @@ apiClient.interceptors.response.use(
         message: errorMessage,
         url: originalRequest?.url,
       })
-      
+
       const networkError = new Error(
         `Error de conexión: No se pudo conectar al servidor. Verifica tu conexión a internet.`
       ) as Error & { code?: string; isNetworkError?: boolean; originalError?: unknown }
@@ -302,7 +302,7 @@ apiClient.interceptors.response.use(
         if (!refreshToken) {
           console.warn(`⚠️ No hay ${refreshTokenKey} disponible para refrescar`)
           console.warn('⚠️ Limpiando tokens y forzando re-login...')
-          
+
           // Limpiar tokens de invitado si es endpoint de invitado
           if (isInvitadoEndpoint) {
             try {
@@ -313,7 +313,7 @@ apiClient.interceptors.response.use(
               console.error('❌ Error limpiando tokens:', cleanError)
             }
           }
-          
+
           return Promise.reject(error)
         }
 
