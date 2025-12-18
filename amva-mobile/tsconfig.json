@@ -4,10 +4,11 @@
     "module": "esnext",
     "jsx": "react-jsx",
     "strict": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "typeRoots": ["./node_modules/@types"],
     "noImplicitAny": false,
     "resolveJsonModule": true,
     "baseUrl": "./",
@@ -18,7 +19,7 @@
       "@hooks/*": ["src/hooks/*"],
       "@components/*": ["src/components/*"]
     },
-    "types": ["expo-secure-store", "react-native", "node"]
+    "types": ["expo-secure-store", "react-native", "node", "@react-navigation/native"]
   },
   "include": ["src", "App.tsx", "src/types/**/*.d.ts"],
   "exclude": ["node_modules"],

@@ -58,7 +58,7 @@ export function LoginScreen() {
     googleClientId.includes('.apps.googleusercontent.com')
   
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
-    isValidClientId
+    isValidClientId && googleClientId
       ? {
           clientId: googleClientId,
         }

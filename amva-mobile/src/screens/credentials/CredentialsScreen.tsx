@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { CreditCard, CheckCircle, AlertCircle, Clock, Search } from 'lucide-react-native'
+import { CreditCard, CheckCircle, AlertCircle, Clock, Search, Badge } from 'lucide-react-native'
 import { credencialesApi, type Credencial } from '@api/credenciales'
 import { useAuth } from '@hooks/useAuth'
 
@@ -72,7 +72,7 @@ export function CredentialsScreen() {
       case 'vencida':
         return AlertCircle
       default:
-        return Card
+        return Badge
     }
   }
 
