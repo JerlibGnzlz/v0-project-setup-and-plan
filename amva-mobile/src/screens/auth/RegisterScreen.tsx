@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  Image,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { invitadoAuthApi } from '@api/invitado-auth'
@@ -222,11 +223,13 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
           <View style={styles.header}>
             <View style={styles.logoContainer}>
               <View style={styles.logoGlow} />
-              <View style={styles.logoCircle}>
-                <Text style={styles.logoText}>🌍</Text>
-              </View>
+              <Image
+                source={require('../../assets/images/logo-amva-movil.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
-            <Text style={styles.title}>AMVA Go</Text>
+            <Text style={styles.title}>AMVA Móvil</Text>
             <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
           </View>
 

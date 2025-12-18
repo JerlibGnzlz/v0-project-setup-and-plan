@@ -7,6 +7,7 @@ import {
   ScrollView,
   Animated,
   Dimensions,
+  Image,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -132,9 +133,11 @@ export function HomeScreen({ navigation }: Props) {
           >
             <View style={styles.logoContainer}>
               <View style={styles.logoGlow} />
-              <View style={styles.logoCircle}>
-                <Text style={styles.logoText}>🌍</Text>
-              </View>
+              <Image
+                source={require('../../assets/images/logo-amva-movil.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.welcomeText}>Bienvenido</Text>
             {invitado && (
@@ -144,7 +147,7 @@ export function HomeScreen({ navigation }: Props) {
             )}
             <View style={styles.badge}>
               <Sparkles size={16} color="#22c55e" />
-              <Text style={styles.badgeText}>AMVA Go</Text>
+              <Text style={styles.badgeText}>AMVA Móvil</Text>
             </View>
           </LinearGradient>
         </Animated.View>
