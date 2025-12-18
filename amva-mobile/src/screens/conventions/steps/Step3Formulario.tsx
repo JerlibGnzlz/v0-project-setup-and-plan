@@ -55,6 +55,7 @@ export function Step3Formulario({
         : initialData?.numeroCuotas
           ? parseInt(String(initialData.numeroCuotas), 10)
           : 3,
+    dni: initialData?.dni || '', // DNI para relacionar con credenciales
     documentoUrl: initialData?.documentoUrl || '',
     notas: initialData?.notas || '',
   })
@@ -211,6 +212,7 @@ export function Step3Formulario({
           typeof formData.numeroCuotas === 'number'
             ? formData.numeroCuotas
             : parseInt(String(formData.numeroCuotas || 3), 10),
+        dni: formData.dni.trim() || undefined, // DNI para relacionar con credenciales
         origenRegistro: 'mobile',
         documentoUrl: formData.documentoUrl || undefined,
         notas: formData.notas.trim() || undefined,
@@ -398,13 +400,40 @@ export function Step3Formulario({
                 placeholder="Nombre de tu iglesia o sede"
                 placeholderTextColor="rgba(255, 255, 255, 0.4)"
                 autoCapitalize="words"
-                returnKeyType="done"
+                returnKeyType="next"
                 onFocus={() => handleInputFocus('sede')}
                 onBlur={() => handleInputBlur('sede', formData.sede)}
                 onLayout={e => handleInputLayout('sede', e)}
-                onSubmitEditing={() => Keyboard.dismiss()}
+                onSubmitEditing={() => inputRefs.current['dni']?.focus()}
               />
               {errors.sede && <Text style={styles.errorText}>{errors.sede}</Text>}
+            </View>
+
+            {/* DNI */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                DNI / Documento de Identidad
+                <Text style={styles.helperText}> (Para credenciales)</Text>
+              </Text>
+              <TextInput
+                ref={ref => {
+                  inputRefs.current['dni'] = ref
+                }}
+                style={styles.input}
+                value={formData.dni}
+                onChangeText={value => handleChange('dni', value)}
+                placeholder="Ej: 12345678"
+                placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                keyboardType="numeric"
+                maxLength={20}
+                returnKeyType="done"
+                onFocus={() => handleInputFocus('dni')}
+                onLayout={e => handleInputLayout('dni', e)}
+                onSubmitEditing={() => Keyboard.dismiss()}
+              />
+              <Text style={styles.helperText}>
+                Ingresa tu DNI para poder consultar tus credenciales ministeriales y de capellanía
+              </Text>
             </View>
 
             {/* Tipo de Inscripción y Número de Cuotas */}

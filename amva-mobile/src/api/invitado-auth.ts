@@ -70,5 +70,11 @@ export const invitadoAuthApi = {
     })
     return response.data
   },
+
+  logout: async (refreshToken?: string): Promise<void> => {
+    if (refreshToken) {
+      await apiClient.post('/auth/invitado/logout', { refreshToken })
+    }
+  },
 }
 

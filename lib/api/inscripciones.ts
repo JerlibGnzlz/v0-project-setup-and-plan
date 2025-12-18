@@ -46,6 +46,7 @@ export interface CreateInscripcionDto {
   sede?: string
   tipoInscripcion?: string
   numeroCuotas?: number // 1, 2 o 3 cuotas
+  dni?: string // DNI para relacionar con credenciales ministeriales y de capellanía
   origenRegistro?: string // "web", "mobile", "dashboard"
   documentoUrl?: string // URL del documento/comprobante subido
   notas?: string

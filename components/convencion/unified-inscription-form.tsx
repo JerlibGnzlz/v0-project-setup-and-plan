@@ -118,6 +118,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
     provincia: '',
     tipoInscripcion: user.tipo === 'INVITADO' ? 'invitado' : 'pastor',
     numeroCuotas: 3,
+    dni: '', // DNI para relacionar con credenciales
     documentoUrl: '',
     notas: '',
   })
@@ -243,6 +244,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
         provincia: formData.provincia.trim() || undefined,
         tipoInscripcion: formData.tipoInscripcion,
         numeroCuotas: formData.numeroCuotas,
+        dni: formData.dni?.trim() || undefined, // DNI para relacionar con credenciales
         documentoUrl: formData.documentoUrl?.trim() || undefined,
         notas: formData.notas?.trim() || undefined,
         origenRegistro: 'web',
@@ -485,6 +487,23 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                       placeholder="Nombre de tu iglesia"
                     />
                     {errors.sede && <p className="text-xs text-red-400">{errors.sede}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white/90">
+                      DNI / Documento de Identidad
+                      <span className="text-white/50 text-xs ml-2">(Para credenciales)</span>
+                    </Label>
+                    <Input
+                      value={formData.dni}
+                      onChange={e => setFormData({ ...formData, dni: e.target.value })}
+                      className="bg-white/5 border-white/20 text-white"
+                      placeholder="Ej: 12345678"
+                      maxLength={20}
+                    />
+                    <p className="text-xs text-white/50">
+                      Ingresa tu DNI o documento de identidad para poder consultar tus credenciales ministeriales y de capellanía
+                    </p>
                   </div>
 
                   <div className="space-y-2">
