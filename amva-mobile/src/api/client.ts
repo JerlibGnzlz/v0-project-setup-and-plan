@@ -172,7 +172,12 @@ apiClient.interceptors.response.use(
         originalRequest.url?.includes('/auth/pastor/login') ||
         originalRequest.url?.includes('/auth/pastor/register') ||
         originalRequest.url?.includes('/auth/pastor/refresh') ||
-        originalRequest.url?.includes('/auth/pastor/register-complete')
+        originalRequest.url?.includes('/auth/pastor/register-complete') ||
+        originalRequest.url?.includes('/auth/invitado/login') ||
+        originalRequest.url?.includes('/auth/invitado/register') ||
+        originalRequest.url?.includes('/auth/invitado/refresh') ||
+        originalRequest.url?.includes('/auth/invitado/register-complete') ||
+        originalRequest.url?.includes('/auth/invitado/google/mobile')
 
       if (isAuthEndpoint) {
         console.log('⚠️ Error 401 en endpoint de autenticación, no se intenta refresh')
@@ -180,15 +185,42 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        // Intentar refrescar el token (endpoints de pastores)
-        const refreshToken = await SecureStore.getItemAsync('refresh_token')
-        if (!refreshToken) {
-          console.log('⚠️ No hay refresh token disponible, limpiando tokens')
-          await SecureStore.deleteItemAsync('access_token')
-          return Promise.reject(new Error('No refresh token available'))
+        // Detectar si es un endpoint de invitados o de pastores
+        const isInvitadoEndpoint =
+          originalRequest.url?.includes('/auth/invitado') ||
+          originalRequest.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
+          originalRequest.url?.includes('/credenciales-capellania/mis-credenciales') ||
+          originalRequest.url?.includes('/credenciales-ministeriales/consultar/') ||
+          originalRequest.url?.includes('/credenciales-capellania/consultar/')
+
+        // Intentar refrescar el token según el tipo de usuario
+        let refreshToken: string | null = null
+        let refreshEndpoint = ''
+        let tokenKey = ''
+        let refreshTokenKey = ''
+
+        if (isInvitadoEndpoint) {
+          // Para invitados
+          refreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
+          refreshEndpoint = '/auth/invitado/refresh'
+          tokenKey = 'invitado_token'
+          refreshTokenKey = 'invitado_refresh_token'
+        } else {
+          // Para pastores
+          refreshToken = await SecureStore.getItemAsync('refresh_token')
+          refreshEndpoint = '/auth/pastor/refresh'
+          tokenKey = 'access_token'
+          refreshTokenKey = 'refresh_token'
         }
 
-        console.log('🔄 Intentando refrescar token...')
+        // Si no hay refresh token, NO limpiar tokens - solo rechazar el error
+        // El usuario puede tener un token válido pero sin refresh token (ej: registro reciente)
+        if (!refreshToken) {
+          console.log(`⚠️ No hay ${refreshTokenKey} disponible para refrescar`)
+          return Promise.reject(error)
+        }
+
+        console.log(`🔄 Intentando refrescar token de ${isInvitadoEndpoint ? 'invitado' : 'pastor'}...`)
         // Crear una instancia separada de axios para evitar interceptor infinito
         const refreshAxios = axios.create({
           baseURL: API_URL,
@@ -199,7 +231,7 @@ apiClient.interceptors.response.use(
           },
         })
 
-        const response = await refreshAxios.post('/auth/pastor/refresh', {
+        const response = await refreshAxios.post(refreshEndpoint, {
           refreshToken: refreshToken,
         })
 
@@ -209,13 +241,13 @@ apiClient.interceptors.response.use(
           throw new Error('No access token recibido en respuesta de refresh')
         }
 
-        // Guardar nuevos tokens
-        await SecureStore.setItemAsync('access_token', access_token)
+        // Guardar nuevos tokens según el tipo de usuario
+        await SecureStore.setItemAsync(tokenKey, access_token)
         if (newRefreshToken) {
-          await SecureStore.setItemAsync('refresh_token', newRefreshToken)
+          await SecureStore.setItemAsync(refreshTokenKey, newRefreshToken)
         }
 
-        console.log('✅ Token refrescado exitosamente')
+        console.log(`✅ Token de ${isInvitadoEndpoint ? 'invitado' : 'pastor'} refrescado exitosamente`)
 
         // Asegurar que el header se actualice correctamente
         if (!originalRequest.headers) {
@@ -241,6 +273,14 @@ apiClient.interceptors.response.use(
           code: errorCode,
         })
 
+        // Detectar si es un endpoint de invitados para limpiar los tokens correctos
+        const isInvitadoEndpoint =
+          originalRequest.url?.includes('/auth/invitado') ||
+          originalRequest.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
+          originalRequest.url?.includes('/credenciales-capellania/mis-credenciales') ||
+          originalRequest.url?.includes('/credenciales-ministeriales/consultar/') ||
+          originalRequest.url?.includes('/credenciales-capellania/consultar/')
+
         // Si es un error de red (DNS, conexión, etc.), no limpiar tokens
         // Solo limpiar si es 401 (token inválido) o 403 (no autorizado)
         const shouldCleanTokens =
@@ -248,9 +288,15 @@ apiClient.interceptors.response.use(
 
         if (shouldCleanTokens) {
           try {
-            await SecureStore.deleteItemAsync('access_token')
-            await SecureStore.deleteItemAsync('refresh_token')
-            console.log('🧹 Tokens limpiados debido a error de autorización')
+            if (isInvitadoEndpoint) {
+              await SecureStore.deleteItemAsync('invitado_token')
+              await SecureStore.deleteItemAsync('invitado_refresh_token')
+              console.log('🧹 Tokens de invitado limpiados debido a error de autorización')
+            } else {
+              await SecureStore.deleteItemAsync('access_token')
+              await SecureStore.deleteItemAsync('refresh_token')
+              console.log('🧹 Tokens de pastor limpiados debido a error de autorización')
+            }
           } catch (cleanupError) {
             console.error('❌ Error limpiando tokens:', cleanupError)
           }

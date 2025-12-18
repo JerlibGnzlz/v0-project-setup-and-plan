@@ -28,42 +28,61 @@ export function CredentialsScreen() {
   }>({})
 
   // Buscar automáticamente credenciales si el usuario está autenticado como invitado
+  // Solo ejecutar una vez cuando el invitado se autentica, no en cada render
   useEffect(() => {
-    const buscarCredencialesAutomaticamente = async () => {
-      if (isInvitadoAuthenticated && invitado && !autoLoading) {
-        setAutoLoading(true)
-        try {
-          console.log('🔍 Buscando credenciales automáticamente para invitado:', invitado.email)
-          const result = await credencialesApi.obtenerMisCredenciales()
-          console.log('📊 Resultado de búsqueda automática:', {
-            tieneMinisterial: !!result.ministerial,
-            tieneCapellania: !!result.capellania,
-            cantidadMinisterial: result.ministerial?.length || 0,
-            cantidadCapellania: result.capellania?.length || 0,
-          })
+    let isMounted = true
 
-          if (result.ministerial || result.capellania) {
-            setCredenciales(result)
-            console.log('✅ Credenciales cargadas automáticamente')
-          } else {
-            console.log('⚠️ No se encontraron credenciales automáticamente')
-          }
-        } catch (error: unknown) {
-          const errorMessage =
-            error instanceof Error ? error.message : 'Error al obtener credenciales'
-          console.error('❌ Error obteniendo credenciales automáticamente:', errorMessage)
-          if (error instanceof Error && error.stack) {
-            console.error('Stack trace:', error.stack)
-          }
-          // No mostrar alerta, solo loggear el error (el usuario puede buscar manualmente)
-        } finally {
+    const buscarCredencialesAutomaticamente = async () => {
+      // Solo buscar si está autenticado, tiene invitado, y no está cargando
+      if (!isInvitadoAuthenticated || !invitado || autoLoading) {
+        return
+      }
+
+      setAutoLoading(true)
+      try {
+        console.log('🔍 Buscando credenciales automáticamente para invitado:', invitado.email)
+        const result = await credencialesApi.obtenerMisCredenciales()
+        
+        if (!isMounted) return // Evitar actualizar estado si el componente se desmontó
+
+        console.log('📊 Resultado de búsqueda automática:', {
+          tieneMinisterial: !!result.ministerial,
+          tieneCapellania: !!result.capellania,
+          cantidadMinisterial: result.ministerial?.length || 0,
+          cantidadCapellania: result.capellania?.length || 0,
+        })
+
+        if (result.ministerial || result.capellania) {
+          setCredenciales(result)
+          console.log('✅ Credenciales cargadas automáticamente')
+        } else {
+          console.log('⚠️ No se encontraron credenciales automáticamente')
+        }
+      } catch (error: unknown) {
+        if (!isMounted) return // Evitar actualizar estado si el componente se desmontó
+        
+        const errorMessage =
+          error instanceof Error ? error.message : 'Error al obtener credenciales'
+        console.error('❌ Error obteniendo credenciales automáticamente:', errorMessage)
+        if (error instanceof Error && error.stack) {
+          console.error('Stack trace:', error.stack)
+        }
+        // No mostrar alerta, solo loggear el error (el usuario puede buscar manualmente)
+      } finally {
+        if (isMounted) {
           setAutoLoading(false)
         }
       }
     }
 
     void buscarCredencialesAutomaticamente()
-  }, [isInvitadoAuthenticated, invitado, autoLoading])
+
+    return () => {
+      isMounted = false
+    }
+    // Remover autoLoading de las dependencias para evitar loops infinitos
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInvitadoAuthenticated, invitado?.id])
 
   const handleConsultar = async () => {
     // Si es invitado autenticado, usar el endpoint automático
