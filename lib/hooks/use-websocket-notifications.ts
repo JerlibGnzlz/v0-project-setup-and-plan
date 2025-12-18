@@ -6,6 +6,7 @@ import { useAuth } from './use-auth'
 import { useUnreadCount } from './use-notifications'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { authApi } from '@/lib/api/auth'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
 
@@ -137,24 +138,31 @@ export function useWebSocketNotifications() {
           if (errorMessage.includes('expired') || errorMessage.includes('jwt expired')) {
             console.log('🔄 Token expirado detectado, intentando refrescar...')
             try {
-              const { refreshAccessToken } = await import('./use-auth')
-              const authStore = (await import('./use-auth')).useAuth.getState()
-              const refreshed = await authStore.refreshAccessToken()
+              const refreshToken = typeof window !== 'undefined'
+                ? localStorage.getItem('auth_refresh_token') || sessionStorage.getItem('auth_refresh_token')
+                : null
               
-              if (refreshed) {
+              if (refreshToken) {
+                const response = await authApi.refreshToken(refreshToken)
+                
+                // Guardar nuevos tokens
+                if (typeof window !== 'undefined') {
+                  const storage = localStorage.getItem('auth_token') ? localStorage : sessionStorage
+                  storage.setItem('auth_token', response.access_token)
+                  if (response.refresh_token) {
+                    storage.setItem('auth_refresh_token', response.refresh_token)
+                  }
+                }
+                
                 console.log('✅ Token refrescado exitosamente, reconectando WebSocket...')
                 // Reconectar con el nuevo token
-                const newToken = typeof window !== 'undefined'
-                  ? localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
-                  : null
-                
-                if (newToken && socketRef.current) {
+                if (socketRef.current) {
                   socketRef.current.disconnect()
-                  socketRef.current.auth = { token: newToken.replace('Bearer ', '') }
+                  socketRef.current.auth = { token: response.access_token.replace('Bearer ', '') }
                   socketRef.current.connect()
                 }
               } else {
-                console.warn('⚠️ No se pudo refrescar el token, el usuario necesitará iniciar sesión nuevamente')
+                console.warn('⚠️ No hay refresh token disponible, el usuario necesitará iniciar sesión nuevamente')
               }
             } catch (refreshError) {
               console.error('❌ Error al refrescar token:', refreshError)
@@ -172,24 +180,31 @@ export function useWebSocketNotifications() {
               if (errorData.type === 'TOKEN_EXPIRED') {
                 console.log('🔄 Token expirado recibido del servidor, intentando refrescar...')
                 try {
-                  const { refreshAccessToken } = await import('./use-auth')
-                  const authStore = (await import('./use-auth')).useAuth.getState()
-                  const refreshed = await authStore.refreshAccessToken()
+                  const refreshToken = typeof window !== 'undefined'
+                    ? localStorage.getItem('auth_refresh_token') || sessionStorage.getItem('auth_refresh_token')
+                    : null
                   
-                  if (refreshed) {
+                  if (refreshToken) {
+                    const response = await authApi.refreshToken(refreshToken)
+                    
+                    // Guardar nuevos tokens
+                    if (typeof window !== 'undefined') {
+                      const storage = localStorage.getItem('auth_token') ? localStorage : sessionStorage
+                      storage.setItem('auth_token', response.access_token)
+                      if (response.refresh_token) {
+                        storage.setItem('auth_refresh_token', response.refresh_token)
+                      }
+                    }
+                    
                     console.log('✅ Token refrescado exitosamente, reconectando WebSocket...')
                     // Reconectar con el nuevo token
-                    const newToken = typeof window !== 'undefined'
-                      ? localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
-                      : null
-                    
-                    if (newToken && socketRef.current) {
+                    if (socketRef.current) {
                       socketRef.current.disconnect()
-                      socketRef.current.auth = { token: newToken.replace('Bearer ', '') }
+                      socketRef.current.auth = { token: response.access_token.replace('Bearer ', '') }
                       socketRef.current.connect()
                     }
                   } else {
-                    console.warn('⚠️ No se pudo refrescar el token')
+                    console.warn('⚠️ No hay refresh token disponible')
                     toast.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
                   }
                 } catch (refreshError) {
