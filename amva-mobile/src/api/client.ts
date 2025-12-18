@@ -302,6 +302,19 @@ apiClient.interceptors.response.use(
           originalRequest.url?.includes('/credenciales-capellania/consultar/')
 
         // Si es un error de red (DNS, conexión, etc.), no limpiar tokens
+        if (
+          errorCode === 'ERR_NETWORK' ||
+          errorCode === 'ECONNREFUSED' ||
+          errorCode === 'ETIMEDOUT' ||
+          errorCode === 'ENOTFOUND' ||
+          errorMessage.includes('Network Error') ||
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('getaddrinfo')
+        ) {
+          console.log('⚠️ Error de red al refrescar token, manteniendo tokens para reintentar')
+          return Promise.reject(error)
+        }
+
         // Solo limpiar si es 401 (token inválido) o 403 (no autorizado)
         const shouldCleanTokens =
           axiosError?.response?.status === 401 || axiosError?.response?.status === 403
