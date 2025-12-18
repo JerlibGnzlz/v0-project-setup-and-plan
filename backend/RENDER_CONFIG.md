@@ -5,10 +5,20 @@
 Configura el **Build Command** en Render.com a:
 
 ```bash
-chmod +x render-build.sh && ./render-build.sh
+cd backend && npm ci && npx prisma generate && npx prisma migrate deploy && npm run build
 ```
 
-O si Render.com está configurado para ejecutar desde la raíz del proyecto:
+**IMPORTANTE**: Render.com ejecuta desde la raíz del repositorio, por lo que necesitas `cd backend` primero.
+
+### Alternativa: Usar el script render-build.sh
+
+Si prefieres usar el script, el Build Command debe ser:
+
+```bash
+cd backend && bash render-build.sh
+```
+
+O si el script tiene permisos de ejecución:
 
 ```bash
 cd backend && chmod +x render-build.sh && ./render-build.sh
