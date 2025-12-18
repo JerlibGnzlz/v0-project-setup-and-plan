@@ -22,6 +22,7 @@ import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { invitadoAuthApi } from '@api/invitado-auth'
 import { testBackendConnection } from '../../utils/testConnection'
 import { RegisterScreen } from './RegisterScreen'
+import { Alert } from '@utils/alert'
 
 // Necesario para que expo-auth-session funcione correctamente
 WebBrowser.maybeCompleteAuthSession()
@@ -89,7 +90,7 @@ export function LoginScreen() {
       if (response?.type === 'success') {
         const { id_token } = response.params
         if (!id_token) {
-          Alert.alert('Error', 'No se recibió el token de Google')
+          Alert.alert('Error', 'No se recibió el token de Google', undefined, 'error')
           setGoogleLoading(false)
           return
         }
@@ -106,7 +107,8 @@ export function LoginScreen() {
           Alert.alert(
             '¡Bienvenido!',
             'Has iniciado sesión exitosamente',
-            [{ text: 'OK' }]
+            [{ text: 'OK' }],
+            'success',
           )
         } catch (error: unknown) {
           console.error('❌ Error en login con Google:', error)
@@ -123,7 +125,7 @@ export function LoginScreen() {
               errorMessage = axiosError.message
             }
           }
-          Alert.alert('Error de autenticación', errorMessage)
+          Alert.alert('Error de autenticación', errorMessage, undefined, 'error')
         } finally {
           setGoogleLoading(false)
         }
@@ -161,7 +163,7 @@ export function LoginScreen() {
           }
         }
 
-        Alert.alert('Error de autenticación con Google', errorMessage)
+        Alert.alert('Error de autenticación con Google', errorMessage, undefined, 'error')
         setGoogleLoading(false)
       } else if (response?.type === 'dismiss') {
         console.log('ℹ️ Usuario canceló la autenticación con Google')
@@ -198,7 +200,7 @@ export function LoginScreen() {
 
   const handleSubmit = async () => {
     if (!email || !password) {
-      Alert.alert('Campos requeridos', 'Ingresa tu correo y contraseña.')
+      Alert.alert('Campos requeridos', 'Ingresa tu correo y contraseña.', undefined, 'warning')
       return
     }
     try {
@@ -272,7 +274,7 @@ export function LoginScreen() {
         errorMessage = error.message
       }
 
-      Alert.alert('Error de inicio de sesión', errorMessage)
+      Alert.alert('Error de inicio de sesión', errorMessage, undefined, 'error')
     }
   }
 

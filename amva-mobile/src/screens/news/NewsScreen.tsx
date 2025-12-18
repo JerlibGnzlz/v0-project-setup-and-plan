@@ -8,10 +8,11 @@ import {
   TouchableOpacity,
   RefreshControl,
   Image,
+  Animated,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Newspaper, Calendar as CalendarIcon } from 'lucide-react-native'
+import { Newspaper, Calendar as CalendarIcon, ArrowRight } from 'lucide-react-native'
 import { apiClient } from '@api/client'
 
 interface Noticia {
@@ -124,30 +125,80 @@ export function NewsScreen() {
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
             }
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.card} activeOpacity={0.8}>
-                <LinearGradient
-                  colors={['rgba(34, 197, 94, 0.1)', 'rgba(15, 23, 42, 0.9)']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.cardGradient}
+            renderItem={({ item, index }) => {
+              const fadeAnim = React.useRef(new Animated.Value(0)).current
+              const slideAnim = React.useRef(new Animated.Value(30)).current
+
+              React.useEffect(() => {
+                Animated.parallel([
+                  Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 400,
+                    delay: index * 100,
+                    useNativeDriver: true,
+                  }),
+                  Animated.spring(slideAnim, {
+                    toValue: 0,
+                    tension: 50,
+                    friction: 8,
+                    delay: index * 100,
+                    useNativeDriver: true,
+                  }),
+                ]).start()
+              }, [])
+
+              return (
+                <Animated.View
+                  style={{
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }],
+                  }}
                 >
-                  <View style={styles.cardHeader}>
-                    <View style={styles.categoryBadge}>
-                      <Text style={styles.categoryText}>{item.categoria}</Text>
-                    </View>
-                    {item.fechaPublicacion && (
-                      <View style={styles.dateContainer}>
-                        <CalendarIcon size={14} color="rgba(255, 255, 255, 0.5)" />
-                        <Text style={styles.dateText}>{formatDate(item.fechaPublicacion)}</Text>
+                  <TouchableOpacity style={styles.card} activeOpacity={0.85}>
+                    <LinearGradient
+                      colors={['rgba(34, 197, 94, 0.12)', 'rgba(59, 130, 246, 0.08)', 'rgba(15, 23, 42, 0.95)']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.cardGradient}
+                    >
+                      {item.imagenUrl && (
+                        <View style={styles.imageContainer}>
+                          <Image source={{ uri: item.imagenUrl }} style={styles.cardImage} resizeMode="cover" />
+                          <View style={styles.imageOverlay} />
+                        </View>
+                      )}
+                      
+                      <View style={styles.cardHeader}>
+                        <View style={styles.categoryBadge}>
+                          <Text style={styles.categoryText}>{item.categoria}</Text>
+                        </View>
+                        {item.fechaPublicacion && (
+                          <View style={styles.dateContainer}>
+                            <CalendarIcon size={14} color="rgba(255, 255, 255, 0.6)" />
+                            <Text style={styles.dateText}>{formatDate(item.fechaPublicacion)}</Text>
+                          </View>
+                        )}
                       </View>
-                    )}
-                  </View>
-                  <Text style={styles.cardTitle}>{item.titulo}</Text>
-                  {item.extracto && <Text style={styles.cardText}>{item.extracto}</Text>}
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
+                      
+                      <Text style={styles.cardTitle} numberOfLines={2}>{item.titulo}</Text>
+                      
+                      {item.extracto && (
+                        <Text style={styles.cardText} numberOfLines={3}>
+                          {item.extracto}
+                        </Text>
+                      )}
+                      
+                      <View style={styles.cardFooter}>
+                        <View style={styles.readMoreContainer}>
+                          <Text style={styles.readMoreText}>Leer más</Text>
+                          <ArrowRight size={16} color="#22c55e" />
+                        </View>
+                      </View>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </Animated.View>
+              )
+            }}
           />
         )}
       </View>
@@ -203,14 +254,41 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   card: {
-    marginBottom: 16,
-    borderRadius: 16,
+    marginBottom: 20,
+    borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   cardGradient: {
     padding: 20,
+  },
+  imageContainer: {
+    width: '100%',
+    height: 180,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+    marginHorizontal: -20,
+    marginTop: -20,
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imageOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+    background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -242,16 +320,33 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.5)',
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 8,
-    lineHeight: 24,
+    marginBottom: 12,
+    lineHeight: 26,
   },
   cardText: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.75)',
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  cardFooter: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  readMoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  readMoreText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
-    lineHeight: 20,
+    fontWeight: '600',
+    color: '#22c55e',
   },
   emptyContainer: {
     flex: 1,

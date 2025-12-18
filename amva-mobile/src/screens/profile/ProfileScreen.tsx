@@ -1,32 +1,38 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Image } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { User, Mail, Phone, MapPin, Tag, LogOut } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
+import { Alert } from '@utils/alert'
 
 export function ProfileScreen() {
   const { invitado, logout } = useInvitadoAuth()
 
   const handleLogout = () => {
-    Alert.alert('Cerrar Sesión', '¿Estás seguro de que deseas cerrar sesión?', [
-      {
-        text: 'Cancelar',
-        style: 'cancel',
-      },
-      {
-        text: 'Cerrar Sesión',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await logout()
-          } catch (error) {
-            console.error('Error al cerrar sesión:', error)
-            Alert.alert('Error', 'No se pudo cerrar sesión. Intenta nuevamente.')
-          }
+    Alert.alert(
+      'Cerrar Sesión',
+      '¿Estás seguro de que deseas cerrar sesión?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
         },
-      },
-    ])
+        {
+          text: 'Cerrar Sesión',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout()
+            } catch (error) {
+              console.error('Error al cerrar sesión:', error)
+              Alert.alert('Error', 'No se pudo cerrar sesión. Intenta nuevamente.', undefined, 'error')
+            }
+          },
+        },
+      ],
+      'confirm',
+    )
   }
 
   if (!invitado) {
