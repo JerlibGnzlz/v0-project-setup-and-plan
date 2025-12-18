@@ -15,9 +15,12 @@ import {
   Animated,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Mail, Lock, User, Phone, MapPin, CheckCircle, AlertCircle } from 'lucide-react-native'
 import { invitadoAuthApi } from '@api/invitado-auth'
 import * as SecureStore from 'expo-secure-store'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
+import { Alert } from '@utils/alert'
 
 interface RegisterScreenProps {
   onSuccess: () => void
@@ -41,7 +44,19 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [keyboardVisible, setKeyboardVisible] = useState(false)
+  const [focusedField, setFocusedField] = useState<string | null>(null)
   const logoScaleAnim = useRef(new Animated.Value(1)).current
+  
+  // Animaciones de focus para cada input
+  const focusAnims = {
+    nombre: useRef(new Animated.Value(0)).current,
+    apellido: useRef(new Animated.Value(0)).current,
+    email: useRef(new Animated.Value(0)).current,
+    telefono: useRef(new Animated.Value(0)).current,
+    sede: useRef(new Animated.Value(0)).current,
+    password: useRef(new Animated.Value(0)).current,
+    confirmPassword: useRef(new Animated.Value(0)).current,
+  }
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -139,12 +154,83 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
   }
 
   const handleInputFocus = (field: string) => {
+    setFocusedField(field)
+    const anim = focusAnims[field as keyof typeof focusAnims]
+    if (anim) {
+      Animated.spring(anim, {
+        toValue: 1,
+        useNativeDriver: false,
+        tension: 100,
+        friction: 8,
+      }).start()
+    }
     scrollToInput(field)
   }
 
-  const handleInputLayout = (field: string, event: any) => {
-    const { y } = event.nativeEvent.layout
-    inputPositions.current[field] = y
+  const handleInputBlur = (field: string, value: string) => {
+    setFocusedField(null)
+    const anim = focusAnims[field as keyof typeof focusAnims]
+    if (anim) {
+      Animated.spring(anim, {
+        toValue: 0,
+        useNativeDriver: false,
+        tension: 100,
+        friction: 8,
+      }).start()
+    }
+    
+    // Validación en tiempo real al perder focus
+    const trimmedValue = value?.trim() || ''
+    if (trimmedValue.length > 0) {
+      validateField(field, trimmedValue)
+    }
+  }
+
+  const validateField = (field: string, value: string) => {
+    const newErrors: Record<string, string> = { ...errors }
+    
+    switch (field) {
+      case 'nombre':
+        if (!value || value.trim().length < 2) {
+          newErrors.nombre = 'El nombre debe tener al menos 2 caracteres'
+        } else {
+          delete newErrors.nombre
+        }
+        break
+      case 'apellido':
+        if (!value || value.trim().length < 2) {
+          newErrors.apellido = 'El apellido debe tener al menos 2 caracteres'
+        } else {
+          delete newErrors.apellido
+        }
+        break
+      case 'email':
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!value || !emailRegex.test(value)) {
+          newErrors.email = 'Correo electrónico inválido'
+        } else {
+          delete newErrors.email
+        }
+        break
+      case 'password':
+        if (!value || value.length < 8) {
+          newErrors.password = 'La contraseña debe tener al menos 8 caracteres'
+        } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
+          newErrors.password = 'Debe contener mayúscula, minúscula y número'
+        } else {
+          delete newErrors.password
+        }
+        break
+      case 'confirmPassword':
+        if (value !== formData.password) {
+          newErrors.confirmPassword = 'Las contraseñas no coinciden'
+        } else {
+          delete newErrors.confirmPassword
+        }
+        break
+    }
+    
+    setErrors(newErrors)
   }
 
   const handleInputBlur = (field: string, value: string) => {
@@ -180,8 +266,20 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
   }
 
   const handleSubmit = async () => {
+    Keyboard.dismiss()
     if (!validateForm()) {
-      Alert.alert('Campos inválidos', 'Por favor completa todos los campos correctamente.')
+      // Scroll al primer error
+      const firstErrorField = Object.keys(errors)[0]
+      if (firstErrorField) {
+        scrollToInput(firstErrorField)
+        inputRefs.current[firstErrorField]?.focus()
+      }
+      Alert.alert(
+        'Campos inválidos',
+        'Por favor completa todos los campos correctamente.',
+        undefined,
+        'warning',
+      )
       return
     }
 
@@ -242,7 +340,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
           : error.response.data.message
       }
 
-      Alert.alert('Error de registro', errorMessage)
+      Alert.alert('Error de registro', errorMessage, undefined, 'error')
     } finally {
       setLoading(false)
     }
@@ -295,169 +393,349 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
             <View style={styles.row}>
               <View style={styles.halfInput}>
                 <Text style={styles.label}>
-                  Nombre <Text style={styles.required}>*</Text>
+                  <User size={14} color="rgba(255, 255, 255, 0.6)" /> Nombre <Text style={styles.required}>*</Text>
                 </Text>
-                <TextInput
-                  ref={ref => {
-                    inputRefs.current['nombre'] = ref
-                  }}
-                  style={[styles.input, errors.nombre && styles.inputError]}
-                  value={formData.nombre}
-                  onChangeText={value => handleChange('nombre', value)}
-                  placeholder="Tu nombre"
-                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                  autoCapitalize="words"
-                  returnKeyType="next"
-                  onFocus={() => handleInputFocus('nombre')}
-                  onBlur={() => handleInputBlur('nombre', formData.nombre)}
-                  onLayout={e => handleInputLayout('nombre', e)}
-                  onSubmitEditing={() => inputRefs.current['apellido']?.focus()}
-                />
-                {errors.nombre && <Text style={styles.errorText}>{errors.nombre}</Text>}
+                <Animated.View
+                  style={[
+                    styles.inputContainer,
+                    {
+                      borderColor: focusAnims.nombre.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [
+                          errors.nombre ? 'rgba(239, 68, 68, 0.6)' : 'rgba(255, 255, 255, 0.2)',
+                          'rgba(34, 197, 94, 0.6)',
+                        ],
+                      }),
+                      shadowOpacity: focusAnims.nombre.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 0.2],
+                      }),
+                      shadowColor: errors.nombre ? '#ef4444' : '#22c55e',
+                    },
+                    errors.nombre && styles.inputErrorContainer,
+                  ]}
+                >
+                  <TextInput
+                    ref={ref => {
+                      inputRefs.current['nombre'] = ref
+                    }}
+                    style={styles.input}
+                    value={formData.nombre}
+                    onChangeText={value => handleChange('nombre', value)}
+                    placeholder="Tu nombre"
+                    placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                    autoCapitalize="words"
+                    returnKeyType="next"
+                    onFocus={() => handleInputFocus('nombre')}
+                    onBlur={() => handleInputBlur('nombre', formData.nombre)}
+                    onSubmitEditing={() => inputRefs.current['apellido']?.focus()}
+                  />
+                </Animated.View>
+                {errors.nombre && (
+                  <View style={styles.errorContainer}>
+                    <AlertCircle size={12} color="#ef4444" />
+                    <Text style={styles.errorText}>{errors.nombre}</Text>
+                  </View>
+                )}
               </View>
 
               <View style={styles.halfInput}>
                 <Text style={styles.label}>
-                  Apellido <Text style={styles.required}>*</Text>
+                  <User size={14} color="rgba(255, 255, 255, 0.6)" /> Apellido <Text style={styles.required}>*</Text>
                 </Text>
-                <TextInput
-                  ref={ref => {
-                    inputRefs.current['apellido'] = ref
-                  }}
-                  style={[styles.input, errors.apellido && styles.inputError]}
-                  value={formData.apellido}
-                  onChangeText={value => handleChange('apellido', value)}
-                  placeholder="Tu apellido"
-                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                  autoCapitalize="words"
-                  returnKeyType="next"
-                  onFocus={() => handleInputFocus('apellido')}
-                  onBlur={() => handleInputBlur('apellido', formData.apellido)}
-                  onLayout={e => handleInputLayout('apellido', e)}
-                  onSubmitEditing={() => inputRefs.current['email']?.focus()}
-                />
-                {errors.apellido && <Text style={styles.errorText}>{errors.apellido}</Text>}
+                <Animated.View
+                  style={[
+                    styles.inputContainer,
+                    {
+                      borderColor: focusAnims.apellido.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [
+                          errors.apellido ? 'rgba(239, 68, 68, 0.6)' : 'rgba(255, 255, 255, 0.2)',
+                          'rgba(34, 197, 94, 0.6)',
+                        ],
+                      }),
+                      shadowOpacity: focusAnims.apellido.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 0.2],
+                      }),
+                      shadowColor: errors.apellido ? '#ef4444' : '#22c55e',
+                    },
+                    errors.apellido && styles.inputErrorContainer,
+                  ]}
+                >
+                  <TextInput
+                    ref={ref => {
+                      inputRefs.current['apellido'] = ref
+                    }}
+                    style={styles.input}
+                    value={formData.apellido}
+                    onChangeText={value => handleChange('apellido', value)}
+                    placeholder="Tu apellido"
+                    placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                    autoCapitalize="words"
+                    returnKeyType="next"
+                    onFocus={() => handleInputFocus('apellido')}
+                    onBlur={() => handleInputBlur('apellido', formData.apellido)}
+                    onSubmitEditing={() => inputRefs.current['email']?.focus()}
+                  />
+                </Animated.View>
+                {errors.apellido && (
+                  <View style={styles.errorContainer}>
+                    <AlertCircle size={12} color="#ef4444" />
+                    <Text style={styles.errorText}>{errors.apellido}</Text>
+                  </View>
+                )}
               </View>
             </View>
 
             {/* Email */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                📧 Correo electrónico <Text style={styles.required}>*</Text>
+                <Mail size={14} color="rgba(255, 255, 255, 0.6)" /> Correo electrónico <Text style={styles.required}>*</Text>
               </Text>
-              <TextInput
-                ref={ref => {
-                  inputRefs.current['email'] = ref
-                }}
-                style={[styles.input, errors.email && styles.inputError]}
-                value={formData.email}
-                onChangeText={value => handleChange('email', value)}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholder="pastor@iglesia.org"
-                placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                returnKeyType="next"
-                onFocus={() => handleInputFocus('email')}
-                onBlur={() => handleInputBlur('email', formData.email)}
-                onLayout={e => handleInputLayout('email', e)}
-                onSubmitEditing={() => inputRefs.current['telefono']?.focus()}
-              />
-              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+              <Animated.View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: focusAnims.email.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [
+                        errors.email ? 'rgba(239, 68, 68, 0.6)' : 'rgba(255, 255, 255, 0.2)',
+                        'rgba(34, 197, 94, 0.6)',
+                      ],
+                    }),
+                    shadowOpacity: focusAnims.email.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 0.2],
+                    }),
+                    shadowColor: errors.email ? '#ef4444' : '#22c55e',
+                  },
+                  errors.email && styles.inputErrorContainer,
+                ]}
+              >
+                <TextInput
+                  ref={ref => {
+                    inputRefs.current['email'] = ref
+                  }}
+                  style={styles.input}
+                  value={formData.email}
+                  onChangeText={value => handleChange('email', value)}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholder="tu@email.com"
+                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                  returnKeyType="next"
+                  onFocus={() => handleInputFocus('email')}
+                  onBlur={() => handleInputBlur('email', formData.email)}
+                  onSubmitEditing={() => inputRefs.current['telefono']?.focus()}
+                />
+              </Animated.View>
+              {errors.email && (
+                <View style={styles.errorContainer}>
+                  <AlertCircle size={12} color="#ef4444" />
+                  <Text style={styles.errorText}>{errors.email}</Text>
+                </View>
+              )}
             </View>
 
             {/* Teléfono */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>📱 Teléfono</Text>
-              <TextInput
-                ref={ref => {
-                  inputRefs.current['telefono'] = ref
-                }}
-                style={styles.input}
-                value={formData.telefono}
-                onChangeText={value => handleChange('telefono', value)}
-                keyboardType="phone-pad"
-                placeholder="+54 11 1234-5678"
-                placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                returnKeyType="next"
-                onFocus={() => handleInputFocus('telefono')}
-                onBlur={() => handleInputBlur('telefono', formData.telefono)}
-                onLayout={e => handleInputLayout('telefono', e)}
-                onSubmitEditing={() => inputRefs.current['sede']?.focus()}
-              />
+              <Text style={styles.label}>
+                <Phone size={14} color="rgba(255, 255, 255, 0.6)" /> Teléfono
+              </Text>
+              <Animated.View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: focusAnims.telefono.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['rgba(255, 255, 255, 0.2)', 'rgba(34, 197, 94, 0.6)'],
+                    }),
+                    shadowOpacity: focusAnims.telefono.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 0.2],
+                    }),
+                    shadowColor: '#22c55e',
+                  },
+                ]}
+              >
+                <TextInput
+                  ref={ref => {
+                    inputRefs.current['telefono'] = ref
+                  }}
+                  style={styles.input}
+                  value={formData.telefono}
+                  onChangeText={value => handleChange('telefono', value)}
+                  keyboardType="phone-pad"
+                  placeholder="+54 11 1234-5678"
+                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                  returnKeyType="next"
+                  onFocus={() => handleInputFocus('telefono')}
+                  onBlur={() => handleInputBlur('telefono', formData.telefono)}
+                  onSubmitEditing={() => inputRefs.current['sede']?.focus()}
+                />
+              </Animated.View>
             </View>
 
             {/* Sede */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>⛪ Iglesia / Sede</Text>
-              <TextInput
-                ref={ref => {
-                  inputRefs.current['sede'] = ref
-                }}
-                style={styles.input}
-                value={formData.sede}
-                onChangeText={value => handleChange('sede', value)}
-                placeholder="Nombre de tu iglesia o sede"
-                placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                autoCapitalize="words"
-                returnKeyType="next"
-                onFocus={() => handleInputFocus('sede')}
-                onBlur={() => handleInputBlur('sede', formData.sede)}
-                onLayout={e => handleInputLayout('sede', e)}
-                onSubmitEditing={() => inputRefs.current['password']?.focus()}
-              />
+              <Text style={styles.label}>
+                <MapPin size={14} color="rgba(255, 255, 255, 0.6)" /> Iglesia / Sede
+              </Text>
+              <Animated.View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: focusAnims.sede.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['rgba(255, 255, 255, 0.2)', 'rgba(34, 197, 94, 0.6)'],
+                    }),
+                    shadowOpacity: focusAnims.sede.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 0.2],
+                    }),
+                    shadowColor: '#22c55e',
+                  },
+                ]}
+              >
+                <TextInput
+                  ref={ref => {
+                    inputRefs.current['sede'] = ref
+                  }}
+                  style={styles.input}
+                  value={formData.sede}
+                  onChangeText={value => handleChange('sede', value)}
+                  placeholder="Nombre de tu iglesia o sede"
+                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                  onFocus={() => handleInputFocus('sede')}
+                  onBlur={() => handleInputBlur('sede', formData.sede)}
+                  onSubmitEditing={() => inputRefs.current['password']?.focus()}
+                />
+              </Animated.View>
             </View>
 
             {/* Contraseña */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                🔒 Contraseña <Text style={styles.required}>*</Text>
+                <Lock size={14} color="rgba(255, 255, 255, 0.6)" /> Contraseña <Text style={styles.required}>*</Text>
               </Text>
-              <TextInput
-                ref={ref => {
-                  inputRefs.current['password'] = ref
-                }}
-                style={[styles.input, errors.password && styles.inputError]}
-                value={formData.password}
-                onChangeText={value => handleChange('password', value)}
-                secureTextEntry
-                placeholder="Mínimo 8 caracteres"
-                placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                returnKeyType="next"
-                onFocus={() => handleInputFocus('password')}
-                onBlur={() => handleInputBlur('password', formData.password)}
-                onLayout={e => handleInputLayout('password', e)}
-                onSubmitEditing={() => inputRefs.current['confirmPassword']?.focus()}
-              />
-              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-              <Text style={styles.helperText}>
-                Debe contener al menos una mayúscula, una minúscula y un número
-              </Text>
+              <Animated.View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: focusAnims.password.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [
+                        errors.password ? 'rgba(239, 68, 68, 0.6)' : 'rgba(255, 255, 255, 0.2)',
+                        'rgba(34, 197, 94, 0.6)',
+                      ],
+                    }),
+                    shadowOpacity: focusAnims.password.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 0.2],
+                    }),
+                    shadowColor: errors.password ? '#ef4444' : '#22c55e',
+                  },
+                  errors.password && styles.inputErrorContainer,
+                ]}
+              >
+                <TextInput
+                  ref={ref => {
+                    inputRefs.current['password'] = ref
+                  }}
+                  style={styles.input}
+                  value={formData.password}
+                  onChangeText={value => handleChange('password', value)}
+                  secureTextEntry
+                  placeholder="Mínimo 8 caracteres"
+                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                  returnKeyType="next"
+                  onFocus={() => handleInputFocus('password')}
+                  onBlur={() => handleInputBlur('password', formData.password)}
+                  onSubmitEditing={() => inputRefs.current['confirmPassword']?.focus()}
+                />
+              </Animated.View>
+              {errors.password && (
+                <View style={styles.errorContainer}>
+                  <AlertCircle size={12} color="#ef4444" />
+                  <Text style={styles.errorText}>{errors.password}</Text>
+                </View>
+              )}
+              {!errors.password && formData.password.length > 0 && (
+                <View style={styles.helperContainer}>
+                  <CheckCircle size={12} color="#22c55e" />
+                  <Text style={styles.helperText}>
+                    Debe contener mayúscula, minúscula y número
+                  </Text>
+                </View>
+              )}
+              {!formData.password && (
+                <Text style={styles.helperText}>
+                  Debe contener al menos una mayúscula, una minúscula y un número
+                </Text>
+              )}
             </View>
 
             {/* Confirmar Contraseña */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                🔒 Confirmar Contraseña <Text style={styles.required}>*</Text>
+                <Lock size={14} color="rgba(255, 255, 255, 0.6)" /> Confirmar Contraseña <Text style={styles.required}>*</Text>
               </Text>
-              <TextInput
-                ref={ref => {
-                  inputRefs.current['confirmPassword'] = ref
-                }}
-                style={[styles.input, errors.confirmPassword && styles.inputError]}
-                value={formData.confirmPassword}
-                onChangeText={value => handleChange('confirmPassword', value)}
-                secureTextEntry
-                placeholder="Repite tu contraseña"
-                placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                returnKeyType="done"
-                onFocus={() => handleInputFocus('confirmPassword')}
-                onBlur={() => handleInputBlur('confirmPassword', formData.confirmPassword)}
-                onLayout={e => handleInputLayout('confirmPassword', e)}
-                onSubmitEditing={() => Keyboard.dismiss()}
-              />
+              <Animated.View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: focusAnims.confirmPassword.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [
+                        errors.confirmPassword ? 'rgba(239, 68, 68, 0.6)' : 'rgba(255, 255, 255, 0.2)',
+                        'rgba(34, 197, 94, 0.6)',
+                      ],
+                    }),
+                    shadowOpacity: focusAnims.confirmPassword.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 0.2],
+                    }),
+                    shadowColor: errors.confirmPassword ? '#ef4444' : '#22c55e',
+                  },
+                  errors.confirmPassword && styles.inputErrorContainer,
+                ]}
+              >
+                <TextInput
+                  ref={ref => {
+                    inputRefs.current['confirmPassword'] = ref
+                  }}
+                  style={styles.input}
+                  value={formData.confirmPassword}
+                  onChangeText={value => handleChange('confirmPassword', value)}
+                  secureTextEntry
+                  placeholder="Repite tu contraseña"
+                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                  returnKeyType="done"
+                  onFocus={() => handleInputFocus('confirmPassword')}
+                  onBlur={() => handleInputBlur('confirmPassword', formData.confirmPassword)}
+                  onSubmitEditing={() => {
+                    Keyboard.dismiss()
+                    if (validateForm()) {
+                      void handleSubmit()
+                    }
+                  }}
+                />
+              </Animated.View>
               {errors.confirmPassword && (
-                <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                <View style={styles.errorContainer}>
+                  <AlertCircle size={12} color="#ef4444" />
+                  <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                </View>
+              )}
+              {!errors.confirmPassword && formData.confirmPassword.length > 0 && formData.password === formData.confirmPassword && (
+                <View style={styles.helperContainer}>
+                  <CheckCircle size={12} color="#22c55e" />
+                  <Text style={[styles.helperText, { color: '#22c55e' }]}>Las contraseñas coinciden</Text>
+                </View>
               )}
             </View>
 
@@ -575,42 +853,58 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.9)',
-    marginBottom: 8,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   required: {
     color: '#ef4444',
   },
-  input: {
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    color: '#fff',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    fontSize: 16,
-  },
-  inputError: {
-    borderColor: '#ef4444',
+  inputContainer: {
     borderWidth: 2,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  inputErrorContainer: {
     backgroundColor: 'rgba(239, 68, 68, 0.05)',
+  },
+  input: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    color: '#fff',
+    fontSize: 16,
+    backgroundColor: 'transparent',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
   },
   errorText: {
     fontSize: 12,
     color: '#ef4444',
-    marginTop: 4,
+    flex: 1,
+  },
+  helperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
   },
   helperText: {
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.5)',
-    marginTop: 4,
+    flex: 1,
   },
   button: {
     marginTop: 8,
-    backgroundColor: '#22c55e',
-    paddingVertical: 16,
     borderRadius: 12,
-    alignItems: 'center',
+    overflow: 'hidden',
     shadowColor: '#22c55e',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
@@ -619,6 +913,14 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  buttonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
   },
   buttonText: {
     color: '#fff',

@@ -303,7 +303,7 @@ export function LoginScreen() {
               animated: true,
             })
           },
-          () => {},
+          () => { },
         )
       }
     }, 100)
