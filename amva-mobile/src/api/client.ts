@@ -276,6 +276,7 @@ apiClient.interceptors.response.use(
           originalRequest.url?.includes('/credenciales-ministeriales/consultar/') ||
           originalRequest.url?.includes('/credenciales-capellania/consultar/') ||
           originalRequest.url?.includes('/inscripciones/my') ||
+          originalRequest.url?.includes('/inscripciones') && originalRequest.method === 'post' ||
           originalRequest.url?.includes('/solicitudes-credenciales')
 
         // Intentar refrescar el token según el tipo de usuario
@@ -379,6 +380,7 @@ apiClient.interceptors.response.use(
           originalRequest.url?.includes('/credenciales-ministeriales/consultar/') ||
           originalRequest.url?.includes('/credenciales-capellania/consultar/') ||
           originalRequest.url?.includes('/inscripciones/my') ||
+          (originalRequest.url?.includes('/inscripciones') && originalRequest.method === 'post') ||
           originalRequest.url?.includes('/solicitudes-credenciales')
 
         // Si es un error de red (DNS, conexión, etc.), no limpiar tokens

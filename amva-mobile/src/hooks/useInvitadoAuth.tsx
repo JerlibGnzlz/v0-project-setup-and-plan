@@ -34,14 +34,27 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
       const errorMessage = error instanceof Error ? (error.message || 'Error desconocido') : 'Error desconocido'
       console.error('❌ Error cargando invitado:', errorMessage)
       
-      // Si es un error 401, el interceptor debería haber intentado refrescar el token
-      // Si aún así falla, limpiar tokens
+      // El interceptor debería haber intentado refrescar el token automáticamente
+      // Si llegamos aquí, significa que el refresh también falló o no había refresh token
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { status?: number } }
         if (axiosError.response?.status === 401) {
-          console.log('⚠️ Token inválido o expirado, limpiando tokens...')
-          await SecureStore.deleteItemAsync('invitado_token')
-          await SecureStore.deleteItemAsync('invitado_refresh_token')
+          // Verificar si hay refresh token antes de limpiar
+          const refreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
+          if (!refreshToken) {
+            console.log('⚠️ No hay refresh token disponible, limpiando tokens...')
+            await SecureStore.deleteItemAsync('invitado_token')
+            await SecureStore.deleteItemAsync('invitado_refresh_token')
+          } else {
+            // Si hay refresh token pero aún falla, puede ser que el refresh también falló
+            // El interceptor ya debería haber limpiado los tokens si el refresh falló
+            console.log('⚠️ Error 401 después de intentar refresh, el interceptor debería haber limpiado tokens')
+            // Verificar si los tokens aún existen (el interceptor puede haberlos limpiado)
+            const tokenStillExists = await SecureStore.getItemAsync('invitado_token')
+            if (!tokenStillExists) {
+              console.log('✅ Tokens ya fueron limpiados por el interceptor')
+            }
+          }
         }
       }
       
