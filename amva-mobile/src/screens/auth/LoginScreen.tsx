@@ -38,8 +38,10 @@ export function LoginScreen() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const [emailFocused, setEmailFocused] = useState(false)
   const [passwordFocused, setPasswordFocused] = useState(false)
+  const [keyboardVisible, setKeyboardVisible] = useState(false)
   const emailFocusAnim = useRef(new Animated.Value(0)).current
   const passwordFocusAnim = useRef(new Animated.Value(0)).current
+  const logoScaleAnim = useRef(new Animated.Value(1)).current
 
   // Configuración de Google OAuth
   // NOTA: Configura el Client ID en app.json en extra.googleClientId
@@ -290,23 +292,51 @@ export function LoginScreen() {
     )
   }
 
+  const scrollToInput = (inputRef: React.RefObject<TextInput | null>, offset: number = 0) => {
+    setTimeout(() => {
+      if (inputRef.current && scrollViewRef.current) {
+        inputRef.current.measureLayout(
+          scrollViewRef.current as any,
+          (_x: number, y: number) => {
+            scrollViewRef.current?.scrollTo({
+              y: y - 100 + offset,
+              animated: true,
+            })
+          },
+          () => {},
+        )
+      }
+    }, 100)
+  }
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <ScrollView
           ref={scrollViewRef}
           style={styles.scrollView}
-          contentContainerStyle={styles.contentContainer}
+          contentContainerStyle={[
+            styles.contentContainer,
+            keyboardVisible && styles.contentContainerKeyboard,
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
+          keyboardDismissMode="interactive"
+          bounces={false}
         >
           {/* Header con Logo */}
-          <View style={styles.header}>
+          <Animated.View
+            style={[
+              styles.header,
+              {
+                transform: [{ scale: logoScaleAnim }],
+              },
+            ]}
+          >
             <View style={styles.logoContainer}>
               <Image
                 source={require('../../../assets/images/amvamobil.png')}
@@ -315,7 +345,7 @@ export function LoginScreen() {
               />
             </View>
             <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
-          </View>
+          </Animated.View>
 
           {/* Form Card */}
           <View style={styles.card}>
@@ -366,6 +396,7 @@ export function LoginScreen() {
                       tension: 100,
                       friction: 8,
                     }).start()
+                    scrollToInput(emailInputRef)
                   }}
                   onBlur={() => {
                     setEmailFocused(false)
@@ -416,6 +447,7 @@ export function LoginScreen() {
                       tension: 100,
                       friction: 8,
                     }).start()
+                    scrollToInput(passwordInputRef, 20)
                   }}
                   onBlur={() => {
                     setPasswordFocused(false)
@@ -513,18 +545,23 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     paddingTop: 24,
-    paddingBottom: 32,
+    paddingBottom: 40,
     justifyContent: 'center',
+    minHeight: '100%',
+  },
+  contentContainerKeyboard: {
+    paddingTop: 10,
+    paddingBottom: 300,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
-    paddingTop: 20,
+    marginBottom: 24,
+    paddingTop: 10,
   },
   logoContainer: {
-    marginBottom: 24,
-    width: 280,
-    height: 280,
+    marginBottom: 16,
+    width: 240,
+    height: 240,
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',

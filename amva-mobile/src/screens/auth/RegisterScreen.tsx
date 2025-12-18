@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   Platform,
   Keyboard,
   Image,
+  Animated,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { invitadoAuthApi } from '@api/invitado-auth'
@@ -39,6 +40,8 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const [keyboardVisible, setKeyboardVisible] = useState(false)
+  const logoScaleAnim = useRef(new Animated.Value(1)).current
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -83,19 +86,60 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
     return Object.keys(newErrors).length === 0
   }
 
-  const inputPositions = useRef<{ [key: string]: number }>({})
+  // Manejar teclado
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true)
+        Animated.spring(logoScaleAnim, {
+          toValue: 0.6,
+          useNativeDriver: true,
+          tension: 100,
+          friction: 8,
+        }).start()
+      },
+    )
+
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false)
+        Animated.spring(logoScaleAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          tension: 100,
+          friction: 8,
+        }).start()
+      },
+    )
+
+    return () => {
+      keyboardWillShow.remove()
+      keyboardWillHide.remove()
+    }
+  }, [logoScaleAnim])
+
+  const scrollToInput = (field: string, offset: number = 0) => {
+    setTimeout(() => {
+      const inputRef = inputRefs.current[field]
+      if (inputRef && scrollViewRef.current) {
+        inputRef.measureLayout(
+          scrollViewRef.current as any,
+          (_x: number, y: number) => {
+            scrollViewRef.current?.scrollTo({
+              y: y - 100 + offset,
+              animated: true,
+            })
+          },
+          () => {},
+        )
+      }
+    }, 100)
+  }
 
   const handleInputFocus = (field: string) => {
-    // Hacer scroll al input cuando se enfoca
-    setTimeout(() => {
-      const position = inputPositions.current[field]
-      if (position !== undefined && scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({
-          y: position - 120, // Offset para dejar espacio arriba
-          animated: true,
-        })
-      }
-    }, 300)
+    scrollToInput(field)
   }
 
   const handleInputLayout = (field: string, event: any) => {
@@ -208,19 +252,30 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <ScrollView
           ref={scrollViewRef}
           style={styles.scrollView}
-          contentContainerStyle={styles.contentContainer}
+          contentContainerStyle={[
+            styles.contentContainer,
+            keyboardVisible && styles.contentContainerKeyboard,
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
+          keyboardDismissMode="interactive"
+          bounces={false}
         >
           {/* Header */}
-          <View style={styles.header}>
+          <Animated.View
+            style={[
+              styles.header,
+              {
+                transform: [{ scale: logoScaleAnim }],
+              },
+            ]}
+          >
             <View style={styles.logoContainer}>
               <Image
                 source={require('../../../assets/images/amvamobil.png')}
@@ -229,7 +284,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
               />
             </View>
             <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
-          </View>
+          </Animated.View>
 
           {/* Form Card */}
           <View style={styles.card}>
@@ -445,16 +500,21 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 24,
     paddingBottom: 40,
+    minHeight: '100%',
+  },
+  contentContainerKeyboard: {
+    paddingTop: 10,
+    paddingBottom: 400,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
-    paddingTop: 20,
+    marginBottom: 20,
+    paddingTop: 10,
   },
   logoContainer: {
-    marginBottom: 24,
-    width: 280,
-    height: 280,
+    marginBottom: 12,
+    width: 200,
+    height: 200,
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
