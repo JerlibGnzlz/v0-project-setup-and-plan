@@ -147,6 +147,19 @@ apiClient.interceptors.request.use(
           config.headers.Authorization = `Bearer ${invitadoToken}`
           console.log('🔑 Token de invitado agregado a request:', config.url?.substring(0, 50))
           return config
+        } else {
+          // Si es un endpoint exclusivo de invitados (no consulta), no usar token de pastor como fallback
+          const isExclusiveInvitadoEndpoint = 
+            config.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
+            config.url?.includes('/credenciales-capellania/mis-credenciales') ||
+            config.url?.includes('/inscripciones/my') ||
+            config.url?.includes('/auth/invitado/me')
+          
+          if (isExclusiveInvitadoEndpoint) {
+            console.warn('⚠️ Endpoint de invitado requiere token de invitado, pero no se encontró')
+            // No agregar token de pastor, dejar que el backend responda con 401
+            return config
+          }
         }
       }
 
