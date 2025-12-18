@@ -249,7 +249,7 @@ export function LoginScreen() {
             'Verifica que:\n' +
             '• Tu email sea correcto\n' +
             '• Tu contraseña sea correcta\n' +
-            '• Tu cuenta esté registrada como pastor\n\n' +
+            '• Tu cuenta esté registrada\n\n' +
             'Si no tienes cuenta, puedes crear una nueva con el botón "Crear nueva cuenta"'
         } else if (axiosError.response?.status === 404) {
           errorMessage =
@@ -421,7 +421,7 @@ export function LoginScreen() {
             </TouchableOpacity>
 
             <Text style={styles.hint}>
-              Si tu correo no está registrado como pastor, puedes crear una cuenta nueva.
+              Si no tienes cuenta, puedes crear una nueva cuenta de invitado.
             </Text>
           </View>
         </ScrollView>

@@ -13,7 +13,9 @@ import {
   Keyboard,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { apiClient } from '@api/client'
+import { invitadoAuthApi } from '@api/invitado-auth'
+import * as SecureStore from 'expo-secure-store'
+import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 
 interface RegisterScreenProps {
   onSuccess: () => void
@@ -23,6 +25,7 @@ interface RegisterScreenProps {
 export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
   const scrollViewRef = useRef<ScrollView>(null)
   const inputRefs = useRef<{ [key: string]: TextInput | null }>({})
+  const { refresh } = useInvitadoAuth()
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -140,8 +143,11 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
     try {
       setLoading(true)
 
-      // Llamar al endpoint de registro completo
-      const response = await apiClient.post('/auth/pastor/register-complete', {
+      console.log('📝 Iniciando registro de invitado...')
+
+      // Llamar al endpoint de registro completo de INVITADOS (no pastores)
+      // Esto crea el registro en la tabla 'invitados', NO en 'pastores'
+      const response = await invitadoAuthApi.registerComplete({
         nombre: formData.nombre.trim(),
         apellido: formData.apellido.trim(),
         email: formData.email.trim().toLowerCase(),
@@ -150,14 +156,25 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
         telefono: formData.telefono.trim() || undefined,
       })
 
+      console.log('✅ Registro exitoso:', response.invitado.email)
+
+      // Guardar tokens automáticamente para que el usuario quede autenticado
+      await SecureStore.setItemAsync('invitado_token', response.access_token)
+      if (response.refresh_token) {
+        await SecureStore.setItemAsync('invitado_refresh_token', response.refresh_token)
+      }
+
+      // Refrescar el estado del invitado en el contexto
+      await refresh()
+
       Alert.alert(
         'Registro exitoso',
-        'Tu cuenta ha sido creada. Por favor, inicia sesión con tus credenciales.',
+        `¡Bienvenido ${response.invitado.nombre}! Tu cuenta ha sido creada exitosamente en la tabla de invitados.`,
         [
           {
             text: 'OK',
             onPress: () => {
-              // Pre-llenar email en el login
+              // El usuario ya está autenticado, llamar onSuccess para continuar
               onSuccess()
             },
           },
@@ -213,7 +230,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
           {/* Form Card */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Crear Cuenta</Text>
-            <Text style={styles.cardSubtitle}>Registro para pastores</Text>
+            <Text style={styles.cardSubtitle}>Registro para invitados</Text>
 
             {/* Nombre y Apellido */}
             <View style={styles.row}>

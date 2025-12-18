@@ -8,6 +8,7 @@ interface InvitadoAuthContextValue {
   login: (email: string, password: string) => Promise<void>
   loginWithGoogle: (idToken: string) => Promise<void>
   logout: () => Promise<void>
+  refresh: () => Promise<void>
   isAuthenticated: boolean
 }
 
@@ -115,6 +116,10 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
     }
   }
 
+  const refresh = useCallback(async () => {
+    await loadInvitado()
+  }, [loadInvitado])
+
   return (
     <InvitadoAuthContext.Provider
       value={{
@@ -123,6 +128,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
         login,
         loginWithGoogle,
         logout,
+        refresh,
         isAuthenticated: !!invitado,
       }}
     >
