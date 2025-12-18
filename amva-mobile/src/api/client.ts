@@ -109,18 +109,19 @@ console.log('📡 Axios configurado con baseURL:', apiClient.defaults.baseURL)
 apiClient.interceptors.request.use(
   async config => {
     try {
-      // Detectar si es un endpoint de invitados
+      // Detectar si es un endpoint de invitados o inscripciones (que también usa invitados)
       const isInvitadoEndpoint =
         config.url?.includes('/auth/invitado') ||
         config.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
-        config.url?.includes('/credenciales-capellania/mis-credenciales')
+        config.url?.includes('/credenciales-capellania/mis-credenciales') ||
+        config.url?.includes('/inscripciones')
 
       // Detectar si es un endpoint de consulta de credenciales (acepta pastor o invitado)
       const isConsultaCredenciales =
         config.url?.includes('/credenciales-ministeriales/consultar/') ||
         config.url?.includes('/credenciales-capellania/consultar/')
 
-      // Intentar obtener token de invitado primero si es endpoint de invitados o consulta de credenciales
+      // Intentar obtener token de invitado primero si es endpoint de invitados, inscripciones o consulta de credenciales
       if (isInvitadoEndpoint || isConsultaCredenciales) {
         const invitadoToken = await SecureStore.getItemAsync('invitado_token')
         if (invitadoToken) {
