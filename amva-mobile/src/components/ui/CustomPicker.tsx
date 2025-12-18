@@ -141,9 +141,12 @@ export function CustomPicker({
               style={styles.modalList}
               contentContainerStyle={styles.modalListContent}
               showsVerticalScrollIndicator={true}
+              initialNumToRender={20}
+              maxToRenderPerBatch={20}
+              windowSize={10}
             />
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </View>
   )
