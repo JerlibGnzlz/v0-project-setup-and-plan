@@ -461,82 +461,82 @@ export class InvitadoAuthService {
 
       // 3. Si no existe, crear nuevo invitado y auth
       if (!invitadoAuth) {
-      try {
-        this.logger.log(`📝 Creando nuevo invitado con Google OAuth: ${email}`)
-        // Generar una contraseña aleatoria (no se usará, pero es requerida por el schema)
-        const randomPassword = await bcrypt.hash(
-          Math.random().toString(36) + Date.now().toString(),
-          10
-        )
+        try {
+          this.logger.log(`📝 Creando nuevo invitado con Google OAuth: ${email}`)
+          // Generar una contraseña aleatoria (no se usará, pero es requerida por el schema)
+          const randomPassword = await bcrypt.hash(
+            Math.random().toString(36) + Date.now().toString(),
+            10
+          )
 
-        // Crear invitado
-        this.logger.log(`📸 Guardando fotoUrl de Google: ${fotoUrl || 'NO HAY FOTO'}`)
+          // Crear invitado
+          this.logger.log(`📸 Guardando fotoUrl de Google: ${fotoUrl || 'NO HAY FOTO'}`)
 
-        // Asegurar que nombre y apellido tengan valores válidos (apellido puede estar vacío)
-        const nombreFinal = nombre.trim() || email.split('@')[0] || 'Usuario'
-        const apellidoFinal = apellido.trim() || '' // Apellido vacío es válido según el schema
+          // Asegurar que nombre y apellido tengan valores válidos (apellido puede estar vacío)
+          const nombreFinal = nombre.trim() || email.split('@')[0] || 'Usuario'
+          const apellidoFinal = apellido.trim() || '' // Apellido vacío es válido según el schema
 
-        this.logger.log(`📝 Creando invitado con datos:`, {
-          nombre: nombreFinal,
-          apellido: apellidoFinal || '(vacío)',
-          email,
-          tieneFoto: !!fotoUrl
-        })
-
-        const invitado = await this.prisma.invitado.create({
-          data: {
+          this.logger.log(`📝 Creando invitado con datos:`, {
             nombre: nombreFinal,
-            apellido: apellidoFinal,
+            apellido: apellidoFinal || '(vacío)',
             email,
-            fotoUrl: fotoUrl || null, // Guardar foto de Google si existe
-            auth: {
-              create: {
-                email,
-                password: randomPassword, // Contraseña aleatoria (no se usará para OAuth)
-                googleId,
-                emailVerificado: true, // Google ya verificó el email
+            tieneFoto: !!fotoUrl
+          })
+
+          const invitado = await this.prisma.invitado.create({
+            data: {
+              nombre: nombreFinal,
+              apellido: apellidoFinal,
+              email,
+              fotoUrl: fotoUrl || null, // Guardar foto de Google si existe
+              auth: {
+                create: {
+                  email,
+                  password: randomPassword, // Contraseña aleatoria (no se usará para OAuth)
+                  googleId,
+                  emailVerificado: true, // Google ya verificó el email
+                },
               },
             },
-          },
-          include: {
-            auth: true,
-          },
-        })
-
-        // Obtener el auth con la relación invitado incluida
-        if (!invitado.auth) {
-          this.logger.error('❌ Error: invitado.auth es null después de crear')
-          throw new Error('Error al crear autenticación para invitado')
-        }
-        
-        invitadoAuth = await this.prisma.invitadoAuth.findUnique({
-          where: { id: invitado.auth.id },
-          include: {
-            invitado: true,
-          },
-        })
-
-        if (!invitadoAuth) {
-          this.logger.error('❌ Error: No se pudo obtener invitadoAuth después de crear')
-          throw new Error('Error al obtener autenticación del invitado')
-        }
-
-        this.logger.log(`✅ Invitado creado con Google OAuth: ${email}`, {
-          invitadoId: invitadoAuth.invitado.id,
-          email,
-          googleId,
-          fotoUrlGuardada: invitadoAuth.invitado.fotoUrl,
-        })
-      } catch (error) {
-        this.logger.error('❌ Error al crear invitado:', error)
-        if (error && typeof error === 'object' && 'code' in error) {
-          this.logger.error('❌ Error de Prisma:', {
-            code: (error as { code?: string }).code,
-            meta: (error as { meta?: unknown }).meta
+            include: {
+              auth: true,
+            },
           })
+
+          // Obtener el auth con la relación invitado incluida
+          if (!invitado.auth) {
+            this.logger.error('❌ Error: invitado.auth es null después de crear')
+            throw new Error('Error al crear autenticación para invitado')
+          }
+
+          invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+            where: { id: invitado.auth.id },
+            include: {
+              invitado: true,
+            },
+          })
+
+          if (!invitadoAuth) {
+            this.logger.error('❌ Error: No se pudo obtener invitadoAuth después de crear')
+            throw new Error('Error al obtener autenticación del invitado')
+          }
+
+          this.logger.log(`✅ Invitado creado con Google OAuth: ${email}`, {
+            invitadoId: invitadoAuth.invitado.id,
+            email,
+            googleId,
+            fotoUrlGuardada: invitadoAuth.invitado.fotoUrl,
+          })
+        } catch (error) {
+          this.logger.error('❌ Error al crear invitado:', error)
+          if (error && typeof error === 'object' && 'code' in error) {
+            this.logger.error('❌ Error de Prisma:', {
+              code: (error as { code?: string }).code,
+              meta: (error as { meta?: unknown }).meta
+            })
+          }
+          throw error
         }
-        throw error
-      }
       } else {
         if (!invitadoAuth) {
           throw new Error('InvitadoAuth no encontrado')
@@ -621,7 +621,7 @@ export class InvitadoAuthService {
       // Log detallado del error
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       const errorStack = error instanceof Error ? error.stack : undefined
-      
+
       this.logger.error(`❌ Error en googleAuth: ${errorMessage}`, {
         error: errorMessage,
         stack: errorStack,
@@ -657,7 +657,7 @@ export class InvitadoAuthService {
       let expiresIn = 900 // 15 minutos por defecto
       try {
         const payload = this.jwtService.decode(accessToken) as
-          | { exp?: number; [key: string]: unknown }
+          | { exp?: number;[key: string]: unknown }
           | null
         if (payload && typeof payload.exp === 'number') {
           const now = Math.floor(Date.now() / 1000)

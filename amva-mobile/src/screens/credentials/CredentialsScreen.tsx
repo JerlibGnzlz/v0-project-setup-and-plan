@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   View,
   Text,
@@ -8,10 +8,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { CreditCard, CheckCircle, AlertCircle, Clock, Search, Badge } from 'lucide-react-native'
+import { CreditCard, CheckCircle, AlertCircle, Clock, Search, Badge, ChevronRight, ChevronLeft } from 'lucide-react-native'
 import { credencialesApi, type Credencial } from '@api/credenciales'
 import { inscripcionesApi } from '@api/inscripciones'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
@@ -26,6 +27,9 @@ export function CredentialsScreen() {
     ministerial?: Credencial | Credencial[]
     capellania?: Credencial | Credencial[]
   }>({})
+  const [currentStep, setCurrentStep] = useState(1)
+  const [currentCredencialIndex, setCurrentCredencialIndex] = useState(0)
+  const fadeAnim = React.useRef(new Animated.Value(1)).current
 
   // Obtener DNI del invitado desde sus inscripciones
   useEffect(() => {
@@ -263,16 +267,73 @@ export function CredentialsScreen() {
     }
   }
 
-  const renderCredencialCard = (
-    credencial: Credencial | Credencial[],
-    tipo: 'ministerial' | 'capellania'
-  ) => {
-    // Si es un array, renderizar múltiples cards
-    if (Array.isArray(credencial)) {
-      return credencial.map(c => renderCredencialCardSingle(c, tipo))
-    }
-    // Si es un solo objeto, renderizar una card
-    return renderCredencialCardSingle(credencial, tipo)
+  // Renderizar paso de resumen
+  const renderResumenStep = () => {
+    const totalMinisterial = credencialesList.filter(c => c.tipo === 'ministerial').length
+    const totalCapellania = credencialesList.filter(c => c.tipo === 'capellania').length
+    const totalVigentes = credencialesList.filter(c => c.credencial.estado === 'vigente').length
+    const totalPorVencer = credencialesList.filter(c => c.credencial.estado === 'por_vencer').length
+
+    return (
+      <Animated.View style={{ opacity: fadeAnim }}>
+        <View style={styles.wizardStepContainer}>
+          <View style={styles.resumenCard}>
+            <View style={styles.resumenHeader}>
+              <CreditCard size={32} color="#22c55e" />
+              <Text style={styles.resumenTitle}>Resumen de Credenciales</Text>
+            </View>
+            
+            <View style={styles.resumenStats}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{credencialesList.length}</Text>
+                <Text style={styles.statLabel}>Total Credenciales</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, { color: '#22c55e' }]}>{totalVigentes}</Text>
+                <Text style={styles.statLabel}>Vigentes</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, { color: '#f59e0b' }]}>{totalPorVencer}</Text>
+                <Text style={styles.statLabel}>Por Vencer</Text>
+              </View>
+            </View>
+
+            <View style={styles.resumenBreakdown}>
+              {totalMinisterial > 0 && (
+                <View style={styles.breakdownItem}>
+                  <View style={styles.breakdownIconContainer}>
+                    <CreditCard size={20} color="#3b82f6" />
+                  </View>
+                  <View style={styles.breakdownContent}>
+                    <Text style={styles.breakdownTitle}>Credenciales Ministeriales</Text>
+                    <Text style={styles.breakdownValue}>{totalMinisterial} encontrada{totalMinisterial > 1 ? 's' : ''}</Text>
+                  </View>
+                </View>
+              )}
+              
+              {totalCapellania > 0 && (
+                <View style={styles.breakdownItem}>
+                  <View style={styles.breakdownIconContainer}>
+                    <CreditCard size={20} color="#8b5cf6" />
+                  </View>
+                  <View style={styles.breakdownContent}>
+                    <Text style={styles.breakdownTitle}>Credenciales de Capellanía</Text>
+                    <Text style={styles.breakdownValue}>{totalCapellania} encontrada{totalCapellania > 1 ? 's' : ''}</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {documento && (
+              <View style={styles.dniInfo}>
+                <Text style={styles.dniLabel}>DNI consultado:</Text>
+                <Text style={styles.dniValue}>{documento}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </Animated.View>
+    )
   }
 
   const renderCredencialCardSingle = (credencial: Credencial, tipo: 'ministerial' | 'capellania') => {
@@ -450,16 +511,115 @@ export function CredentialsScreen() {
         {/* Mostrar loading automático si es invitado */}
         {isInvitadoAuthenticated && invitado && autoLoading && (
           <View style={styles.autoLoadingContainer}>
-            <ActivityIndicator color="#22c55e" size="small" />
+            <ActivityIndicator color="#22c55e" size="large" />
             <Text style={styles.autoLoadingText}>Buscando tus credenciales...</Text>
           </View>
         )}
 
-        {(credenciales.ministerial || credenciales.capellania) && (
-          <View style={styles.credentialsContainer}>
-            {credenciales.ministerial && renderCredencialCard(credenciales.ministerial, 'ministerial')}
-            {credenciales.capellania && renderCredencialCard(credenciales.capellania, 'capellania')}
-          </View>
+        {/* Wizard de Credenciales */}
+        {credencialesList.length > 0 && !autoLoading && (
+          <>
+            {/* Progress Steps */}
+            <View style={styles.stepsContainer}>
+              {Array.from({ length: totalSteps }).map((_, index) => {
+                const stepNumber = index + 1
+                const isCompleted = stepNumber < currentStep
+                const isActive = stepNumber === currentStep
+                
+                return (
+                  <View key={stepNumber} style={styles.stepRow}>
+                    <View style={styles.stepItem}>
+                      <View
+                        style={[
+                          styles.stepCircle,
+                          isCompleted && styles.stepCircleCompleted,
+                          isActive && styles.stepCircleActive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.stepNumber,
+                            isCompleted && styles.stepNumberCompleted,
+                            isActive && styles.stepNumberActive,
+                          ]}
+                        >
+                          {isCompleted ? '✓' : stepNumber}
+                        </Text>
+                      </View>
+                      <View style={styles.stepTextContainer}>
+                        <Text
+                          style={[styles.stepTitle, (isCompleted || isActive) && styles.stepTitleActive]}
+                        >
+                          {stepNumber === 1 ? 'Resumen' : `Credencial ${stepNumber - 1}`}
+                        </Text>
+                        <Text style={styles.stepDescription}>
+                          {stepNumber === 1
+                            ? 'Resumen de credenciales'
+                            : credencialesList[stepNumber - 2]?.tipo === 'ministerial'
+                              ? 'Credencial Ministerial'
+                              : 'Credencial de Capellanía'}
+                        </Text>
+                      </View>
+                    </View>
+                    {index < totalSteps - 1 && (
+                      <View
+                        style={[styles.stepLine, isCompleted && styles.stepLineCompleted]}
+                      />
+                    )}
+                  </View>
+                )
+              })}
+            </View>
+
+            {/* Wizard Content */}
+            <Animated.View style={[styles.wizardContent, { opacity: fadeAnim }]}>
+              {currentStep === 1 && renderResumenStep()}
+              
+              {currentStep > 1 && currentCredencialIndex < credencialesList.length && (
+                <View style={styles.wizardStepContainer}>
+                  {renderCredencialCardSingle(
+                    credencialesList[currentCredencialIndex].credencial,
+                    credencialesList[currentCredencialIndex].tipo
+                  )}
+                </View>
+              )}
+            </Animated.View>
+
+            {/* Navigation Buttons */}
+            <View style={styles.navigationContainer}>
+              {currentStep > 1 && (
+                <TouchableOpacity
+                  style={styles.navButton}
+                  onPress={handlePrevious}
+                >
+                  <ChevronLeft size={20} color="#fff" />
+                  <Text style={styles.navButtonText}>Anterior</Text>
+                </TouchableOpacity>
+              )}
+              
+              {currentStep < totalSteps && (
+                <TouchableOpacity
+                  style={[styles.navButton, styles.navButtonPrimary]}
+                  onPress={handleNext}
+                >
+                  <Text style={styles.navButtonText}>Siguiente</Text>
+                  <ChevronRight size={20} color="#fff" />
+                </TouchableOpacity>
+              )}
+              
+              {currentStep === totalSteps && (
+                <TouchableOpacity
+                  style={[styles.navButton, styles.navButtonPrimary]}
+                  onPress={() => {
+                    setCurrentStep(1)
+                    setCurrentCredencialIndex(0)
+                  }}
+                >
+                  <Text style={styles.navButtonText}>Volver al Inicio</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </>
         )}
 
         {!loading &&
@@ -676,6 +836,206 @@ const styles = StyleSheet.create({
   autoLoadingText: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.7)',
+  },
+  wizardStepContainer: {
+    marginBottom: 24,
+  },
+  wizardContent: {
+    minHeight: 300,
+  },
+  resumenCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  resumenHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 24,
+  },
+  resumenTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  resumenStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 24,
+    paddingBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  resumenBreakdown: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  breakdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  breakdownIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  breakdownContent: {
+    flex: 1,
+  },
+  breakdownTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  breakdownValue: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  dniInfo: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  dniLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: 4,
+  },
+  dniValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#22c55e',
+  },
+  navigationContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+    marginBottom: 24,
+  },
+  navButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+    paddingVertical: 14,
+    gap: 8,
+  },
+  navButtonPrimary: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
+  },
+  navButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  stepsContainer: {
+    marginBottom: 24,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  stepItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  stepCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  stepCircleCompleted: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
+  },
+  stepCircleActive: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
+    borderWidth: 3,
+  },
+  stepNumber: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  stepNumberCompleted: {
+    color: '#fff',
+  },
+  stepNumberActive: {
+    color: '#fff',
+  },
+  stepTextContainer: {
+    flex: 1,
+  },
+  stepTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginBottom: 2,
+  },
+  stepTitleActive: {
+    color: '#fff',
+  },
+  stepDescription: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.4)',
+  },
+  stepLine: {
+    width: 2,
+    height: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginLeft: 20,
+    marginRight: 20,
+  },
+  stepLineCompleted: {
+    backgroundColor: '#22c55e',
   },
 })
 
