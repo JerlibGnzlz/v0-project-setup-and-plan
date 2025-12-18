@@ -13,19 +13,66 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { CreditCard, CheckCircle, AlertCircle, Clock, Search, Badge } from 'lucide-react-native'
 import { credencialesApi, type Credencial } from '@api/credenciales'
-import { useAuth } from '@hooks/useAuth'
+import { inscripcionesApi } from '@api/inscripciones'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 
 export function CredentialsScreen() {
-  const { pastor } = useAuth()
   const { invitado, isAuthenticated: isInvitadoAuthenticated } = useInvitadoAuth()
   const [documento, setDocumento] = useState('')
   const [loading, setLoading] = useState(false)
   const [autoLoading, setAutoLoading] = useState(false)
+  const [loadingDni, setLoadingDni] = useState(false)
   const [credenciales, setCredenciales] = useState<{
     ministerial?: Credencial | Credencial[]
     capellania?: Credencial | Credencial[]
   }>({})
+
+  // Obtener DNI del invitado desde sus inscripciones
+  useEffect(() => {
+    let isMounted = true
+
+    const obtenerDniDelInvitado = async () => {
+      if (!isInvitadoAuthenticated || !invitado || loadingDni) {
+        return
+      }
+
+      setLoadingDni(true)
+      try {
+        console.log('🔍 Obteniendo DNI del invitado desde sus inscripciones...')
+        const inscripciones = await inscripcionesApi.getMyInscripciones()
+        
+        if (!isMounted) return
+
+        // Buscar el primer DNI válido en las inscripciones
+        const dniEncontrado = inscripciones
+          .map(insc => insc.dni)
+          .find(dni => dni && dni.trim() !== '')
+
+        if (dniEncontrado && !documento) {
+          console.log('✅ DNI encontrado en inscripciones:', dniEncontrado)
+          setDocumento(dniEncontrado.trim())
+        } else if (!dniEncontrado) {
+          console.log('⚠️ No se encontró DNI en las inscripciones del invitado')
+        }
+      } catch (error: unknown) {
+        if (!isMounted) return
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+        console.error('❌ Error obteniendo DNI del invitado:', errorMessage)
+        // No mostrar alerta, solo loggear
+      } finally {
+        if (isMounted) {
+          setLoadingDni(false)
+        }
+      }
+    }
+
+    void obtenerDniDelInvitado()
+
+    return () => {
+      isMounted = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInvitadoAuthenticated, invitado?.id])
 
   // Buscar automáticamente credenciales si el usuario está autenticado como invitado
   // Solo ejecutar una vez cuando el invitado se autentica, no en cada render
@@ -320,42 +367,35 @@ export function CredentialsScreen() {
           </Text>
         </View>
 
-        {/* Mostrar búsqueda manual solo si NO es invitado autenticado */}
-        {!isInvitadoAuthenticated && (
-          <View style={styles.searchContainer}>
-            <View style={styles.searchInputContainer}>
-              <Search size={20} color="rgba(255, 255, 255, 0.5)" style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Número de documento"
-                placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                value={documento}
-                onChangeText={setDocumento}
-                keyboardType="numeric"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
-            <TouchableOpacity
-              style={[styles.searchButton, loading && styles.searchButtonDisabled]}
-              onPress={handleConsultar}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <Search size={20} color="#fff" />
-                  <Text style={styles.searchButtonText}>Consultar</Text>
-                </>
-              )}
-            </TouchableOpacity>
+        {/* Campo de búsqueda manual - siempre visible */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputContainer}>
+            <Search size={20} color="rgba(255, 255, 255, 0.5)" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder={
+                isInvitadoAuthenticated && invitado
+                  ? 'DNI (se pre-llenó desde tus inscripciones)'
+                  : 'Número de documento (DNI)'
+              }
+              placeholderTextColor="rgba(255, 255, 255, 0.4)"
+              value={documento}
+              onChangeText={setDocumento}
+              keyboardType="numeric"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loadingDni}
+            />
+            {loadingDni && (
+              <ActivityIndicator size="small" color="rgba(255, 255, 255, 0.5)" style={styles.dniLoader} />
+            )}
           </View>
-        )}
-
-        {/* Mostrar botón de actualizar si es invitado autenticado */}
-        {isInvitadoAuthenticated && invitado && (
-          <View style={styles.searchContainer}>
+          {isInvitadoAuthenticated && invitado && documento && (
+            <Text style={styles.dniHint}>
+              💡 DNI obtenido de tus inscripciones. Puedes cambiarlo para buscar otro documento.
+            </Text>
+          )}
+          <View style={styles.buttonRow}>
             <TouchableOpacity
               style={[styles.searchButton, (loading || autoLoading) && styles.searchButtonDisabled]}
               onPress={handleConsultar}
@@ -366,12 +406,46 @@ export function CredentialsScreen() {
               ) : (
                 <>
                   <Search size={20} color="#fff" />
-                  <Text style={styles.searchButtonText}>Actualizar Credenciales</Text>
+                  <Text style={styles.searchButtonText}>
+                    {isInvitadoAuthenticated && invitado ? 'Buscar por DNI' : 'Consultar'}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
+            {isInvitadoAuthenticated && invitado && (
+              <TouchableOpacity
+                style={[styles.refreshButton, (loading || autoLoading) && styles.searchButtonDisabled]}
+                onPress={async () => {
+                  setLoading(true)
+                  try {
+                    const result = await credencialesApi.obtenerMisCredenciales()
+                    setCredenciales(result)
+                    if (!result.ministerial && !result.capellania) {
+                      Alert.alert(
+                        'No se encontraron credenciales',
+                        'No se encontraron credenciales asociadas a tu DNI de inscripciones.'
+                      )
+                    }
+                  } catch (error: unknown) {
+                    const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+                    Alert.alert('Error', errorMessage)
+                  } finally {
+                    setLoading(false)
+                  }
+                }}
+                disabled={loading || autoLoading}
+              >
+                {loading || autoLoading ? (
+                  <ActivityIndicator color="#22c55e" />
+                ) : (
+                  <>
+                    <Text style={styles.refreshButtonText}>🔄 Mis Credenciales</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
           </View>
-        )}
+        </View>
 
         {/* Mostrar loading automático si es invitado */}
         {isInvitadoAuthenticated && invitado && autoLoading && (
@@ -472,6 +546,35 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  refreshButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+    borderRadius: 12,
+    paddingVertical: 14,
+  },
+  refreshButtonText: {
+    color: '#22c55e',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  dniHint: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: 12,
+    fontStyle: 'italic',
+  },
+  dniLoader: {
+    marginLeft: 8,
   },
   credentialsContainer: {
     gap: 16,
