@@ -134,7 +134,9 @@ apiClient.interceptors.request.use(
         config.url?.includes('/credenciales-capellania/mis-credenciales') ||
         config.url?.includes('/inscripciones/my') ||
         config.url?.includes('/auth/invitado/me') ||
-        config.url?.includes('/solicitudes-credenciales/mis-solicitudes')
+        config.url?.includes('/solicitudes-credenciales/mis-solicitudes') ||
+        // POST /solicitudes-credenciales también requiere token de invitado
+        (config.url?.includes('/solicitudes-credenciales') && config.method === 'post')
 
       // Detectar si es un endpoint de invitados o inscripciones (que también usa invitados)
       const isInvitadoEndpoint =
