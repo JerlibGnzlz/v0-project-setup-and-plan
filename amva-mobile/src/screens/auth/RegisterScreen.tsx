@@ -229,7 +229,6 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                 resizeMode="contain"
               />
             </View>
-            <Text style={styles.title}>AMVA Móvil</Text>
             <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
           </View>
 

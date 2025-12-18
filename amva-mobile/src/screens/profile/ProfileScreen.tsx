@@ -51,7 +51,7 @@ export function ProfileScreen() {
               )}
             </View>
           </View>
-          <Text style={styles.title}>AMVA Go</Text>
+          <Text style={styles.title}>AMVA Móvil</Text>
           <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
         </View>
 

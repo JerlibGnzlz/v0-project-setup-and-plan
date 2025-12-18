@@ -114,7 +114,7 @@ export function AppNavigator() {
       >
         <View style={{ alignItems: 'center' }}>
           <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
-            AMVA Go
+            AMVA Móvil
           </Text>
           <ActivityIndicator size="large" color="#22c55e" />
           <Text style={{ marginTop: 16, color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>
