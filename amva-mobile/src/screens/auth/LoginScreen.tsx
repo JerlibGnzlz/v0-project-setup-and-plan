@@ -344,7 +344,6 @@ export function LoginScreen() {
                 resizeMode="contain"
               />
             </View>
-            <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
           </Animated.View>
 
           {/* Form Card */}

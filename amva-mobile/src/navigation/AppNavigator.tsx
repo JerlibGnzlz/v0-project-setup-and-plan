@@ -106,39 +106,25 @@ export function AppNavigator() {
 
   useEffect(() => {
     if (loading) {
-      // Animación de entrada
+      // Animación de entrada profesional
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 800,
+          duration: 1000,
           useNativeDriver: true,
         }),
         Animated.spring(scaleAnim, {
           toValue: 1,
-          tension: 50,
-          friction: 7,
+          tension: 40,
+          friction: 8,
           useNativeDriver: true,
         }),
       ]).start()
-
-      // Animación de rotación suave para el logo (opcional, muy sutil)
-      Animated.loop(
-        Animated.timing(rotateAnim, {
-          toValue: 1,
-          duration: 3000,
-          useNativeDriver: true,
-        })
-      ).start()
     }
-  }, [loading, fadeAnim, scaleAnim, rotateAnim])
+  }, [loading, fadeAnim, scaleAnim])
 
   // Mostrar loading solo mientras se verifica autenticación
   const isAuthenticated = !!invitado
-
-  const spin = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  })
 
   if (loading) {
     return (
@@ -158,23 +144,21 @@ export function AppNavigator() {
             transform: [{ scale: scaleAnim }],
           }}
         >
-          {/* Logo Container con animación */}
+          {/* Logo Container con diseño profesional y minimalista */}
           <Animated.View
             style={{
-              width: 240,
-              height: 240,
-              marginBottom: 32,
+              width: 300,
+              height: 300,
               shadowColor: '#22c55e',
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.3,
-              shadowRadius: 20,
-              elevation: 12,
-              borderRadius: 24,
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              padding: 20,
-              borderWidth: 1,
-              borderColor: 'rgba(34, 197, 94, 0.2)',
-              transform: [{ rotate: spin }],
+              shadowOffset: { width: 0, height: 16 },
+              shadowOpacity: 0.5,
+              shadowRadius: 32,
+              elevation: 20,
+              borderRadius: 40,
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              padding: 32,
+              borderWidth: 2,
+              borderColor: 'rgba(34, 197, 94, 0.4)',
             }}
           >
             <Image
@@ -184,48 +168,10 @@ export function AppNavigator() {
             />
           </Animated.View>
           
-          {/* App Name */}
-          <Animated.Text
-            style={{
-              fontSize: 28,
-              fontWeight: 'bold',
-              color: '#fff',
-              marginBottom: 8,
-              letterSpacing: 0.5,
-              opacity: fadeAnim,
-            }}
-          >
-            AMVA Móvil
-          </Animated.Text>
-          
-          {/* Subtitle */}
-          <Animated.Text
-            style={{
-              fontSize: 14,
-              color: 'rgba(255, 255, 255, 0.7)',
-              marginBottom: 32,
-              textAlign: 'center',
-              paddingHorizontal: 40,
-              opacity: fadeAnim,
-            }}
-          >
-            Asociación Misionera Vida Abundante
-          </Animated.Text>
-          
-          {/* Loading Indicator */}
-          <ActivityIndicator size="large" color="#22c55e" />
-          
-          {/* Loading Text */}
-          <Animated.Text
-            style={{
-              fontSize: 12,
-              color: 'rgba(255, 255, 255, 0.5)',
-              marginTop: 16,
-              opacity: fadeAnim,
-            }}
-          >
-            Cargando...
-          </Animated.Text>
+          {/* Loading Indicator elegante */}
+          <View style={{ marginTop: 48 }}>
+            <ActivityIndicator size="large" color="#22c55e" />
+          </View>
         </Animated.View>
       </View>
     )
