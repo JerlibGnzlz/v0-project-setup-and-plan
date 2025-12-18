@@ -182,6 +182,29 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
     const trimmedValue = value?.trim() || ''
     if (trimmedValue.length > 0) {
       validateField(field, trimmedValue)
+      
+      // Cerrar teclado si el campo está completo y válido
+      if (!errors[field]) {
+        if (field === 'email') {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+          if (emailRegex.test(trimmedValue)) {
+            setTimeout(() => Keyboard.dismiss(), 300)
+          }
+        } else if (field === 'telefono') {
+          const digitsOnly = trimmedValue.replace(/\D/g, '')
+          if (digitsOnly.length >= 8) {
+            setTimeout(() => Keyboard.dismiss(), 300)
+          }
+        } else if (['nombre', 'apellido', 'sede'].includes(field)) {
+          if (trimmedValue.length >= 2) {
+            setTimeout(() => Keyboard.dismiss(), 300)
+          }
+        } else if (field === 'password' || field === 'confirmPassword') {
+          if (trimmedValue.length >= 8 && !errors[field]) {
+            setTimeout(() => Keyboard.dismiss(), 300)
+          }
+        }
+      }
     }
   }
 
@@ -232,37 +255,6 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
     setErrors(newErrors)
   }
 
-  const handleInputBlur = (field: string, value: string) => {
-    // Validar y cerrar teclado si el campo está completo
-    const trimmedValue = value?.trim() || ''
-
-    // Si el campo está completo y válido, cerrar el teclado
-    if (trimmedValue.length > 0) {
-      // Validaciones específicas por campo
-      if (field === 'email') {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (emailRegex.test(trimmedValue)) {
-          setTimeout(() => Keyboard.dismiss(), 300)
-        }
-      } else if (field === 'telefono') {
-        // Si tiene al menos 8 dígitos, considerar completo
-        const digitsOnly = trimmedValue.replace(/\D/g, '')
-        if (digitsOnly.length >= 8) {
-          setTimeout(() => Keyboard.dismiss(), 300)
-        }
-      } else if (['nombre', 'apellido', 'sede'].includes(field)) {
-        // Si tiene al menos 2 caracteres, considerar completo
-        if (trimmedValue.length >= 2) {
-          setTimeout(() => Keyboard.dismiss(), 300)
-        }
-      } else if (field === 'password' || field === 'confirmPassword') {
-        // Si tiene al menos 8 caracteres, considerar completo
-        if (trimmedValue.length >= 8) {
-          setTimeout(() => Keyboard.dismiss(), 300)
-        }
-      }
-    }
-  }
 
   const handleSubmit = async () => {
     Keyboard.dismiss()
