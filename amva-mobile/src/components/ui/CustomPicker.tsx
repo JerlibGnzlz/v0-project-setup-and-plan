@@ -111,40 +111,46 @@ export function CustomPicker({
                 <Text style={styles.modalCloseText}>✕</Text>
               </TouchableOpacity>
             </View>
-            <FlatList
-              data={items}
-              keyExtractor={item => String(item.value)}
-              renderItem={({ item }) => {
-                const isSelected = item.value === selectedValue
-                return (
-                  <TouchableOpacity
-                    style={[styles.modalItem, isSelected && styles.modalItemSelected]}
-                    onPress={() => handleSelect(item.value)}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.modalItemText,
-                        isSelected && styles.modalItemTextSelected,
-                      ]}
+            {items.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No hay opciones disponibles</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={items}
+                keyExtractor={item => String(item.value)}
+                renderItem={({ item }) => {
+                  const isSelected = item.value === selectedValue
+                  return (
+                    <TouchableOpacity
+                      style={[styles.modalItem, isSelected && styles.modalItemSelected]}
+                      onPress={() => handleSelect(item.value)}
+                      activeOpacity={0.7}
                     >
-                      {item.label}
-                    </Text>
-                    {isSelected && (
-                      <View style={styles.checkIcon}>
-                        <Check size={18} color="#22c55e" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                )
-              }}
-              style={styles.modalList}
-              contentContainerStyle={styles.modalListContent}
-              showsVerticalScrollIndicator={true}
-              initialNumToRender={20}
-              maxToRenderPerBatch={20}
-              windowSize={10}
-            />
+                      <Text
+                        style={[
+                          styles.modalItemText,
+                          isSelected && styles.modalItemTextSelected,
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                      {isSelected && (
+                        <View style={styles.checkIcon}>
+                          <Check size={18} color="#22c55e" />
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  )
+                }}
+                style={styles.modalList}
+                contentContainerStyle={styles.modalListContent}
+                showsVerticalScrollIndicator={true}
+                initialNumToRender={20}
+                maxToRenderPerBatch={20}
+                windowSize={10}
+              />
+            )}
           </View>
         </View>
       </Modal>
