@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { ActivityIndicator, View, Platform, Text, Image } from 'react-native'
+import { ActivityIndicator, View, Platform, Text, Image, Animated } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Home, Calendar, Newspaper, User, CreditCard } from 'lucide-react-native'
 import { LoginScreen } from '@screens/auth/LoginScreen'
@@ -98,9 +98,47 @@ function MainTabs() {
 
 export function AppNavigator() {
   const { invitado, loading } = useInvitadoAuth()
+  
+  // Animaciones para la pantalla de carga
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const scaleAnim = useRef(new Animated.Value(0.8)).current
+  const rotateAnim = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    if (loading) {
+      // Animación de entrada
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+      ]).start()
+
+      // Animación de rotación suave para el logo (opcional, muy sutil)
+      Animated.loop(
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 3000,
+          useNativeDriver: true,
+        })
+      ).start()
+    }
+  }, [loading, fadeAnim, scaleAnim, rotateAnim])
 
   // Mostrar loading solo mientras se verifica autenticación
   const isAuthenticated = !!invitado
+
+  const spin = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  })
 
   if (loading) {
     return (
@@ -112,9 +150,16 @@ export function AppNavigator() {
           backgroundColor: '#0a1628',
         }}
       >
-        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-          {/* Logo Container */}
-          <View
+        <Animated.View
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }],
+          }}
+        >
+          {/* Logo Container con animación */}
+          <Animated.View
             style={{
               width: 240,
               height: 240,
@@ -129,6 +174,7 @@ export function AppNavigator() {
               padding: 20,
               borderWidth: 1,
               borderColor: 'rgba(34, 197, 94, 0.2)',
+              transform: [{ rotate: spin }],
             }}
           >
             <Image
@@ -136,48 +182,51 @@ export function AppNavigator() {
               style={{ width: '100%', height: '100%' }}
               resizeMode="contain"
             />
-          </View>
+          </Animated.View>
           
           {/* App Name */}
-          <Text
+          <Animated.Text
             style={{
               fontSize: 28,
               fontWeight: 'bold',
               color: '#fff',
               marginBottom: 8,
               letterSpacing: 0.5,
+              opacity: fadeAnim,
             }}
           >
             AMVA Móvil
-          </Text>
+          </Animated.Text>
           
           {/* Subtitle */}
-          <Text
+          <Animated.Text
             style={{
               fontSize: 14,
               color: 'rgba(255, 255, 255, 0.7)',
               marginBottom: 32,
               textAlign: 'center',
               paddingHorizontal: 40,
+              opacity: fadeAnim,
             }}
           >
             Asociación Misionera Vida Abundante
-          </Text>
+          </Animated.Text>
           
           {/* Loading Indicator */}
           <ActivityIndicator size="large" color="#22c55e" />
           
           {/* Loading Text */}
-          <Text
+          <Animated.Text
             style={{
               fontSize: 12,
               color: 'rgba(255, 255, 255, 0.5)',
               marginTop: 16,
+              opacity: fadeAnim,
             }}
           >
             Cargando...
-          </Text>
-        </View>
+          </Animated.Text>
+        </Animated.View>
       </View>
     )
   }
