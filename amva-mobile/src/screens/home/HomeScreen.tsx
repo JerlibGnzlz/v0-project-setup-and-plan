@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     right: -12,
     bottom: -12,
     backgroundColor: 'rgba(34, 197, 94, 0.3)',
-    borderRadius: 50,
+    borderRadius: 75,
     opacity: 0.6,
   },
   logoImage: {
