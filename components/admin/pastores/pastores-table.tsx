@@ -63,3 +63,4 @@ export function PastoresTable({ pastores, onEdit, tipoConfig }: PastoresTablePro
 
 
 
+

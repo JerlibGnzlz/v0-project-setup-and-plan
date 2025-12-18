@@ -132,7 +132,6 @@ export function HomeScreen({ navigation }: Props) {
             style={styles.headerGradient}
           >
             <View style={styles.logoContainer}>
-              <View style={styles.logoGlow} />
               <Image
                 source={require('../../../assets/images/amvamobil.png')}
                 style={styles.logoImage}
@@ -249,23 +248,17 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   logoContainer: {
-    position: 'relative',
     marginBottom: 20,
-    width: 180,
-    height: 180,
+    width: 240,
+    height: 240,
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  logoGlow: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(34, 197, 94, 0.3)',
-    borderRadius: 90,
-    opacity: 0.6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   logoImage: {
     width: '100%',

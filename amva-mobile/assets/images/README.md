@@ -21,3 +21,4 @@ Coloca aquí el archivo del logo de AMVA Móvil.
 - Logo principal: 512x512px o mayor
 - Versión para splash: 1024x1024px o mayor
 
+
