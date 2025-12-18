@@ -165,21 +165,14 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
       }
 
       // Refrescar el estado del invitado en el contexto
+      // Esto actualiza el estado y permite que AppNavigator detecte la autenticación
       await refresh()
 
-      Alert.alert(
-        'Registro exitoso',
-        `¡Bienvenido ${response.invitado.nombre}! Tu cuenta ha sido creada exitosamente en la tabla de invitados.`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // El usuario ya está autenticado, llamar onSuccess para continuar
-              onSuccess()
-            },
-          },
-        ]
-      )
+      console.log('✅ Estado de invitado refrescado después del registro')
+
+      // No mostrar alerta, simplemente cerrar el registro y dejar que AppNavigator redirija
+      // El usuario ya está autenticado, el AppNavigator detectará el cambio y mostrará MainTabs
+      onSuccess()
     } catch (error: any) {
       console.error('Error en registro:', error)
       let errorMessage = 'No se pudo crear la cuenta. Intenta nuevamente.'

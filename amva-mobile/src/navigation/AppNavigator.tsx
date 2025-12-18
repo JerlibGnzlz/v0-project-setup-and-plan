@@ -13,6 +13,7 @@ import { CredentialsScreen } from '@screens/credentials/CredentialsScreen'
 import { ProfileScreen } from '@screens/profile/ProfileScreen'
 import NotificationsHistoryScreen from '@screens/notifications/NotificationsHistoryScreen'
 import { useAuth } from '@hooks/useAuth'
+import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 
 type RootStackParamList = {
   Auth: undefined
@@ -97,9 +98,13 @@ function MainTabs() {
 }
 
 export function AppNavigator() {
-  const { pastor, loading } = useAuth()
+  const { pastor, loading: loadingPastor } = useAuth()
+  const { invitado, loading: loadingInvitado } = useInvitadoAuth()
 
   // Mostrar loading solo mientras se verifica autenticación
+  const loading = loadingPastor || loadingInvitado
+  const isAuthenticated = !!pastor || !!invitado
+
   if (loading) {
     return (
       <View
@@ -124,11 +129,12 @@ export function AppNavigator() {
   }
 
   // Siempre renderizar NavigationContainer, incluso si hay errores
+  // Permitir acceso si hay pastor O invitado autenticado
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {pastor ? (
+        {isAuthenticated ? (
           <>
             <Stack.Screen name="Main" component={MainTabs} />
             <Stack.Screen

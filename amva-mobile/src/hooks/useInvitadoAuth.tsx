@@ -117,7 +117,15 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
   }
 
   const refresh = useCallback(async () => {
-    await loadInvitado()
+    setLoading(true)
+    try {
+      await loadInvitado()
+      console.log('✅ Estado de invitado refrescado')
+    } catch (error: unknown) {
+      console.error('Error refrescando invitado:', error)
+    } finally {
+      setLoading(false)
+    }
   }, [loadInvitado])
 
   return (
