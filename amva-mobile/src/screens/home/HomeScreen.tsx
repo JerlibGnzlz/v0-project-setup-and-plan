@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Calendar, Newspaper, User, Sparkles, ArrowRight, Globe, Bell, CreditCard } from 'lucide-react-native'
-import { useAuth } from '@hooks/useAuth'
+import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 
@@ -34,7 +34,7 @@ interface Props {
 const { width } = Dimensions.get('window')
 
 export function HomeScreen({ navigation }: Props) {
-  const { pastor } = useAuth()
+  const { invitado } = useInvitadoAuth()
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(50)).current
 
@@ -73,7 +73,7 @@ export function HomeScreen({ navigation }: Props) {
     {
       id: 'perfil',
       title: 'Perfil',
-      description: 'Ver tus datos de pastor',
+      description: 'Ver tu información de perfil',
       icon: User,
       color: '#8b5cf6',
       gradient: ['#8b5cf6', '#7c3aed'],
@@ -137,9 +137,9 @@ export function HomeScreen({ navigation }: Props) {
               </View>
             </View>
             <Text style={styles.welcomeText}>Bienvenido</Text>
-            {pastor && (
+            {invitado && (
               <Text style={styles.nameText}>
-                {pastor.nombre} {pastor.apellido}
+                {invitado.nombre} {invitado.apellido}
               </Text>
             )}
             <View style={styles.badge}>
