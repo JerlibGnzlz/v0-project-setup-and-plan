@@ -278,18 +278,12 @@ export function Step3Formulario({
     try {
       setLoading(true)
 
-      // Construir sede completa con país y provincia
-      let sedeCompleta = formData.sede.trim()
-      if (formData.pais === 'Argentina' && formData.provincia) {
-        sedeCompleta = `${sedeCompleta} - ${formData.pais}, ${formData.provincia}`
-      } else if (formData.pais) {
-        sedeCompleta = `${sedeCompleta} - ${formData.pais}`
-      }
-
+      // NO construir sede completa aquí, solo pasar la sede original
+      // La sede completa se construirá en Step4Confirmacion antes de enviar
       // Pasar datos al siguiente paso (resumen) en lugar de crear directamente
       onComplete({
         ...formData,
-        sede: sedeCompleta,
+        // Mantener sede original sin modificar
       })
     } catch (error: unknown) {
       console.error('Error validando formulario:', error)

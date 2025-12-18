@@ -93,11 +93,30 @@ export function Step4Confirmacion({
       }
 
       // Construir sede completa con país y provincia si están disponibles
-      let sedeCompleta = formData.sede.trim()
+      // Asegurar que formData.sede no tenga ya el país/provincia agregado
+      let sedeBase = formData.sede.trim()
+      
+      // Remover cualquier duplicación si ya existe (por si acaso)
+      if (formData.pais) {
+        // Remover patrón " - Argentina, Provincia" o " - País"
+        const pattern1 = ` - ${formData.pais}, ${formData.provincia || ''}`
+        const pattern2 = ` - ${formData.pais}`
+        
+        if (sedeBase.includes(pattern1)) {
+          sedeBase = sedeBase.replace(pattern1, '').trim()
+        } else if (formData.provincia && sedeBase.includes(` - ${formData.pais},`)) {
+          sedeBase = sedeBase.split(` - ${formData.pais},`)[0].trim()
+        } else if (sedeBase.includes(pattern2)) {
+          sedeBase = sedeBase.replace(pattern2, '').trim()
+        }
+      }
+      
+      // Construir sede completa solo una vez
+      let sedeCompleta = sedeBase
       if (formData.pais === 'Argentina' && formData.provincia) {
-        sedeCompleta = `${sedeCompleta} - ${formData.pais}, ${formData.provincia}`
+        sedeCompleta = `${sedeBase} - ${formData.pais}, ${formData.provincia}`
       } else if (formData.pais) {
-        sedeCompleta = `${sedeCompleta} - ${formData.pais}`
+        sedeCompleta = `${sedeBase} - ${formData.pais}`
       }
 
       // Preparar datos para enviar
