@@ -115,9 +115,6 @@ export function Step3Formulario({
     'Ciudad Autónoma de Buenos Aires',
   ]
 
-  const [showPaisPicker, setShowPaisPicker] = useState(false)
-  const [showProvinciaPicker, setShowProvinciaPicker] = useState(false)
-
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [uploadingDocument, setUploadingDocument] = useState(false)
