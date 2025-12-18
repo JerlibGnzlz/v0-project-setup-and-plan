@@ -12,10 +12,11 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { CreditCard, CheckCircle, AlertCircle, Clock, Search, Badge, ChevronRight, ChevronLeft } from 'lucide-react-native'
+import { CreditCard, CheckCircle, AlertCircle, Clock, Search, Badge, ChevronRight, ChevronLeft, FileText, X, Plus } from 'lucide-react-native'
 import { credencialesApi, type Credencial } from '@api/credenciales'
 import { inscripcionesApi } from '@api/inscripciones'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
+import { solicitudesCredencialesApi, type SolicitudCredencial, TipoCredencial, EstadoSolicitud } from '@api/solicitudes-credenciales'
 
 export function CredentialsScreen() {
   const { invitado, isAuthenticated: isInvitadoAuthenticated } = useInvitadoAuth()
@@ -30,6 +31,19 @@ export function CredentialsScreen() {
   const [currentStep, setCurrentStep] = useState(1)
   const [currentCredencialIndex, setCurrentCredencialIndex] = useState(0)
   const fadeAnim = React.useRef(new Animated.Value(1)).current
+  const [solicitudes, setSolicitudes] = useState<SolicitudCredencial[]>([])
+  const [loadingSolicitudes, setLoadingSolicitudes] = useState(false)
+  const [showSolicitarModal, setShowSolicitarModal] = useState(false)
+  const [solicitandoCredencial, setSolicitandoCredencial] = useState(false)
+  const [formSolicitud, setFormSolicitud] = useState({
+    tipo: TipoCredencial.MINISTERIAL as TipoCredencial,
+    dni: '',
+    nombre: '',
+    apellido: '',
+    nacionalidad: '',
+    fechaNacimiento: '',
+    motivo: '',
+  })
 
   // Obtener DNI del invitado desde sus inscripciones
   useEffect(() => {
@@ -337,6 +351,86 @@ export function CredentialsScreen() {
       })
     } catch {
       return dateString
+    }
+  }
+
+  const handleSolicitarCredencial = async () => {
+    // Validar campos requeridos
+    if (!formSolicitud.dni.trim()) {
+      Alert.alert('Campo requerido', 'Por favor ingresa tu número de documento (DNI)')
+      return
+    }
+    if (!formSolicitud.nombre.trim()) {
+      Alert.alert('Campo requerido', 'Por favor ingresa tu nombre')
+      return
+    }
+    if (!formSolicitud.apellido.trim()) {
+      Alert.alert('Campo requerido', 'Por favor ingresa tu apellido')
+      return
+    }
+
+    setSolicitandoCredencial(true)
+    try {
+      await solicitudesCredencialesApi.create({
+        tipo: formSolicitud.tipo,
+        dni: formSolicitud.dni.trim(),
+        nombre: formSolicitud.nombre.trim(),
+        apellido: formSolicitud.apellido.trim(),
+        nacionalidad: formSolicitud.nacionalidad.trim() || undefined,
+        fechaNacimiento: formSolicitud.fechaNacimiento.trim() || undefined,
+        motivo: formSolicitud.motivo.trim() || undefined,
+      })
+
+      Alert.alert(
+        'Solicitud Enviada',
+        'Tu solicitud de credencial ha sido enviada exitosamente. Recibirás una notificación cuando sea procesada.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setShowSolicitarModal(false)
+              // Recargar solicitudes
+              solicitudesCredencialesApi.getMisSolicitudes().then(setSolicitudes).catch(console.error)
+            },
+          },
+        ]
+      )
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('❌ Error solicitando credencial:', errorMessage)
+      Alert.alert('Error', `No se pudo enviar la solicitud: ${errorMessage}`)
+    } finally {
+      setSolicitandoCredencial(false)
+    }
+  }
+
+  const getEstadoSolicitudColor = (estado: EstadoSolicitud) => {
+    switch (estado) {
+      case EstadoSolicitud.PENDIENTE:
+        return '#f59e0b'
+      case EstadoSolicitud.APROBADA:
+        return '#22c55e'
+      case EstadoSolicitud.RECHAZADA:
+        return '#ef4444'
+      case EstadoSolicitud.COMPLETADA:
+        return '#22c55e'
+      default:
+        return '#64748b'
+    }
+  }
+
+  const getEstadoSolicitudLabel = (estado: EstadoSolicitud) => {
+    switch (estado) {
+      case EstadoSolicitud.PENDIENTE:
+        return 'Pendiente'
+      case EstadoSolicitud.APROBADA:
+        return 'Aprobada'
+      case EstadoSolicitud.RECHAZADA:
+        return 'Rechazada'
+      case EstadoSolicitud.COMPLETADA:
+        return 'Completada'
+      default:
+        return estado
     }
   }
 
