@@ -233,9 +233,12 @@ apiClient.interceptors.response.use(
       // Prevenir loops infinitos: máximo 1 intento de refresh
       const retryCount = (originalRequest._retryCount || 0) + 1
       if (retryCount > 1) {
-        console.error('❌ Máximo de reintentos alcanzado, rechazando request')
+        console.error('❌ Máximo de reintentos alcanzado, rechazando request:', originalRequest.url)
         return Promise.reject(error)
       }
+
+      console.log(`🔄 Error 401 detectado, intentando refrescar token (intento ${retryCount}/1)`)
+      console.log('🔍 URL del request:', originalRequest.url)
 
       originalRequest._retry = true
       originalRequest._retryCount = retryCount
