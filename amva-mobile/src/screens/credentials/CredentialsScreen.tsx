@@ -398,7 +398,29 @@ export function CredentialsScreen() {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       console.error('❌ Error solicitando credencial:', errorMessage)
-      Alert.alert('Error', `No se pudo enviar la solicitud: ${errorMessage}`)
+      
+      // Detectar error 404 específicamente
+      let mensajeUsuario = 'No se pudo enviar la solicitud'
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; statusText?: string; data?: unknown } }
+        if (axiosError.response?.status === 404) {
+          mensajeUsuario = 'El endpoint de solicitudes no está disponible.\n\n' +
+            'Esto puede deberse a:\n' +
+            '• El backend no está desplegado con los últimos cambios\n' +
+            '• El servicio está en mantenimiento\n\n' +
+            'Por favor, contacta al administrador o intenta más tarde.'
+        } else if (axiosError.response?.status === 401) {
+          mensajeUsuario = 'No estás autenticado. Por favor, inicia sesión nuevamente.'
+        } else if (axiosError.response?.status === 400) {
+          mensajeUsuario = 'Datos inválidos. Verifica que todos los campos requeridos estén completos.'
+        } else {
+          mensajeUsuario = `Error ${axiosError.response?.status}: ${axiosError.response?.statusText || errorMessage}`
+        }
+      } else {
+        mensajeUsuario = `Error: ${errorMessage}`
+      }
+      
+      Alert.alert('Error', mensajeUsuario)
     } finally {
       setSolicitandoCredencial(false)
     }
