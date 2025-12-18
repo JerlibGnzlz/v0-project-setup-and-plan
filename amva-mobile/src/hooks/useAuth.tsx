@@ -54,20 +54,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setPastor(me)
               console.log('✅ Token válido, pastor cargado:', me.email)
             }
-          } catch (error: any) {
+          } catch (error: unknown) {
+            const errorObj = error as {
+              response?: { status?: number }
+              message?: string
+              code?: string
+              config?: { url?: string; _retry?: boolean }
+            }
+            
             console.error('❌ Error al verificar token:', {
-              status: error?.response?.status,
-              message: error?.message,
-              url: error?.config?.url,
+              status: errorObj.response?.status,
+              message: errorObj.message,
+              url: errorObj.config?.url,
             })
 
             // Si es un error de red o timeout, no limpiar tokens (puede ser temporal)
-            if (error?.message?.includes('timeout') || error?.code === 'ECONNABORTED') {
+            if (
+              errorObj.message?.includes('timeout') ||
+              errorObj.code === 'ECONNABORTED'
+            ) {
               console.log('⚠️ Timeout o error de red, manteniendo tokens')
-            } else if (error?.response?.status === 401) {
+            } else if (errorObj.response?.status === 401) {
               // Solo limpiar si es 401 y no hay refresh token o ya se intentó refrescar
               const refreshToken = await SecureStore.getItemAsync('refresh_token')
-              if (!refreshToken || error?.config?._retry) {
+              if (!refreshToken || errorObj.config?._retry) {
                 if (isMounted) {
                   console.log('🧹 Limpiando tokens (401 sin refresh posible)')
                   await SecureStore.deleteItemAsync('access_token')
@@ -81,10 +91,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           console.log('ℹ️ No hay token guardado, usuario no autenticado')
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorObj = error instanceof Error ? error : { message: 'Error desconocido', stack: undefined }
         console.error('❌ Error crítico en bootstrap:', {
-          message: error?.message,
-          stack: error?.stack,
+          message: errorObj.message,
+          stack: errorObj.stack,
         })
         // En caso de error crítico, continuar sin autenticación
       } finally {
@@ -126,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await SecureStore.setItemAsync('refresh_token', refresh_token)
       setPastor(pastor)
       console.log('✅ useAuth: Tokens guardados, pastor establecido')
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('❌ useAuth: Error en login:', error)
       throw error // Re-lanzar para que LoginScreen lo maneje
     } finally {

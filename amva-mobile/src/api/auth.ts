@@ -72,10 +72,13 @@ export const authApi = {
         }
 
         // Crear un error con el mensaje extraído
-        const errorWithMessage = new Error(errorMessageText)
+        const errorWithMessage = new Error(errorMessageText) as Error & {
+          response?: typeof axiosError.response
+          code?: string
+        }
         // Mantener información del error original para el manejo en LoginScreen
-        ;(errorWithMessage as unknown as { response?: unknown }).response = axiosError.response
-        ;(errorWithMessage as unknown as { code?: string }).code = axiosError.code
+        errorWithMessage.response = axiosError.response
+        errorWithMessage.code = axiosError.code
         throw errorWithMessage
       }
 
