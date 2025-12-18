@@ -190,35 +190,70 @@ export function Step3Formulario({
 
     if (!formData.nombre || formData.nombre.trim().length < 2) {
       newErrors.nombre = 'El nombre debe tener al menos 2 caracteres'
+    } else if (formData.nombre.trim().length > 50) {
+      newErrors.nombre = 'El nombre no puede exceder 50 caracteres'
+    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/.test(formData.nombre.trim())) {
+      newErrors.nombre = 'El nombre solo puede contener letras, espacios, guiones y apóstrofes'
     }
 
     if (!formData.apellido || formData.apellido.trim().length < 2) {
       newErrors.apellido = 'El apellido debe tener al menos 2 caracteres'
+    } else if (formData.apellido.trim().length > 50) {
+      newErrors.apellido = 'El apellido no puede exceder 50 caracteres'
+    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/.test(formData.apellido.trim())) {
+      newErrors.apellido = 'El apellido solo puede contener letras, espacios, guiones y apóstrofes'
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!formData.email || !emailRegex.test(formData.email)) {
       newErrors.email = 'Correo electrónico inválido'
+    } else if (formData.email.length < 5 || formData.email.length > 254) {
+      newErrors.email = 'El correo electrónico debe tener entre 5 y 254 caracteres'
+    }
+
+    // Validar teléfono si está presente (es opcional pero si se proporciona debe cumplir requisitos)
+    if (formData.telefono && formData.telefono.trim().length > 0) {
+      const phoneDigits = formData.telefono.replace(/\D/g, '')
+      if (phoneDigits.length < 8 || phoneDigits.length > 20) {
+        newErrors.telefono = 'El teléfono debe tener entre 8 y 20 dígitos'
+      } else if (!/^\+?[\d\s\-()]+$/.test(formData.telefono.trim())) {
+        newErrors.telefono = 'El teléfono solo puede contener números, espacios, guiones, paréntesis y el símbolo +'
+      }
     }
 
     if (!formData.pais || formData.pais.trim().length === 0) {
       newErrors.pais = 'El país es requerido'
+    } else if (formData.pais.trim().length > 100) {
+      newErrors.pais = 'El país no puede exceder 100 caracteres'
     }
 
     if (formData.pais === 'Argentina' && (!formData.provincia || formData.provincia.trim().length === 0)) {
       newErrors.provincia = 'La provincia es requerida para Argentina'
+    } else if (formData.provincia && formData.provincia.trim().length > 100) {
+      newErrors.provincia = 'La provincia no puede exceder 100 caracteres'
     }
 
     if (!formData.sede || formData.sede.trim().length < 2) {
       newErrors.sede = 'La sede debe tener al menos 2 caracteres'
+    } else if (formData.sede.trim().length > 200) {
+      newErrors.sede = 'La sede no puede exceder 200 caracteres'
     }
 
     if (!formData.tipoInscripcion || formData.tipoInscripcion.trim().length === 0) {
       newErrors.tipoInscripcion = 'El tipo de inscripción es requerido'
+    } else if (formData.tipoInscripcion.trim().length > 50) {
+      newErrors.tipoInscripcion = 'El tipo de inscripción no puede exceder 50 caracteres'
     }
 
     if (!formData.numeroCuotas || formData.numeroCuotas < 1 || formData.numeroCuotas > 3) {
       newErrors.numeroCuotas = 'El número de cuotas debe ser entre 1 y 3'
+    }
+
+    // Validar DNI si está presente (es opcional pero si se proporciona debe cumplir requisitos)
+    if (formData.dni && formData.dni.trim().length > 0) {
+      if (formData.dni.trim().length > 20) {
+        newErrors.dni = 'El DNI no puede exceder 20 caracteres'
+      }
     }
 
     setErrors(newErrors)
