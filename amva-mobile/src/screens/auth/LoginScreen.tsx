@@ -141,10 +141,24 @@ export function LoginScreen() {
           if (
             response.error.message.includes('400') ||
             response.error.message.includes('invalid_request') ||
-            response.error.message.includes("doesn't comply")
+            response.error.message.includes("doesn't comply") ||
+            response.error.message.includes('OAuth 2.0 policy')
           ) {
             errorMessage =
-              'Error de autenticación con Google.\n\nSi la app fue publicada recientemente:\n• Espera 5-15 minutos y vuelve a intentar\n• Cierra completamente la app y ábrela de nuevo\n\nSi el problema persiste:\n• Verifica en Google Cloud Console que el estado sea "In production"\n• Contacta al administrador si necesitas ayuda'
+              '⚠️ Error de configuración de Google OAuth\n\n' +
+              'Pasos para resolver:\n\n' +
+              '1. Ve a Google Cloud Console → OAuth consent screen\n' +
+              '2. Completa "Información de la marca":\n' +
+              '   • Página principal: https://ministerio-backend-wdbj.onrender.com\n' +
+              '   • Política de Privacidad: https://ministerio-backend-wdbj.onrender.com/privacy-policy\n' +
+              '   • Términos de Servicio: https://ministerio-backend-wdbj.onrender.com/terms-of-service\n' +
+              '3. Guarda los cambios\n' +
+              '4. Espera 5-15 minutos\n' +
+              '5. Cierra completamente la app y vuelve a intentar\n\n' +
+              'Si el problema persiste, verifica que:\n' +
+              '• El estado sea "En producción"\n' +
+              '• El dominio esté autorizado\n' +
+              '• Las URLs sean accesibles'
           } else if (response.error.message.includes('access_denied')) {
             errorMessage = 'Acceso denegado. Por favor, autoriza la aplicación para continuar.'
           } else {
@@ -152,7 +166,7 @@ export function LoginScreen() {
           }
         }
         
-        Alert.alert('Error de autenticación', errorMessage)
+        Alert.alert('Error de autenticación con Google', errorMessage)
         setGoogleLoading(false)
       } else if (response?.type === 'dismiss') {
         console.log('ℹ️ Usuario canceló la autenticación con Google')
@@ -216,7 +230,27 @@ export function LoginScreen() {
           errorMessage =
             'No se pudo conectar al servidor.\n\nVerifica que:\n• El backend esté accesible\n• La URL del API sea correcta\n• Tengas conexión a internet'
         } else if (axiosError.response?.status === 401) {
-          errorMessage = 'Credenciales incorrectas.\n\nVerifica tu email y contraseña.'
+          // Mensaje más detallado para credenciales inválidas
+          const responseData = axiosError.response.data as {
+            error?: { message?: string }
+            message?: string | string[]
+          }
+          
+          let backendMessage = 'Credenciales incorrectas'
+          if (responseData.error?.message) {
+            backendMessage = responseData.error.message
+          } else if (responseData.message) {
+            backendMessage = Array.isArray(responseData.message)
+              ? responseData.message.join('\n')
+              : responseData.message
+          }
+          
+          errorMessage = `${backendMessage}\n\n` +
+            'Verifica que:\n' +
+            '• Tu email sea correcto\n' +
+            '• Tu contraseña sea correcta\n' +
+            '• Tu cuenta esté registrada como pastor\n\n' +
+            'Si no tienes cuenta, puedes crear una nueva con el botón "Crear nueva cuenta"'
         } else if (axiosError.response?.status === 404) {
           errorMessage =
             'Endpoint no encontrado.\n\nEl endpoint de autenticación no está disponible. Contacta al administrador.'
