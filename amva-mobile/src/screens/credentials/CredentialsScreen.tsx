@@ -42,7 +42,7 @@ export function CredentialsScreen() {
       try {
         console.log('🔍 Buscando credenciales automáticamente para invitado:', invitado.email)
         const result = await credencialesApi.obtenerMisCredenciales()
-        
+
         if (!isMounted) return // Evitar actualizar estado si el componente se desmontó
 
         console.log('📊 Resultado de búsqueda automática:', {
@@ -60,7 +60,7 @@ export function CredentialsScreen() {
         }
       } catch (error: unknown) {
         if (!isMounted) return // Evitar actualizar estado si el componente se desmontó
-        
+
         const errorMessage =
           error instanceof Error ? error.message : 'Error al obtener credenciales'
         console.error('❌ Error obteniendo credenciales automáticamente:', errorMessage)

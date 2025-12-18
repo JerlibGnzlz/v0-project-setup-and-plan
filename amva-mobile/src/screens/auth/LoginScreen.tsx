@@ -18,6 +18,7 @@ import * as WebBrowser from 'expo-web-browser'
 import * as Google from 'expo-auth-session/providers/google'
 import Constants from 'expo-constants'
 import { useAuth } from '@hooks/useAuth'
+import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { invitadoAuthApi } from '@api/invitado-auth'
 import { testBackendConnection } from '../../utils/testConnection'
 import { RegisterScreen } from './RegisterScreen'
@@ -26,7 +27,8 @@ import { RegisterScreen } from './RegisterScreen'
 WebBrowser.maybeCompleteAuthSession()
 
 export function LoginScreen() {
-  const { login, loading } = useAuth()
+  const { login, loading: loadingPastor } = useAuth()
+  const { login: loginInvitado, loading: loadingInvitado } = useInvitadoAuth()
   const scrollViewRef = useRef<ScrollView>(null)
   const emailInputRef = useRef<TextInput>(null)
   const passwordInputRef = useRef<TextInput>(null)
@@ -35,6 +37,7 @@ export function LoginScreen() {
   const [testingConnection, setTestingConnection] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const loading = loadingPastor || loadingInvitado
 
   // Configuración de Google OAuth
   // NOTA: Configura el Client ID en app.json en extra.googleClientId
@@ -208,8 +211,25 @@ export function LoginScreen() {
     }
     try {
       console.log('🔐 Intentando login con:', email.trim())
-      await login(email.trim(), password)
-      console.log('✅ Login exitoso')
+      
+      // Intentar primero como invitado (más común después del registro)
+      try {
+        console.log('🔐 Intentando login como invitado...')
+        await loginInvitado(email.trim(), password)
+        console.log('✅ Login exitoso como invitado')
+        return // Si funciona, salir
+      } catch (invitadoError: unknown) {
+        // Si falla como invitado, intentar como pastor
+        console.log('⚠️ Login como invitado falló, intentando como pastor...')
+        try {
+          await login(email.trim(), password)
+          console.log('✅ Login exitoso como pastor')
+          return // Si funciona, salir
+        } catch (pastorError: unknown) {
+          // Si ambos fallan, lanzar el error del invitado (más descriptivo)
+          throw invitadoError
+        }
+      }
     } catch (error: unknown) {
       console.error('❌ Error en login:', error)
 
