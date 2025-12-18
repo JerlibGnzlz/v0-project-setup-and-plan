@@ -4,9 +4,10 @@ import { CredencialesMinisterialesController } from './credenciales-ministeriale
 import { CredencialesRecordatoriosService } from './credenciales-recordatorios.service'
 import { PrismaModule } from '../../prisma/prisma.module'
 import { NotificationsModule } from '../notifications/notifications.module'
+import { AuthModule } from '../auth/auth.module'
 
 @Module({
-  imports: [PrismaModule, NotificationsModule],
+  imports: [PrismaModule, NotificationsModule, AuthModule],
   controllers: [CredencialesMinisterialesController],
   providers: [CredencialesMinisterialesService, CredencialesRecordatoriosService],
   exports: [CredencialesMinisterialesService],

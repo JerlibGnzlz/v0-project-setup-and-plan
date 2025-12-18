@@ -20,6 +20,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { PastorJwtAuthGuard } from '../auth/guards/pastor-jwt-auth.guard'
 import { InvitadoJwtAuthGuard } from '../auth/guards/invitado-jwt-auth.guard'
+import { PastorOrInvitadoJwtAuthGuard } from '../auth/guards/pastor-or-invitado-jwt-auth.guard'
 import { PaginationDto } from '../../common/dto/pagination.dto'
 import { AuthenticatedRequest, AuthenticatedInvitadoRequest } from '../auth/types/request.types'
 import { PrismaService } from '../../prisma/prisma.service'
@@ -179,10 +180,10 @@ export class CredencialesMinisterialesController {
   /**
    * Endpoint para consultar estado de credencial por documento
    * Útil para que los usuarios consulten su credencial desde la app móvil
-   * Accesible para pastores autenticados
+   * Accesible para pastores O invitados autenticados
    */
   @Get('consultar/:documento')
-  @UseGuards(PastorJwtAuthGuard)
+  @UseGuards(PastorOrInvitadoJwtAuthGuard)
   async consultarPorDocumento(@Param('documento') documento: string) {
     try {
       this.logger.log(`Consultando credencial por documento: ${documento}`)
