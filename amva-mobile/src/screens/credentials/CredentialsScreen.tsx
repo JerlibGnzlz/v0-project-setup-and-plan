@@ -398,7 +398,7 @@ export function CredentialsScreen() {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       console.error('❌ Error solicitando credencial:', errorMessage)
-      
+
       // Detectar error 404 específicamente
       let mensajeUsuario = 'No se pudo enviar la solicitud'
       if (error && typeof error === 'object' && 'response' in error) {
@@ -419,7 +419,7 @@ export function CredentialsScreen() {
       } else {
         mensajeUsuario = `Error: ${errorMessage}`
       }
-      
+
       Alert.alert('Error', mensajeUsuario)
     } finally {
       setSolicitandoCredencial(false)
