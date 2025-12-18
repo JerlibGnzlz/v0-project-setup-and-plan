@@ -104,21 +104,16 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />
         <div className="flex h-16 items-center justify-between px-6">
           {/* Logo */}
-          <Link href="/admin" className="flex items-center gap-3 group">
+          <Link href="/admin" className="flex items-center group">
             <div className="relative">
               <div className="absolute -inset-2 bg-gradient-to-r from-sky-500/20 via-emerald-500/20 to-amber-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
               <Image
                 src="/amvadigital.png"
                 alt="Logo AMVA"
-                width={48}
-                height={48}
-                className="relative w-12 h-12 object-contain"
+                width={80}
+                height={80}
+                className="relative w-16 h-16 sm:w-20 sm:h-20 object-contain"
               />
-            </div>
-            <div>
-              <h2 className="font-semibold text-base bg-gradient-to-r from-sky-600 via-emerald-600 to-amber-600 dark:from-sky-400 dark:via-emerald-400 dark:to-amber-400 bg-clip-text text-transparent">
-                AMVA Digital
-              </h2>
             </div>
           </Link>
 
@@ -169,19 +164,14 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           >
             <div className="flex h-full flex-col">
               {/* Logo */}
-              <div className="flex h-16 items-center gap-3 border-b border-sky-200/50 dark:border-sky-500/20 px-6 bg-gradient-to-r from-sky-50/50 to-emerald-50/50 dark:from-sky-950/30 dark:to-emerald-950/30">
+              <div className="flex h-20 items-center justify-center border-b border-sky-200/50 dark:border-sky-500/20 px-6 bg-gradient-to-r from-sky-50/50 to-emerald-50/50 dark:from-sky-950/30 dark:to-emerald-950/30">
                 <Image
                   src="/amvadigital.png"
                   alt="Logo AMVA"
-                  width={40}
-                  height={40}
-                  className="w-10 h-10 object-contain"
+                  width={120}
+                  height={120}
+                  className="w-24 h-24 sm:w-28 sm:h-28 object-contain"
                 />
-                <div>
-                  <h2 className="font-semibold text-sm bg-gradient-to-r from-sky-600 via-emerald-600 to-amber-600 dark:from-sky-400 dark:via-emerald-400 dark:to-amber-400 bg-clip-text text-transparent">
-                    AMVA Digital
-                  </h2>
-                </div>
               </div>
 
               {/* Navigation */}
@@ -286,17 +276,14 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         </Sheet>
 
         {/* Logo visible en el header móvil */}
-        <Link href="/admin" className="flex items-center gap-3">
+        <Link href="/admin" className="flex items-center">
           <Image
             src="/amvadigital.png"
             alt="Logo AMVA"
-            width={56}
-            height={56}
-            className="w-14 h-14 object-contain"
+            width={64}
+            height={64}
+            className="w-16 h-16 object-contain"
           />
-          <h2 className="font-semibold bg-gradient-to-r from-sky-600 to-emerald-600 dark:from-sky-400 dark:to-emerald-400 bg-clip-text text-transparent">
-            A.M.V.A
-          </h2>
         </Link>
 
         {/* User info and actions */}
