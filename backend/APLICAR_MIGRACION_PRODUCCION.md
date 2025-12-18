@@ -3,9 +3,35 @@
 ## Problema
 La columna `dni` no existe en la base de datos de producción, causando errores en las queries de Prisma.
 
-## Solución
+## Solución Automática (Recomendado)
 
-### Opción 1: Aplicar Migración Manualmente (Recomendado)
+### Configurar Build Command en Render.com
+
+1. Ve a tu servicio en Render.com
+2. En la sección **"Settings"** → **"Build & Deploy"**
+3. Actualiza el **"Build Command"** a:
+
+```bash
+cd backend && chmod +x scripts/build-production.sh && ./scripts/build-production.sh
+```
+
+O si prefieres usar npm directamente:
+
+```bash
+cd backend && npm ci && npx prisma migrate deploy && npx prisma generate && npm run build
+```
+
+4. El **"Start Command"** debe ser:
+
+```bash
+cd backend && npm run start:prod
+```
+
+5. Guarda los cambios y Render.com aplicará las migraciones automáticamente en el próximo deploy
+
+## Solución Manual (Si la automática no funciona)
+
+### Opción 1: Aplicar Migración Manualmente
 
 Si tienes acceso SSH a Render.com o puedes ejecutar comandos en producción:
 
@@ -15,21 +41,7 @@ npx prisma migrate deploy
 npx prisma generate
 ```
 
-### Opción 2: Configurar Build Command en Render.com
-
-En Render.com, configura el "Build Command" para incluir las migraciones:
-
-```bash
-npm install && npx prisma generate && npm run build
-```
-
-Y el "Start Command":
-
-```bash
-npm run start:prod
-```
-
-### Opción 3: Ejecutar SQL Directamente
+### Opción 2: Ejecutar SQL Directamente
 
 Si tienes acceso a la base de datos directamente, ejecuta:
 
@@ -54,9 +66,17 @@ FROM information_schema.columns
 WHERE table_name = 'inscripciones' AND column_name = 'dni';
 ```
 
+O desde la consola de Render.com:
+
+```bash
+cd backend
+npx prisma migrate status
+```
+
 ## Notas
 
 - Las migraciones ya están creadas en `backend/prisma/migrations/`
 - El schema de Prisma ya incluye el campo `dni`
-- Solo falta aplicar la migración en producción
+- El script `build-production.sh` aplica migraciones automáticamente
+- El `package.json` ya tiene `postinstall` que ejecuta `prisma generate`
 
