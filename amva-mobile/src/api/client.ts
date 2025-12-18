@@ -109,6 +109,25 @@ console.log('📡 Axios configurado con baseURL:', apiClient.defaults.baseURL)
 apiClient.interceptors.request.use(
   async config => {
     try {
+      // Lista de endpoints públicos que no requieren token
+      const publicEndpoints = [
+        '/convenciones',
+        '/convenciones/active',
+        '/noticias/publicadas',
+        '/auth/invitado/login',
+        '/auth/invitado/register',
+        '/auth/invitado/google/mobile',
+        '/auth/pastor/login',
+        '/auth/pastor/register',
+      ]
+
+      const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint))
+
+      // Si es un endpoint público, no agregar token ni mostrar warnings
+      if (isPublicEndpoint) {
+        return config
+      }
+
       // Detectar si es un endpoint de invitados o inscripciones (que también usa invitados)
       const isInvitadoEndpoint =
         config.url?.includes('/auth/invitado') ||
@@ -136,9 +155,8 @@ apiClient.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
         console.log('🔑 Token de pastor agregado a request:', config.url?.substring(0, 50))
-      } else {
-        console.log('⚠️ No hay token disponible para:', config.url?.substring(0, 50))
       }
+      // No mostrar warning si no hay token - algunos endpoints pueden ser públicos
     } catch (error) {
       console.error('❌ Error al obtener token:', error)
     }
@@ -192,7 +210,8 @@ apiClient.interceptors.response.use(
           originalRequest.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-capellania/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-ministeriales/consultar/') ||
-          originalRequest.url?.includes('/credenciales-capellania/consultar/')
+          originalRequest.url?.includes('/credenciales-capellania/consultar/') ||
+          originalRequest.url?.includes('/inscripciones/my')
 
         // Intentar refrescar el token según el tipo de usuario
         let refreshToken: string | null = null
