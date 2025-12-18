@@ -41,27 +41,27 @@ export function LoginScreen() {
   // O crea un archivo .env en la raíz de amva-mobile con:
   // EXPO_PUBLIC_GOOGLE_CLIENT_ID=tu-client-id.apps.googleusercontent.com
   // El CLIENT_ID debe ser el mismo que el del backend (GOOGLE_CLIENT_ID)
-  
+
   // Intentar leer desde diferentes fuentes
   const googleClientIdFromEnv = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || ''
   const googleClientIdFromConfig =
     Constants?.expoConfig?.extra?.googleClientId ||
     Constants?.manifest?.extra?.googleClientId ||
     ''
-  
+
   const googleClientId = googleClientIdFromEnv || googleClientIdFromConfig
-  
+
   // Filtrar valores placeholder
   const isValidClientId =
     googleClientId &&
     googleClientId !== 'TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com' &&
     googleClientId.includes('.apps.googleusercontent.com')
-  
+
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
     isValidClientId && googleClientId
       ? {
-          clientId: googleClientId,
-        }
+        clientId: googleClientId,
+      }
       : { clientId: '' } // Valor por defecto para evitar error de tipo
   )
 
@@ -125,7 +125,7 @@ export function LoginScreen() {
       } else if (response?.type === 'error') {
         console.error('❌ Error en respuesta de Google:', response.error)
         let errorMessage = 'No se pudo completar la autenticación con Google.'
-        
+
         // Mensajes más específicos según el tipo de error
         if (response.error?.message) {
           if (
@@ -155,7 +155,7 @@ export function LoginScreen() {
             errorMessage = `Error: ${response.error.message}`
           }
         }
-        
+
         Alert.alert('Error de autenticación con Google', errorMessage)
         setGoogleLoading(false)
       } else if (response?.type === 'dismiss') {
@@ -225,7 +225,7 @@ export function LoginScreen() {
             error?: { message?: string }
             message?: string | string[]
           }
-          
+
           let backendMessage = 'Credenciales incorrectas'
           if (responseData.error?.message) {
             backendMessage = responseData.error.message
@@ -234,7 +234,7 @@ export function LoginScreen() {
               ? responseData.message.join('\n')
               : responseData.message
           }
-          
+
           errorMessage = `${backendMessage}\n\n` +
             'Verifica que:\n' +
             '• Tu email sea correcto\n' +
@@ -461,8 +461,8 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   logoImage: {
-    width: 120,
-    height: 120,
+    width: 180,
+    height: 180,
   },
   title: {
     fontSize: 28,

@@ -468,8 +468,8 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   logoImage: {
-    width: 120,
-    height: 120,
+    width: 180,
+    height: 180,
   },
   title: {
     fontSize: 28,
