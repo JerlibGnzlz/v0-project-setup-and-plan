@@ -245,6 +245,8 @@ apiClient.interceptors.response.use(
 
       console.log(`🔄 Error 401 detectado, intentando refrescar token (intento ${retryCount}/1)`)
       console.log('🔍 URL del request:', originalRequest.url)
+      console.log('🔍 Método del request:', originalRequest.method)
+      console.log('🔍 Headers del request:', originalRequest.headers)
 
       originalRequest._retry = true
       originalRequest._retryCount = retryCount
@@ -291,12 +293,16 @@ apiClient.interceptors.response.use(
           refreshEndpoint = '/auth/invitado/refresh'
           tokenKey = 'invitado_token'
           refreshTokenKey = 'invitado_refresh_token'
+          console.log('🔍 Endpoint detectado como INVITADO')
+          console.log('🔍 Refresh token disponible:', !!refreshToken, refreshToken ? `(${refreshToken.length} chars)` : '(no disponible)')
         } else {
           // Para pastores
           refreshToken = await SecureStore.getItemAsync('refresh_token')
           refreshEndpoint = '/auth/pastor/refresh'
           tokenKey = 'access_token'
           refreshTokenKey = 'refresh_token'
+          console.log('🔍 Endpoint detectado como PASTOR')
+          console.log('🔍 Refresh token disponible:', !!refreshToken, refreshToken ? `(${refreshToken.length} chars)` : '(no disponible)')
         }
 
         // Si no hay refresh token, limpiar tokens y forzar re-login

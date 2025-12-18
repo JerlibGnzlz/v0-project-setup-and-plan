@@ -21,12 +21,21 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
   const loadInvitado = useCallback(async () => {
     try {
       const token = await SecureStore.getItemAsync('invitado_token')
+      const refreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
+      
+      console.log('🔍 Intentando cargar perfil de invitado...', {
+        hasToken: !!token,
+        hasRefreshToken: !!refreshToken,
+        tokenLength: token?.length || 0,
+        refreshTokenLength: refreshToken?.length || 0,
+      })
+      
       if (!token) {
+        console.log('⚠️ No hay token de invitado, estableciendo invitado como null')
         setInvitado(null)
         return
       }
 
-      console.log('🔍 Intentando cargar perfil de invitado...')
       const profile = await invitadoAuthApi.me()
       console.log('✅ Perfil de invitado cargado:', profile.email)
       setInvitado(profile)
@@ -37,7 +46,12 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
       // El interceptor debería haber intentado refrescar el token automáticamente
       // Si llegamos aquí, significa que el refresh también falló o no había refresh token
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { status?: number } }
+        const axiosError = error as { response?: { status?: number; data?: unknown } }
+        console.error('🔍 Detalles del error:', {
+          status: axiosError.response?.status,
+          data: axiosError.response?.data,
+        })
+        
         if (axiosError.response?.status === 401) {
           // Verificar si hay refresh token antes de limpiar
           const refreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
@@ -45,20 +59,40 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
             console.log('⚠️ No hay refresh token disponible, limpiando tokens...')
             await SecureStore.deleteItemAsync('invitado_token')
             await SecureStore.deleteItemAsync('invitado_refresh_token')
+            setInvitado(null)
           } else {
             // Si hay refresh token pero aún falla, puede ser que el refresh también falló
             // El interceptor ya debería haber limpiado los tokens si el refresh falló
-            console.log('⚠️ Error 401 después de intentar refresh, el interceptor debería haber limpiado tokens')
+            console.log('⚠️ Error 401 después de intentar refresh, verificando estado de tokens...')
             // Verificar si los tokens aún existen (el interceptor puede haberlos limpiado)
             const tokenStillExists = await SecureStore.getItemAsync('invitado_token')
+            const refreshTokenStillExists = await SecureStore.getItemAsync('invitado_refresh_token')
+            
+            console.log('🔍 Estado de tokens después del error:', {
+              tokenExists: !!tokenStillExists,
+              refreshTokenExists: !!refreshTokenStillExists,
+            })
+            
             if (!tokenStillExists) {
               console.log('✅ Tokens ya fueron limpiados por el interceptor')
+              setInvitado(null)
+            } else {
+              // Si los tokens aún existen pero recibimos 401, puede ser un problema de validación
+              // Intentar limpiar manualmente y forzar re-login
+              console.log('⚠️ Tokens aún existen pero recibimos 401, limpiando manualmente...')
+              await SecureStore.deleteItemAsync('invitado_token')
+              await SecureStore.deleteItemAsync('invitado_refresh_token')
+              setInvitado(null)
             }
           }
+        } else {
+          // Si no es 401, solo establecer invitado como null sin limpiar tokens
+          setInvitado(null)
         }
+      } else {
+        // Si no es un error de axios, solo establecer invitado como null
+        setInvitado(null)
       }
-      
-      setInvitado(null)
     }
   }, [])
 
