@@ -8,16 +8,16 @@ datasource db {
 }
 
 model User {
-  id                String               @id @default(uuid())
-  email             String               @unique
-  password          String
-  createdAt         DateTime             @default(now()) @map("created_at")
-  updatedAt         DateTime             @updatedAt @map("updated_at")
-  nombre            String
-  rol               UserRole             @default(ADMIN)
-  avatar            String?
-  passwordResets    PasswordResetToken[]
-  deviceTokens      AdminDeviceToken[]
+  id             String               @id @default(uuid())
+  email          String               @unique
+  password       String
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  nombre         String
+  rol            UserRole             @default(ADMIN)
+  avatar         String?
+  passwordResets PasswordResetToken[]
+  deviceTokens   AdminDeviceToken[]
   // NOTA: Columnas de seguridad removidas temporalmente porque no existen en la BD
   // Si las necesitas, crea una migración para agregarlas:
   // ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0;
@@ -64,28 +64,28 @@ model Convencion {
 }
 
 model Pastor {
-  id                  String                @id @default(uuid())
-  nombre              String
-  apellido            String
-  email               String?               @unique
-  telefono            String?
-  cargo               String?
-  activo              Boolean               @default(true)
-  createdAt           DateTime              @default(now()) @map("created_at")
-  updatedAt           DateTime              @updatedAt @map("updated_at")
-  biografia           String?
-  fotoUrl             String?               @map("foto_url")
-  sede                String?
-  ministerio          String?
-  mostrarEnLanding    Boolean               @default(false) @map("mostrar_en_landing")
-  orden               Int                   @default(0)
-  pais                String?
-  region              String?
-  tipo                TipoPastor            @default(PASTOR)
-  trayectoria         String?
-  auth                PastorAuth?
+  id                     String                @id @default(uuid())
+  nombre                 String
+  apellido               String
+  email                  String?               @unique
+  telefono               String?
+  cargo                  String?
+  activo                 Boolean               @default(true)
+  createdAt              DateTime              @default(now()) @map("created_at")
+  updatedAt              DateTime              @updatedAt @map("updated_at")
+  biografia              String?
+  fotoUrl                String?               @map("foto_url")
+  sede                   String?
+  ministerio             String?
+  mostrarEnLanding       Boolean               @default(false) @map("mostrar_en_landing")
+  orden                  Int                   @default(0)
+  pais                   String?
+  region                 String?
+  tipo                   TipoPastor            @default(PASTOR)
+  trayectoria            String?
+  auth                   PastorAuth?
   credencialesPastorales CredencialPastoral[]
-  NotificationHistory NotificationHistory[]
+  NotificationHistory    NotificationHistory[]
 
   @@index([activo])
   @@index([tipo])
@@ -113,19 +113,19 @@ model PastorAuth {
 }
 
 model CredencialPastoral {
-  id                            String          @id @default(uuid())
-  pastorId                      String          @map("pastor_id")
-  numeroCredencial              String          @unique @map("numero_credencial")
-  fechaEmision                  DateTime        @map("fecha_emision")
-  fechaVencimiento               DateTime        @map("fecha_vencimiento")
+  id                             String           @id @default(uuid())
+  pastorId                       String           @map("pastor_id")
+  numeroCredencial               String           @unique @map("numero_credencial")
+  fechaEmision                   DateTime         @map("fecha_emision")
+  fechaVencimiento               DateTime         @map("fecha_vencimiento")
   estado                         EstadoCredencial @default(VIGENTE)
-  notificacionVencimientoEnviada Boolean         @default(false) @map("notificacion_vencimiento_enviada")
-  fechaUltimaNotificacion        DateTime?       @map("fecha_ultima_notificacion")
-  activa                         Boolean         @default(true)
+  notificacionVencimientoEnviada Boolean          @default(false) @map("notificacion_vencimiento_enviada")
+  fechaUltimaNotificacion        DateTime?        @map("fecha_ultima_notificacion")
+  activa                         Boolean          @default(true)
   notas                          String?
-  createdAt                      DateTime        @default(now()) @map("created_at")
-  updatedAt                      DateTime        @updatedAt @map("updated_at")
-  pastor                         Pastor          @relation(fields: [pastorId], references: [id], onDelete: Cascade)
+  createdAt                      DateTime         @default(now()) @map("created_at")
+  updatedAt                      DateTime         @updatedAt @map("updated_at")
+  pastor                         Pastor           @relation(fields: [pastorId], references: [id], onDelete: Cascade)
 
   @@index([pastorId])
   @@index([estado])
@@ -136,18 +136,18 @@ model CredencialPastoral {
 }
 
 model CredencialMinisterial {
-  id                String   @id @default(uuid())
-  apellido          String
-  nombre            String
-  documento         String   @unique
-  nacionalidad      String
-  fechaNacimiento   DateTime @map("fecha_nacimiento")
-  tipoPastor        String   @default("PASTOR") @map("tipo_pastor") // PASTOR, PASTORA, etc.
-  fechaVencimiento  DateTime @map("fecha_vencimiento")
-  fotoUrl           String?  @map("foto_url")
-  activa             Boolean  @default(true)
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
+  id               String   @id @default(uuid())
+  apellido         String
+  nombre           String
+  documento        String   @unique
+  nacionalidad     String
+  fechaNacimiento  DateTime @map("fecha_nacimiento")
+  tipoPastor       String   @default("PASTOR") @map("tipo_pastor") // PASTOR, PASTORA, etc.
+  fechaVencimiento DateTime @map("fecha_vencimiento")
+  fotoUrl          String?  @map("foto_url")
+  activa           Boolean  @default(true)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@index([documento])
   @@index([fechaVencimiento])
@@ -156,18 +156,18 @@ model CredencialMinisterial {
 }
 
 model CredencialCapellania {
-  id                String   @id @default(uuid())
-  apellido          String
-  nombre            String
-  documento         String   @unique
-  nacionalidad      String
-  fechaNacimiento   DateTime @map("fecha_nacimiento")
-  tipoCapellan      String   @default("CAPELLAN") @map("tipo_capellan") // CAPELLAN, CAPELLANA, etc.
-  fechaVencimiento  DateTime @map("fecha_vencimiento")
-  fotoUrl           String?  @map("foto_url")
-  activa             Boolean  @default(true)
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
+  id               String   @id @default(uuid())
+  apellido         String
+  nombre           String
+  documento        String   @unique
+  nacionalidad     String
+  fechaNacimiento  DateTime @map("fecha_nacimiento")
+  tipoCapellan     String   @default("CAPELLAN") @map("tipo_capellan") // CAPELLAN, CAPELLANA, etc.
+  fechaVencimiento DateTime @map("fecha_vencimiento")
+  fotoUrl          String?  @map("foto_url")
+  activa           Boolean  @default(true)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@index([documento])
   @@index([fechaVencimiento])
@@ -267,6 +267,7 @@ model Inscripcion {
   apellido         String
   email            String
   telefono         String?
+  dni              String? // DNI para relacionar con credenciales ministeriales y de capellanía
   createdAt        DateTime   @default(now()) @map("created_at")
   convencionId     String     @map("convencion_id")
   estado           String     @default("pendiente")
@@ -291,6 +292,7 @@ model Inscripcion {
   @@index([origenRegistro])
   @@index([codigoReferencia])
   @@index([invitadoId])
+  @@index([dni])
   @@map("inscripciones")
 }
 

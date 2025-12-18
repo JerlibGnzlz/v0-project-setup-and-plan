@@ -19,15 +19,18 @@ import {
 } from './dto/credencial-ministerial.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { PastorJwtAuthGuard } from '../auth/guards/pastor-jwt-auth.guard'
+import { InvitadoJwtAuthGuard } from '../auth/guards/invitado-jwt-auth.guard'
 import { PaginationDto } from '../../common/dto/pagination.dto'
 import { AuthenticatedRequest } from '../auth/types/request.types'
+import { PrismaService } from '../../prisma/prisma.service'
 
 @Controller('credenciales-ministeriales')
 export class CredencialesMinisterialesController {
   private readonly logger = new Logger(CredencialesMinisterialesController.name)
 
   constructor(
-    private readonly credencialesMinisterialesService: CredencialesMinisterialesService
+    private readonly credencialesMinisterialesService: CredencialesMinisterialesService,
+    private readonly prisma: PrismaService
   ) {}
 
   @Post()
@@ -196,6 +199,66 @@ export class CredencialesMinisterialesController {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       this.logger.error(`Error en consultarPorDocumento: ${errorMessage}`)
+      throw error
+    }
+  }
+
+  /**
+   * Endpoint para que invitados autenticados obtengan sus credenciales
+   * Basado en el DNI de sus inscripciones
+   * Accesible para invitados autenticados
+   */
+  @Get('mis-credenciales')
+  @UseGuards(InvitadoJwtAuthGuard)
+  async obtenerMisCredenciales(@Request() req: AuthenticatedRequest) {
+    try {
+      const invitadoId = req.user?.sub
+      if (!invitadoId) {
+        return { encontrada: false, mensaje: 'Usuario no autenticado' }
+      }
+
+      this.logger.log(`Obteniendo credenciales para invitado: ${invitadoId}`)
+      
+      // Buscar inscripciones del invitado que tengan DNI
+      const inscripciones = await this.prisma.inscripcion.findMany({
+        where: {
+          invitadoId,
+          dni: { not: null },
+        },
+        select: {
+          dni: true,
+        },
+        distinct: ['dni'],
+      })
+
+      if (!inscripciones || inscripciones.length === 0 || !inscripciones[0].dni) {
+        return { encontrada: false, mensaje: 'No se encontró DNI en tus inscripciones' }
+      }
+
+      // Obtener credenciales para cada DNI único
+      const dniUnicos = inscripciones
+        .map((i) => i.dni)
+        .filter((dni): dni is string => dni !== null && dni !== undefined)
+
+      const credenciales = []
+      for (const dni of dniUnicos) {
+        const credencial = await this.credencialesMinisterialesService.obtenerEstadoPorDocumento(dni)
+        if (credencial) {
+          credenciales.push(credencial)
+        }
+      }
+
+      if (credenciales.length === 0) {
+        return { encontrada: false, mensaje: 'No se encontraron credenciales para tu DNI' }
+      }
+
+      return {
+        encontrada: true,
+        credenciales,
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en obtenerMisCredenciales: ${errorMessage}`)
       throw error
     }
   }

@@ -76,6 +76,11 @@ export class CreateInscripcionDto {
   notas?: string
 
   @IsOptional()
+  @IsString()
+  @Length(0, 20, { message: 'El DNI no puede exceder 20 caracteres' })
+  dni?: string // DNI para relacionar con credenciales ministeriales y de capellanía
+
+  @IsOptional()
   @IsNumber()
   @Min(1)
   @Max(3)
@@ -156,6 +161,12 @@ export class UpdateInscripcionDto {
   @IsString()
   @Length(0, 1000, { message: 'Las notas no pueden exceder 1000 caracteres' })
   notas?: string | null
+
+  @IsOptional()
+  @ValidateIf(o => o.dni !== null && o.dni !== undefined)
+  @IsString()
+  @Length(0, 20, { message: 'El DNI no puede exceder 20 caracteres' })
+  dni?: string | null // DNI para relacionar con credenciales ministeriales y de capellanía
 
   @IsOptional()
   @IsNumber()
