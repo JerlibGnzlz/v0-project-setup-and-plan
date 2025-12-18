@@ -138,9 +138,13 @@ export function Step4Confirmacion({
       }
 
       console.log('📤 Enviando inscripción:', JSON.stringify(datosInscripcion, null, 2))
+      console.log('🔍 URL del endpoint:', '/inscripciones')
+      console.log('🔍 Convención ID:', convencion.id)
 
       // Crear la inscripción
-      await inscripcionesApi.create(datosInscripcion)
+      const inscripcionCreada = await inscripcionesApi.create(datosInscripcion)
+      
+      console.log('✅ Inscripción creada exitosamente:', inscripcionCreada.id)
 
       Alert.alert(
         '✅ Inscripción exitosa',
@@ -154,22 +158,61 @@ export function Step4Confirmacion({
         'success',
       )
     } catch (error: unknown) {
-      console.error('Error creando inscripción:', error)
+      console.error('❌ Error creando inscripción:', error)
       let errorMessage = 'No se pudo registrar la inscripción. Intenta nuevamente.'
       
+      // Detectar errores de red
+      if (error && typeof error === 'object' && 'code' in error) {
+        const networkError = error as { code?: string; message?: string; isNetworkError?: boolean }
+        if (
+          networkError.code === 'ERR_NETWORK' ||
+          networkError.code === 'ECONNREFUSED' ||
+          networkError.code === 'ETIMEDOUT' ||
+          networkError.isNetworkError
+        ) {
+          errorMessage = 'Error de conexión: No se pudo conectar al servidor. Verifica tu conexión a internet y vuelve a intentar.'
+          console.error('🌐 Error de red detectado:', networkError.code)
+        }
+      }
+      
+      // Detectar errores de respuesta HTTP
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { message?: string | string[] }; status?: number } }
+        const axiosError = error as { 
+          response?: { 
+            data?: { message?: string | string[] }; 
+            status?: number;
+            statusText?: string;
+          };
+          message?: string;
+        }
+        
+        console.error('📡 Respuesta del servidor:', {
+          status: axiosError.response?.status,
+          statusText: axiosError.response?.statusText,
+          data: axiosError.response?.data,
+        })
+        
         if (axiosError.response?.data?.message) {
           const message = axiosError.response.data.message
           errorMessage = Array.isArray(message) ? message.join('\n') : message
         } else if (axiosError.response?.status === 400) {
           errorMessage = 'Error de validación: Por favor verifica que todos los campos estén completos y sean válidos.'
+        } else if (axiosError.response?.status === 401) {
+          errorMessage = 'Error de autenticación: Por favor inicia sesión nuevamente.'
+        } else if (axiosError.response?.status === 403) {
+          errorMessage = 'No tienes permisos para realizar esta acción.'
+        } else if (axiosError.response?.status === 500) {
+          errorMessage = 'Error del servidor: Por favor intenta más tarde.'
+        } else if (axiosError.response?.status) {
+          errorMessage = `Error del servidor (${axiosError.response.status}): ${axiosError.response.statusText || 'Error desconocido'}`
         }
       } else if (error instanceof Error) {
         errorMessage = error.message || errorMessage
+        console.error('📝 Mensaje de error:', error.message)
+        console.error('📝 Stack trace:', error.stack)
       }
       
-      console.error('Detalles del error:', JSON.stringify(error, null, 2))
+      console.error('🔍 Detalles completos del error:', JSON.stringify(error, null, 2))
       Alert.alert('Error al crear la inscripción', errorMessage, undefined, 'error')
     } finally {
       setIsSubmitting(false)

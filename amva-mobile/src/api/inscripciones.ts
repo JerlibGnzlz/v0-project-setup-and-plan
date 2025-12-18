@@ -45,12 +45,34 @@ export interface CreateInscripcionDto {
 
 export const inscripcionesApi = {
   create: async (data: CreateInscripcionDto): Promise<Inscripcion> => {
-    // ✅ Asegurar que origenRegistro sea 'mobile'
-    const response = await apiClient.post<Inscripcion>('/inscripciones', {
-      ...data,
-      origenRegistro: 'mobile', // Siempre 'mobile' desde la app
-    })
-    return response.data
+    try {
+      console.log('📤 inscripcionesApi.create - Iniciando creación de inscripción')
+      console.log('📤 Datos a enviar:', JSON.stringify(data, null, 2))
+      
+      // ✅ Asegurar que origenRegistro sea 'mobile'
+      const payload = {
+        ...data,
+        origenRegistro: 'mobile', // Siempre 'mobile' desde la app
+      }
+      
+      console.log('📤 Payload final:', JSON.stringify(payload, null, 2))
+      console.log('📤 Endpoint: POST /inscripciones')
+      
+      const response = await apiClient.post<Inscripcion>('/inscripciones', payload)
+      
+      console.log('✅ inscripcionesApi.create - Respuesta recibida:', response.status)
+      console.log('✅ Datos de la inscripción creada:', JSON.stringify(response.data, null, 2))
+      
+      return response.data
+    } catch (error: unknown) {
+      console.error('❌ inscripcionesApi.create - Error:', error)
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: unknown } }
+        console.error('❌ Status code:', axiosError.response?.status)
+        console.error('❌ Response data:', JSON.stringify(axiosError.response?.data, null, 2))
+      }
+      throw error
+    }
   },
 
   getAll: async (): Promise<Inscripcion[]> => {
