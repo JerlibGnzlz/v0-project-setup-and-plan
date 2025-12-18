@@ -12,7 +12,6 @@ import { ConventionInscripcionScreen } from '@screens/conventions/ConventionInsc
 import { CredentialsScreen } from '@screens/credentials/CredentialsScreen'
 import { ProfileScreen } from '@screens/profile/ProfileScreen'
 import NotificationsHistoryScreen from '@screens/notifications/NotificationsHistoryScreen'
-import { useAuth } from '@hooks/useAuth'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 
 type RootStackParamList = {
@@ -98,12 +97,10 @@ function MainTabs() {
 }
 
 export function AppNavigator() {
-  const { pastor, loading: loadingPastor } = useAuth()
-  const { invitado, loading: loadingInvitado } = useInvitadoAuth()
+  const { invitado, loading } = useInvitadoAuth()
 
   // Mostrar loading solo mientras se verifica autenticación
-  const loading = loadingPastor || loadingInvitado
-  const isAuthenticated = !!pastor || !!invitado
+  const isAuthenticated = !!invitado
 
   if (loading) {
     return (

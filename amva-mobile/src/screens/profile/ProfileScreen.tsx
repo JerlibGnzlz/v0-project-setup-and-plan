@@ -1,10 +1,10 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '@hooks/useAuth'
+import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 
 export function ProfileScreen() {
-  const { pastor, logout } = useAuth()
+  const { invitado, logout } = useInvitadoAuth()
 
   const handleLogout = () => {
     Alert.alert('Cerrar Sesión', '¿Estás seguro de que deseas cerrar sesión?', [
@@ -27,11 +27,11 @@ export function ProfileScreen() {
     ])
   }
 
-  if (!pastor) {
+  if (!invitado) {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Perfil</Text>
-        <Text style={styles.text}>No se encontró información del pastor.</Text>
+        <Text style={styles.text}>No se encontró información del invitado.</Text>
       </View>
     )
   }
@@ -44,7 +44,11 @@ export function ProfileScreen() {
           <View style={styles.logoContainer}>
             <View style={styles.logoGlow} />
             <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>🌍</Text>
+              {invitado.fotoUrl ? (
+                <Image source={{ uri: invitado.fotoUrl }} style={styles.profileImage} />
+              ) : (
+                <Text style={styles.logoText}>👤</Text>
+              )}
             </View>
           </View>
           <Text style={styles.title}>AMVA Go</Text>
@@ -58,44 +62,33 @@ export function ProfileScreen() {
           <View style={styles.profileSection}>
             <Text style={styles.label}>👤 Nombre Completo</Text>
             <Text style={styles.value}>
-              {pastor.nombre} {pastor.apellido}
+              {invitado.nombre} {invitado.apellido}
             </Text>
           </View>
 
           <View style={styles.profileSection}>
             <Text style={styles.label}>📧 Correo Electrónico</Text>
-            <Text style={styles.value}>{pastor.email}</Text>
+            <Text style={styles.value}>{invitado.email}</Text>
           </View>
 
-          {pastor.cargo && (
+          {invitado.telefono && (
             <View style={styles.profileSection}>
-              <Text style={styles.label}>💼 Cargo</Text>
-              <Text style={styles.value}>{pastor.cargo}</Text>
+              <Text style={styles.label}>📱 Teléfono</Text>
+              <Text style={styles.value}>{invitado.telefono}</Text>
             </View>
           )}
 
-          {pastor.ministerio && (
+          {invitado.sede && (
             <View style={styles.profileSection}>
-              <Text style={styles.label}>⛪ Ministerio</Text>
-              <Text style={styles.value}>{pastor.ministerio}</Text>
+              <Text style={styles.label}>📍 Sede</Text>
+              <Text style={styles.value}>{invitado.sede}</Text>
             </View>
           )}
 
-          {(pastor.sede || pastor.region || pastor.pais) && (
-            <View style={styles.profileSection}>
-              <Text style={styles.label}>📍 Ubicación</Text>
-              <Text style={styles.value}>
-                {[pastor.sede, pastor.region, pastor.pais].filter(Boolean).join(', ')}
-              </Text>
-            </View>
-          )}
-
-          {pastor.tipo && (
-            <View style={styles.profileSection}>
-              <Text style={styles.label}>🏷️ Tipo</Text>
-              <Text style={styles.value}>{pastor.tipo}</Text>
-            </View>
-          )}
+          <View style={styles.profileSection}>
+            <Text style={styles.label}>🏷️ Tipo de Usuario</Text>
+            <Text style={styles.value}>Invitado</Text>
+          </View>
         </View>
 
         {/* Logout Button */}
@@ -217,5 +210,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(148,163,184,0.9)',
     marginTop: 4,
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
   },
 })

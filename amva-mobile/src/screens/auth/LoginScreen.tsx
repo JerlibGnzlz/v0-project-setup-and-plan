@@ -17,7 +17,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import * as WebBrowser from 'expo-web-browser'
 import * as Google from 'expo-auth-session/providers/google'
 import Constants from 'expo-constants'
-import { useAuth } from '@hooks/useAuth'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { invitadoAuthApi } from '@api/invitado-auth'
 import { testBackendConnection } from '../../utils/testConnection'
@@ -27,8 +26,7 @@ import { RegisterScreen } from './RegisterScreen'
 WebBrowser.maybeCompleteAuthSession()
 
 export function LoginScreen() {
-  const { login, loading: loadingPastor } = useAuth()
-  const { login: loginInvitado, loading: loadingInvitado } = useInvitadoAuth()
+  const { login, loading } = useInvitadoAuth()
   const scrollViewRef = useRef<ScrollView>(null)
   const emailInputRef = useRef<TextInput>(null)
   const passwordInputRef = useRef<TextInput>(null)
@@ -37,7 +35,6 @@ export function LoginScreen() {
   const [testingConnection, setTestingConnection] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
-  const loading = loadingPastor || loadingInvitado
 
   // Configuración de Google OAuth
   // NOTA: Configura el Client ID en app.json en extra.googleClientId
@@ -98,16 +95,12 @@ export function LoginScreen() {
           const result = await invitadoAuthApi.loginWithGoogle(id_token)
           console.log('✅ Login con Google exitoso')
 
-          // Guardar tokens
+          // Guardar tokens de invitado
           const SecureStore = await import('expo-secure-store')
-          await SecureStore.default.setItemAsync('access_token', result.access_token)
-          await SecureStore.default.setItemAsync('refresh_token', result.refresh_token)
+          await SecureStore.default.setItemAsync('invitado_token', result.access_token)
+          await SecureStore.default.setItemAsync('invitado_refresh_token', result.refresh_token)
 
-          // Nota: El login con Google es para invitados (no pastores)
-          // Los tokens se guardan y la app debería detectar el cambio
-          // Si necesitas manejar invitados diferente a pastores, puedes hacerlo aquí
-
-          console.log('✅ Sesión iniciada con Google como invitado:', result.invitado.email)
+          console.log('✅ Sesión iniciada con Google:', result.invitado.email)
 
           // Recargar la app para que detecte el token
           // La app debería detectar el token y mostrar la pantalla correspondiente
@@ -210,26 +203,9 @@ export function LoginScreen() {
       return
     }
     try {
-      console.log('🔐 Intentando login con:', email.trim())
-      
-      // Intentar primero como invitado (más común después del registro)
-      try {
-        console.log('🔐 Intentando login como invitado...')
-        await loginInvitado(email.trim(), password)
-        console.log('✅ Login exitoso como invitado')
-        return // Si funciona, salir
-      } catch (invitadoError: unknown) {
-        // Si falla como invitado, intentar como pastor
-        console.log('⚠️ Login como invitado falló, intentando como pastor...')
-        try {
-          await login(email.trim(), password)
-          console.log('✅ Login exitoso como pastor')
-          return // Si funciona, salir
-        } catch (pastorError: unknown) {
-          // Si ambos fallan, lanzar el error del invitado (más descriptivo)
-          throw invitadoError
-        }
-      }
+      console.log('🔐 Intentando login como invitado:', email.trim())
+      await login(email.trim(), password)
+      console.log('✅ Login exitoso')
     } catch (error: unknown) {
       console.error('❌ Error en login:', error)
 
@@ -343,7 +319,7 @@ export function LoginScreen() {
           {/* Form Card */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Iniciar Sesión</Text>
-            <Text style={styles.cardSubtitle}>Acceso para pastores registrados</Text>
+            <Text style={styles.cardSubtitle}>Acceso para invitados registrados</Text>
 
             {testingConnection && (
               <View style={styles.testingContainer}>
@@ -359,7 +335,7 @@ export function LoginScreen() {
                 style={styles.input}
                 value={email}
                 onChangeText={setEmail}
-                placeholder="pastor@iglesia.org"
+                placeholder="tu@email.com"
                 placeholderTextColor="rgba(255, 255, 255, 0.4)"
                 autoCapitalize="none"
                 keyboardType="email-address"
