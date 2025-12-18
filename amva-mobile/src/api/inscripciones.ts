@@ -33,6 +33,8 @@ export interface CreateInscripcionDto {
   email: string
   telefono?: string
   sede?: string
+  pais?: string
+  provincia?: string
   tipoInscripcion?: string
   numeroCuotas?: number
   origenRegistro?: string // ✅ IMPORTANTE: Usar 'mobile' desde la app

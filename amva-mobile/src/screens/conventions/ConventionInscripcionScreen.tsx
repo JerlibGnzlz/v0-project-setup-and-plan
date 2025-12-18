@@ -15,6 +15,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import { convencionesApi, type Convencion, normalizeBoolean } from '@api/convenciones'
 import { inscripcionesApi } from '@api/inscripciones'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
+import { Step1Auth } from './steps/Step1Auth'
 import { Step2ConvencionInfo } from './steps/Step2ConvencionInfo'
 import { Step3Formulario } from './steps/Step3Formulario'
 import { Step4Confirmacion } from './steps/Step4Confirmacion'
@@ -28,10 +29,10 @@ type TabParamList = {
 
 export function ConventionInscripcionScreen() {
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>()
-  const { invitado } = useInvitadoAuth()
+  const { invitado, isAuthenticated } = useInvitadoAuth()
   const [convencion, setConvencion] = useState<Convencion | null>(null)
   const [loadingConvencion, setLoadingConvencion] = useState(true)
-  const [currentStep, setCurrentStep] = useState(2) // Empezar en step 2 porque ya está autenticado
+  const [currentStep, setCurrentStep] = useState(1) // Empezar en step 1 (autenticación)
   const [formData, setFormData] = useState<any>(null)
   const [inscripcionCompleta, setInscripcionCompleta] = useState(false)
   const [yaInscrito, setYaInscrito] = useState(false)
@@ -68,14 +69,30 @@ export function ConventionInscripcionScreen() {
                 if (inscripcion) {
                   setYaInscrito(true)
                   setInscripcionExistente(inscripcion)
+                  // Si ya está inscrito y autenticado, ir directamente al step 2 o 4 según estado
+                  if (isAuthenticated) {
+                    if (inscripcion.estado === 'confirmado') {
+                      setCurrentStep(4)
+                      setInscripcionCompleta(true)
+                    } else {
+                      setCurrentStep(2)
+                    }
+                  }
                 } else {
                   setYaInscrito(false)
                   setInscripcionExistente(null)
+                  // Si está autenticado pero no inscrito, ir al step 2
+                  if (isAuthenticated) {
+                    setCurrentStep(2)
+                  }
                 }
               } catch (error) {
                 console.error('Error verificando inscripción:', error)
                 // No actualizar estado si hay error, mantener el anterior
               }
+            } else if (isAuthenticated && invitado) {
+              // Si está autenticado pero no hay email aún, ir al step 2
+              setCurrentStep(2)
             }
           } else {
             setConvencion(null)
@@ -115,19 +132,37 @@ export function ConventionInscripcionScreen() {
     if (data) {
       setFormData((prev: any) => ({ ...prev, ...data }))
     }
-    if (step === 3) {
+    if (step === 1 && isAuthenticated) {
+      // Después de autenticación, si ya está inscrito, ir a step 2 (info)
+      if (yaInscrito) {
+        setCurrentStep(2)
+      } else {
+        setCurrentStep(2) // Ir a información de convención
+      }
+    } else if (step === 2) {
+      // Después de información, ir a formulario
+      setCurrentStep(3)
+    } else if (step === 3) {
       // Cuando se completa el step 3 (formulario), mostrar confirmación
       setInscripcionCompleta(true)
       setCurrentStep(4)
-    } else if (step < 3) {
+    } else if (step < 4) {
       setCurrentStep(step + 1)
     }
   }
 
   const handleBack = () => {
-    if (currentStep > 2) {
+    if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
     }
+  }
+
+  const handleConfirm = () => {
+    // Después de confirmar, volver al inicio
+    setInscripcionCompleta(true)
+    setCurrentStep(2) // Volver a información en lugar de autenticación
+    setFormData(null)
+    navigation.navigate('Inicio')
   }
 
   if (loadingConvencion) {
@@ -178,8 +213,8 @@ export function ConventionInscripcionScreen() {
   const steps = [
     { number: 1, title: 'Autenticación', description: 'Inicia sesión o crea tu cuenta' },
     { number: 2, title: 'Información', description: 'Detalles de la convención' },
-    { number: 3, title: 'Inscripción', description: 'Completa tus datos' },
-    { number: 4, title: 'Confirmación', description: 'Inscripción completa' },
+    { number: 3, title: 'Formulario', description: 'Completa tus datos' },
+    { number: 4, title: 'Confirmación', description: 'Revisa y confirma' },
   ]
 
   return (
@@ -234,12 +269,20 @@ export function ConventionInscripcionScreen() {
 
         {/* Content */}
         <View style={styles.content}>
+          {currentStep === 1 && (
+            <Step1Auth
+              onComplete={userData => handleStepComplete(1, userData)}
+              onBack={handleBack}
+            />
+          )}
+
           {currentStep === 2 && convencion && (
             <Step2ConvencionInfo
               convencion={convencion}
               yaInscrito={yaInscrito}
               inscripcionExistente={inscripcionExistente}
-              onComplete={() => handleStepComplete(2)}
+              initialNumeroCuotas={formData?.numeroCuotas}
+              onComplete={data => handleStepComplete(2, data)}
               onBack={handleBack}
             />
           )}
@@ -249,20 +292,17 @@ export function ConventionInscripcionScreen() {
               convencion={convencion}
               invitado={invitado}
               initialData={formData}
-              onComplete={() => handleStepComplete(3)}
+              onComplete={data => handleStepComplete(3, data)}
               onBack={handleBack}
             />
           )}
 
-          {currentStep === 4 && (
+          {currentStep === 4 && convencion && formData && (
             <Step4Confirmacion
-              onBack={() => {
-                setInscripcionCompleta(false)
-                setCurrentStep(2)
-                setFormData(null)
-                // Navegar al HomeScreen usando el Tab Navigator
-                navigation.navigate('Inicio')
-              }}
+              convencion={convencion}
+              formData={formData}
+              onConfirm={handleConfirm}
+              onBack={handleBack}
             />
           )}
         </View>

@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
@@ -18,6 +17,7 @@ import { type Convencion } from '@api/convenciones'
 import { type Invitado } from '@api/invitado-auth'
 import { inscripcionesApi } from '@api/inscripciones'
 import { uploadApi, pickImage } from '@api/upload'
+import { Alert } from '@utils/alert'
 
 interface Step3FormularioProps {
   convencion: Convencion
@@ -47,6 +47,8 @@ export function Step3Formulario({
     email: initialData?.email || invitado.email || '',
     telefono: initialData?.telefono || invitado.telefono || '',
     sede: initialData?.sede || invitado.sede || '',
+    pais: initialData?.pais || 'Argentina',
+    provincia: initialData?.provincia || '',
     tipoInscripcion: initialData?.tipoInscripcion || 'invitado',
     numeroCuotas:
       typeof initialData?.numeroCuotas === 'number'
@@ -58,6 +60,63 @@ export function Step3Formulario({
     documentoUrl: initialData?.documentoUrl || '',
     notas: initialData?.notas || '',
   })
+
+  // Lista de países
+  const paises = [
+    'Argentina',
+    'Bolivia',
+    'Brasil',
+    'Chile',
+    'Colombia',
+    'Costa Rica',
+    'Cuba',
+    'Ecuador',
+    'El Salvador',
+    'España',
+    'Estados Unidos',
+    'Guatemala',
+    'Honduras',
+    'México',
+    'Nicaragua',
+    'Panamá',
+    'Paraguay',
+    'Perú',
+    'República Dominicana',
+    'Uruguay',
+    'Venezuela',
+    'Otro',
+  ]
+
+  // Provincias de Argentina
+  const provinciasArgentina = [
+    'Buenos Aires',
+    'Catamarca',
+    'Chaco',
+    'Chubut',
+    'Córdoba',
+    'Corrientes',
+    'Entre Ríos',
+    'Formosa',
+    'Jujuy',
+    'La Pampa',
+    'La Rioja',
+    'Mendoza',
+    'Misiones',
+    'Neuquén',
+    'Río Negro',
+    'Salta',
+    'San Juan',
+    'San Luis',
+    'Santa Cruz',
+    'Santa Fe',
+    'Santiago del Estero',
+    'Tierra del Fuego',
+    'Tucumán',
+    'Ciudad Autónoma de Buenos Aires',
+  ]
+
+  const [showPaisPicker, setShowPaisPicker] = useState(false)
+  const [showProvinciaPicker, setShowProvinciaPicker] = useState(false)
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
@@ -145,6 +204,14 @@ export function Step3Formulario({
       newErrors.email = 'Correo electrónico inválido'
     }
 
+    if (!formData.pais || formData.pais.trim().length === 0) {
+      newErrors.pais = 'El país es requerido'
+    }
+
+    if (formData.pais === 'Argentina' && (!formData.provincia || formData.provincia.trim().length === 0)) {
+      newErrors.provincia = 'La provincia es requerida para Argentina'
+    }
+
     if (!formData.sede || formData.sede.trim().length < 2) {
       newErrors.sede = 'La sede debe tener al menos 2 caracteres'
     }
@@ -163,7 +230,7 @@ export function Step3Formulario({
       }
     } catch (error) {
       console.error('Error seleccionando documento:', error)
-      Alert.alert('Error', 'No se pudo seleccionar el documento. Intenta nuevamente.')
+      Alert.alert('Error', 'No se pudo seleccionar el documento. Intenta nuevamente.', undefined, 'error')
     }
   }
 
@@ -172,10 +239,12 @@ export function Step3Formulario({
       setUploadingDocument(true)
       const response = await uploadApi.uploadInscripcionDocumento(uri)
       handleChange('documentoUrl', response.url)
-      Alert.alert('Éxito', 'Documento subido correctamente')
-    } catch (error: any) {
+      Alert.alert('Éxito', 'Documento subido correctamente', undefined, 'success')
+    } catch (error: unknown) {
       console.error('Error subiendo documento:', error)
-      Alert.alert('Error', 'No se pudo subir el documento. Intenta nuevamente.')
+      const errorMessage =
+        error instanceof Error ? (error.message || 'Error desconocido') : 'Error desconocido'
+      Alert.alert('Error', errorMessage, undefined, 'error')
       setSelectedImageUri(null)
     } finally {
       setUploadingDocument(false)
@@ -191,7 +260,9 @@ export function Step3Formulario({
     if (!validateForm()) {
       Alert.alert(
         'Campos requeridos',
-        'Por favor completa todos los campos requeridos correctamente.'
+        'Por favor completa todos los campos requeridos correctamente.',
+        undefined,
+        'warning'
       )
       return
     }
@@ -199,32 +270,26 @@ export function Step3Formulario({
     try {
       setLoading(true)
 
-      await inscripcionesApi.create({
-        convencionId: convencion.id,
-        nombre: formData.nombre.trim(),
-        apellido: formData.apellido.trim(),
-        email: formData.email.trim().toLowerCase(),
-        telefono: formData.telefono.trim() || undefined,
-        sede: formData.sede.trim(),
-        tipoInscripcion: formData.tipoInscripcion,
-        numeroCuotas:
-          typeof formData.numeroCuotas === 'number'
-            ? formData.numeroCuotas
-            : parseInt(String(formData.numeroCuotas || 3), 10),
-        dni: formData.dni.trim() || undefined, // DNI para relacionar con credenciales
-        origenRegistro: 'mobile',
-        documentoUrl: formData.documentoUrl || undefined,
-        notas: formData.notas.trim() || undefined,
-      })
+      // Construir sede completa con país y provincia
+      let sedeCompleta = formData.sede.trim()
+      if (formData.pais === 'Argentina' && formData.provincia) {
+        sedeCompleta = `${sedeCompleta} - ${formData.pais}, ${formData.provincia}`
+      } else if (formData.pais) {
+        sedeCompleta = `${sedeCompleta} - ${formData.pais}`
+      }
 
-      onComplete()
-    } catch (error: any) {
-      console.error('Error creando inscripción:', error)
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        'No se pudo registrar la inscripción. Intenta nuevamente.'
-      Alert.alert('Error', Array.isArray(message) ? message.join('\n') : message)
+      // Pasar datos al siguiente paso (resumen) en lugar de crear directamente
+      onComplete({
+        ...formData,
+        sede: sedeCompleta,
+      })
+    } catch (error: unknown) {
+      console.error('Error validando formulario:', error)
+      const errorMessage =
+        error instanceof Error
+          ? error.message || 'Error al validar el formulario.'
+          : 'Error al validar el formulario.'
+      Alert.alert('Error', errorMessage, undefined, 'error')
     } finally {
       setLoading(false)
     }
@@ -243,12 +308,17 @@ export function Step3Formulario({
 
   const montoPorCuota = costo / numeroCuotasNum
 
-  const requiredFields = ['nombre', 'apellido', 'email', 'sede']
+  const requiredFields = ['nombre', 'apellido', 'email', 'pais', 'sede']
   const requiredCompleted = requiredFields.filter(field => {
     const value = formData[field as keyof typeof formData]
     return value && typeof value === 'string' && value.trim().length > 0
   }).length
-  const progress = (requiredCompleted / requiredFields.length) * 100
+  // Agregar provincia si es Argentina
+  const totalRequired =
+    formData.pais === 'Argentina' ? requiredFields.length + 1 : requiredFields.length
+  const provinciaCompleta = formData.pais === 'Argentina' ? !!formData.provincia : true
+  const completed = requiredCompleted + (formData.pais === 'Argentina' && provinciaCompleta ? 1 : 0)
+  const progress = totalRequired > 0 ? (completed / totalRequired) * 100 : 0
 
   return (
     <KeyboardAvoidingView
@@ -277,7 +347,7 @@ export function Step3Formulario({
           <View style={styles.progressContainer}>
             <View style={styles.progressHeader}>
               <Text style={styles.progressText}>
-                {requiredCompleted}/{requiredFields.length} campos requeridos completados
+                {completed}/{totalRequired} campos requeridos completados
               </Text>
               <Text style={styles.progressPercent}>{Math.round(progress)}%</Text>
             </View>
@@ -380,9 +450,57 @@ export function Step3Formulario({
                 onFocus={() => handleInputFocus('telefono')}
                 onBlur={() => handleInputBlur('telefono', formData.telefono)}
                 onLayout={e => handleInputLayout('telefono', e)}
-                onSubmitEditing={() => inputRefs.current['sede']?.focus()}
+                onSubmitEditing={() => Keyboard.dismiss()}
               />
             </View>
+
+            {/* País */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                País <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={[styles.pickerContainer, errors.pais && styles.inputError]}>
+                <Picker
+                  selectedValue={formData.pais}
+                  onValueChange={value => {
+                    handleChange('pais', value)
+                    if (value !== 'Argentina') {
+                      handleChange('provincia', '')
+                    }
+                  }}
+                  style={styles.picker}
+                  dropdownIconColor="#fff"
+                >
+                  {paises.map(pais => (
+                    <Picker.Item key={pais} label={pais} value={pais} color="#fff" />
+                  ))}
+                </Picker>
+              </View>
+              {errors.pais && <Text style={styles.errorText}>{errors.pais}</Text>}
+            </View>
+
+            {/* Provincia (solo para Argentina) */}
+            {formData.pais === 'Argentina' && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Provincia <Text style={styles.required}>*</Text>
+                </Text>
+                <View style={[styles.pickerContainer, errors.provincia && styles.inputError]}>
+                  <Picker
+                    selectedValue={formData.provincia}
+                    onValueChange={value => handleChange('provincia', value)}
+                    style={styles.picker}
+                    dropdownIconColor="#fff"
+                  >
+                    <Picker.Item label="Selecciona una provincia" value="" color="rgba(255, 255, 255, 0.5)" />
+                    {provinciasArgentina.map(provincia => (
+                      <Picker.Item key={provincia} label={provincia} value={provincia} color="#fff" />
+                    ))}
+                  </Picker>
+                </View>
+                {errors.provincia && <Text style={styles.errorText}>{errors.provincia}</Text>}
+              </View>
+            )}
 
             {/* Sede */}
             <View style={styles.inputGroup}>

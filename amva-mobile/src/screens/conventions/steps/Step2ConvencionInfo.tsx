@@ -1,13 +1,16 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Calendar, MapPin, Ticket, Star, CheckCircle2, CreditCard } from 'lucide-react-native'
 import { type Convencion } from '@api/convenciones'
 
 interface Step2ConvencionInfoProps {
   convencion: Convencion
   yaInscrito?: boolean
   inscripcionExistente?: any
-  onComplete: () => void
+  onComplete: (data?: { numeroCuotas?: number }) => void
   onBack: () => void
+  initialNumeroCuotas?: number
 }
 
 export function Step2ConvencionInfo({
@@ -16,7 +19,9 @@ export function Step2ConvencionInfo({
   inscripcionExistente,
   onComplete,
   onBack,
+  initialNumeroCuotas = 3,
 }: Step2ConvencionInfoProps) {
+  const [numeroCuotas, setNumeroCuotas] = useState<number>(initialNumeroCuotas)
   const fechaInicio = new Date(convencion.fechaInicio)
   const fechaFin = new Date(convencion.fechaFin)
 
@@ -37,6 +42,13 @@ export function Step2ConvencionInfo({
   const montoPorCuota1 = Number(costo) || 0
   const montoPorCuota2 = Number(costo / 2) || 0
   const montoPorCuota3 = Number(costo / 3) || 0
+
+  const handleContinue = () => {
+    if (yaInscrito) {
+      return
+    }
+    onComplete({ numeroCuotas })
+  }
 
   return (
     <View style={styles.container}>
@@ -73,27 +85,151 @@ export function Step2ConvencionInfo({
           </View>
         </View>
 
-        {/* Costo y Cuotas */}
+        {/* Costo y Selección de Cuotas */}
         {costo > 0 && (
           <View style={styles.costoContainer}>
-            <Text style={styles.costoLabel}>Costo Total</Text>
-            <Text style={styles.costoValue}>${Number(costo).toFixed(2)}</Text>
+            <View style={styles.costoHeader}>
+              <Text style={styles.costoLabel}>Costo Total</Text>
+              <Text style={styles.costoValue}>${Number(costo).toFixed(2)}</Text>
+            </View>
+
+            <Text style={styles.cuotasTitle}>
+              Selecciona tu plan de pago <Text style={styles.required}>*</Text>
+            </Text>
 
             <View style={styles.cuotasContainer}>
-              <View style={styles.cuotaCard}>
-                <Text style={styles.cuotaLabel}>1 Cuota</Text>
-                <Text style={styles.cuotaValue}>${Number(montoPorCuota1).toFixed(2)}</Text>
-              </View>
-              <View style={styles.cuotaCard}>
-                <Text style={styles.cuotaLabel}>2 Cuotas</Text>
-                <Text style={styles.cuotaValue}>${Number(montoPorCuota2).toFixed(2)}</Text>
-              </View>
-              <View style={[styles.cuotaCard, styles.cuotaCardHighlighted]}>
-                <Text style={[styles.cuotaLabel, styles.cuotaLabelHighlighted]}>3 Cuotas</Text>
-                <Text style={[styles.cuotaValue, styles.cuotaValueHighlighted]}>
+              <TouchableOpacity
+                style={[
+                  styles.cuotaCard,
+                  numeroCuotas === 1 && styles.cuotaCardSelected,
+                ]}
+                onPress={() => setNumeroCuotas(1)}
+                activeOpacity={0.7}
+              >
+                {numeroCuotas === 1 && (
+                  <LinearGradient
+                    colors={['rgba(34, 197, 94, 0.2)', 'rgba(34, 197, 94, 0.1)']}
+                    style={StyleSheet.absoluteFill}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  />
+                )}
+                <Text style={[styles.cuotaLabel, numeroCuotas === 1 && styles.cuotaLabelSelected]}>
+                  1 Cuota
+                </Text>
+                <Text style={[styles.cuotaValue, numeroCuotas === 1 && styles.cuotaValueSelected]}>
+                  ${Number(montoPorCuota1).toFixed(2)}
+                </Text>
+                <Text style={[styles.cuotaSubtext, numeroCuotas === 1 && styles.cuotaSubtextSelected]}>
+                  Pago único
+                </Text>
+                {numeroCuotas === 1 && (
+                  <View style={styles.checkIcon}>
+                    <CheckCircle2 size={18} color="#22c55e" />
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.cuotaCard,
+                  numeroCuotas === 2 && styles.cuotaCardSelected,
+                ]}
+                onPress={() => setNumeroCuotas(2)}
+                activeOpacity={0.7}
+              >
+                {numeroCuotas === 2 && (
+                  <LinearGradient
+                    colors={['rgba(34, 197, 94, 0.2)', 'rgba(34, 197, 94, 0.1)']}
+                    style={StyleSheet.absoluteFill}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  />
+                )}
+                <Text style={[styles.cuotaLabel, numeroCuotas === 2 && styles.cuotaLabelSelected]}>
+                  2 Cuotas
+                </Text>
+                <Text style={[styles.cuotaValue, numeroCuotas === 2 && styles.cuotaValueSelected]}>
+                  ${Number(montoPorCuota2).toFixed(2)}
+                </Text>
+                <Text style={[styles.cuotaSubtext, numeroCuotas === 2 && styles.cuotaSubtextSelected]}>
+                  c/u
+                </Text>
+                {numeroCuotas === 2 && (
+                  <View style={styles.checkIcon}>
+                    <CheckCircle2 size={18} color="#22c55e" />
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.cuotaCard,
+                  numeroCuotas === 3 && styles.cuotaCardSelected,
+                ]}
+                onPress={() => setNumeroCuotas(3)}
+                activeOpacity={0.7}
+              >
+                {numeroCuotas === 3 && (
+                  <LinearGradient
+                    colors={['rgba(34, 197, 94, 0.2)', 'rgba(34, 197, 94, 0.1)']}
+                    style={StyleSheet.absoluteFill}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  />
+                )}
+                <Text style={[styles.cuotaLabel, numeroCuotas === 3 && styles.cuotaLabelSelected]}>
+                  3 Cuotas
+                </Text>
+                <Text style={[styles.cuotaValue, numeroCuotas === 3 && styles.cuotaValueSelected]}>
                   ${Number(montoPorCuota3).toFixed(2)}
                 </Text>
+                <Text style={[styles.cuotaSubtext, numeroCuotas === 3 && styles.cuotaSubtextSelected]}>
+                  ⭐ Recomendado
+                </Text>
+                {numeroCuotas === 3 && (
+                  <View style={styles.checkIcon}>
+                    <CheckCircle2 size={18} color="#22c55e" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Resumen de selección */}
+            <View style={styles.resumenContainer}>
+              <Text style={styles.resumenText}>
+                Has seleccionado:{' '}
+                <Text style={styles.resumenHighlight}>
+                  {numeroCuotas} cuota{numeroCuotas > 1 ? 's' : ''}
+                </Text>{' '}
+                de{' '}
+                <Text style={styles.resumenAmount}>
+                  $
+                  {numeroCuotas === 1
+                    ? montoPorCuota1.toFixed(2)
+                    : numeroCuotas === 2
+                      ? montoPorCuota2.toFixed(2)
+                      : montoPorCuota3.toFixed(2)}
+                </Text>{' '}
+                cada una
+              </Text>
+            </View>
+
+            {/* Información de métodos de pago */}
+            <View style={styles.paymentInfo}>
+              <View style={styles.paymentInfoHeader}>
+                <CreditCard size={16} color="#3b82f6" />
+                <Text style={styles.paymentInfoTitle}>Métodos de Pago Disponibles</Text>
               </View>
+              <Text style={styles.paymentInfoText}>
+                • Transferencia Bancaria: Contacta a la administración{'\n'}
+                • Mercado Pago: Solicita el link de pago{'\n'}
+                • En efectivo: Acércate a tu sede más cercana
+              </Text>
+              <Text style={styles.paymentInfoNote}>
+                💡 Una vez completada tu inscripción, recibirás un email con instrucciones detalladas
+                sobre cómo realizar el pago.
+              </Text>
             </View>
           </View>
         )}
@@ -135,14 +271,22 @@ export function Step2ConvencionInfo({
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.continueButton, yaInscrito && styles.continueButtonDisabled]}
-            onPress={onComplete}
+            onPress={handleContinue}
             disabled={yaInscrito}
+            activeOpacity={0.8}
           >
-            <Text
-              style={[styles.continueButtonText, yaInscrito && styles.continueButtonTextDisabled]}
+            <LinearGradient
+              colors={['#22c55e', '#16a34a']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.continueButtonGradient}
             >
-              {yaInscrito ? '✓ Ya Inscrito' : '✓ Continuar'}
-            </Text>
+              <Text
+                style={[styles.continueButtonText, yaInscrito && styles.continueButtonTextDisabled]}
+              >
+                {yaInscrito ? '✓ Ya Inscrito' : '✓ Continuar'}
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </View>
@@ -166,18 +310,23 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   badge: {
-    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.4)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 16,
     marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
   badgeText: {
-    color: '#22c55e',
-    fontSize: 12,
+    color: '#4ade80',
+    fontSize: 11,
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   title: {
     fontSize: 22,
@@ -226,58 +375,151 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   costoContainer: {
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 20,
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderColor: 'rgba(245, 158, 11, 0.2)',
   },
+  costoHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   costoLabel: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   costoValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#f59e0b',
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#fbbf24',
     textAlign: 'center',
-    marginBottom: 16,
+  },
+  cuotasTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  required: {
+    color: '#ef4444',
   },
   cuotasContainer: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
+    marginBottom: 12,
   },
   cuotaCard: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 12,
     padding: 12,
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+    position: 'relative',
+    minHeight: 90,
+    justifyContent: 'center',
   },
-  cuotaCardHighlighted: {
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    borderColor: 'rgba(34, 197, 94, 0.3)',
+  cuotaCardSelected: {
+    borderColor: 'rgba(34, 197, 94, 0.5)',
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   cuotaLabel: {
     fontSize: 11,
     color: 'rgba(255, 255, 255, 0.5)',
     marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  cuotaLabelHighlighted: {
-    color: '#22c55e',
+  cuotaLabelSelected: {
+    color: '#4ade80',
+    fontWeight: '600',
   },
   cuotaValue: {
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 2,
+  },
+  cuotaValueSelected: {
+    color: '#22c55e',
+  },
+  cuotaSubtext: {
+    fontSize: 9,
+    color: 'rgba(255, 255, 255, 0.4)',
+    marginTop: 2,
+  },
+  cuotaSubtextSelected: {
+    color: '#4ade80',
+  },
+  checkIcon: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+  },
+  resumenContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 12,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  resumenText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  resumenHighlight: {
     fontWeight: '600',
+    color: '#4ade80',
+  },
+  resumenAmount: {
+    fontWeight: '700',
     color: '#fff',
   },
-  cuotaValueHighlighted: {
-    color: '#22c55e',
+  paymentInfo: {
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 12,
+    borderWidth: 0.5,
+    borderColor: 'rgba(59, 130, 246, 0.2)',
+  },
+  paymentInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  paymentInfoTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#60a5fa',
+  },
+  paymentInfoText: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.65)',
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  paymentInfoNote: {
+    fontSize: 10,
+    color: 'rgba(96, 165, 250, 0.8)',
+    lineHeight: 16,
+    fontStyle: 'italic',
   },
   cupoContainer: {
     marginBottom: 20,
@@ -313,19 +555,27 @@ const styles = StyleSheet.create({
   },
   continueButton: {
     flex: 1,
-    paddingVertical: 14,
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  continueButtonGradient: {
+    paddingVertical: 13,
     alignItems: 'center',
-    borderRadius: 8,
-    backgroundColor: '#22c55e',
+    justifyContent: 'center',
   },
   continueButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
+    letterSpacing: 0.2,
   },
   continueButtonDisabled: {
-    backgroundColor: 'rgba(34, 197, 94, 0.3)',
-    opacity: 0.6,
+    opacity: 0.5,
   },
   continueButtonTextDisabled: {
     color: 'rgba(255, 255, 255, 0.7)',
