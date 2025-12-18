@@ -41,6 +41,7 @@ export function ConventionInscripcionScreen() {
   // Cargar convención activa (solo una vez al montar)
   useEffect(() => {
     let isMounted = true
+    let hasInitialized = false // Prevenir cambios de step después de la inicialización
 
     const loadConvencion = async (showLoading = true) => {
       try {
@@ -62,37 +63,63 @@ export function ConventionInscripcionScreen() {
             }
             setConvencion(convencionNormalizada)
 
-            // Verificar si el usuario ya está inscrito (silenciosamente)
-            if (invitado?.email) {
+            // Solo verificar inscripción y cambiar step en la primera carga
+            // No cambiar step si el usuario ya está llenando el formulario (currentStep > 1)
+            if (!hasInitialized && currentStep === 1) {
+              // Verificar si el usuario ya está inscrito (silenciosamente)
+              if (invitado?.email) {
+                try {
+                  const inscripcion = await inscripcionesApi.checkInscripcion(activa.id, invitado.email)
+                  if (inscripcion) {
+                    setYaInscrito(true)
+                    setInscripcionExistente(inscripcion)
+                    // Si ya está inscrito y autenticado, ir directamente al step 2 o 4 según estado
+                    if (isAuthenticated) {
+                      if (inscripcion.estado === 'confirmado') {
+                        setCurrentStep(4)
+                        setInscripcionCompleta(true)
+                      } else {
+                        setCurrentStep(2)
+                      }
+                    }
+                  } else {
+                    setYaInscrito(false)
+                    setInscripcionExistente(null)
+                    // Si está autenticado pero no inscrito, ir al step 2
+                    if (isAuthenticated) {
+                      setCurrentStep(2)
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error verificando inscripción:', error)
+                  // No actualizar estado si hay error, mantener el anterior
+                }
+              } else if (isAuthenticated && invitado) {
+                // Si está autenticado pero no hay email aún, ir al step 2
+                setCurrentStep(2)
+              }
+              hasInitialized = true
+            } else if (hasInitialized && invitado?.email && currentStep === 1 && isAuthenticated) {
+              // Si el usuario se autenticó después de cargar la página, verificar inscripción
               try {
                 const inscripcion = await inscripcionesApi.checkInscripcion(activa.id, invitado.email)
                 if (inscripcion) {
                   setYaInscrito(true)
                   setInscripcionExistente(inscripcion)
-                  // Si ya está inscrito y autenticado, ir directamente al step 2 o 4 según estado
-                  if (isAuthenticated) {
-                    if (inscripcion.estado === 'confirmado') {
-                      setCurrentStep(4)
-                      setInscripcionCompleta(true)
-                    } else {
-                      setCurrentStep(2)
-                    }
+                  if (inscripcion.estado === 'confirmado') {
+                    setCurrentStep(4)
+                    setInscripcionCompleta(true)
+                  } else {
+                    setCurrentStep(2)
                   }
                 } else {
                   setYaInscrito(false)
                   setInscripcionExistente(null)
-                  // Si está autenticado pero no inscrito, ir al step 2
-                  if (isAuthenticated) {
-                    setCurrentStep(2)
-                  }
+                  setCurrentStep(2)
                 }
               } catch (error) {
                 console.error('Error verificando inscripción:', error)
-                // No actualizar estado si hay error, mantener el anterior
               }
-            } else if (isAuthenticated && invitado) {
-              // Si está autenticado pero no hay email aún, ir al step 2
-              setCurrentStep(2)
             }
           } else {
             setConvencion(null)
@@ -126,7 +153,7 @@ export function ConventionInscripcionScreen() {
       isMounted = false
       clearInterval(interval)
     }
-  }, [invitado?.email])
+  }, [invitado?.email, isAuthenticated, currentStep])
 
   const handleStepComplete = (step: number, data?: any) => {
     if (data) {
