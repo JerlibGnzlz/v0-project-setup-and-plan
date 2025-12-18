@@ -179,7 +179,18 @@ export function Step4Confirmacion({
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { 
           response?: { 
-            data?: { message?: string | string[] }; 
+            data?: { 
+              message?: string | string[];
+              error?: {
+                message?: string | string[];
+                statusCode?: number;
+              };
+              errors?: Array<{
+                property: string;
+                constraints?: Record<string, string>;
+                value?: unknown;
+              }>;
+            }; 
             status?: number;
             statusText?: string;
           };
@@ -192,11 +203,33 @@ export function Step4Confirmacion({
           data: axiosError.response?.data,
         })
         
-        if (axiosError.response?.data?.message) {
-          const message = axiosError.response.data.message
+        // NestJS puede retornar errores de validación en diferentes formatos
+        const responseData = axiosError.response?.data
+        
+        // Formato 1: errors array (errores de validación detallados)
+        if (responseData?.errors && Array.isArray(responseData.errors)) {
+          const validationErrors = responseData.errors.map(err => {
+            const property = err.property || 'campo'
+            const constraints = err.constraints || {}
+            const messages = Object.values(constraints)
+            return `${property}: ${messages.join(', ')}`
+          })
+          errorMessage = `Error de validación:\n${validationErrors.join('\n')}`
+          console.error('❌ Errores de validación:', validationErrors)
+        }
+        // Formato 2: error.message (mensaje general)
+        else if (responseData?.error?.message) {
+          const message = responseData.error.message
           errorMessage = Array.isArray(message) ? message.join('\n') : message
-        } else if (axiosError.response?.status === 400) {
-          errorMessage = 'Error de validación: Por favor verifica que todos los campos estén completos y sean válidos.'
+        }
+        // Formato 3: message directo
+        else if (responseData?.message) {
+          const message = responseData.message
+          errorMessage = Array.isArray(message) ? message.join('\n') : message
+        }
+        // Formato 4: Error genérico según status code
+        else if (axiosError.response?.status === 400) {
+          errorMessage = 'Error de validación: Por favor verifica que todos los campos estén completos y sean válidos.\n\nRevisa especialmente:\n- Teléfono debe tener entre 8 y 20 caracteres\n- Nombre y apellido solo pueden contener letras\n- Email debe ser válido'
         } else if (axiosError.response?.status === 401) {
           errorMessage = 'Error de autenticación: Por favor inicia sesión nuevamente.'
         } else if (axiosError.response?.status === 403) {
