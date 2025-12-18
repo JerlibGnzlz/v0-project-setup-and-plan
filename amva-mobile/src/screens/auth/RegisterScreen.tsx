@@ -467,19 +467,9 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     opacity: 0.6,
   },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  logoText: {
-    fontSize: 40,
+  logoImage: {
+    width: 120,
+    height: 120,
   },
   title: {
     fontSize: 28,
