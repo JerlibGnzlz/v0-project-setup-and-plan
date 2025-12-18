@@ -90,9 +90,25 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
       console.log('🔐 Iniciando login de invitado...')
       const result = await invitadoAuthApi.login(email, password)
       console.log('✅ Login exitoso, guardando tokens...')
+      console.log('🔍 Verificando tokens recibidos:', {
+        hasAccessToken: !!result.access_token,
+        hasRefreshToken: !!result.refresh_token,
+        accessTokenLength: result.access_token?.length || 0,
+        refreshTokenLength: result.refresh_token?.length || 0,
+      })
       
       await SecureStore.setItemAsync('invitado_token', result.access_token)
       await SecureStore.setItemAsync('invitado_refresh_token', result.refresh_token)
+      
+      // Verificar que se guardaron correctamente
+      const savedToken = await SecureStore.getItemAsync('invitado_token')
+      const savedRefreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
+      console.log('🔍 Tokens guardados verificados:', {
+        tokenGuardado: !!savedToken,
+        refreshTokenGuardado: !!savedRefreshToken,
+        tokenLength: savedToken?.length || 0,
+        refreshTokenLength: savedRefreshToken?.length || 0,
+      })
       
       console.log('✅ Tokens guardados, estableciendo invitado...')
       setInvitado(result.invitado)
@@ -109,12 +125,34 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
   const loginWithGoogle = async (idToken: string) => {
     setLoading(true)
     try {
+      console.log('🔐 Iniciando login con Google...')
       const result = await invitadoAuthApi.loginWithGoogle(idToken)
+      console.log('✅ Login con Google exitoso, guardando tokens...')
+      console.log('🔍 Verificando tokens recibidos:', {
+        hasAccessToken: !!result.access_token,
+        hasRefreshToken: !!result.refresh_token,
+        accessTokenLength: result.access_token?.length || 0,
+        refreshTokenLength: result.refresh_token?.length || 0,
+      })
+      
       await SecureStore.setItemAsync('invitado_token', result.access_token)
       await SecureStore.setItemAsync('invitado_refresh_token', result.refresh_token)
+      
+      // Verificar que se guardaron correctamente
+      const savedToken = await SecureStore.getItemAsync('invitado_token')
+      const savedRefreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
+      console.log('🔍 Tokens guardados verificados:', {
+        tokenGuardado: !!savedToken,
+        refreshTokenGuardado: !!savedRefreshToken,
+        tokenLength: savedToken?.length || 0,
+        refreshTokenLength: savedRefreshToken?.length || 0,
+      })
+      
       setInvitado(result.invitado)
+      console.log('✅ Invitado establecido:', result.invitado.email)
     } catch (error: unknown) {
-      console.error('Error en login con Google:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('❌ Error en login con Google:', errorMessage)
       throw error
     } finally {
       setLoading(false)
