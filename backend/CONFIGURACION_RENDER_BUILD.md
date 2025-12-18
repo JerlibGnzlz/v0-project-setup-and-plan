@@ -41,16 +41,24 @@ cd backend && npm ci && npx prisma generate && npx prisma migrate deploy && npm 
 
 ### Paso 3: Configurar Start Command
 
+**IMPORTANTE**: El Start Command depende del Root Directory configurado.
+
+#### Si Root Directory = `backend` (Recomendado)
+
+El **Start Command** debe ser:
+
+```bash
+npm run start:prod
+```
+
+**NO incluyas `cd backend`** porque Render.com ya está ejecutando desde ese directorio.
+
+#### Si Root Directory = vacío (raíz del repositorio)
+
 El **Start Command** debe ser:
 
 ```bash
 cd backend && npm run start:prod
-```
-
-O si el Root Directory está configurado como `backend`:
-
-```bash
-npm run start:prod
 ```
 
 ## Configuración Recomendada

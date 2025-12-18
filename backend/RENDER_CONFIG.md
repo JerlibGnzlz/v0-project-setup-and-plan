@@ -26,7 +26,15 @@ cd backend && chmod +x render-build.sh && ./render-build.sh
 
 ## Start Command
 
-El **Start Command** debe ser:
+El **Start Command** depende de cómo esté configurado el Root Directory:
+
+### Si Root Directory = `backend` (Recomendado)
+
+```bash
+npm run start:prod
+```
+
+### Si Root Directory = vacío (raíz del repositorio)
 
 ```bash
 cd backend && npm run start:prod
