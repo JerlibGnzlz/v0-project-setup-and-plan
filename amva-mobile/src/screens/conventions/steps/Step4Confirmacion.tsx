@@ -100,8 +100,8 @@ export function Step4Confirmacion({
         sedeCompleta = `${sedeCompleta} - ${formData.pais}`
       }
 
-      // Crear la inscripción
-      await inscripcionesApi.create({
+      // Preparar datos para enviar
+      const datosInscripcion = {
         convencionId: convencion.id,
         nombre: formData.nombre.trim(),
         apellido: formData.apellido.trim(),
@@ -110,13 +110,18 @@ export function Step4Confirmacion({
         sede: sedeCompleta,
         pais: formData.pais?.trim() || undefined,
         provincia: formData.provincia?.trim() || undefined,
-        tipoInscripcion: formData.tipoInscripcion,
-        numeroCuotas: formData.numeroCuotas,
+        tipoInscripcion: formData.tipoInscripcion || 'Invitado',
+        numeroCuotas: formData.numeroCuotas || 3,
         dni: formData.dni?.trim() || undefined,
         origenRegistro: 'mobile',
         documentoUrl: formData.documentoUrl || undefined,
         notas: formData.notas?.trim() || undefined,
-      })
+      }
+
+      console.log('📤 Enviando inscripción:', JSON.stringify(datosInscripcion, null, 2))
+
+      // Crear la inscripción
+      await inscripcionesApi.create(datosInscripcion)
 
       Alert.alert(
         '✅ Inscripción exitosa',
@@ -131,10 +136,21 @@ export function Step4Confirmacion({
       )
     } catch (error: unknown) {
       console.error('Error creando inscripción:', error)
-      const errorMessage =
-        error instanceof Error
-          ? error.message || 'No se pudo registrar la inscripción. Intenta nuevamente.'
-          : 'No se pudo registrar la inscripción. Intenta nuevamente.'
+      let errorMessage = 'No se pudo registrar la inscripción. Intenta nuevamente.'
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { message?: string | string[] }; status?: number } }
+        if (axiosError.response?.data?.message) {
+          const message = axiosError.response.data.message
+          errorMessage = Array.isArray(message) ? message.join('\n') : message
+        } else if (axiosError.response?.status === 400) {
+          errorMessage = 'Error de validación: Por favor verifica que todos los campos estén completos y sean válidos.'
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message || errorMessage
+      }
+      
+      console.error('Detalles del error:', JSON.stringify(error, null, 2))
       Alert.alert('Error al crear la inscripción', errorMessage, undefined, 'error')
     } finally {
       setIsSubmitting(false)

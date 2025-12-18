@@ -49,7 +49,7 @@ export function Step3Formulario({
     sede: initialData?.sede || invitado.sede || '',
     pais: initialData?.pais || 'Argentina',
     provincia: initialData?.provincia || '',
-    tipoInscripcion: initialData?.tipoInscripcion || 'invitado',
+    tipoInscripcion: initialData?.tipoInscripcion || 'Invitado',
     numeroCuotas:
       typeof initialData?.numeroCuotas === 'number'
         ? initialData.numeroCuotas
@@ -214,6 +214,14 @@ export function Step3Formulario({
 
     if (!formData.sede || formData.sede.trim().length < 2) {
       newErrors.sede = 'La sede debe tener al menos 2 caracteres'
+    }
+
+    if (!formData.tipoInscripcion || formData.tipoInscripcion.trim().length === 0) {
+      newErrors.tipoInscripcion = 'El tipo de inscripción es requerido'
+    }
+
+    if (!formData.numeroCuotas || formData.numeroCuotas < 1 || formData.numeroCuotas > 3) {
+      newErrors.numeroCuotas = 'El número de cuotas debe ser entre 1 y 3'
     }
 
     setErrors(newErrors)
@@ -461,11 +469,13 @@ export function Step3Formulario({
               </Text>
               <View style={[styles.pickerContainer, errors.pais && styles.inputError]}>
                 <Picker
-                  selectedValue={formData.pais}
+                  selectedValue={formData.pais || 'Argentina'}
                   onValueChange={value => {
-                    handleChange('pais', value)
-                    if (value !== 'Argentina') {
-                      handleChange('provincia', '')
+                    if (value) {
+                      handleChange('pais', value)
+                      if (value !== 'Argentina') {
+                        handleChange('provincia', '')
+                      }
                     }
                   }}
                   style={styles.picker}
@@ -487,8 +497,12 @@ export function Step3Formulario({
                 </Text>
                 <View style={[styles.pickerContainer, errors.provincia && styles.inputError]}>
                   <Picker
-                    selectedValue={formData.provincia}
-                    onValueChange={value => handleChange('provincia', value)}
+                    selectedValue={formData.provincia || ''}
+                    onValueChange={value => {
+                      if (value !== undefined) {
+                        handleChange('provincia', value || '')
+                      }
+                    }}
                     style={styles.picker}
                     dropdownIconColor="#fff"
                   >
@@ -559,14 +573,19 @@ export function Step3Formulario({
                 <Text style={styles.label}>Tipo de Inscripción</Text>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={formData.tipoInscripcion}
-                    onValueChange={value => handleChange('tipoInscripcion', value)}
+                    selectedValue={formData.tipoInscripcion || 'Invitado'}
+                    onValueChange={value => {
+                      if (value) {
+                        handleChange('tipoInscripcion', value)
+                      }
+                    }}
                     style={styles.picker}
                     dropdownIconColor="#fff"
                   >
-                    <Picker.Item label="Pastor" value="pastor" color="#fff" />
-                    <Picker.Item label="Líder" value="lider" color="#fff" />
-                    <Picker.Item label="Miembro" value="miembro" color="#fff" />
+                    <Picker.Item label="Invitado" value="Invitado" color="#fff" />
+                    <Picker.Item label="Pastor" value="Pastor" color="#fff" />
+                    <Picker.Item label="Líder" value="Líder" color="#fff" />
+                    <Picker.Item label="Miembro" value="Miembro" color="#fff" />
                   </Picker>
                 </View>
               </View>
@@ -577,8 +596,12 @@ export function Step3Formulario({
                 </Text>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={formData.numeroCuotas}
-                    onValueChange={value => handleChange('numeroCuotas', value)}
+                    selectedValue={formData.numeroCuotas || 3}
+                    onValueChange={value => {
+                      if (value !== undefined && value !== null) {
+                        handleChange('numeroCuotas', Number(value))
+                      }
+                    }}
                     style={styles.picker}
                     dropdownIconColor="#fff"
                   >
