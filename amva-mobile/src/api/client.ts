@@ -174,6 +174,35 @@ apiClient.interceptors.response.use(
       _retryCount?: number
     }
 
+    // Manejar errores de red antes de intentar refresh
+    const errorCode = (error as { code?: string })?.code
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+    
+    // Si es un error de red, proporcionar mensaje más útil y no intentar refresh
+    if (
+      errorCode === 'ERR_NETWORK' ||
+      errorCode === 'ECONNREFUSED' ||
+      errorCode === 'ETIMEDOUT' ||
+      errorCode === 'ENOTFOUND' ||
+      errorMessage.includes('Network Error') ||
+      errorMessage.includes('timeout') ||
+      errorMessage.includes('getaddrinfo')
+    ) {
+      console.error('❌ Error de red:', {
+        code: errorCode,
+        message: errorMessage,
+        url: originalRequest?.url,
+      })
+      
+      const networkError = new Error(
+        `Error de conexión: No se pudo conectar al servidor. Verifica tu conexión a internet.`
+      ) as Error & { code?: string; isNetworkError?: boolean; originalError?: unknown }
+      networkError.code = errorCode
+      networkError.isNetworkError = true
+      networkError.originalError = error
+      return Promise.reject(networkError)
+    }
+
     // Si el error es 401 y no hemos intentado refrescar
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Prevenir loops infinitos: máximo 1 intento de refresh
