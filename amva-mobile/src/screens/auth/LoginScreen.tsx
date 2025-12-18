@@ -62,7 +62,7 @@ export function LoginScreen() {
       ? {
           clientId: googleClientId,
         }
-      : undefined
+      : { clientId: '' } // Valor por defecto para evitar error de tipo
   )
 
   // Validar que el clientId esté configurado
