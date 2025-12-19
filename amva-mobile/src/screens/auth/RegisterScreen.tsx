@@ -367,7 +367,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
           >
             <View style={styles.logoContainer}>
               <Image
-                source={require('../../../assets/images/amvamobil.png')}
+                source={require('../../../assets/images/amvadigital.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               />

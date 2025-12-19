@@ -716,7 +716,7 @@ export function CredentialsScreen() {
               }}
             >
               <Image
-                source={require('../../../assets/images/amvamobil.png')}
+                source={require('../../../assets/images/amvadigital.png')}
                 style={{ width: '100%', height: '100%' }}
                 resizeMode="contain"
               />

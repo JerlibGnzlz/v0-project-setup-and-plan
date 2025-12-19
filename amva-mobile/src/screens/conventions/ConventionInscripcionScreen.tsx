@@ -199,7 +199,7 @@ export function ConventionInscripcionScreen() {
           <View style={styles.loadingContent}>
             <View style={styles.logoContainer}>
               <Image
-                source={require('../../../assets/images/amvamobil.png')}
+                source={require('../../../assets/images/amvadigital.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               />
