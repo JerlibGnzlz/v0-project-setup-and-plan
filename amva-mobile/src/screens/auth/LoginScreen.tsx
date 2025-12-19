@@ -67,10 +67,38 @@ export function LoginScreen() {
       console.log('🔐 Iniciando login con Google (nativo)...')
 
       // Obtener idToken usando el hook nativo
-      const idToken = await googleSignIn()
+      let idToken: string | null = null
+      try {
+        idToken = await googleSignIn()
+      } catch (signInError: unknown) {
+        // Verificar si el error es por cancelación del usuario
+        if (signInError && typeof signInError === 'object' && 'code' in signInError) {
+          const googleError = signInError as { code: string; message?: string }
+          if (googleError.code === 'SIGN_IN_CANCELLED' || googleError.message?.includes('cancel')) {
+            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+            return // Salir silenciosamente sin mostrar error
+          }
+        }
+        // Si el error es por cancelación en el mensaje
+        if (signInError instanceof Error) {
+          if (
+            signInError.message.includes('canceló') ||
+            signInError.message.includes('cancel') ||
+            signInError.message.includes('cancelled') ||
+            signInError.message.includes('SIGN_IN_CANCELLED')
+          ) {
+            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+            return // Salir silenciosamente sin mostrar error
+          }
+        }
+        // Si no es cancelación, relanzar el error
+        throw signInError
+      }
 
+      // Si no se recibió token (usuario canceló), salir silenciosamente
       if (!idToken) {
-        throw new Error('No se recibió el token de Google')
+        console.log('ℹ️ Usuario canceló el inicio de sesión con Google (token null)')
+        return
       }
 
       console.log('✅ Token de Google obtenido, enviando al backend...')
@@ -86,9 +114,16 @@ export function LoginScreen() {
 
       if (error instanceof Error) {
         // Si el usuario canceló, no mostrar error
-        if (error.message.includes('canceló')) {
+        if (
+          error.name === 'GoogleSignInCancelled' ||
+          error.message === 'SIGN_IN_CANCELLED' ||
+          error.message.includes('canceló') ||
+          error.message.includes('cancel') ||
+          error.message.includes('cancelled') ||
+          error.message.includes('SIGN_IN_CANCELLED')
+        ) {
           console.log('ℹ️ Usuario canceló el inicio de sesión')
-          return
+          return // Salir silenciosamente sin mostrar error
         }
         errorMessage = error.message
       } else if (error && typeof error === 'object') {

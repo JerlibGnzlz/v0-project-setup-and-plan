@@ -98,16 +98,26 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
 
       return userInfo.data.idToken
     } catch (err: unknown) {
+      // Verificar si el usuario canceló el inicio de sesión
+      if (err && typeof err === 'object' && 'code' in err) {
+        const googleError = err as { code: string; message?: string }
+
+        if (googleError.code === statusCodes.SIGN_IN_CANCELLED) {
+          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+          setError(null) // Limpiar error
+          // Crear un error especial para identificar cancelación
+          const cancelError = new Error('SIGN_IN_CANCELLED')
+          cancelError.name = 'GoogleSignInCancelled'
+          throw cancelError
+        }
+      }
+
       let errorMessage = 'No se pudo iniciar sesión con Google.'
 
       if (err && typeof err === 'object' && 'code' in err) {
         const googleError = err as { code: string; message?: string }
 
         switch (googleError.code) {
-          case statusCodes.SIGN_IN_CANCELLED:
-            errorMessage = 'El usuario canceló el inicio de sesión'
-            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
-            break
           case statusCodes.IN_PROGRESS:
             errorMessage = 'Ya hay una operación de inicio de sesión en progreso'
             break
