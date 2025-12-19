@@ -23,6 +23,26 @@ import { testBackendConnection } from '../../utils/testConnection'
 import { RegisterScreen } from './RegisterScreen'
 import { Alert } from '@utils/alert'
 
+// Componente del logo de Google (diseño moderno con colores oficiales)
+function GoogleLogo() {
+  return (
+    <View style={styles.googleLogoContainer}>
+      <View style={styles.googleLogo}>
+        {/* Logo de Google: círculo con G multicolor */}
+        <View style={styles.googleCircle}>
+          <View style={styles.googleGArc}>
+            <View style={[styles.googleGArcSegment, styles.googleGBlue]} />
+            <View style={[styles.googleGArcSegment, styles.googleGRed]} />
+            <View style={[styles.googleGArcSegment, styles.googleGYellow]} />
+            <View style={[styles.googleGArcSegment, styles.googleGGreen]} />
+          </View>
+          <Text style={styles.googleGText}>G</Text>
+        </View>
+      </View>
+    </View>
+  )
+}
+
 export function LoginScreen() {
   const { login, loginWithGoogle, loading } = useInvitadoAuth()
   const { signIn: googleSignIn, loading: googleAuthLoading, error: googleAuthError } = useGoogleAuth()
@@ -441,14 +461,15 @@ export function LoginScreen() {
               disabled={googleAuthLoading || !!googleAuthError}
             >
               {googleAuthLoading ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <ActivityIndicator color="#fff" size="small" />
+                <View style={styles.googleButtonContent}>
+                  <ActivityIndicator color="#3c4043" size="small" />
                   <Text style={[styles.googleButtonText, isSmallScreen && styles.googleButtonTextSmall]}>Autenticando...</Text>
                 </View>
               ) : (
-                <>
-                  <Text style={[styles.googleButtonText, isSmallScreen && styles.googleButtonTextSmall]}>🔵 Continuar con Google</Text>
-                </>
+                <View style={styles.googleButtonContent}>
+                  <GoogleLogo />
+                  <Text style={[styles.googleButtonText, isSmallScreen && styles.googleButtonTextSmall]}>Continuar con Google</Text>
+                </View>
               )}
             </TouchableOpacity>
             {googleAuthError && (
@@ -731,25 +752,97 @@ const styles = StyleSheet.create({
   },
   googleButton: {
     marginTop: 6,
-    backgroundColor: '#4285F4',
+    backgroundColor: '#fff',
     paddingVertical: 11,
     borderRadius: 10,
     alignItems: 'center',
-    shadowColor: '#4285F4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
   },
   googleButtonSmall: {
     paddingVertical: 9,
     marginBottom: 8,
   },
+  googleButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  googleLogoContainer: {
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  googleLogo: {
+    width: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  googleCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    overflow: 'hidden',
+  },
+  googleGArc: {
+    position: 'absolute',
+    width: 18,
+    height: 18,
+  },
+  googleGArcSegment: {
+    position: 'absolute',
+    width: 9,
+    height: 9,
+  },
+  googleGBlue: {
+    backgroundColor: '#4285F4',
+    top: 0,
+    left: 0,
+    borderTopLeftRadius: 9,
+  },
+  googleGRed: {
+    backgroundColor: '#EA4335',
+    top: 0,
+    right: 0,
+    borderTopRightRadius: 9,
+  },
+  googleGYellow: {
+    backgroundColor: '#FBBC04',
+    bottom: 0,
+    left: 0,
+    borderBottomLeftRadius: 9,
+  },
+  googleGGreen: {
+    backgroundColor: '#34A853',
+    bottom: 0,
+    right: 0,
+    borderBottomRightRadius: 9,
+  },
+  googleGText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#4285F4',
+    zIndex: 1,
+  },
   googleButtonText: {
-    color: '#fff',
+    color: '#3c4043',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
+    letterSpacing: 0.1,
   },
   googleButtonTextSmall: {
     fontSize: 13,
