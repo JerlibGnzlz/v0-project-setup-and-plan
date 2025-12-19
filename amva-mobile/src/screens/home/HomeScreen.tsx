@@ -133,11 +133,15 @@ export function HomeScreen({ navigation }: Props) {
                 resizeMode="contain"
               />
             </View>
-            <Text style={styles.welcomeText}>Bienvenido</Text>
+            <View style={styles.welcomeContainer}>
+              <Text style={styles.welcomeText}>Bienvenido</Text>
+            </View>
             {invitado && (
-              <Text style={styles.nameText}>
-                {invitado.nombre} {invitado.apellido}
-              </Text>
+              <View style={styles.nameContainer}>
+                <Text style={styles.nameText}>
+                  {invitado.nombre} {invitado.apellido}
+                </Text>
+              </View>
             )}
           </LinearGradient>
         </Animated.View>
@@ -251,18 +255,34 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  welcomeContainer: {
+    marginBottom: 4,
+  },
   welcomeText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 2,
+    fontSize: 20,
+    fontWeight: '800',
     textAlign: 'center',
-    letterSpacing: -0.5,
+    letterSpacing: 0.5,
+    color: '#22c55e',
+    textShadowColor: 'rgba(34, 197, 94, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  nameContainer: {
+    marginTop: 2,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.2)',
   },
   nameText: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.75)',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#4ade80',
     textAlign: 'center',
+    letterSpacing: 0.3,
   },
   cardsContainer: {
     flex: 1,
