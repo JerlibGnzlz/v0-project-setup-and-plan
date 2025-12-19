@@ -157,19 +157,22 @@ export function AppNavigator() {
           {/* Logo Container con diseño profesional mejorado */}
           <Animated.View
             style={{
-              width: 320,
-              height: 320,
+              width: '90%',
+              maxWidth: 400,
+              aspectRatio: 2.5,
               shadowColor: '#22c55e',
               shadowOffset: { width: 0, height: 20 },
               shadowOpacity: 0.6,
               shadowRadius: 40,
               elevation: 25,
-              borderRadius: 50,
+              borderRadius: 30,
               backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              padding: 40,
+              padding: 30,
               borderWidth: 3,
               borderColor: 'rgba(34, 197, 94, 0.5)',
               marginBottom: 32,
+              justifyContent: 'center',
+              alignItems: 'center',
             }}
           >
             <Image
