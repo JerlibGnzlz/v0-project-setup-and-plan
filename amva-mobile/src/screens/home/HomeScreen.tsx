@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Calendar, Newspaper, User, Sparkles, ArrowRight, Globe, Bell, CreditCard } from 'lucide-react-native'
+import { Calendar, Newspaper, User, ArrowRight, Globe, Bell, CreditCard } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -144,10 +144,6 @@ export function HomeScreen({ navigation }: Props) {
                 {invitado.nombre} {invitado.apellido}
               </Text>
             )}
-            <View style={styles.badge}>
-              <Sparkles size={16} color="#22c55e" />
-              <Text style={styles.badgeText}>AMVA Móvil</Text>
-            </View>
           </LinearGradient>
         </Animated.View>
 
