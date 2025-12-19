@@ -14,20 +14,16 @@ import {
   Animated,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import * as WebBrowser from 'expo-web-browser'
-import * as Google from 'expo-auth-session/providers/google'
-import Constants from 'expo-constants'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
+import { useGoogleAuth } from '@hooks/useGoogleAuth'
 import { invitadoAuthApi } from '@api/invitado-auth'
 import { testBackendConnection } from '../../utils/testConnection'
 import { RegisterScreen } from './RegisterScreen'
 import { Alert } from '@utils/alert'
 
-// Necesario para que expo-auth-session funcione correctamente
-WebBrowser.maybeCompleteAuthSession()
-
 export function LoginScreen() {
   const { login, loginWithGoogle, loading } = useInvitadoAuth()
+  const { signIn: googleSignIn, loading: googleAuthLoading, error: googleAuthError } = useGoogleAuth()
   const scrollViewRef = useRef<ScrollView>(null)
   const emailInputRef = useRef<TextInput>(null)
   const passwordInputRef = useRef<TextInput>(null)
@@ -35,7 +31,6 @@ export function LoginScreen() {
   const [password, setPassword] = useState('')
   const [testingConnection, setTestingConnection] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
   const [emailFocused, setEmailFocused] = useState(false)
   const [passwordFocused, setPasswordFocused] = useState(false)
   const [keyboardVisible, setKeyboardVisible] = useState(false)
@@ -43,174 +38,75 @@ export function LoginScreen() {
   const passwordFocusAnim = useRef(new Animated.Value(0)).current
   const logoScaleAnim = useRef(new Animated.Value(1)).current
 
-  // Configuración de Google OAuth
-  // NOTA: Configura el Client ID en app.json en extra.googleClientId
-  // O crea un archivo .env en la raíz de amva-mobile con:
-  // EXPO_PUBLIC_GOOGLE_CLIENT_ID=tu-client-id.apps.googleusercontent.com
-  // El CLIENT_ID debe ser el mismo que el del backend (GOOGLE_CLIENT_ID)
-
-  // Intentar leer desde diferentes fuentes
-  const googleClientIdFromEnv = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || ''
-  const googleClientIdFromConfig =
-    Constants?.expoConfig?.extra?.googleClientId ||
-    Constants?.manifest?.extra?.googleClientId ||
-    ''
-
-  const googleClientId = googleClientIdFromEnv || googleClientIdFromConfig
-
-  // Filtrar valores placeholder
-  const isValidClientId =
-    googleClientId &&
-    googleClientId !== 'TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com' &&
-    googleClientId.includes('.apps.googleusercontent.com')
-
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
-    isValidClientId && googleClientId
-      ? {
-        clientId: googleClientId,
-      }
-      : { clientId: '' } // Valor por defecto para evitar error de tipo
-  )
-
-  // Validar que el clientId esté configurado
+  // Manejar errores de Google Auth
   useEffect(() => {
-    if (!isValidClientId) {
-      console.warn('⚠️ Google Client ID no está configurado o es inválido.')
-      console.warn('   Opción 1: Agrega en app.json -> extra.googleClientId con tu Client ID real')
-      console.warn('   Opción 2: Crea .env en amva-mobile/ con EXPO_PUBLIC_GOOGLE_CLIENT_ID=tu-client-id')
-      console.warn('   El Client ID debe ser el mismo que GOOGLE_CLIENT_ID en el backend')
-      console.warn('   Formato esperado: xxxxxx.apps.googleusercontent.com')
-    } else {
-      console.log('✅ Google Client ID configurado:', googleClientId.substring(0, 30) + '...')
+    if (googleAuthError) {
+      console.warn('⚠️ Error en configuración de Google Auth:', googleAuthError)
     }
-  }, [isValidClientId, googleClientId])
+  }, [googleAuthError])
 
-  // Manejar respuesta de Google OAuth
-  useEffect(() => {
-    let isMounted = true
+  // Función para manejar login con Google (nativo)
+  const handleGoogleLogin = async () => {
+    try {
+      console.log('🔐 Iniciando login con Google (nativo)...')
+      
+      // Obtener idToken usando el hook nativo
+      const idToken = await googleSignIn()
+      
+      if (!idToken) {
+        throw new Error('No se recibió el token de Google')
+      }
 
-    const handleGoogleAuth = async () => {
-      if (response?.type === 'success') {
-        const { id_token } = response.params
-        if (!id_token) {
-          console.error('❌ No se recibió el token de Google')
-          if (isMounted) {
-            Alert.alert('Error', 'No se recibió el token de Google', undefined, 'error')
-            setGoogleLoading(false)
-          }
+      console.log('✅ Token de Google obtenido, enviando al backend...')
+      
+      // Enviar token al backend usando el hook existente
+      await loginWithGoogle(idToken)
+      
+      console.log('✅ Login con Google exitoso')
+      // La navegación se actualizará automáticamente cuando el estado cambie
+    } catch (error: unknown) {
+      console.error('❌ Error en login con Google:', error)
+      let errorMessage = 'No se pudo iniciar sesión con Google.'
+      
+      if (error instanceof Error) {
+        // Si el usuario canceló, no mostrar error
+        if (error.message.includes('canceló')) {
+          console.log('ℹ️ Usuario canceló el inicio de sesión')
           return
         }
-
-        try {
-          if (isMounted) {
-            setGoogleLoading(true)
+        errorMessage = error.message
+      } else if (error && typeof error === 'object') {
+        const axiosError = error as {
+          response?: { 
+            status?: number
+            data?: { 
+              message?: string | string[]
+              error?: { message?: string }
+            } 
           }
-          console.log('🔐 Iniciando login con Google...')
-          console.log('🔍 Token recibido (primeros 50 caracteres):', id_token.substring(0, 50) + '...')
-          
-          // Usar el hook para login con Google (ya maneja el guardado de tokens)
-          await loginWithGoogle(id_token)
-          console.log('✅ Login con Google exitoso')
-
-          // NO mostrar Alert aquí - dejar que la navegación automática funcione
-          // El hook ya actualiza el estado del invitado y AppNavigator detectará el cambio
-          // La navegación se actualizará automáticamente cuando el estado cambie
-          
-          if (isMounted) {
-            setGoogleLoading(false)
-          }
-        } catch (error: unknown) {
-          console.error('❌ Error en login con Google:', error)
-          let errorMessage = 'No se pudo iniciar sesión con Google.'
-          
-          if (error && typeof error === 'object') {
-            const axiosError = error as {
-              response?: { 
-                status?: number
-                data?: { 
-                  message?: string | string[]
-                  error?: { message?: string }
-                } 
-              }
-              message?: string
-            }
-            
-            // Manejar diferentes tipos de errores
-            if (axiosError.response?.status === 400) {
-              errorMessage = 'Error de validación. Verifica que el token de Google sea válido.'
-            } else if (axiosError.response?.status === 401) {
-              errorMessage = 'Token de Google inválido o expirado. Por favor, intenta nuevamente.'
-            } else if (axiosError.response?.status === 500) {
-              errorMessage = 'Error del servidor. Por favor, intenta más tarde.'
-            } else if (axiosError.response?.data?.message) {
-              const msg = axiosError.response.data.message
-              errorMessage = Array.isArray(msg) ? msg.join('\n') : msg
-            } else if (axiosError.response?.data?.error?.message) {
-              errorMessage = axiosError.response.data.error.message
-            } else if (axiosError.message) {
-              errorMessage = axiosError.message
-            }
-          }
-          
-          if (isMounted) {
-            Alert.alert('Error de autenticación', errorMessage, undefined, 'error')
-            setGoogleLoading(false)
-          }
+          message?: string
         }
-      } else if (response?.type === 'error') {
-        console.error('❌ Error en respuesta de Google:', response.error)
-        let errorMessage = 'No se pudo completar la autenticación con Google.'
-
-        // Mensajes más específicos según el tipo de error
-        if (response.error?.message) {
-          if (
-            response.error.message.includes('400') ||
-            response.error.message.includes('invalid_request') ||
-            response.error.message.includes("doesn't comply") ||
-            response.error.message.includes('OAuth 2.0 policy')
-          ) {
-            errorMessage =
-              '⚠️ Error de configuración de Google OAuth\n\n' +
-              'Pasos para resolver:\n\n' +
-              '1. Ve a Google Cloud Console → OAuth consent screen\n' +
-              '2. Completa "Información de la marca":\n' +
-              '   • Página principal: https://ministerio-backend-wdbj.onrender.com\n' +
-              '   • Política de Privacidad: https://ministerio-backend-wdbj.onrender.com/privacy-policy\n' +
-              '   • Términos de Servicio: https://ministerio-backend-wdbj.onrender.com/terms-of-service\n' +
-              '3. Guarda los cambios\n' +
-              '4. Espera 5-15 minutos\n' +
-              '5. Cierra completamente la app y vuelve a intentar\n\n' +
-              'Si el problema persiste, verifica que:\n' +
-              '• El estado sea "En producción"\n' +
-              '• El dominio esté autorizado\n' +
-              '• Las URLs sean accesibles'
-          } else if (response.error.message.includes('access_denied')) {
-            errorMessage = 'Acceso denegado. Por favor, autoriza la aplicación para continuar.'
-          } else {
-            errorMessage = `Error: ${response.error.message}`
-          }
-        }
-
-        if (isMounted) {
-          Alert.alert('Error de autenticación con Google', errorMessage, undefined, 'error')
-          setGoogleLoading(false)
-        }
-      } else if (response?.type === 'dismiss') {
-        console.log('ℹ️ Usuario canceló la autenticación con Google')
-        if (isMounted) {
-          setGoogleLoading(false)
+        
+        // Manejar diferentes tipos de errores del backend
+        if (axiosError.response?.status === 400) {
+          errorMessage = 'Error de validación. Verifica que el token de Google sea válido.'
+        } else if (axiosError.response?.status === 401) {
+          errorMessage = 'Token de Google inválido o expirado. Por favor, intenta nuevamente.'
+        } else if (axiosError.response?.status === 500) {
+          errorMessage = 'Error del servidor. Por favor, intenta más tarde.'
+        } else if (axiosError.response?.data?.message) {
+          const msg = axiosError.response.data.message
+          errorMessage = Array.isArray(msg) ? msg.join('\n') : msg
+        } else if (axiosError.response?.data?.error?.message) {
+          errorMessage = axiosError.response.data.error.message
+        } else if (axiosError.message) {
+          errorMessage = axiosError.message
         }
       }
+      
+      Alert.alert('Error de autenticación', errorMessage, undefined, 'error')
     }
-
-    if (response) {
-      void handleGoogleAuth()
-    }
-
-    return () => {
-      isMounted = false
-    }
-  }, [response, loginWithGoogle])
+  }
 
   // Probar conexión al montar el componente (solo en desarrollo)
   useEffect(() => {
@@ -520,41 +416,12 @@ export function LoginScreen() {
             <TouchableOpacity
               style={[
                 styles.googleButton,
-                (googleLoading || !request || !googleClientId) && styles.buttonDisabled,
+                googleAuthLoading && styles.buttonDisabled,
               ]}
-              onPress={async () => {
-                if (!googleClientId) {
-                  Alert.alert(
-                    'Configuración requerida',
-                    'El Client ID de Google no está configurado. Por favor, contacta al administrador.',
-                  )
-                  return
-                }
-                
-                if (!request) {
-                  console.warn('⚠️ Google OAuth request no está listo aún')
-                  Alert.alert(
-                    'Esperando configuración',
-                    'Google OAuth se está configurando. Por favor, espera un momento e intenta nuevamente.',
-                  )
-                  return
-                }
-                
-                try {
-                  setGoogleLoading(true)
-                  console.log('🔐 Iniciando flujo de Google OAuth...')
-                  await promptAsync()
-                  // El useEffect manejará la respuesta
-                } catch (error: unknown) {
-                  console.error('❌ Error al iniciar Google OAuth:', error)
-                  const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-                  Alert.alert('Error', `No se pudo iniciar la autenticación con Google: ${errorMessage}`, undefined, 'error')
-                  setGoogleLoading(false)
-                }
-              }}
-              disabled={googleLoading || !request || !googleClientId}
+              onPress={handleGoogleLogin}
+              disabled={googleAuthLoading || !!googleAuthError}
             >
-              {googleLoading ? (
+              {googleAuthLoading ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <ActivityIndicator color="#fff" size="small" />
                   <Text style={styles.googleButtonText}>Autenticando...</Text>
@@ -565,9 +432,9 @@ export function LoginScreen() {
                 </>
               )}
             </TouchableOpacity>
-            {!googleClientId && (
+            {googleAuthError && (
               <Text style={styles.hint}>
-                ⚠️ Login con Google no disponible: Client ID no configurado
+                ⚠️ Login con Google no disponible: {googleAuthError}
               </Text>
             )}
 

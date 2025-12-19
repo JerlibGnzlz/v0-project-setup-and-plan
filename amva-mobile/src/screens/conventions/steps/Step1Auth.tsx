@@ -17,13 +17,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Mail, Lock, User, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
+import { useGoogleAuth } from '@hooks/useGoogleAuth'
 import { invitadoAuthApi } from '@api/invitado-auth'
-import * as Google from 'expo-auth-session/providers/google'
-import * as WebBrowser from 'expo-web-browser'
 import { Alert } from '@utils/alert'
 import { useNavigation } from '@react-navigation/native'
-
-WebBrowser.maybeCompleteAuthSession()
 
 interface Step1AuthProps {
   onComplete: (userData?: any) => void | Promise<void>
@@ -33,10 +30,10 @@ interface Step1AuthProps {
 export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
   const navigation = useNavigation()
   const { login, loginWithGoogle, invitado, isAuthenticated } = useInvitadoAuth()
+  const { signIn: googleSignIn, loading: googleAuthLoading } = useGoogleAuth()
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
 
   // Formulario de login
   const [loginData, setLoginData] = useState({
@@ -69,25 +66,6 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
     sede: useRef(new Animated.Value(0)).current,
     telefono: useRef(new Animated.Value(0)).current,
   }
-
-  // Google OAuth
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '',
-  })
-
-  const googleClientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID
-  const isValidClientId = googleClientId && googleClientId.length > 0
-
-  // Manejar respuesta de Google
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params
-      handleGoogleLogin(id_token)
-    } else if (response?.type === 'error') {
-      setGoogleLoading(false)
-      Alert.alert('Error', 'No se pudo completar el inicio de sesión con Google', undefined, 'error')
-    }
-  }, [response])
 
   // Manejar teclado
   useEffect(() => {
@@ -133,17 +111,34 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
     }
   }, [isAuthenticated, invitado, onComplete])
 
-  const handleGoogleLogin = async (idToken: string) => {
+  const handleGoogleLogin = async () => {
     try {
-      setGoogleLoading(true)
+      console.log('🔐 Iniciando login con Google (nativo)...')
+      
+      // Obtener idToken usando el hook nativo
+      const idToken = await googleSignIn()
+      
+      if (!idToken) {
+        throw new Error('No se recibió el token de Google')
+      }
+
+      console.log('✅ Token de Google obtenido, enviando al backend...')
+      
+      // Enviar token al backend
       await loginWithGoogle(idToken)
+      
+      console.log('✅ Login con Google exitoso')
       await onComplete(invitado)
     } catch (error: unknown) {
+      // Si el usuario canceló, no mostrar error
+      if (error instanceof Error && error.message.includes('canceló')) {
+        console.log('ℹ️ Usuario canceló el inicio de sesión')
+        return
+      }
+      
       const errorMessage =
         error instanceof Error ? (error.message || 'Error desconocido') : 'Error desconocido'
       Alert.alert('Error', errorMessage, undefined, 'error')
-    } finally {
-      setGoogleLoading(false)
     }
   }
 
@@ -345,33 +340,24 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
             <Text style={styles.cardSubtitle}>Paso 1: Autenticación</Text>
 
             {/* Google Button */}
-            {isValidClientId && (
-              <>
-                <TouchableOpacity
-                  style={[styles.googleButton, googleLoading && styles.buttonDisabled]}
-                  onPress={() => {
-                    if (request && isValidClientId) {
-                      setGoogleLoading(true)
-                      void promptAsync()
-                    }
-                  }}
-                  disabled={googleLoading || !request || !isValidClientId}
-                >
-                  {googleLoading ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={styles.googleButtonText}>🔵 Continuar con Google</Text>
-                  )}
-                </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.googleButton, googleAuthLoading && styles.buttonDisabled]}
+              onPress={handleGoogleLogin}
+              disabled={googleAuthLoading}
+            >
+              {googleAuthLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.googleButtonText}>🔵 Continuar con Google</Text>
+              )}
+            </TouchableOpacity>
 
-                {/* Divider */}
-                <View style={styles.divider}>
-                  <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>o</Text>
-                  <View style={styles.dividerLine} />
-                </View>
-              </>
-            )}
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>o</Text>
+              <View style={styles.dividerLine} />
+            </View>
 
             {/* Tabs */}
             <View style={styles.tabs}>
