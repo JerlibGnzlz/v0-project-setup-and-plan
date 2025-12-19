@@ -197,21 +197,26 @@ export function NewsScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.container}>
-        {/* Header con logo */}
-        <View style={styles.header}>
-          <View style={styles.logoHeaderContainer}>
-            <Image
-              source={require('../../../assets/images/amvamovil.png')}
-              style={styles.headerLogo}
-              resizeMode="contain"
-            />
+        {/* Header con gradiente */}
+        <LinearGradient
+          colors={['rgba(34, 197, 94, 0.15)', 'rgba(59, 130, 246, 0.1)', 'transparent']}
+          style={styles.headerGradient}
+        >
+          <View style={styles.header}>
+            <View style={styles.logoHeaderContainer}>
+              <Image
+                source={require('../../../assets/images/amvamovil.png')}
+                style={styles.headerLogo}
+                resizeMode="contain"
+              />
+            </View>
+            <View style={styles.headerContent}>
+              <Newspaper size={28} color="#22c55e" />
+              <Text style={styles.title}>Noticias</Text>
+            </View>
+            <Text style={styles.subtitle}>Mantente informado con las últimas novedades</Text>
           </View>
-          <View style={styles.headerContent}>
-            <Newspaper size={28} color="#22c55e" />
-            <Text style={styles.title}>Noticias</Text>
-          </View>
-          <Text style={styles.subtitle}>Mantente informado con las últimas novedades</Text>
-        </View>
+        </LinearGradient>
 
         {news.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -267,12 +272,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.7)',
   },
+  headerGradient: {
+    paddingTop: 20,
+    paddingBottom: 24,
+    marginBottom: 18,
+    borderRadius: 18,
+    marginHorizontal: -16,
+  },
   header: {
     padding: 20,
-    paddingTop: 24,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    paddingTop: 0,
+    paddingBottom: 0,
+    alignItems: 'center',
   },
   logoHeaderContainer: {
     width: 140,
