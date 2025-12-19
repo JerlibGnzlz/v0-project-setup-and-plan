@@ -497,8 +497,6 @@ const styles = StyleSheet.create({
     marginLeft: -150,
     width: 300,
     height: 300,
-    borderRadius: 150,
-    overflow: 'hidden',
     zIndex: 0,
   },
   glowGradient: {
