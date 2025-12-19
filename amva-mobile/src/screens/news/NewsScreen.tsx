@@ -64,7 +64,10 @@ function NewsCard({ item, index, formatDate }: NewsCardProps) {
   }, [fadeAnim, slideAnim, index])
 
   const handlePress = () => {
-    navigation.navigate('NewsDetail', { noticiaId: item.id })
+    navigation.navigate('NewsDetail', { 
+      noticiaId: item.id,
+      noticiaSlug: item.slug 
+    })
   }
 
   return (

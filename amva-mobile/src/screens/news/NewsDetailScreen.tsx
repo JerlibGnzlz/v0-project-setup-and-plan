@@ -16,7 +16,8 @@ import { apiClient } from '@api/client'
 
 type RootStackParamList = {
   NewsDetail: {
-    noticiaId: string
+    noticiaId?: string
+    noticiaSlug?: string
   }
 }
 
@@ -37,15 +38,27 @@ interface Noticia {
 export function NewsDetailScreen() {
   const navigation = useNavigation<NewsDetailNavigationProp>()
   const route = useRoute<NewsDetailRouteProp>()
-  const { noticiaId } = route.params
+  const { noticiaId, noticiaSlug } = route.params
   const [noticia, setNoticia] = React.useState<Noticia | null>(null)
   const [loading, setLoading] = React.useState(true)
 
   React.useEffect(() => {
     const loadNoticia = async () => {
       try {
-        const res = await apiClient.get<Noticia>(`/noticias/${noticiaId}`)
-        setNoticia(res.data)
+        // Usar slug si está disponible (endpoint público)
+        if (noticiaSlug) {
+          const res = await apiClient.get<Noticia>(`/noticias/slug/${noticiaSlug}`)
+          setNoticia(res.data)
+        } else if (noticiaId) {
+          // Si no hay slug, cargar todas las publicadas y buscar por ID
+          const res = await apiClient.get<Noticia[]>(`/noticias/publicadas`)
+          const found = res.data.find(n => n.id === noticiaId)
+          if (found) {
+            setNoticia(found)
+          } else {
+            console.error('Noticia no encontrada en la lista de publicadas')
+          }
+        }
       } catch (error: unknown) {
         const errorMessage =
           error instanceof Error ? error.message : 'Error al cargar la noticia'
@@ -56,7 +69,7 @@ export function NewsDetailScreen() {
     }
 
     void loadNoticia()
-  }, [noticiaId])
+  }, [noticiaId, noticiaSlug])
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return ''

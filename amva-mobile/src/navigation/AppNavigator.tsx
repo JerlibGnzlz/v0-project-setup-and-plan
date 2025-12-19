@@ -20,7 +20,8 @@ type RootStackParamList = {
   Main: undefined
   Notifications: undefined
   NewsDetail: {
-    noticiaId: string
+    noticiaId?: string
+    noticiaSlug?: string
   }
 }
 
