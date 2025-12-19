@@ -269,22 +269,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
   },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: 'rgba(34, 197, 94, 0.08)',
-    borderWidth: 0.5,
-    borderColor: 'rgba(34, 197, 94, 0.2)',
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4ade80',
-  },
   notificationsButton: {
     position: 'absolute',
     top: 16,
