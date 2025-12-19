@@ -14,7 +14,6 @@ import {
   Animated,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useGoogleAuth } from '@hooks/useGoogleAuth'
 import { invitadoAuthApi } from '@api/invitado-auth'
@@ -260,7 +259,7 @@ export function LoginScreen() {
           keyboardDismissMode="interactive"
           bounces={false}
         >
-          {/* Header con Logo e iluminación de fondo */}
+          {/* Header con Logo */}
           <Animated.View
             style={[
               styles.header,
@@ -269,13 +268,6 @@ export function LoginScreen() {
               },
             ]}
           >
-            {/* Iluminación de fondo */}
-            <View style={styles.glowContainer}>
-              <LinearGradient
-                colors={['rgba(34, 197, 94, 0.3)', 'rgba(34, 197, 94, 0.1)', 'transparent']}
-                style={styles.glowGradient}
-              />
-            </View>
             <View style={styles.logoContainer}>
               <Image
                 source={require('../../../assets/images/amvamovil.png')}
@@ -488,20 +480,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     paddingTop: 8,
-    position: 'relative',
-  },
-  glowContainer: {
-    position: 'absolute',
-    top: -30,
-    left: '50%',
-    marginLeft: -150,
-    width: 300,
-    height: 300,
-    zIndex: 0,
-  },
-  glowGradient: {
-    width: '100%',
-    height: '100%',
   },
   logoContainer: {
     marginBottom: 20,
@@ -515,7 +493,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 24,
     elevation: 15,
-    zIndex: 1,
   },
   logoImage: {
     width: '100%',
