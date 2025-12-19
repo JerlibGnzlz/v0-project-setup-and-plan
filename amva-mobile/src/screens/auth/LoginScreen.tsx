@@ -23,22 +23,15 @@ import { testBackendConnection } from '../../utils/testConnection'
 import { RegisterScreen } from './RegisterScreen'
 import { Alert } from '@utils/alert'
 
-// Componente del logo de Google (diseño moderno con colores oficiales)
+// Componente del logo de Google usando imagen
 function GoogleLogo() {
   return (
     <View style={styles.googleLogoContainer}>
-      <View style={styles.googleLogo}>
-        {/* Logo de Google: círculo con G multicolor */}
-        <View style={styles.googleCircle}>
-          <View style={styles.googleGArc}>
-            <View style={[styles.googleGArcSegment, styles.googleGBlue]} />
-            <View style={[styles.googleGArcSegment, styles.googleGRed]} />
-            <View style={[styles.googleGArcSegment, styles.googleGYellow]} />
-            <View style={[styles.googleGArcSegment, styles.googleGGreen]} />
-          </View>
-          <Text style={styles.googleGText}>G</Text>
-        </View>
-      </View>
+      <Image
+        source={require('../../../assets/images/google.png')}
+        style={styles.googleLogoImage}
+        resizeMode="contain"
+      />
     </View>
   )
 }
@@ -781,62 +774,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  googleLogo: {
-    width: 18,
-    height: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  googleCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 0.5,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
-    overflow: 'hidden',
-  },
-  googleGArc: {
-    position: 'absolute',
-    width: 18,
-    height: 18,
-  },
-  googleGArcSegment: {
-    position: 'absolute',
-    width: 9,
-    height: 9,
-  },
-  googleGBlue: {
-    backgroundColor: '#4285F4',
-    top: 0,
-    left: 0,
-    borderTopLeftRadius: 9,
-  },
-  googleGRed: {
-    backgroundColor: '#EA4335',
-    top: 0,
-    right: 0,
-    borderTopRightRadius: 9,
-  },
-  googleGYellow: {
-    backgroundColor: '#FBBC04',
-    bottom: 0,
-    left: 0,
-    borderBottomLeftRadius: 9,
-  },
-  googleGGreen: {
-    backgroundColor: '#34A853',
-    bottom: 0,
-    right: 0,
-    borderBottomRightRadius: 9,
-  },
-  googleGText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#4285F4',
-    zIndex: 1,
+  googleLogoImage: {
+    width: 20,
+    height: 20,
   },
   googleButtonText: {
     color: '#3c4043',
