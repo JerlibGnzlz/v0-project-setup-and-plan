@@ -181,13 +181,13 @@ export function HomeScreen({ navigation }: Props) {
                   >
                     <View style={styles.cardContent}>
                       <View style={[styles.iconContainer, { backgroundColor: `${card.color}20` }]}>
-                        <Icon size={24} color={card.color} />
+                        <Icon size={22} color={card.color} />
                       </View>
                       <View style={styles.cardTextContainer}>
                         <Text style={styles.cardTitle}>{card.title}</Text>
-                        <Text style={styles.cardDescription}>{card.description}</Text>
+                        <Text style={styles.cardDescription} numberOfLines={1}>{card.description}</Text>
                       </View>
-                      <ArrowRight size={18} color={card.color} style={styles.arrowIcon} />
+                      <ArrowRight size={16} color={card.color} style={styles.arrowIcon} />
                     </View>
                     {/* Glow effect */}
                     <View style={[styles.cardGlow, { backgroundColor: `${card.color}15` }]} />
@@ -208,7 +208,7 @@ export function HomeScreen({ navigation }: Props) {
           ]}
         >
           <View style={styles.footerContent}>
-            <Globe size={16} color="rgba(255, 255, 255, 0.5)" />
+            <Globe size={14} color="rgba(255, 255, 255, 0.5)" />
             <Text style={styles.footerText}>Transformando vidas desde 1989</Text>
           </View>
         </Animated.View>
@@ -224,23 +224,22 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: 'space-between',
   },
   headerContainer: {
     flexShrink: 0,
   },
   headerGradient: {
-    padding: 12,
-    paddingTop: 16,
-    paddingBottom: 12,
+    padding: 10,
+    paddingTop: 12,
+    paddingBottom: 10,
     alignItems: 'center',
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   logoContainer: {
-    marginBottom: 8,
-    width: 100,
-    height: 100,
+    marginBottom: 6,
+    width: 90,
+    height: 90,
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
@@ -250,43 +249,43 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   welcomeText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 4,
+    marginBottom: 2,
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   nameText: {
-    fontSize: 14,
+    fontSize: 13,
     color: 'rgba(255, 255, 255, 0.75)',
     textAlign: 'center',
   },
   cardsContainer: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 10,
-    justifyContent: 'center',
+    paddingVertical: 8,
+    gap: 8,
+    justifyContent: 'flex-start',
   },
   cardWrapper: {
-    flex: 1,
+    height: 75,
   },
   card: {
-    flex: 1,
-    borderRadius: 16,
+    height: '100%',
+    borderRadius: 14,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 6,
-    minHeight: 70,
   },
   cardGradient: {
-    padding: 14,
+    padding: 12,
     position: 'relative',
-    flex: 1,
+    height: '100%',
+    justifyContent: 'center',
   },
   cardGlow: {
     position: 'absolute',
@@ -304,44 +303,44 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   cardTextContainer: {
     flex: 1,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#fff',
     marginBottom: 2,
   },
   cardDescription: {
-    fontSize: 12,
+    fontSize: 11,
     color: 'rgba(255, 255, 255, 0.7)',
-    lineHeight: 16,
+    lineHeight: 14,
   },
   arrowIcon: {
-    marginLeft: 8,
+    marginLeft: 6,
   },
   footer: {
     flexShrink: 0,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   footerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 6,
+    gap: 5,
+    paddingVertical: 4,
   },
   footerText: {
-    fontSize: 11,
+    fontSize: 10,
     color: 'rgba(255, 255, 255, 0.5)',
     fontStyle: 'italic',
   },
