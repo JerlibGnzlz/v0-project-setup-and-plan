@@ -14,6 +14,7 @@ import {
   Animated,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Eye, EyeOff } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useGoogleAuth } from '@hooks/useGoogleAuth'
 import { invitadoAuthApi } from '@api/invitado-auth'
@@ -29,6 +30,7 @@ export function LoginScreen() {
   const passwordInputRef = useRef<TextInput>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [testingConnection, setTestingConnection] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const [emailFocused, setEmailFocused] = useState(false)
@@ -49,25 +51,25 @@ export function LoginScreen() {
   const handleGoogleLogin = async () => {
     try {
       console.log('🔐 Iniciando login con Google (nativo)...')
-      
+
       // Obtener idToken usando el hook nativo
       const idToken = await googleSignIn()
-      
+
       if (!idToken) {
         throw new Error('No se recibió el token de Google')
       }
 
       console.log('✅ Token de Google obtenido, enviando al backend...')
-      
+
       // Enviar token al backend usando el hook existente
       await loginWithGoogle(idToken)
-      
+
       console.log('✅ Login con Google exitoso')
       // La navegación se actualizará automáticamente cuando el estado cambie
     } catch (error: unknown) {
       console.error('❌ Error en login con Google:', error)
       let errorMessage = 'No se pudo iniciar sesión con Google.'
-      
+
       if (error instanceof Error) {
         // Si el usuario canceló, no mostrar error
         if (error.message.includes('canceló')) {
@@ -77,16 +79,16 @@ export function LoginScreen() {
         errorMessage = error.message
       } else if (error && typeof error === 'object') {
         const axiosError = error as {
-          response?: { 
+          response?: {
             status?: number
-            data?: { 
+            data?: {
               message?: string | string[]
               error?: { message?: string }
-            } 
+            }
           }
           message?: string
         }
-        
+
         // Manejar diferentes tipos de errores del backend
         if (axiosError.response?.status === 400) {
           errorMessage = 'Error de validación. Verifica que el token de Google sea válido.'
@@ -103,7 +105,7 @@ export function LoginScreen() {
           errorMessage = axiosError.message
         }
       }
-      
+
       Alert.alert('Error de autenticación', errorMessage, undefined, 'error')
     }
   }
@@ -312,7 +314,7 @@ export function LoginScreen() {
                   style={styles.input}
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="tu@email.com"
+                  placeholder="tu.email@ejemplo.com (usado en AMVA)"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   autoCapitalize="none"
                   keyboardType="email-address"
@@ -362,12 +364,12 @@ export function LoginScreen() {
               >
                 <TextInput
                   ref={passwordInputRef}
-                  style={styles.input}
+                  style={styles.passwordInput}
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="********"
+                  placeholder="Tu contraseña de acceso a AMVA Móvil"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                  secureTextEntry
+                  secureTextEntry={!showPassword}
                   returnKeyType="done"
                   onFocus={() => {
                     setPasswordFocused(true)
@@ -390,6 +392,17 @@ export function LoginScreen() {
                   }}
                   onSubmitEditing={handleSubmit}
                 />
+                <TouchableOpacity
+                  style={styles.passwordToggle}
+                  onPress={() => setShowPassword(!showPassword)}
+                  activeOpacity={0.7}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} color="rgba(255, 255, 255, 0.6)" />
+                  ) : (
+                    <Eye size={20} color="rgba(255, 255, 255, 0.6)" />
+                  )}
+                </TouchableOpacity>
               </Animated.View>
             </View>
 
@@ -550,6 +563,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
     elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   input: {
     paddingHorizontal: 14,
@@ -557,6 +572,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     backgroundColor: 'transparent',
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    paddingRight: 45,
+    color: '#fff',
+    fontSize: 15,
+    backgroundColor: 'transparent',
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   button: {
     marginTop: 6,

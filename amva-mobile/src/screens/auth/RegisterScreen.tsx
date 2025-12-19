@@ -15,7 +15,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Mail, Lock, User, Phone, MapPin, CheckCircle, AlertCircle } from 'lucide-react-native'
+import { Mail, Lock, User, Phone, MapPin, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react-native'
 import { invitadoAuthApi } from '@api/invitado-auth'
 import * as SecureStore from 'expo-secure-store'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
@@ -42,6 +42,8 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [keyboardVisible, setKeyboardVisible] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
   const logoScaleAnim = useRef(new Animated.Value(1)).current
@@ -413,7 +415,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                     style={styles.input}
                     value={formData.nombre}
                     onChangeText={value => handleChange('nombre', value)}
-                    placeholder="Tu nombre"
+                    placeholder="Ej: Juan (nombre registrado en AMVA)"
                     placeholderTextColor="rgba(255, 255, 255, 0.4)"
                     autoCapitalize="words"
                     returnKeyType="next"
@@ -461,7 +463,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                     style={styles.input}
                     value={formData.apellido}
                     onChangeText={value => handleChange('apellido', value)}
-                    placeholder="Tu apellido"
+                    placeholder="Ej: Pérez (apellido registrado en AMVA)"
                     placeholderTextColor="rgba(255, 255, 255, 0.4)"
                     autoCapitalize="words"
                     returnKeyType="next"
@@ -514,7 +516,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
-                  placeholder="tu@email.com"
+                  placeholder="tu.email@ejemplo.com (para acceso a AMVA Móvil)"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   returnKeyType="next"
                   onFocus={() => handleInputFocus('email')}
@@ -559,7 +561,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                   value={formData.telefono}
                   onChangeText={value => handleChange('telefono', value)}
                   keyboardType="phone-pad"
-                  placeholder="+54 11 1234-5678"
+                  placeholder="Ej: +54 11 1234-5678 (contacto AMVA)"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   returnKeyType="next"
                   onFocus={() => handleInputFocus('telefono')}
@@ -597,7 +599,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                   style={styles.input}
                   value={formData.sede}
                   onChangeText={value => handleChange('sede', value)}
-                  placeholder="Nombre de tu iglesia o sede"
+                  placeholder="Ej: Iglesia AMVA Buenos Aires (tu sede)"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   autoCapitalize="words"
                   returnKeyType="next"
@@ -637,17 +639,28 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                   ref={ref => {
                     inputRefs.current['password'] = ref
                   }}
-                  style={styles.input}
+                  style={styles.passwordInput}
                   value={formData.password}
                   onChangeText={value => handleChange('password', value)}
-                  secureTextEntry
-                  placeholder="Mínimo 8 caracteres"
+                  secureTextEntry={!showPassword}
+                  placeholder="Mínimo 8 caracteres (mayúscula, minúscula y número)"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   returnKeyType="next"
                   onFocus={() => handleInputFocus('password')}
                   onBlur={() => handleInputBlur('password', formData.password)}
                   onSubmitEditing={() => inputRefs.current['confirmPassword']?.focus()}
                 />
+                <TouchableOpacity
+                  style={styles.passwordToggle}
+                  onPress={() => setShowPassword(!showPassword)}
+                  activeOpacity={0.7}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} color="rgba(255, 255, 255, 0.6)" />
+                  ) : (
+                    <Eye size={20} color="rgba(255, 255, 255, 0.6)" />
+                  )}
+                </TouchableOpacity>
               </Animated.View>
               {errors.password && (
                 <View style={styles.errorContainer}>
@@ -699,11 +712,11 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                   ref={ref => {
                     inputRefs.current['confirmPassword'] = ref
                   }}
-                  style={styles.input}
+                  style={styles.passwordInput}
                   value={formData.confirmPassword}
                   onChangeText={value => handleChange('confirmPassword', value)}
-                  secureTextEntry
-                  placeholder="Repite tu contraseña"
+                  secureTextEntry={!showConfirmPassword}
+                  placeholder="Repite tu contraseña para confirmar"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   returnKeyType="done"
                   onFocus={() => handleInputFocus('confirmPassword')}
@@ -715,6 +728,17 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                     }
                   }}
                 />
+                <TouchableOpacity
+                  style={styles.passwordToggle}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  activeOpacity={0.7}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={20} color="rgba(255, 255, 255, 0.6)" />
+                  ) : (
+                    <Eye size={20} color="rgba(255, 255, 255, 0.6)" />
+                  )}
+                </TouchableOpacity>
               </Animated.View>
               {errors.confirmPassword && (
                 <View style={styles.errorContainer}>
@@ -858,6 +882,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
     elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   inputErrorContainer: {
     backgroundColor: 'rgba(239, 68, 68, 0.03)',
@@ -868,6 +894,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     backgroundColor: 'transparent',
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    paddingRight: 45,
+    color: '#fff',
+    fontSize: 15,
+    backgroundColor: 'transparent',
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 12,
+    top: 11,
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorContainer: {
     flexDirection: 'row',

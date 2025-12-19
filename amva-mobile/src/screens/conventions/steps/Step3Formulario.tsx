@@ -461,7 +461,7 @@ export function Step3Formulario({
                   style={[styles.input, errors.nombre && styles.inputError]}
                   value={formData.nombre}
                   onChangeText={value => handleChange('nombre', value)}
-                  placeholder="Tu nombre"
+                  placeholder="Ej: Juan (nombre para la convención)"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   autoCapitalize="words"
                   returnKeyType="next"
@@ -484,7 +484,7 @@ export function Step3Formulario({
                   style={[styles.input, errors.apellido && styles.inputError]}
                   value={formData.apellido}
                   onChangeText={value => handleChange('apellido', value)}
-                  placeholder="Tu apellido"
+                  placeholder="Ej: Pérez (apellido para la convención)"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   autoCapitalize="words"
                   returnKeyType="next"
@@ -512,7 +512,7 @@ export function Step3Formulario({
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholder="tu@email.com"
+                placeholder="tu@email.com (para confirmación de inscripción)"
                 placeholderTextColor="rgba(255, 255, 255, 0.4)"
                 returnKeyType="next"
                 onFocus={() => handleInputFocus('email')}
@@ -534,7 +534,7 @@ export function Step3Formulario({
                 value={formData.telefono}
                 onChangeText={value => handleChange('telefono', value)}
                 keyboardType="phone-pad"
-                placeholder="+54 11 1234-5678"
+                placeholder="+54 11 1234-5678 (contacto para la convención)"
                 placeholderTextColor="rgba(255, 255, 255, 0.4)"
                 returnKeyType="next"
                 onFocus={() => handleInputFocus('telefono')}
@@ -560,7 +560,7 @@ export function Step3Formulario({
                   }
                 }}
                 items={paises.map(pais => ({ label: pais, value: pais }))}
-                placeholder="Selecciona un país"
+                placeholder="Selecciona tu país (para la convención AMVA)"
                 label="País"
                 error={errors.pais}
                 required
@@ -584,7 +584,7 @@ export function Step3Formulario({
                     { label: 'Selecciona una provincia', value: '' },
                     ...provinciasArgentina.map(provincia => ({ label: provincia, value: provincia })),
                   ]}
-                  placeholder="Selecciona una provincia"
+                  placeholder="Selecciona tu provincia (convención AMVA)"
                   label="Provincia"
                   error={errors.provincia}
                   required
@@ -604,7 +604,7 @@ export function Step3Formulario({
                 style={[styles.input, errors.sede && styles.inputError]}
                 value={formData.sede}
                 onChangeText={value => handleChange('sede', value)}
-                placeholder="Nombre de tu iglesia o sede"
+                placeholder="Ej: Iglesia AMVA Buenos Aires (tu sede)"
                 placeholderTextColor="rgba(255, 255, 255, 0.4)"
                 autoCapitalize="words"
                 returnKeyType="next"
@@ -629,7 +629,7 @@ export function Step3Formulario({
                 style={styles.input}
                 value={formData.dni}
                 onChangeText={value => handleChange('dni', value)}
-                placeholder="Ej: 12345678"
+                placeholder="Ej: 12345678 (para credenciales AMVA)"
                 placeholderTextColor="rgba(255, 255, 255, 0.4)"
                 keyboardType="numeric"
                 maxLength={20}
@@ -669,7 +669,7 @@ export function Step3Formulario({
                     { label: 'Líder', value: 'Líder' },
                     { label: 'Miembro', value: 'Miembro' },
                   ]}
-                  placeholder="Selecciona tipo de inscripción"
+                  placeholder="Selecciona tu rol (Invitado, Pastor, Líder, Miembro)"
                   label="Tipo de Inscripción"
                   error={errors.tipoInscripcion}
                 />
@@ -692,7 +692,7 @@ export function Step3Formulario({
                     { label: `2 Cuotas ($${Number(costo / 2).toFixed(2)} c/u)`, value: 2 },
                     { label: `3 Cuotas ($${Number(costo / 3).toFixed(2)} c/u)`, value: 3 },
                   ]}
-                  placeholder="Selecciona número de cuotas"
+                  placeholder="Selecciona número de cuotas (1, 2 o 3)"
                   label="Número de Cuotas"
                   required
                 />
@@ -751,7 +751,7 @@ export function Step3Formulario({
                 onChangeText={value => handleChange('notas', value)}
                 multiline
                 numberOfLines={4}
-                placeholder="Información adicional que quieras compartir..."
+                placeholder="Información adicional sobre tu inscripción a la convención AMVA..."
                 placeholderTextColor="rgba(255, 255, 255, 0.4)"
                 textAlignVertical="top"
                 onFocus={() => handleInputFocus('notas')}
