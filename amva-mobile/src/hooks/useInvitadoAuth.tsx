@@ -180,6 +180,8 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
     setLoading(true)
     try {
       console.log('🔐 Iniciando login con Google...')
+      console.log('🔍 Token recibido (primeros 50 caracteres):', idToken.substring(0, 50) + '...')
+      
       const result = await invitadoAuthApi.loginWithGoogle(idToken)
       console.log('✅ Login con Google exitoso, guardando tokens...')
       console.log('🔍 Verificando tokens recibidos:', {
@@ -187,8 +189,10 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
         hasRefreshToken: !!result.refresh_token,
         accessTokenLength: result.access_token?.length || 0,
         refreshTokenLength: result.refresh_token?.length || 0,
+        invitadoEmail: result.invitado?.email,
       })
       
+      // Guardar tokens de forma segura
       await SecureStore.setItemAsync('invitado_token', result.access_token)
       await SecureStore.setItemAsync('invitado_refresh_token', result.refresh_token)
       
@@ -202,11 +206,25 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
         refreshTokenLength: savedRefreshToken?.length || 0,
       })
       
+      // Establecer el invitado ANTES de setLoading(false) para que la navegación se actualice
       setInvitado(result.invitado)
       console.log('✅ Invitado establecido:', result.invitado.email)
+      console.log('✅ Estado de autenticación actualizado, navegación debería actualizarse automáticamente')
+      
+      // Pequeño delay para asegurar que el estado se propague antes de continuar
+      await new Promise(resolve => setTimeout(resolve, 100))
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       console.error('❌ Error en login con Google:', errorMessage)
+      
+      // Limpiar tokens si hay error
+      try {
+        await SecureStore.deleteItemAsync('invitado_token')
+        await SecureStore.deleteItemAsync('invitado_refresh_token')
+      } catch (cleanupError) {
+        console.error('⚠️ Error al limpiar tokens después de error:', cleanupError)
+      }
+      
       throw error
     } finally {
       setLoading(false)

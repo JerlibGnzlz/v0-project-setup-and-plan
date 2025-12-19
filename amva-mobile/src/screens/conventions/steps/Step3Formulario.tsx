@@ -185,7 +185,7 @@ export function Step3Formulario({
     inputPositions.current[field] = y
   }
 
-  const validateForm = () => {
+  const validateForm = (): { isValid: boolean; errors: Record<string, string> } => {
     const newErrors: Record<string, string> = {}
 
     if (!formData.nombre || formData.nombre.trim().length < 2) {
@@ -262,7 +262,7 @@ export function Step3Formulario({
     }
 
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return { isValid: Object.keys(newErrors).length === 0, errors: newErrors }
   }
 
   const handleSelectDocument = async () => {
@@ -314,13 +314,13 @@ export function Step3Formulario({
       numeroCuotas: formData.numeroCuotas,
     })
     
-    const isValid = validateForm()
+    const { isValid, errors: validationErrors } = validateForm()
     
     if (!isValid) {
-      console.error('❌ Validación fallida. Errores:', errors)
+      console.error('❌ Validación fallida. Errores:', validationErrors)
       
       // Construir mensaje con los campos que tienen errores
-      const errorFields = Object.keys(errors)
+      const errorFields = Object.keys(validationErrors)
       const errorMessages = errorFields.map(field => {
         const fieldName = {
           nombre: 'Nombre',
@@ -335,7 +335,7 @@ export function Step3Formulario({
           dni: 'DNI',
         }[field] || field
         
-        return `• ${fieldName}: ${errors[field]}`
+        return `• ${fieldName}: ${validationErrors[field]}`
       })
       
       const errorMessage = errorMessages.length > 0

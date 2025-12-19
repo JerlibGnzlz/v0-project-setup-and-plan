@@ -87,48 +87,75 @@ export function LoginScreen() {
 
   // Manejar respuesta de Google OAuth
   useEffect(() => {
+    let isMounted = true
+
     const handleGoogleAuth = async () => {
       if (response?.type === 'success') {
         const { id_token } = response.params
         if (!id_token) {
-          Alert.alert('Error', 'No se recibió el token de Google', undefined, 'error')
-          setGoogleLoading(false)
+          console.error('❌ No se recibió el token de Google')
+          if (isMounted) {
+            Alert.alert('Error', 'No se recibió el token de Google', undefined, 'error')
+            setGoogleLoading(false)
+          }
           return
         }
 
         try {
-          setGoogleLoading(true)
+          if (isMounted) {
+            setGoogleLoading(true)
+          }
           console.log('🔐 Iniciando login con Google...')
+          console.log('🔍 Token recibido (primeros 50 caracteres):', id_token.substring(0, 50) + '...')
+          
           // Usar el hook para login con Google (ya maneja el guardado de tokens)
           await loginWithGoogle(id_token)
           console.log('✅ Login con Google exitoso')
 
-          // El hook ya actualiza el estado del invitado, no necesitamos hacer nada más
-          // La app debería detectar el token y mostrar la pantalla correspondiente
-          Alert.alert(
-            '¡Bienvenido!',
-            'Has iniciado sesión exitosamente',
-            [{ text: 'OK' }],
-            'success',
-          )
+          // NO mostrar Alert aquí - dejar que la navegación automática funcione
+          // El hook ya actualiza el estado del invitado y AppNavigator detectará el cambio
+          // La navegación se actualizará automáticamente cuando el estado cambie
+          
+          if (isMounted) {
+            setGoogleLoading(false)
+          }
         } catch (error: unknown) {
           console.error('❌ Error en login con Google:', error)
           let errorMessage = 'No se pudo iniciar sesión con Google.'
+          
           if (error && typeof error === 'object') {
             const axiosError = error as {
-              response?: { data?: { message?: string | string[] } }
+              response?: { 
+                status?: number
+                data?: { 
+                  message?: string | string[]
+                  error?: { message?: string }
+                } 
+              }
               message?: string
             }
-            if (axiosError.response?.data?.message) {
+            
+            // Manejar diferentes tipos de errores
+            if (axiosError.response?.status === 400) {
+              errorMessage = 'Error de validación. Verifica que el token de Google sea válido.'
+            } else if (axiosError.response?.status === 401) {
+              errorMessage = 'Token de Google inválido o expirado. Por favor, intenta nuevamente.'
+            } else if (axiosError.response?.status === 500) {
+              errorMessage = 'Error del servidor. Por favor, intenta más tarde.'
+            } else if (axiosError.response?.data?.message) {
               const msg = axiosError.response.data.message
               errorMessage = Array.isArray(msg) ? msg.join('\n') : msg
+            } else if (axiosError.response?.data?.error?.message) {
+              errorMessage = axiosError.response.data.error.message
             } else if (axiosError.message) {
               errorMessage = axiosError.message
             }
           }
-          Alert.alert('Error de autenticación', errorMessage, undefined, 'error')
-        } finally {
-          setGoogleLoading(false)
+          
+          if (isMounted) {
+            Alert.alert('Error de autenticación', errorMessage, undefined, 'error')
+            setGoogleLoading(false)
+          }
         }
       } else if (response?.type === 'error') {
         console.error('❌ Error en respuesta de Google:', response.error)
@@ -164,18 +191,26 @@ export function LoginScreen() {
           }
         }
 
-        Alert.alert('Error de autenticación con Google', errorMessage, undefined, 'error')
-        setGoogleLoading(false)
+        if (isMounted) {
+          Alert.alert('Error de autenticación con Google', errorMessage, undefined, 'error')
+          setGoogleLoading(false)
+        }
       } else if (response?.type === 'dismiss') {
         console.log('ℹ️ Usuario canceló la autenticación con Google')
-        setGoogleLoading(false)
+        if (isMounted) {
+          setGoogleLoading(false)
+        }
       }
     }
 
     if (response) {
       void handleGoogleAuth()
     }
-  }, [response])
+
+    return () => {
+      isMounted = false
+    }
+  }, [response, loginWithGoogle])
 
   // Probar conexión al montar el componente (solo en desarrollo)
   useEffect(() => {
@@ -487,7 +522,7 @@ export function LoginScreen() {
                 styles.googleButton,
                 (googleLoading || !request || !googleClientId) && styles.buttonDisabled,
               ]}
-              onPress={() => {
+              onPress={async () => {
                 if (!googleClientId) {
                   Alert.alert(
                     'Configuración requerida',
@@ -495,13 +530,35 @@ export function LoginScreen() {
                   )
                   return
                 }
-                setGoogleLoading(true)
-                void promptAsync()
+                
+                if (!request) {
+                  console.warn('⚠️ Google OAuth request no está listo aún')
+                  Alert.alert(
+                    'Esperando configuración',
+                    'Google OAuth se está configurando. Por favor, espera un momento e intenta nuevamente.',
+                  )
+                  return
+                }
+                
+                try {
+                  setGoogleLoading(true)
+                  console.log('🔐 Iniciando flujo de Google OAuth...')
+                  await promptAsync()
+                  // El useEffect manejará la respuesta
+                } catch (error: unknown) {
+                  console.error('❌ Error al iniciar Google OAuth:', error)
+                  const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+                  Alert.alert('Error', `No se pudo iniciar la autenticación con Google: ${errorMessage}`, undefined, 'error')
+                  setGoogleLoading(false)
+                }
               }}
               disabled={googleLoading || !request || !googleClientId}
             >
               {googleLoading ? (
-                <ActivityIndicator color="#fff" />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <ActivityIndicator color="#fff" size="small" />
+                  <Text style={styles.googleButtonText}>Autenticando...</Text>
+                </View>
               ) : (
                 <>
                   <Text style={styles.googleButtonText}>🔵 Continuar con Google</Text>
