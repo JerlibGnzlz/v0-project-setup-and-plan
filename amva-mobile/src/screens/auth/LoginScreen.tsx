@@ -14,6 +14,7 @@ import {
   Animated,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useGoogleAuth } from '@hooks/useGoogleAuth'
 import { invitadoAuthApi } from '@api/invitado-auth'
@@ -259,7 +260,7 @@ export function LoginScreen() {
           keyboardDismissMode="interactive"
           bounces={false}
         >
-          {/* Header con Logo mejorado */}
+          {/* Header con Logo e iluminación de fondo */}
           <Animated.View
             style={[
               styles.header,
@@ -268,6 +269,13 @@ export function LoginScreen() {
               },
             ]}
           >
+            {/* Iluminación de fondo */}
+            <View style={styles.glowContainer}>
+              <LinearGradient
+                colors={['rgba(34, 197, 94, 0.3)', 'rgba(34, 197, 94, 0.1)', 'transparent']}
+                style={styles.glowGradient}
+              />
+            </View>
             <View style={styles.logoContainer}>
               <Image
                 source={require('../../../assets/images/amvamovil.png')}
@@ -275,8 +283,6 @@ export function LoginScreen() {
                 resizeMode="contain"
               />
             </View>
-            <Text style={styles.appTitle}>AMVA Móvil</Text>
-            <Text style={styles.appSubtitle}>Asociación Misionera Vida Abundante</Text>
           </Animated.View>
 
           {/* Form Card */}
@@ -482,6 +488,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     paddingTop: 8,
+    position: 'relative',
+  },
+  glowContainer: {
+    position: 'absolute',
+    top: -30,
+    left: '50%',
+    marginLeft: -150,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    overflow: 'hidden',
+    zIndex: 0,
+  },
+  glowGradient: {
+    width: '100%',
+    height: '100%',
   },
   logoContainer: {
     marginBottom: 20,
@@ -492,33 +514,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#22c55e',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    padding: 20,
-    borderWidth: 2,
-    borderColor: 'rgba(34, 197, 94, 0.3)',
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 15,
+    zIndex: 1,
   },
   logoImage: {
     width: '100%',
     height: '100%',
-  },
-  appTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#fff',
-    textAlign: 'center',
-    marginTop: 8,
-    letterSpacing: 0.5,
-  },
-  appSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.6)',
-    textAlign: 'center',
-    marginTop: 4,
-    letterSpacing: 0.3,
   },
   title: {
     fontSize: 28,
