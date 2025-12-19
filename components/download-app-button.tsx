@@ -11,9 +11,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-// URLs de las tiendas (actualizar cuando tengas las apps publicadas)
-const APP_STORE_URL = 'https://apps.apple.com/app/amva' // Actualizar con URL real
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=org.vidaabundante.app' // Actualizar con URL real
+// URLs de las tiendas
+// Para testing: Usar link de Internal Testing de Play Console
+// Para producción: Usar link público de Play Store
+const APP_STORE_URL = 'https://apps.apple.com/app/amva' // Actualizar con URL real cuando esté en App Store
+const PLAY_STORE_PRODUCTION_URL = 'https://play.google.com/store/apps/details?id=org.vidaabundante.app'
+// TODO: Reemplazar con tu link de Internal Testing cuando lo tengas
+// Ejemplo: 'https://play.google.com/apps/internaltest/1234567890'
+const PLAY_STORE_TESTING_URL = process.env.NEXT_PUBLIC_PLAY_STORE_TESTING_URL || PLAY_STORE_PRODUCTION_URL
+// Usar testing URL mientras desarrollas, cambiar a producción cuando esté lista
+const PLAY_STORE_URL = PLAY_STORE_TESTING_URL
 const DEEP_LINK_SCHEME = 'amva-app://'
 
 export function DownloadAppButton() {
