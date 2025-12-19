@@ -53,7 +53,7 @@ export function ProfileScreen() {
           style={styles.headerGradient}
         >
           <View style={styles.header}>
-            {/* Logo prominente */}
+            {/* Logo prominente y grande */}
             <View style={styles.logoContainer}>
               <Image
                 source={require('../../../assets/images/amvamovil.png')}
@@ -71,8 +71,6 @@ export function ProfileScreen() {
               )}
               <View style={styles.avatarBorder} />
             </View>
-            <Text style={styles.title}>AMVA Móvil</Text>
-            <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
           </View>
         </LinearGradient>
 
@@ -179,14 +177,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoContainer: {
-    width: 180,
-    height: 60,
-    marginBottom: 20,
+    width: 280,
+    height: 90,
+    marginBottom: 24,
     shadowColor: '#22c55e',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 10,
   },
   logoImage: {
     width: '100%',
