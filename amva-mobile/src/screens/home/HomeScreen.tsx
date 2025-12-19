@@ -136,7 +136,7 @@ export function HomeScreen({ navigation }: Props) {
             </View>
             <View style={styles.welcomeContainer}>
               <LinearGradient
-                colors={['#22c55e', '#3b82f6', '#8b5cf6']}
+                colors={['#22c55e', '#10b981', '#06b6d4']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.welcomeGradient}
