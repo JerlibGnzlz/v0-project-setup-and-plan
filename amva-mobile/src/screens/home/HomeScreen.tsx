@@ -217,7 +217,7 @@ export function HomeScreen({ navigation }: Props) {
         >
           <View style={styles.footerContent}>
             <Globe size={20} color="rgba(255, 255, 255, 0.5)" />
-            <Text style={styles.footerText}>Transformando vidas desde 1995</Text>
+            <Text style={styles.footerText}>Transformando vidas desde 1989</Text>
           </View>
         </Animated.View>
       </ScrollView>
