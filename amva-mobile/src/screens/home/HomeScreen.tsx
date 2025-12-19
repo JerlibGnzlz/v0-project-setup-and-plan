@@ -134,7 +134,14 @@ export function HomeScreen({ navigation }: Props) {
               />
             </View>
             <View style={styles.welcomeContainer}>
-              <Text style={styles.welcomeText}>Bienvenido</Text>
+              <LinearGradient
+                colors={['#22c55e', '#3b82f6', '#8b5cf6']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.welcomeGradient}
+              >
+                <Text style={styles.welcomeText}>Bienvenido</Text>
+              </LinearGradient>
             </View>
             {invitado && (
               <View style={styles.nameContainer}>
@@ -228,7 +235,8 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 20,
   },
   headerContainer: {
     flexShrink: 0,
@@ -236,7 +244,7 @@ const styles = StyleSheet.create({
   },
   headerGradient: {
     padding: 12,
-    paddingTop: 16,
+    paddingTop: 8,
     paddingBottom: 12,
     alignItems: 'center',
     borderBottomWidth: 0.5,
@@ -257,16 +265,26 @@ const styles = StyleSheet.create({
   },
   welcomeContainer: {
     marginBottom: 4,
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
+  welcomeGradient: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   welcomeText: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: 24,
+    fontWeight: '900',
     textAlign: 'center',
-    letterSpacing: 0.5,
-    color: '#22c55e',
-    textShadowColor: 'rgba(34, 197, 94, 0.3)',
+    letterSpacing: 1,
+    color: '#fff',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   nameContainer: {
     marginTop: 2,
