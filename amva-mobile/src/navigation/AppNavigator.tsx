@@ -154,21 +154,22 @@ export function AppNavigator() {
             transform: [{ scale: scaleAnim }],
           }}
         >
-          {/* Logo Container con diseño profesional y minimalista */}
+          {/* Logo Container con diseño profesional mejorado */}
           <Animated.View
             style={{
-              width: 300,
-              height: 300,
+              width: 320,
+              height: 320,
               shadowColor: '#22c55e',
-              shadowOffset: { width: 0, height: 16 },
-              shadowOpacity: 0.5,
-              shadowRadius: 32,
-              elevation: 20,
-              borderRadius: 40,
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              padding: 32,
-              borderWidth: 2,
-              borderColor: 'rgba(34, 197, 94, 0.4)',
+              shadowOffset: { width: 0, height: 20 },
+              shadowOpacity: 0.6,
+              shadowRadius: 40,
+              elevation: 25,
+              borderRadius: 50,
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              padding: 40,
+              borderWidth: 3,
+              borderColor: 'rgba(34, 197, 94, 0.5)',
+              marginBottom: 32,
             }}
           >
             <Image
@@ -178,9 +179,50 @@ export function AppNavigator() {
             />
           </Animated.View>
           
-          {/* Loading Indicator elegante */}
-          <View style={{ marginTop: 48 }}>
+          {/* Título de bienvenida */}
+          <Animated.View
+            style={{
+              opacity: fadeAnim,
+              marginBottom: 16,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 28,
+                fontWeight: '800',
+                color: '#fff',
+                textAlign: 'center',
+                letterSpacing: 0.5,
+                marginBottom: 8,
+              }}
+            >
+              AMVA Móvil
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: 'rgba(255, 255, 255, 0.6)',
+                textAlign: 'center',
+                letterSpacing: 0.3,
+              }}
+            >
+              Asociación Misionera Vida Abundante
+            </Text>
+          </Animated.View>
+          
+          {/* Loading Indicator elegante con pulso */}
+          <View style={{ marginTop: 24 }}>
             <ActivityIndicator size="large" color="#22c55e" />
+            <Text
+              style={{
+                marginTop: 16,
+                fontSize: 14,
+                color: 'rgba(255, 255, 255, 0.5)',
+                textAlign: 'center',
+              }}
+            >
+              Cargando...
+            </Text>
           </View>
         </Animated.View>
       </View>

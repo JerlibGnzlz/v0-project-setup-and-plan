@@ -181,7 +181,15 @@ export function NewsScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.container}>
+        {/* Header con logo */}
         <View style={styles.header}>
+          <View style={styles.logoHeaderContainer}>
+            <Image
+              source={require('../../../assets/images/amvamovil.png')}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
+          </View>
           <View style={styles.headerContent}>
             <Newspaper size={28} color="#22c55e" />
             <Text style={styles.title}>Noticias</Text>
@@ -191,6 +199,13 @@ export function NewsScreen() {
 
         {news.length === 0 ? (
           <View style={styles.emptyContainer}>
+            <View style={styles.emptyLogoContainer}>
+              <Image
+                source={require('../../../assets/images/amvamovil.png')}
+                style={styles.emptyLogo}
+                resizeMode="contain"
+              />
+            </View>
             <Newspaper size={64} color="rgba(255, 255, 255, 0.3)" />
             <Text style={styles.emptyTitle}>No hay noticias disponibles</Text>
             <Text style={styles.emptyText}>
@@ -243,11 +258,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
+  logoHeaderContainer: {
+    width: 140,
+    height: 45,
+    marginBottom: 16,
+    alignSelf: 'center',
+  },
+  headerLogo: {
+    width: '100%',
+    height: '100%',
+  },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     marginBottom: 8,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 28,
@@ -364,6 +390,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
+  },
+  emptyLogoContainer: {
+    width: 180,
+    height: 60,
+    marginBottom: 24,
+    opacity: 0.4,
+  },
+  emptyLogo: {
+    width: '100%',
+    height: '100%',
   },
   emptyTitle: {
     fontSize: 20,

@@ -611,7 +611,15 @@ export function CredentialsScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+        {/* Header con logo */}
         <View style={styles.header}>
+          <View style={styles.logoHeaderContainer}>
+            <Image
+              source={require('../../../assets/images/amvamovil.png')}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
+          </View>
           <Text style={styles.title}>Consultar Credenciales</Text>
           <Text style={styles.subtitle}>
             {isInvitadoAuthenticated && invitado
@@ -1091,17 +1099,29 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 24,
+    alignItems: 'center',
+  },
+  logoHeaderContainer: {
+    width: 160,
+    height: 52,
+    marginBottom: 16,
+  },
+  headerLogo: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.7)',
     lineHeight: 20,
+    textAlign: 'center',
   },
   searchContainer: {
     marginBottom: 24,

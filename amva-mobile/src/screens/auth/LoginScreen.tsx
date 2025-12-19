@@ -259,7 +259,7 @@ export function LoginScreen() {
           keyboardDismissMode="interactive"
           bounces={false}
         >
-          {/* Header con Logo */}
+          {/* Header con Logo mejorado */}
           <Animated.View
             style={[
               styles.header,
@@ -275,6 +275,8 @@ export function LoginScreen() {
                 resizeMode="contain"
               />
             </View>
+            <Text style={styles.appTitle}>AMVA Móvil</Text>
+            <Text style={styles.appSubtitle}>Asociación Misionera Vida Abundante</Text>
           </Animated.View>
 
           {/* Form Card */}
@@ -482,16 +484,41 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   logoContainer: {
-    marginBottom: 12,
-    width: 180,
-    height: 180,
+    marginBottom: 20,
+    width: 220,
+    height: 220,
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 20,
+    borderWidth: 2,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
   },
   logoImage: {
     width: '100%',
     height: '100%',
+  },
+  appTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#fff',
+    textAlign: 'center',
+    marginTop: 8,
+    letterSpacing: 0.5,
+  },
+  appSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.6)',
+    textAlign: 'center',
+    marginTop: 4,
+    letterSpacing: 0.3,
   },
   title: {
     fontSize: 28,

@@ -215,6 +215,14 @@ export function ConventionInscripcionScreen() {
   if (!convencion) {
     return (
       <ScrollView style={styles.container} contentContainerStyle={styles.emptyContentContainer}>
+        {/* Header con logo */}
+        <View style={styles.emptyHeader}>
+          <Image
+            source={require('../../../assets/images/amvamovil.png')}
+            style={styles.emptyHeaderLogo}
+            resizeMode="contain"
+          />
+        </View>
         <View style={styles.emptyCard}>
           <View style={styles.emptyIconContainer}>
             <Text style={styles.emptyIcon}>📅</Text>
@@ -247,8 +255,15 @@ export function ConventionInscripcionScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        {/* Header */}
+        {/* Header con logo */}
         <View style={styles.header}>
+          <View style={styles.logoHeaderContainer}>
+            <Image
+              source={require('../../../assets/images/amvamovil.png')}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
+          </View>
           <Text style={styles.title}>Inscripción a Convención</Text>
           <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
         </View>
@@ -406,15 +421,26 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
+  logoHeaderContainer: {
+    width: 160,
+    height: 52,
+    marginBottom: 16,
+  },
+  headerLogo: {
+    width: '100%',
+    height: '100%',
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 4,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
   },
   stepsContainer: {
     padding: 20,
@@ -493,6 +519,16 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 20,
+  },
+  emptyHeader: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  emptyHeaderLogo: {
+    width: 200,
+    height: 65,
+    opacity: 0.8,
   },
   emptyCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
