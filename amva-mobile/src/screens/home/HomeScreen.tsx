@@ -250,7 +250,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     width: '100%',
+    overflow: 'hidden',
   },
   logoContainer: {
     marginBottom: 8,
