@@ -12,6 +12,7 @@ import {
   Platform,
   Keyboard,
   Animated,
+  Dimensions,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Eye, EyeOff } from 'lucide-react-native'
@@ -225,6 +226,9 @@ export function LoginScreen() {
     )
   }
 
+  const { height: screenHeight } = Dimensions.get('window')
+  const isSmallScreen = screenHeight < 700
+
   const scrollToInput = (inputRef: React.RefObject<TextInput | null>, offset: number = 0) => {
     setTimeout(() => {
       if (inputRef.current && scrollViewRef.current) {
@@ -265,12 +269,13 @@ export function LoginScreen() {
           <Animated.View
             style={[
               styles.header,
+              isSmallScreen && styles.headerSmall,
               {
                 transform: [{ scale: logoScaleAnim }],
               },
             ]}
           >
-            <View style={styles.logoContainer}>
+            <View style={[styles.logoContainer, isSmallScreen && styles.logoContainerSmall]}>
               <Image
                 source={require('../../../assets/images/amvamovil.png')}
                 style={styles.logoImage}
@@ -280,19 +285,19 @@ export function LoginScreen() {
           </Animated.View>
 
           {/* Form Card */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Iniciar Sesión</Text>
-            <Text style={styles.cardSubtitle}>Acceso para invitados registrados</Text>
+          <View style={[styles.card, isSmallScreen && styles.cardSmall]}>
+            <Text style={[styles.cardTitle, isSmallScreen && styles.cardTitleSmall]}>Iniciar Sesión</Text>
+            <Text style={[styles.cardSubtitle, isSmallScreen && styles.cardSubtitleSmall]}>Acceso para invitados registrados</Text>
 
             {testingConnection && (
-              <View style={styles.testingContainer}>
+              <View style={[styles.testingContainer, isSmallScreen && styles.testingContainerSmall]}>
                 <ActivityIndicator size="small" color="#22c55e" />
-                <Text style={styles.testingText}>Verificando conexión...</Text>
+                <Text style={[styles.testingText, isSmallScreen && styles.testingTextSmall]}>Verificando conexión...</Text>
               </View>
             )}
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>📧 Correo electrónico</Text>
+            <View style={[styles.inputGroup, isSmallScreen && styles.inputGroupSmall]}>
+              <Text style={[styles.label, isSmallScreen && styles.labelSmall]}>📧 Correo electrónico</Text>
               <Animated.View
                 style={[
                   styles.inputContainer,
@@ -344,8 +349,8 @@ export function LoginScreen() {
               </Animated.View>
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>🔒 Contraseña</Text>
+            <View style={[styles.inputGroup, isSmallScreen && styles.inputGroupSmall]}>
+              <Text style={[styles.label, isSmallScreen && styles.labelSmall]}>🔒 Contraseña</Text>
               <Animated.View
                 style={[
                   styles.inputContainer,
@@ -407,28 +412,29 @@ export function LoginScreen() {
             </View>
 
             <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
+              style={[styles.button, isSmallScreen && styles.buttonSmall, loading && styles.buttonDisabled]}
               onPress={handleSubmit}
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color="#fff" size="small" />
               ) : (
                 <>
-                  <Text style={styles.buttonText}>✓ Iniciar sesión</Text>
+                  <Text style={[styles.buttonText, isSmallScreen && styles.buttonTextSmall]}>✓ Iniciar sesión</Text>
                 </>
               )}
             </TouchableOpacity>
 
-            <View style={styles.divider}>
+            <View style={[styles.divider, isSmallScreen && styles.dividerSmall]}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>o</Text>
+              <Text style={[styles.dividerText, isSmallScreen && styles.dividerTextSmall]}>o</Text>
               <View style={styles.dividerLine} />
             </View>
 
             <TouchableOpacity
               style={[
                 styles.googleButton,
+                isSmallScreen && styles.googleButtonSmall,
                 googleAuthLoading && styles.buttonDisabled,
               ]}
               onPress={handleGoogleLogin}
@@ -437,27 +443,29 @@ export function LoginScreen() {
               {googleAuthLoading ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <ActivityIndicator color="#fff" size="small" />
-                  <Text style={styles.googleButtonText}>Autenticando...</Text>
+                  <Text style={[styles.googleButtonText, isSmallScreen && styles.googleButtonTextSmall]}>Autenticando...</Text>
                 </View>
               ) : (
                 <>
-                  <Text style={styles.googleButtonText}>🔵 Continuar con Google</Text>
+                  <Text style={[styles.googleButtonText, isSmallScreen && styles.googleButtonTextSmall]}>🔵 Continuar con Google</Text>
                 </>
               )}
             </TouchableOpacity>
             {googleAuthError && (
-              <Text style={styles.hint}>
+              <Text style={[styles.hint, isSmallScreen && styles.hintSmall]}>
                 ⚠️ Login con Google no disponible: {googleAuthError}
               </Text>
             )}
 
-            <TouchableOpacity style={styles.registerButton} onPress={() => setShowRegister(true)}>
-              <Text style={styles.registerButtonText}>📝 Crear nueva cuenta</Text>
+            <TouchableOpacity style={[styles.registerButton, isSmallScreen && styles.registerButtonSmall]} onPress={() => setShowRegister(true)}>
+              <Text style={[styles.registerButtonText, isSmallScreen && styles.registerButtonTextSmall]}>📝 Crear nueva cuenta</Text>
             </TouchableOpacity>
 
-            <Text style={styles.hint}>
-              Si no tienes cuenta, puedes crear una nueva cuenta de invitado.
-            </Text>
+            {!isSmallScreen && (
+              <Text style={styles.hint}>
+                Si no tienes cuenta, puedes crear una nueva cuenta de invitado.
+              </Text>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -480,32 +488,41 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     padding: 16,
-    paddingTop: 20,
-    paddingBottom: 32,
+    paddingTop: 12,
+    paddingBottom: 16,
     justifyContent: 'center',
     minHeight: '100%',
   },
   contentContainerKeyboard: {
-    paddingTop: 8,
-    paddingBottom: 280,
+    paddingTop: 4,
+    paddingBottom: 200,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 20,
-    paddingTop: 8,
+    marginBottom: 12,
+    paddingTop: 4,
+  },
+  headerSmall: {
+    marginBottom: 8,
+    paddingTop: 0,
   },
   logoContainer: {
-    marginBottom: 20,
-    width: 220,
-    height: 220,
+    marginBottom: 12,
+    width: 140,
+    height: 140,
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#22c55e',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
-    elevation: 15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  logoContainerSmall: {
+    width: 100,
+    height: 100,
+    marginBottom: 8,
   },
   logoImage: {
     width: '100%',
@@ -526,39 +543,57 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 0.5,
     borderColor: 'rgba(255, 255, 255, 0.08)',
   },
+  cardSmall: {
+    padding: 12,
+    borderRadius: 14,
+  },
   cardTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#fff',
     marginBottom: 2,
     textAlign: 'center',
     letterSpacing: -0.3,
   },
+  cardTitleSmall: {
+    fontSize: 16,
+  },
   cardSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.5)',
-    marginBottom: 20,
+    marginBottom: 14,
     textAlign: 'center',
   },
+  cardSubtitleSmall: {
+    fontSize: 11,
+    marginBottom: 10,
+  },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  inputGroupSmall: {
+    marginBottom: 10,
   },
   label: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 8,
+    marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  labelSmall: {
+    fontSize: 10,
+    marginBottom: 5,
+  },
   inputContainer: {
     borderWidth: 1.5,
-    borderRadius: 14,
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
@@ -567,34 +602,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   input: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     color: '#fff',
-    fontSize: 15,
+    fontSize: 14,
     backgroundColor: 'transparent',
   },
   passwordInput: {
     flex: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    paddingRight: 45,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    paddingRight: 40,
     color: '#fff',
-    fontSize: 15,
+    fontSize: 14,
     backgroundColor: 'transparent',
   },
   passwordToggle: {
     position: 'absolute',
-    right: 12,
-    top: 12,
+    right: 10,
+    top: 10,
     padding: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
   button: {
-    marginTop: 6,
+    marginTop: 4,
     backgroundColor: '#22c55e',
-    paddingVertical: 13,
-    borderRadius: 14,
+    paddingVertical: 11,
+    borderRadius: 12,
     alignItems: 'center',
     shadowColor: '#22c55e',
     shadowOffset: { width: 0, height: 2 },
@@ -602,43 +637,64 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
+  buttonSmall: {
+    paddingVertical: 9,
+    borderRadius: 10,
+  },
   buttonDisabled: {
     opacity: 0.5,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.2,
   },
+  buttonTextSmall: {
+    fontSize: 13,
+  },
   hint: {
-    marginTop: 20,
-    fontSize: 12,
+    marginTop: 12,
+    fontSize: 11,
     color: 'rgba(255, 255, 255, 0.6)',
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 16,
+  },
+  hintSmall: {
+    fontSize: 10,
+    marginTop: 8,
   },
   testingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
-    padding: 12,
+    marginBottom: 12,
+    padding: 10,
     backgroundColor: 'rgba(34, 197, 94, 0.1)',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(34, 197, 94, 0.3)',
   },
+  testingContainerSmall: {
+    marginBottom: 10,
+    padding: 8,
+  },
   testingText: {
-    marginLeft: 8,
-    fontSize: 12,
+    marginLeft: 6,
+    fontSize: 11,
     color: '#22c55e',
     fontWeight: '500',
+  },
+  testingTextSmall: {
+    fontSize: 10,
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 14,
+  },
+  dividerSmall: {
+    marginVertical: 10,
   },
   dividerLine: {
     flex: 1,
@@ -646,27 +702,37 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   dividerText: {
-    marginHorizontal: 12,
-    fontSize: 14,
+    marginHorizontal: 10,
+    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.5)',
+  },
+  dividerTextSmall: {
+    fontSize: 11,
+    marginHorizontal: 8,
   },
   registerButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 14,
+    paddingVertical: 11,
     borderRadius: 10,
     alignItems: 'center',
   },
+  registerButtonSmall: {
+    paddingVertical: 9,
+  },
   registerButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
+  registerButtonTextSmall: {
+    fontSize: 13,
+  },
   googleButton: {
-    marginTop: 8,
+    marginTop: 6,
     backgroundColor: '#4285F4',
-    paddingVertical: 14,
+    paddingVertical: 11,
     borderRadius: 10,
     alignItems: 'center',
     shadowColor: '#4285F4',
@@ -674,11 +740,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    marginBottom: 12,
+    marginBottom: 10,
+  },
+  googleButtonSmall: {
+    paddingVertical: 9,
+    marginBottom: 8,
   },
   googleButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
+  },
+  googleButtonTextSmall: {
+    fontSize: 13,
   },
 })
