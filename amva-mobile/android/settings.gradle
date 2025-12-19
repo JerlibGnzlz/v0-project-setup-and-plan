@@ -31,7 +31,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 }
 expoAutolinking.useExpoModules()
 
-rootProject.name = 'AMVA Go'
+rootProject.name = 'AMVA Móvil'
 
 expoAutolinking.useExpoVersionCatalog()
 
