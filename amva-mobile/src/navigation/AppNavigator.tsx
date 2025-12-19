@@ -12,12 +12,16 @@ import { ConventionInscripcionScreen } from '@screens/conventions/ConventionInsc
 import { CredentialsScreen } from '@screens/credentials/CredentialsScreen'
 import { ProfileScreen } from '@screens/profile/ProfileScreen'
 import NotificationsHistoryScreen from '@screens/notifications/NotificationsHistoryScreen'
+import { NewsDetailScreen } from '@screens/news/NewsDetailScreen'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 
 type RootStackParamList = {
   Auth: undefined
   Main: undefined
   Notifications: undefined
+  NewsDetail: {
+    noticiaId: string
+  }
 }
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
@@ -199,6 +203,13 @@ export function AppNavigator() {
               component={NotificationsHistoryScreen}
               options={{
                 presentation: 'modal',
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="NewsDetail"
+              component={NewsDetailScreen}
+              options={{
                 headerShown: false,
               }}
             />

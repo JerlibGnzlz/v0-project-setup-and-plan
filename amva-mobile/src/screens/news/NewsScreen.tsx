@@ -13,7 +13,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Newspaper, Calendar as CalendarIcon, ArrowRight } from 'lucide-react-native'
+import { useNavigation } from '@react-navigation/native'
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { apiClient } from '@api/client'
+
+type RootStackParamList = {
+  NewsDetail: {
+    noticiaId: string
+  }
+}
 
 interface Noticia {
   id: string
@@ -33,6 +41,7 @@ interface NewsCardProps {
 }
 
 function NewsCard({ item, index, formatDate }: NewsCardProps) {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
   const fadeAnim = React.useRef(new Animated.Value(0)).current
   const slideAnim = React.useRef(new Animated.Value(30)).current
 
@@ -54,6 +63,10 @@ function NewsCard({ item, index, formatDate }: NewsCardProps) {
     ]).start()
   }, [fadeAnim, slideAnim, index])
 
+  const handlePress = () => {
+    navigation.navigate('NewsDetail', { noticiaId: item.id })
+  }
+
   return (
     <Animated.View
       style={{
@@ -61,7 +74,7 @@ function NewsCard({ item, index, formatDate }: NewsCardProps) {
         transform: [{ translateY: slideAnim }],
       }}
     >
-      <TouchableOpacity style={styles.card} activeOpacity={0.85}>
+      <TouchableOpacity style={styles.card} activeOpacity={0.85} onPress={handlePress}>
         <LinearGradient
           colors={['rgba(34, 197, 94, 0.12)', 'rgba(59, 130, 246, 0.08)', 'rgba(15, 23, 42, 0.95)']}
           start={{ x: 0, y: 0 }}
