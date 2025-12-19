@@ -270,7 +270,7 @@ export function LoginScreen() {
           >
             <View style={styles.logoContainer}>
               <Image
-                source={require('../../../assets/images/amvadigital.png')}
+                source={require('../../../assets/images/amvamovil.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               />

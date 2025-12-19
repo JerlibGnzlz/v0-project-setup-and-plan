@@ -166,7 +166,7 @@ export function NewsScreen() {
             }}
           >
             <Image
-              source={require('../../../assets/images/amvadigital.png')}
+              source={require('../../../assets/images/amvamovil.png')}
               style={{ width: '100%', height: '100%' }}
               resizeMode="contain"
             />

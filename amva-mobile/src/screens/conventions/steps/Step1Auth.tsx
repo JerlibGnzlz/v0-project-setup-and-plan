@@ -326,7 +326,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
           >
             <View style={styles.logoContainer}>
               <Image
-                source={require('../../../../assets/images/amvadigital.png')}
+                source={require('../../../../assets/images/amvamovil.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               />

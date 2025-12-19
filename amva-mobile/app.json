@@ -7,11 +7,11 @@
     "scheme": "amva-app",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/amvadigital.png",
+      "image": "./assets/images/amvamovil.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a1628"
     },
-    "icon": "./assets/images/amvadigital.png",
+    "icon": "./assets/images/amvamovil.png",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.vidaabundante.app"
