@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   Animated,
   Dimensions,
   Image,
@@ -112,11 +111,7 @@ export function HomeScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.container}>
         {/* Header con gradiente */}
         <Animated.View
           style={[
@@ -157,6 +152,7 @@ export function HomeScreen({ navigation }: Props) {
               <Animated.View
                 key={card.id}
                 style={[
+                  styles.cardWrapper,
                   {
                     opacity: cardAnim,
                     transform: [
@@ -185,13 +181,13 @@ export function HomeScreen({ navigation }: Props) {
                   >
                     <View style={styles.cardContent}>
                       <View style={[styles.iconContainer, { backgroundColor: `${card.color}20` }]}>
-                        <Icon size={28} color={card.color} />
+                        <Icon size={24} color={card.color} />
                       </View>
                       <View style={styles.cardTextContainer}>
                         <Text style={styles.cardTitle}>{card.title}</Text>
                         <Text style={styles.cardDescription}>{card.description}</Text>
                       </View>
-                      <ArrowRight size={20} color={card.color} style={styles.arrowIcon} />
+                      <ArrowRight size={18} color={card.color} style={styles.arrowIcon} />
                     </View>
                     {/* Glow effect */}
                     <View style={[styles.cardGlow, { backgroundColor: `${card.color}15` }]} />
@@ -212,11 +208,11 @@ export function HomeScreen({ navigation }: Props) {
           ]}
         >
           <View style={styles.footerContent}>
-            <Globe size={20} color="rgba(255, 255, 255, 0.5)" />
+            <Globe size={16} color="rgba(255, 255, 255, 0.5)" />
             <Text style={styles.footerText}>Transformando vidas desde 1989</Text>
           </View>
         </Animated.View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   )
 }
@@ -226,27 +222,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0a1628',
   },
-  scrollView: {
+  container: {
     flex: 1,
-  },
-  contentContainer: {
-    paddingBottom: 100, // Espacio para el tab bar
+    justifyContent: 'space-between',
   },
   headerContainer: {
-    marginBottom: 32,
+    flexShrink: 0,
   },
   headerGradient: {
-    padding: 20,
-    paddingTop: 24,
-    paddingBottom: 24,
+    padding: 12,
+    paddingTop: 16,
+    paddingBottom: 12,
     alignItems: 'center',
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   logoContainer: {
-    marginBottom: 16,
-    width: 160,
-    height: 160,
+    marginBottom: 8,
+    width: 100,
+    height: 100,
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
@@ -256,102 +250,98 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   welcomeText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 6,
+    marginBottom: 4,
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   nameText: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'rgba(255, 255, 255, 0.75)',
-    marginBottom: 12,
     textAlign: 'center',
   },
-  notificationsButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   cardsContainer: {
-    paddingHorizontal: 20,
-    gap: 16,
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 10,
+    justifyContent: 'center',
+  },
+  cardWrapper: {
+    flex: 1,
   },
   card: {
-    borderRadius: 20,
+    flex: 1,
+    borderRadius: 16,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+    minHeight: 70,
   },
   cardGradient: {
-    padding: 20,
+    padding: 14,
     position: 'relative',
+    flex: 1,
   },
   cardGlow: {
     position: 'absolute',
-    top: -50,
-    right: -50,
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    top: -40,
+    right: -40,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     opacity: 0.3,
   },
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 1,
+    flex: 1,
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
   cardTextContainer: {
     flex: 1,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   cardDescription: {
-    fontSize: 14,
+    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.7)',
-    lineHeight: 20,
+    lineHeight: 16,
   },
   arrowIcon: {
-    marginLeft: 12,
+    marginLeft: 8,
   },
   footer: {
-    marginTop: 32,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    flexShrink: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   footerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
+    gap: 6,
+    paddingVertical: 6,
   },
   footerText: {
-    fontSize: 13,
+    fontSize: 11,
     color: 'rgba(255, 255, 255, 0.5)',
     fontStyle: 'italic',
   },
