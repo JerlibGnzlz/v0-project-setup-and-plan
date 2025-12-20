@@ -15,7 +15,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Mail, Lock, User, Phone, MapPin, CheckCircle, AlertCircle, Eye, EyeOff, UserPlus } from 'lucide-react-native'
+import { Mail, Lock, User, Phone, MapPin, CheckCircle, AlertCircle, Eye, EyeOff, UserPlus, ArrowLeft } from 'lucide-react-native'
 import { invitadoAuthApi } from '@api/invitado-auth'
 import * as SecureStore from 'expo-secure-store'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
@@ -758,19 +758,30 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleSubmit}
               disabled={loading}
+              activeOpacity={0.8}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <View style={styles.buttonContent}>
-                  <UserPlus size={16} color="#fff" />
-                  <Text style={styles.buttonText}>Crear Cuenta</Text>
-                </View>
+                <LinearGradient
+                  colors={['#22c55e', '#16a34a']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.buttonGradient}
+                >
+                  <View style={styles.buttonContent}>
+                    <UserPlus size={16} color="#fff" />
+                    <Text style={styles.buttonText}>Crear Cuenta</Text>
+                  </View>
+                </LinearGradient>
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
-              <Text style={styles.backButtonText}>← Volver al Login</Text>
+            <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
+              <View style={styles.backButtonContent}>
+                <ArrowLeft size={14} color="rgba(255, 255, 255, 0.6)" />
+                <Text style={styles.backButtonText}>Volver al Login</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -974,6 +985,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingVertical: 10,
     alignItems: 'center',
+  },
+  backButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   backButtonText: {
     color: 'rgba(255, 255, 255, 0.6)',
