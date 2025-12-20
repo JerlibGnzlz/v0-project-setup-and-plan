@@ -20,7 +20,7 @@
       "@components/*": ["src/components/*"],
       "@utils/*": ["src/utils/*"]
     },
-    "types": ["expo-secure-store", "react-native", "node", "@react-navigation/native"]
+    "types": ["react-native", "node", "@react-navigation/native"]
   },
   "include": ["src", "App.tsx", "src/types/**/*.d.ts"],
   "exclude": ["node_modules"],
