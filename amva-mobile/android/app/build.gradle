@@ -97,10 +97,6 @@ android {
 
     namespace 'org.vidaabundante.app'
     
-    // Forzar uso de AndroidX explícitamente
-    useAndroidX = true
-    enableJetifier = true
-    
     defaultConfig {
         applicationId 'org.vidaabundante.app'
         minSdkVersion rootProject.ext.minSdkVersion
