@@ -406,62 +406,6 @@ export function Step2UnifiedForm({
             </View>
           )}
 
-          {/* Selección de Plan de Pago */}
-          {costo > 0 && (
-            <View style={styles.paymentPlanContainer}>
-              <View style={styles.paymentPlanHeader}>
-                <CreditCard size={18} color="#22c55e" />
-                <Text style={styles.paymentPlanTitle}>Plan de Pago</Text>
-              </View>
-              <View style={styles.cuotasContainer}>
-                {[1, 2, 3].map(num => {
-                  const monto = num === 1 ? montoPorCuota1 : num === 2 ? montoPorCuota2 : montoPorCuota3
-                  const isSelected = formData.numeroCuotas === num
-                  return (
-                    <TouchableOpacity
-                      key={num}
-                      style={[styles.cuotaCard, isSelected && styles.cuotaCardSelected]}
-                      onPress={() => handleChange('numeroCuotas', num)}
-                      activeOpacity={0.7}
-                    >
-                      {isSelected && (
-                        <LinearGradient
-                          colors={['rgba(34, 197, 94, 0.2)', 'rgba(34, 197, 94, 0.1)']}
-                          style={StyleSheet.absoluteFill}
-                        />
-                      )}
-                      <View style={styles.cuotaCardContent}>
-                        <Text style={[styles.cuotaLabel, isSelected && styles.cuotaLabelSelected]}>
-                          {num} {num === 1 ? 'cuota' : 'cuotas'}
-                        </Text>
-                        <Text style={[styles.cuotaValue, isSelected && styles.cuotaValueSelected]}>
-                          ${monto.toFixed(2)} {num > 1 ? 'cada una' : ''}
-                        </Text>
-                      </View>
-                      {isSelected && (
-                        <View style={styles.checkIcon}>
-                          <CheckCircle2 size={18} color="#22c55e" />
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  )
-                })}
-              </View>
-              <View style={styles.resumenContainer}>
-                <View style={styles.resumenRow}>
-                  <Text style={styles.resumenLabel}>Costo total:</Text>
-                  <Text style={styles.resumenValue}>${costo.toFixed(2)}</Text>
-                </View>
-                <View style={styles.resumenRow}>
-                  <Text style={styles.resumenLabel}>Monto por cuota:</Text>
-                  <Text style={styles.resumenValue}>
-                    ${(costo / formData.numeroCuotas).toFixed(2)}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          )}
-
           {/* Datos Personales */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
