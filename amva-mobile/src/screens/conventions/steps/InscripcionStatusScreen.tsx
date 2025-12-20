@@ -22,7 +22,7 @@ import {
   ArrowLeft,
 } from 'lucide-react-native'
 import { type Convencion } from '@api/convenciones'
-import { inscripcionesApi, type Inscripcion } from '@api/inscripciones'
+import { inscripcionesApi, type Inscripcion, pagosApi } from '@api/inscripciones'
 import { uploadApi, pickImage } from '@api/upload'
 import { Alert as CustomAlert } from '@utils/alert'
 
@@ -104,9 +104,8 @@ export function InscripcionStatusScreen({
       setUploadingComprobante(true)
       setPagoSeleccionado(pagoId)
 
-      const result = await pickImage()
-      if (result && result.assets && result.assets.length > 0) {
-        const uri = result.assets[0].uri
+      const uri = await pickImage()
+      if (uri) {
         const uploadResponse = await uploadApi.uploadInscripcionDocumento(uri)
 
         // Actualizar el pago con el comprobante
