@@ -22,6 +22,10 @@ plugins {
   id("expo-autolinking-settings")
 }
 
+// Definir hermesEnabled ANTES de que se configuren los módulos de Expo
+// Esto es crítico porque expo-modules-core lo necesita durante su evaluación
+rootProject.ext.hermesEnabled = (findProperty('hermesEnabled') ?: 'true').toBoolean()
+
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   if (System.getenv('EXPO_USE_COMMUNITY_AUTOLINKING') == '1') {
     ex.autolinkLibrariesFromCommand()
