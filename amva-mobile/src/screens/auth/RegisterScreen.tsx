@@ -803,22 +803,15 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleSubmit}
               disabled={loading}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color="#22c55e" />
               ) : (
-                <LinearGradient
-                  colors={['#22c55e', '#16a34a']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.buttonGradient}
-                >
-                  <View style={styles.buttonContent}>
-                    <UserPlus size={16} color="#fff" />
-                    <Text style={styles.buttonText}>Crear Cuenta</Text>
-                  </View>
-                </LinearGradient>
+                <View style={styles.buttonContent}>
+                  <UserPlus size={15} color="#22c55e" />
+                  <Text style={styles.buttonText}>Crear Cuenta</Text>
+                </View>
               )}
             </TouchableOpacity>
 
@@ -996,24 +989,22 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 6,
-    borderRadius: 14,
-    overflow: 'hidden',
-    shadowColor: '#22c55e',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.2)',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   buttonDisabled: {
     opacity: 0.5,
-  },
-  buttonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-    paddingVertical: 13,
-    paddingHorizontal: 20,
   },
   buttonContent: {
     flexDirection: 'row',
@@ -1022,10 +1013,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: {
-    color: '#fff',
+    color: '#22c55e',
     fontSize: 15,
     fontWeight: '600',
-    letterSpacing: 0.2,
+    letterSpacing: -0.2,
   },
   backButton: {
     marginTop: 12,
