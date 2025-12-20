@@ -3,9 +3,19 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "com.google.gms.google-services"
 
-// hermesEnabled está definido en el proyecto raíz (android/build.gradle)
-// Lo hacemos disponible como propiedad del proyecto :app para que los módulos de Expo puedan accederlo
-project.ext.hermesEnabled = rootProject.ext.hermesEnabled
+// Definir hermesEnabled como propiedad del proyecto :app ANTES de que se evalúen los módulos de Expo
+// Esto es crítico porque expo-modules-core lo necesita durante su evaluación
+// Leemos desde gradle.properties o usamos el valor del proyecto raíz si está disponible
+def hermesEnabledProp = 'true'
+def gradlePropsFile = new File(rootDir, 'gradle.properties')
+if (gradlePropsFile.exists()) {
+    gradlePropsFile.eachLine { line ->
+        if (line.startsWith('hermesEnabled=')) {
+            hermesEnabledProp = line.substring('hermesEnabled='.length()).trim()
+        }
+    }
+}
+project.ext.hermesEnabled = hermesEnabledProp.toBoolean()
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
