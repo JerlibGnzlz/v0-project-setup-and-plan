@@ -670,17 +670,24 @@ const styles = StyleSheet.create({
   inputGroupSmall: {
     marginBottom: 10,
   },
+  labelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: 6,
+  },
+  labelIcon: {
+    marginRight: 0,
+  },
   label: {
     fontSize: 11,
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   labelSmall: {
     fontSize: 10,
-    marginBottom: 5,
   },
   inputContainer: {
     borderWidth: 1.5,
