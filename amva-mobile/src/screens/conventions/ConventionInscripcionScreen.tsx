@@ -21,6 +21,7 @@ import { inscripcionesApi } from '@api/inscripciones'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { Step1Auth } from './steps/Step1Auth'
 import { Step2UnifiedForm } from './steps/Step2UnifiedForm'
+import { InscripcionStatusScreen } from './steps/InscripcionStatusScreen'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
@@ -179,9 +180,25 @@ export function ConventionInscripcionScreen() {
       if (step === 1 && isAuthenticated) {
         setCurrentStep(2)
       } else if (step === 2) {
-        // Inscripción completada
+        // Inscripción completada - Recargar inscripción y mostrar estado
         setInscripcionCompleta(true)
-        navigation.navigate('Inicio')
+        // Recargar la inscripción para obtener los datos actualizados
+        if (convencion && invitado?.email) {
+          try {
+            const inscripcion = await inscripcionesApi.checkInscripcion(convencion.id, invitado.email)
+            if (inscripcion) {
+              setYaInscrito(true)
+              setInscripcionExistente(inscripcion)
+              // No navegar a Inicio, quedarse en la pantalla mostrando el estado
+            }
+          } catch (error) {
+            console.error('Error recargando inscripción:', error)
+            // Si hay error, navegar a Inicio como fallback
+            navigation.navigate('Inicio')
+          }
+        } else {
+          navigation.navigate('Inicio')
+        }
       }
       
       // Animación de entrada
@@ -456,14 +473,27 @@ export function ConventionInscripcionScreen() {
           )}
 
           {currentStep === 2 && convencion && invitado && (
-            <Step2UnifiedForm
-              convencion={convencion}
-              invitado={invitado}
-              yaInscrito={yaInscrito}
-              inscripcionExistente={inscripcionExistente}
-              onComplete={() => handleStepComplete(2)}
-              onBack={handleBack}
-            />
+            <>
+              {yaInscrito && inscripcionExistente ? (
+                <InscripcionStatusScreen
+                  convencion={convencion}
+                  inscripcion={inscripcionExistente}
+                  onBack={() => {
+                    // Al hacer back desde el estado, volver al inicio
+                    navigation.navigate('Inicio')
+                  }}
+                />
+              ) : (
+                <Step2UnifiedForm
+                  convencion={convencion}
+                  invitado={invitado}
+                  yaInscrito={yaInscrito}
+                  inscripcionExistente={inscripcionExistente}
+                  onComplete={() => handleStepComplete(2)}
+                  onBack={handleBack}
+                />
+              )}
+            </>
           )}
         </Animated.View>
         </ScrollView>
