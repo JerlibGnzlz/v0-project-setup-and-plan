@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Platform, Alert } from 'react-native'
 import Constants from 'expo-constants'
 import { useAuth } from './useAuth'
