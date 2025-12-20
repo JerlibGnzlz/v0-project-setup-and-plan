@@ -8,6 +8,8 @@ import { ScrollReveal } from '@/components/scroll-reveal'
 import { Calendar, Clock, Edit } from 'lucide-react'
 import { ConvencionEditDialog } from './convencion-edit-dialog'
 import type { ConvencionFormData } from '@/lib/validations/convencion'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 interface DashboardConvencionControlProps {
   convencionActiva: {
