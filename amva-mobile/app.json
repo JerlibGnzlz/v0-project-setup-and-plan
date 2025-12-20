@@ -39,7 +39,7 @@
         "foregroundImage": "./assets/images/amvamovil.png",
         "backgroundColor": "#0a1628"
       },
-      "googleServicesFile": "./google-services.json",
+      "googleServicesFile": "./android/app/google-services.json",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
