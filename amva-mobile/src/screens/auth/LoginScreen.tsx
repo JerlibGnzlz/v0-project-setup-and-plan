@@ -822,6 +822,11 @@ const styles = StyleSheet.create({
   registerButtonSmall: {
     paddingVertical: 9,
   },
+  registerButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   registerButtonText: {
     color: '#fff',
     fontSize: 14,
