@@ -82,7 +82,9 @@ def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBu
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
-// hermesEnabled está definido en el proyecto raíz (android/build.gradle)
+// hermesEnabled está definido en gradle.properties y en el proyecto raíz
+// También lo definimos aquí como propiedad del proyecto :app para que los módulos de Expo puedan accederlo
+project.ext.hermesEnabled = (findProperty('hermesEnabled') ?: 'true').toBoolean()
 def hermesEnabled = project.ext.hermesEnabled
 
 android {
