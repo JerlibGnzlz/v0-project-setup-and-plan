@@ -18,8 +18,6 @@ function AppContent() {
     setGlobalAlertRef(alertRef)
   }, [])
 
-  // Inicializar notificaciones (el hook maneja errores internamente)
-  useNotifications()
   return (
     <>
       <AppNavigator />

@@ -14,6 +14,7 @@ import { ProfileScreen } from '@screens/profile/ProfileScreen'
 import NotificationsHistoryScreen from '@screens/notifications/NotificationsHistoryScreen'
 import { NewsDetailScreen } from '@screens/news/NewsDetailScreen'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
+import { useNotifications } from '@hooks/useNotifications'
 
 type RootStackParamList = {
   Auth: undefined
@@ -103,6 +104,9 @@ function MainTabs() {
 
 export function AppNavigator() {
   const { invitado, loading } = useInvitadoAuth()
+  
+  // Inicializar notificaciones (debe estar dentro de NavigationContainer)
+  useNotifications()
   
   // Animaciones para la pantalla de carga
   const fadeAnim = useRef(new Animated.Value(0)).current
