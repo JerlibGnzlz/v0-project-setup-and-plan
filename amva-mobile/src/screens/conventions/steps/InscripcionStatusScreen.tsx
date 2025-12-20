@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
+  Alert as RNAlert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as Clipboard from 'expo-clipboard'
@@ -109,7 +110,6 @@ export function InscripcionStatusScreen({
       setPagoSeleccionado(pagoId)
 
       // Mostrar opciones: Galería o Cámara
-      const { Alert: RNAlert } = await import('react-native')
       RNAlert.alert(
         'Seleccionar comprobante',
         '¿Desde dónde deseas seleccionar el comprobante?',
