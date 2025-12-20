@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   Image,
   Alert as RNAlert,
+  Modal,
+  Dimensions,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as Clipboard from 'expo-clipboard'
@@ -21,6 +23,8 @@ import {
   Upload,
   AlertCircle,
   ArrowLeft,
+  X,
+  Send,
 } from 'lucide-react-native'
 import { type Convencion } from '@api/convenciones'
 import { inscripcionesApi, type Inscripcion, pagosApi } from '@api/inscripciones'
@@ -55,6 +59,8 @@ export function InscripcionStatusScreen({
   const [uploadingComprobante, setUploadingComprobante] = useState(false)
   const [pagoSeleccionado, setPagoSeleccionado] = useState<string | null>(null)
   const [inscripcionCompleta, setInscripcionCompleta] = useState<Inscripcion | null>(inscripcion)
+  const [imagenSeleccionada, setImagenSeleccionada] = useState<{ uri: string; pagoId: string } | null>(null)
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
   // Inicializar pagos desde la inscripción si ya vienen incluidos
   const [pagos, setPagos] = useState<Pago[]>(
     inscripcion.pagos && Array.isArray(inscripcion.pagos) ? (inscripcion.pagos as Pago[]) : []
@@ -162,7 +168,11 @@ export function InscripcionStatusScreen({
               try {
                 const uri = await pickImage('gallery')
                 if (uri) {
-                  await uploadAndUpdateComprobante(pagoId, uri)
+                  // Guardar la imagen seleccionada y mostrar preview
+                  setImagenSeleccionada({ uri, pagoId })
+                  setShowPreviewModal(true)
+                  setUploadingComprobante(false)
+                  setPagoSeleccionado(null)
                 } else {
                   setUploadingComprobante(false)
                   setPagoSeleccionado(null)
@@ -179,7 +189,11 @@ export function InscripcionStatusScreen({
               try {
                 const uri = await pickImage('camera')
                 if (uri) {
-                  await uploadAndUpdateComprobante(pagoId, uri)
+                  // Guardar la imagen seleccionada y mostrar preview
+                  setImagenSeleccionada({ uri, pagoId })
+                  setShowPreviewModal(true)
+                  setUploadingComprobante(false)
+                  setPagoSeleccionado(null)
                 } else {
                   setUploadingComprobante(false)
                   setPagoSeleccionado(null)
@@ -201,6 +215,30 @@ export function InscripcionStatusScreen({
       setUploadingComprobante(false)
       setPagoSeleccionado(null)
     }
+  }
+
+  const handleEnviarComprobante = async () => {
+    if (!imagenSeleccionada) return
+
+    const { uri, pagoId } = imagenSeleccionada
+    setShowPreviewModal(false)
+    setUploadingComprobante(true)
+    setPagoSeleccionado(pagoId)
+
+    try {
+      await uploadAndUpdateComprobante(pagoId, uri)
+      setImagenSeleccionada(null)
+    } catch (error) {
+      // El error ya se maneja en uploadAndUpdateComprobante
+    } finally {
+      setUploadingComprobante(false)
+      setPagoSeleccionado(null)
+    }
+  }
+
+  const handleCancelarPreview = () => {
+    setShowPreviewModal(false)
+    setImagenSeleccionada(null)
   }
 
   const uploadAndUpdateComprobante = async (pagoId: string, uri: string) => {
@@ -241,9 +279,7 @@ export function InscripcionStatusScreen({
       }
       
       CustomAlert.alert('Error', alertMessage, undefined, 'error')
-    } finally {
-      setUploadingComprobante(false)
-      setPagoSeleccionado(null)
+      throw error // Re-lanzar para que el catch externo lo maneje
     }
   }
 
@@ -498,6 +534,69 @@ export function InscripcionStatusScreen({
           </View>
         </View>
       </ScrollView>
+
+      {/* Modal de vista previa de imagen */}
+      <Modal
+        visible={showPreviewModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCancelarPreview}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Header del modal */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Vista Previa del Comprobante</Text>
+              <TouchableOpacity onPress={handleCancelarPreview} style={styles.modalCloseButton}>
+                <X size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Vista previa de la imagen */}
+            {imagenSeleccionada && (
+              <View style={styles.previewContainer}>
+                <Image
+                  source={{ uri: imagenSeleccionada.uri }}
+                  style={styles.previewImage}
+                  resizeMode="contain"
+                />
+              </View>
+            )}
+
+            {/* Advertencia */}
+            <View style={styles.modalWarning}>
+              <AlertCircle size={16} color="#ef4444" />
+              <Text style={styles.modalWarningText}>
+                Verifica que el comprobante sea claro y legible. No se aceptan fotos de personas o imágenes sin texto.
+              </Text>
+            </View>
+
+            {/* Botones de acción */}
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                onPress={handleCancelarPreview}
+                style={styles.modalCancelButton}
+              >
+                <Text style={styles.modalCancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleEnviarComprobante}
+                style={[styles.modalSendButton, uploadingComprobante && styles.modalSendButtonDisabled]}
+                disabled={uploadingComprobante}
+              >
+                {uploadingComprobante ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Send size={18} color="#fff" />
+                    <Text style={styles.modalSendButtonText}>Enviar Comprobante</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -919,6 +1018,111 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.6)',
     textAlign: 'center',
     paddingVertical: 20,
+  },
+  // Estilos del modal de vista previa
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#1a1f2e',
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: '90%',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    flex: 1,
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  previewContainer: {
+    width: '100%',
+    height: 400,
+    backgroundColor: '#0a0e1a',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  modalWarning: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 8,
+    padding: 16,
+    margin: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+  },
+  modalWarningText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#ef4444',
+    lineHeight: 18,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalCancelButton: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  modalSendButton: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#22c55e',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  modalSendButtonDisabled: {
+    opacity: 0.6,
+  },
+  modalSendButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#fff',
   },
 })
 
