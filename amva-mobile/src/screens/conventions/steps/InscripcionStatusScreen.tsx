@@ -84,8 +84,9 @@ export function InscripcionStatusScreen({
     try {
       await Clipboard.setStringAsync(codigoReferencia)
       CustomAlert.alert('Código copiado', 'El código de referencia ha sido copiado al portapapeles', undefined, 'success')
-    } catch (error) {
-      console.error('Error copiando código:', error)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('Error copiando código:', errorMessage)
       CustomAlert.alert('Error', 'No se pudo copiar el código', undefined, 'error')
     }
   }
@@ -100,8 +101,11 @@ export function InscripcionStatusScreen({
         const uri = result.assets[0].uri
         const uploadResponse = await uploadApi.uploadInscripcionDocumento(uri)
 
-        // Aquí deberías actualizar el pago con el comprobante
-        // Por ahora solo mostramos éxito
+        // Actualizar el pago con el comprobante
+        await pagosApi.update(pagoId, {
+          comprobanteUrl: uploadResponse.url,
+        })
+
         CustomAlert.alert('Éxito', 'Comprobante subido exitosamente', undefined, 'success')
         
         // Recargar la inscripción para obtener los datos actualizados

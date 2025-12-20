@@ -121,3 +121,15 @@ export const inscripcionesApi = {
     }
   },
 }
+
+export interface UpdatePagoDto {
+  comprobanteUrl?: string
+  notas?: string
+}
+
+export const pagosApi = {
+  update: async (id: string, data: UpdatePagoDto): Promise<Pago> => {
+    const response = await apiClient.patch<Pago>(`/pagos/${id}`, data)
+    return response.data
+  },
+}
