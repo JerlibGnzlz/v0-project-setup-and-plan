@@ -52,104 +52,104 @@ export function ProfileScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) + 80 }]}>
         <View style={styles.contentWrapper}>
-          {/* Header con gradiente */}
+          {/* Header mejorado con gradiente */}
           <LinearGradient
-            colors={['rgba(34, 197, 94, 0.15)', 'rgba(59, 130, 246, 0.1)', 'transparent']}
+            colors={['rgba(34, 197, 94, 0.2)', 'rgba(59, 130, 246, 0.15)', 'rgba(34, 197, 94, 0.05)', 'transparent']}
             style={styles.headerGradient}
           >
             <View style={styles.header}>
-              {/* Logo compacto */}
-              <View style={styles.logoContainer}>
-                <Image
-                  source={require('../../../assets/images/amvamovil.png')}
-                  style={styles.logoImage}
-                  resizeMode="contain"
-                />
-              </View>
+              {/* Avatar prominente */}
               <View style={styles.avatarContainer}>
                 {invitado.fotoUrl ? (
                   <Image source={{ uri: invitado.fotoUrl }} style={styles.profileImage} />
                 ) : (
                   <View style={styles.avatarPlaceholder}>
-                    <User size={24} color="#22c55e" />
+                    <LinearGradient
+                      colors={['rgba(34, 197, 94, 0.2)', 'rgba(34, 197, 94, 0.1)']}
+                      style={StyleSheet.absoluteFill}
+                    />
+                    <User size={32} color="#22c55e" />
                   </View>
                 )}
                 <View style={styles.avatarBorder} />
+                <View style={styles.avatarGlow} />
               </View>
+              
+              {/* Nombre del usuario */}
+              <Text style={styles.userName}>
+                {invitado.nombre} {invitado.apellido}
+              </Text>
+              <Text style={styles.userEmail}>{invitado.email}</Text>
             </View>
           </LinearGradient>
 
-          {/* Profile Card con gradiente */}
+          {/* Profile Card mejorada */}
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0.08)', 'rgba(255, 255, 255, 0.03)']}
+            colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.card}
           >
-          <View style={styles.cardHeader}>
-            <User size={20} color="#22c55e" />
-            <Text style={styles.cardTitle}>Mi Perfil</Text>
-          </View>
-
-          <View style={styles.profileSection}>
-            <View style={styles.sectionHeader}>
-              <User size={14} color="rgba(255, 255, 255, 0.6)" />
-              <Text style={styles.label}>Nombre Completo</Text>
-            </View>
-            <Text style={styles.value} numberOfLines={1}>
-              {invitado.nombre} {invitado.apellido}
-            </Text>
-          </View>
-
-          <View style={styles.profileSection}>
-            <View style={styles.sectionHeader}>
-              <Mail size={14} color="rgba(255, 255, 255, 0.6)" />
-              <Text style={styles.label}>Correo Electrónico</Text>
-            </View>
-            <Text style={styles.value} numberOfLines={1}>{invitado.email}</Text>
-          </View>
-
-          {invitado.telefono && (
-            <View style={styles.profileSection}>
-              <View style={styles.sectionHeader}>
-                <Phone size={14} color="rgba(255, 255, 255, 0.6)" />
-                <Text style={styles.label}>Teléfono</Text>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderContent}>
+                <View style={styles.cardIconContainer}>
+                  <User size={22} color="#22c55e" />
+                </View>
+                <Text style={styles.cardTitle}>Información Personal</Text>
               </View>
-              <Text style={styles.value} numberOfLines={1}>{invitado.telefono}</Text>
             </View>
-          )}
 
-          {invitado.sede && (
-            <View style={styles.profileSection}>
-              <View style={styles.sectionHeader}>
-                <MapPin size={14} color="rgba(255, 255, 255, 0.6)" />
-                <Text style={styles.label}>Sede</Text>
+            <View style={styles.infoGrid}>
+              {invitado.telefono && (
+                <View style={styles.infoItem}>
+                  <View style={styles.infoIconContainer}>
+                    <Phone size={18} color="#22c55e" />
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>Teléfono</Text>
+                    <Text style={styles.infoValue} numberOfLines={1}>{invitado.telefono}</Text>
+                  </View>
+                </View>
+              )}
+
+              {invitado.sede && (
+                <View style={styles.infoItem}>
+                  <View style={styles.infoIconContainer}>
+                    <MapPin size={18} color="#22c55e" />
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>Sede</Text>
+                    <Text style={styles.infoValue} numberOfLines={1}>{invitado.sede}</Text>
+                  </View>
+                </View>
+              )}
+
+              <View style={styles.infoItem}>
+                <View style={styles.infoIconContainer}>
+                  <Tag size={18} color="#22c55e" />
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Tipo de Usuario</Text>
+                  <View style={styles.badgeContainer}>
+                    <Text style={styles.badgeText}>Invitado</Text>
+                  </View>
+                </View>
               </View>
-              <Text style={styles.value} numberOfLines={1}>{invitado.sede}</Text>
             </View>
-          )}
-
-          <View style={[styles.profileSection, styles.lastSection]}>
-            <View style={styles.sectionHeader}>
-              <Tag size={14} color="rgba(255, 255, 255, 0.6)" />
-              <Text style={styles.label}>Tipo de Usuario</Text>
-            </View>
-            <View style={styles.badgeContainer}>
-              <Text style={styles.badgeText}>Invitado</Text>
-            </View>
-          </View>
-        </LinearGradient>
+          </LinearGradient>
         </View>
 
-        {/* Logout Button con gradiente - Siempre visible en la parte inferior */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
+        {/* Logout Button mejorado */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.7}>
           <LinearGradient
-            colors={['rgba(239, 68, 68, 0.2)', 'rgba(239, 68, 68, 0.1)']}
+            colors={['rgba(239, 68, 68, 0.25)', 'rgba(220, 38, 38, 0.2)', 'rgba(239, 68, 68, 0.15)']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.logoutGradient}
           >
-            <LogOut size={18} color="#ef4444" />
+            <View style={styles.logoutIconContainer}>
+              <LogOut size={20} color="#fff" />
+            </View>
             <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -174,52 +174,67 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerGradient: {
-    paddingTop: 8,
-    paddingBottom: 12,
-    marginBottom: 12,
-    borderRadius: 16,
+    paddingTop: 24,
+    paddingBottom: 24,
+    marginBottom: 16,
+    borderRadius: 20,
     marginHorizontal: -12,
+    overflow: 'hidden',
   },
   header: {
     alignItems: 'center',
   },
-  logoContainer: {
-    width: 180,
-    height: 60,
-    marginBottom: 12,
-    shadowColor: '#22c55e',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  logoImage: {
-    width: '100%',
-    height: '100%',
-  },
   avatarContainer: {
     position: 'relative',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   avatarPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(34, 197, 94, 0.08)',
-    borderWidth: 2,
-    borderColor: 'rgba(34, 197, 94, 0.2)',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   avatarBorder: {
     position: 'absolute',
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    borderRadius: 32,
-    borderWidth: 1.5,
-    borderColor: 'rgba(34, 197, 94, 0.15)',
+    top: -4,
+    left: -4,
+    right: -4,
+    bottom: -4,
+    borderRadius: 54,
+    borderWidth: 2,
+    borderColor: 'rgba(34, 197, 94, 0.2)',
+  },
+  avatarGlow: {
+    position: 'absolute',
+    top: -8,
+    left: -8,
+    right: -8,
+    bottom: -8,
+    borderRadius: 58,
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  userName: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 4,
+    textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  userEmail: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    fontWeight: '500',
   },
   title: {
     fontSize: 21,
@@ -235,104 +250,129 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   card: {
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    marginBottom: 10,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
   },
   cardHeader: {
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  cardHeaderContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    marginBottom: 12,
-    paddingBottom: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    gap: 10,
+  },
+  cardIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: '#fff',
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
   },
-  profileSection: {
-    marginBottom: 10,
-    paddingBottom: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+  infoGrid: {
+    gap: 16,
   },
-  lastSection: {
-    marginBottom: 0,
-    paddingBottom: 0,
-    borderBottomWidth: 0,
-  },
-  sectionHeader: {
+  infoItem: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  infoIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.2)',
+  },
+  infoContent: {
+    flex: 1,
+    paddingTop: 2,
+  },
+  infoLabel: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.6)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    fontWeight: '600',
     marginBottom: 4,
   },
-  label: {
-    fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.55)',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  infoValue: {
+    fontSize: 15,
+    color: '#fff',
     fontWeight: '600',
   },
-  value: {
-    fontSize: 13,
-    color: '#fff',
-    fontWeight: '500',
-    marginLeft: 20,
-  },
   badgeContainer: {
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    borderWidth: 0.5,
-    borderColor: 'rgba(34, 197, 94, 0.2)',
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     alignSelf: 'flex-start',
-    marginLeft: 20,
-    marginTop: 2,
+    marginTop: 4,
   },
   badgeText: {
     color: '#4ade80',
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   logoutButton: {
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
-    marginTop: 12,
+    marginTop: 16,
     marginBottom: 0,
     shadowColor: '#ef4444',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
     zIndex: 10,
   },
   logoutGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    borderWidth: 0.5,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    gap: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+  },
+  logoutIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logoutButtonText: {
-    color: '#f87171',
-    fontSize: 13,
-    fontWeight: '600',
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   text: {
     fontSize: 14,
@@ -340,10 +380,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: 'rgba(34, 197, 94, 0.3)',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: 'rgba(34, 197, 94, 0.4)',
   },
 })
