@@ -412,6 +412,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
               style={[styles.googleButton, googleAuthLoading && styles.buttonDisabled]}
               onPress={handleGoogleLogin}
               disabled={googleAuthLoading}
+              activeOpacity={0.85}
             >
               {googleAuthLoading ? (
                 <ActivityIndicator color="#fff" />

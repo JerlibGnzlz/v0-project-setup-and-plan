@@ -521,6 +521,7 @@ export function LoginScreen() {
               ]}
               onPress={handleGoogleLogin}
               disabled={googleAuthLoading}
+              activeOpacity={0.85}
             >
               {googleAuthLoading ? (
                 <View style={styles.googleButtonContent}>
@@ -842,10 +843,13 @@ const styles = StyleSheet.create({
     height: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 2,
   },
   googleLogoImage: {
     width: 20,
     height: 20,
+    backgroundColor: 'transparent',
   },
   googleButtonText: {
     color: '#3c4043',
