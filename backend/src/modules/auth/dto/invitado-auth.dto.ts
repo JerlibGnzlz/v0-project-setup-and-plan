@@ -74,4 +74,16 @@ export class InvitadoCompleteRegisterDto {
 export class GoogleIdTokenDto {
   @IsString()
   idToken: string
+
+  @IsOptional()
+  @IsString()
+  deviceToken?: string
+
+  @IsOptional()
+  @IsString()
+  platform?: 'ios' | 'android'
+
+  @IsOptional()
+  @IsString()
+  deviceId?: string
 }

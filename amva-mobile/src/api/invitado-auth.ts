@@ -51,10 +51,19 @@ export const invitadoAuthApi = {
     return response.data
   },
 
-  login: async (email: string, password: string): Promise<InvitadoAuthResponse> => {
+  login: async (
+    email: string,
+    password: string,
+    deviceToken?: string,
+    platform?: 'ios' | 'android',
+    deviceId?: string
+  ): Promise<InvitadoAuthResponse> => {
     const response = await apiClient.post<InvitadoAuthResponse>('/auth/invitado/login', {
       email,
       password,
+      deviceToken,
+      platform,
+      deviceId,
     })
     return response.data
   },
@@ -64,9 +73,17 @@ export const invitadoAuthApi = {
     return response.data
   },
 
-  loginWithGoogle: async (idToken: string): Promise<InvitadoAuthResponse> => {
+  loginWithGoogle: async (
+    idToken: string,
+    deviceToken?: string,
+    platform?: 'ios' | 'android',
+    deviceId?: string
+  ): Promise<InvitadoAuthResponse> => {
     const response = await apiClient.post<InvitadoAuthResponse>('/auth/invitado/google/mobile', {
       idToken,
+      deviceToken,
+      platform,
+      deviceId,
     })
     return response.data
   },

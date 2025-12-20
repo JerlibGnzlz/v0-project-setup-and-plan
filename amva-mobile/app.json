@@ -18,7 +18,17 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Necesitamos acceso a tu cámara para tomar fotos de comprobantes de pago.",
         "NSPhotoLibraryUsageDescription": "Necesitamos acceso a tu galería para seleccionar comprobantes de pago."
-      }
+      },
+      "plugins": [
+        [
+          "expo-notifications",
+          {
+            "icon": "./assets/images/amvamovil.png",
+            "color": "#22c55e",
+            "sounds": ["default"]
+          }
+        ]
+      ]
     },
     "android": {
       "package": "org.vidaabundante.app",
@@ -29,7 +39,19 @@
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ],
+      "plugins": [
+        [
+          "expo-notifications",
+          {
+            "icon": "./assets/images/amvamovil.png",
+            "color": "#22c55e",
+            "sounds": ["default"]
+          }
+        ]
       ],
       "intentFilters": [
         {

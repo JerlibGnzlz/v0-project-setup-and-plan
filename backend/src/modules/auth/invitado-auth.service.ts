@@ -707,10 +707,18 @@ export class InvitadoAuthService {
    * Autenticación con Google usando token de ID (para móvil)
    *
    * @param idToken - Token de ID de Google
+   * @param deviceToken - Token de dispositivo para push notifications (opcional)
+   * @param platform - Plataforma del dispositivo (opcional)
+   * @param deviceId - ID único del dispositivo (opcional)
    * @returns Tokens de acceso y datos del invitado
    * @throws BadRequestException si el token es inválido
    */
-  async googleAuthMobile(idToken: string) {
+  async googleAuthMobile(
+    idToken: string,
+    deviceToken?: string,
+    platform?: 'ios' | 'android',
+    deviceId?: string
+  ) {
     try {
       if (!this.googleClient) {
         this.logger.error('❌ Google OAuth no configurado')
@@ -785,7 +793,25 @@ export class InvitadoAuthService {
       })
 
       // Usar el método googleAuth existente
-      return await this.googleAuth(googleId, email, nombre, apellido, fotoUrl)
+      const result = await this.googleAuth(googleId, email, nombre, apellido, fotoUrl)
+
+      // Registrar token de dispositivo si se proporciona
+      if (deviceToken && platform && result.invitado) {
+        try {
+          await this.notificationsService.registerInvitadoDeviceToken(
+            result.invitado.id,
+            deviceToken,
+            platform,
+            deviceId
+          )
+          this.logger.log(`📱 Token de dispositivo registrado para invitado: ${email}`)
+        } catch (tokenError) {
+          // No fallar el login si el registro del token falla
+          this.logger.warn(`⚠️ Error registrando token de dispositivo:`, tokenError)
+        }
+      }
+
+      return result
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       const errorStack = error instanceof Error ? error.stack : undefined

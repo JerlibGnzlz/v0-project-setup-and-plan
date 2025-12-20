@@ -1,6 +1,19 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { Platform } from 'react-native'
+import Constants from 'expo-constants'
 import * as SecureStore from 'expo-secure-store'
 import { invitadoAuthApi, type Invitado } from '@api/invitado-auth'
+
+// Importación condicional para evitar errores en Expo Go
+const isExpoGo = Constants.executionEnvironment === 'storeClient'
+let Notifications: any = null
+if (!isExpoGo) {
+  try {
+    Notifications = require('expo-notifications')
+  } catch (error) {
+    // Silenciar error si no está disponible
+  }
+}
 
 interface InvitadoAuthContextValue {
   invitado: Invitado | null
@@ -142,7 +155,30 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
     setLoading(true)
     try {
       console.log('🔐 Iniciando login de invitado...')
-      const result = await invitadoAuthApi.login(email, password)
+      
+      // Obtener token de push si está disponible
+      let deviceToken: string | undefined
+      let platform: 'ios' | 'android' | undefined
+      let deviceId: string | undefined
+      
+      if (!isExpoGo && Notifications) {
+        try {
+          const { status } = await Notifications.getPermissionsAsync()
+          if (status === 'granted') {
+            const tokenData = await Notifications.getExpoPushTokenAsync({
+              projectId: 'amva-mobile-example',
+            })
+            deviceToken = tokenData.data
+            platform = Platform.OS as 'ios' | 'android'
+            deviceId = deviceToken.substring(0, 20)
+            console.log('📱 Token de dispositivo obtenido para login')
+          }
+        } catch (tokenError) {
+          console.warn('⚠️ No se pudo obtener token de dispositivo:', tokenError)
+        }
+      }
+      
+      const result = await invitadoAuthApi.login(email, password, deviceToken, platform, deviceId)
       console.log('✅ Login exitoso, guardando tokens...')
       console.log('🔍 Verificando tokens recibidos:', {
         hasAccessToken: !!result.access_token,
@@ -182,7 +218,29 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
       console.log('🔐 Iniciando login con Google...')
       console.log('🔍 Token recibido (primeros 50 caracteres):', idToken.substring(0, 50) + '...')
       
-      const result = await invitadoAuthApi.loginWithGoogle(idToken)
+      // Obtener token de push si está disponible
+      let deviceToken: string | undefined
+      let platform: 'ios' | 'android' | undefined
+      let deviceId: string | undefined
+      
+      if (!isExpoGo && Notifications) {
+        try {
+          const { status } = await Notifications.getPermissionsAsync()
+          if (status === 'granted') {
+            const tokenData = await Notifications.getExpoPushTokenAsync({
+              projectId: 'amva-mobile-example',
+            })
+            deviceToken = tokenData.data
+            platform = Platform.OS as 'ios' | 'android'
+            deviceId = deviceToken.substring(0, 20)
+            console.log('📱 Token de dispositivo obtenido para login con Google')
+          }
+        } catch (tokenError) {
+          console.warn('⚠️ No se pudo obtener token de dispositivo:', tokenError)
+        }
+      }
+      
+      const result = await invitadoAuthApi.loginWithGoogle(idToken, deviceToken, platform, deviceId)
       console.log('✅ Login con Google exitoso, guardando tokens...')
       console.log('🔍 Verificando tokens recibidos:', {
         hasAccessToken: !!result.access_token,

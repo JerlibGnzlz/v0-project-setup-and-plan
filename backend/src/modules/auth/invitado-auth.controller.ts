@@ -236,7 +236,12 @@ export class InvitadoAuthController {
   async googleAuthMobile(@Body() dto: GoogleIdTokenDto) {
     try {
       this.logger.log('🔐 Iniciando autenticación Google OAuth Mobile...')
-      const result = await this.invitadoAuthService.googleAuthMobile(dto.idToken)
+      const result = await this.invitadoAuthService.googleAuthMobile(
+        dto.idToken,
+        dto.deviceToken,
+        dto.platform,
+        dto.deviceId
+      )
 
       this.logger.log('✅ Autenticación Google OAuth Mobile exitosa', {
         email: result.invitado.email,
