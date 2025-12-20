@@ -20,6 +20,7 @@ interface UseGoogleAuthReturn {
 export function useGoogleAuth(): UseGoogleAuthReturn {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isConfigured, setIsConfigured] = useState(false)
 
   // Obtener Google Client ID desde diferentes fuentes
   const getGoogleClientId = (): string => {
@@ -54,6 +55,7 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
 
         console.log('✅ Google Sign-In configurado correctamente')
         setError(null)
+        setIsConfigured(true)
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
         console.error('❌ Error configurando Google Sign-In:', errorMessage)
@@ -75,14 +77,64 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
 
       console.log('🔐 Iniciando sesión con Google (nativo)...')
 
+      // Verificar que Google Sign-In esté configurado
+      if (!isConfigured) {
+        // Intentar reconfigurar si no está configurado
+        const googleClientId = getGoogleClientId()
+        if (googleClientId && googleClientId.includes('.apps.googleusercontent.com')) {
+          GoogleSignin.configure({
+            webClientId: googleClientId,
+            offlineAccess: true,
+            forceCodeForRefreshToken: true,
+            iosClientId: Platform.OS === 'ios' ? googleClientId : undefined,
+          })
+          setIsConfigured(true)
+          // Esperar un momento para que la configuración se aplique
+          await new Promise(resolve => setTimeout(resolve, 100))
+        } else {
+          throw new Error('Google Sign-In no está configurado correctamente')
+        }
+      }
+
       // Verificar que Google Play Services esté disponible (solo Android)
       if (Platform.OS === 'android') {
-        const hasPlayServices = await GoogleSignin.hasPlayServices({
-          showPlayServicesUpdateDialog: true,
-        })
-        if (!hasPlayServices) {
-          throw new Error('Google Play Services no está disponible')
+        try {
+          const hasPlayServices = await GoogleSignin.hasPlayServices({
+            showPlayServicesUpdateDialog: true,
+          })
+          if (!hasPlayServices) {
+            throw new Error('Google Play Services no está disponible')
+          }
+        } catch (playServicesError: unknown) {
+          const errorMessage =
+            playServicesError instanceof Error
+              ? playServicesError.message
+              : 'Error verificando Google Play Services'
+          console.error('❌ Error con Google Play Services:', errorMessage)
+          throw new Error(`Google Play Services: ${errorMessage}`)
         }
+      }
+
+      // Pequeño delay para asegurar que la actividad esté lista (solo Android)
+      // Esto ayuda a evitar el error "activity is null"
+      if (Platform.OS === 'android') {
+        await new Promise(resolve => setTimeout(resolve, 300))
+      }
+
+      // Verificar que no haya una sesión en progreso
+      try {
+        const isSignedIn = await GoogleSignin.isSignedIn()
+        if (isSignedIn) {
+          // Si ya hay una sesión, obtener el usuario actual
+          const currentUser = await GoogleSignin.getCurrentUser()
+          if (currentUser?.data?.idToken) {
+            console.log('✅ Usuario ya autenticado con Google')
+            return currentUser.data.idToken
+          }
+        }
+      } catch (checkError) {
+        // Continuar con el flujo normal si hay error al verificar
+        console.log('ℹ️ Verificando sesión existente...')
       }
 
       // Iniciar sesión
@@ -140,7 +192,7 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isConfigured])
 
   /**
    * Cerrar sesión de Google
