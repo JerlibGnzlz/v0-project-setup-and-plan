@@ -459,32 +459,39 @@ export function InscripcionStatusScreen({
                     (pesos argentinos)
                   </Text>
                   
-                  {/* Estado del comprobante */}
-                  {tieneComprobante ? (
-                    <View style={styles.comprobanteUploaded}>
-                      <CheckCircle2 size={16} color="#22c55e" />
-                      <Text style={styles.comprobanteUploadedText}>Comprobante cargado</Text>
-                    </View>
-                  ) : null}
-
                   {/* Botón para subir comprobante (solo para pagos pendientes) */}
                   {estaPendiente && (
                     <View style={styles.paymentUploadSection}>
-                      <Text style={styles.paymentUploadDescription}>
-                        Sube el comprobante de transferencia bancaria para el Pago {numeroPago}
-                      </Text>
+                      {/* Estado del comprobante */}
+                      {tieneComprobante ? (
+                        <View style={styles.comprobanteUploaded}>
+                          <CheckCircle2 size={16} color="#22c55e" />
+                          <Text style={styles.comprobanteUploadedText}>Comprobante cargado</Text>
+                        </View>
+                      ) : (
+                        <Text style={styles.paymentUploadDescription}>
+                          Sube el comprobante de transferencia bancaria para el Pago {numeroPago}
+                        </Text>
+                      )}
+                      
                       <TouchableOpacity
                         style={[
                           styles.paymentUploadButton,
-                          estaSubiendo && styles.paymentUploadButtonDisabled,
+                          (estaSubiendo || tieneComprobante) && styles.paymentUploadButtonDisabled,
+                          tieneComprobante && styles.paymentUploadButtonSuccess,
                         ]}
                         onPress={() => handleUploadComprobante(pago.id)}
-                        disabled={estaSubiendo || uploadingComprobante}
+                        disabled={estaSubiendo || uploadingComprobante || tieneComprobante}
                       >
                         {estaSubiendo ? (
                           <View style={styles.paymentUploadButtonContent}>
                             <ActivityIndicator color="#fff" size="small" />
                             <Text style={styles.paymentUploadButtonText}>Subiendo...</Text>
+                          </View>
+                        ) : tieneComprobante ? (
+                          <View style={styles.paymentUploadButtonContent}>
+                            <CheckCircle2 size={18} color="#fff" />
+                            <Text style={styles.paymentUploadButtonText}>Comprobante Enviado</Text>
                           </View>
                         ) : (
                           <View style={styles.paymentUploadButtonContent}>
@@ -891,6 +898,10 @@ const styles = StyleSheet.create({
   },
   paymentUploadButtonDisabled: {
     opacity: 0.6,
+  },
+  paymentUploadButtonSuccess: {
+    backgroundColor: '#16a34a',
+    opacity: 0.8,
   },
   paymentUploadButtonContent: {
     flexDirection: 'row',
