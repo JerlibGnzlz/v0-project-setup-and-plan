@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Calendar, MapPin, Ticket, Star, CheckCircle2, CreditCard, ArrowRight, ArrowLeft } from 'lucide-react-native'
+import { Calendar, MapPin, Ticket, Star, CheckCircle2, CreditCard, ArrowRight } from 'lucide-react-native'
 import { type Convencion } from '@api/convenciones'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -261,14 +261,6 @@ export function Step2ConvencionInfo({
 
         {/* Actions */}
         <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={onBack}
-            activeOpacity={0.7}
-          >
-            <ArrowLeft size={16} color="rgba(255, 255, 255, 0.7)" />
-            <Text style={styles.backButtonText}>Atrás</Text>
-          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.continueButton, yaInscrito && styles.continueButtonDisabled]}
             onPress={handleContinue}
@@ -535,30 +527,13 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   actions: {
-    flexDirection: 'row',
-    gap: 12,
     marginTop: 20,
     paddingTop: 20,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
-  backButton: {
-    flex: 1,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    gap: 6,
-  },
-  backButtonText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   continueButton: {
-    flex: 1,
+    width: '100%',
     borderRadius: 14,
     overflow: 'hidden',
     shadowColor: '#22c55e',

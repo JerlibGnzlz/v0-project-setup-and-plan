@@ -23,7 +23,6 @@ import {
   CreditCard,
   CheckCircle2,
   Loader2,
-  ArrowLeft,
   Receipt,
 } from 'lucide-react-native'
 import { CustomPicker } from '@components/ui/CustomPicker'
@@ -712,15 +711,6 @@ export function Step2UnifiedForm({
           {/* Actions */}
           <View style={styles.actions}>
             <TouchableOpacity
-              style={styles.backButton}
-              onPress={onBack}
-              disabled={loading}
-              activeOpacity={0.7}
-            >
-              <ArrowLeft size={16} color="rgba(255, 255, 255, 0.7)" />
-              <Text style={styles.backButtonText}>Atrás</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
               style={[styles.submitButton, (loading || yaInscrito) && styles.buttonDisabled]}
               onPress={handleSubmit}
               disabled={loading || yaInscrito}
@@ -1099,30 +1089,13 @@ const styles = StyleSheet.create({
     color: '#22c55e',
   },
   actions: {
-    flexDirection: 'row',
-    gap: 10,
     marginTop: 6,
     paddingTop: 16,
     borderTopWidth: 0.5,
     borderTopColor: 'rgba(255, 255, 255, 0.08)',
   },
-  backButton: {
-    flex: 1,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    gap: 6,
-  },
-  backButtonText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-    fontWeight: '600',
-  },
   submitButton: {
-    flex: 2,
+    width: '100%',
     borderRadius: 14,
     overflow: 'hidden',
     shadowColor: '#22c55e',

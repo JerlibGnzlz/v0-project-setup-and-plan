@@ -762,9 +762,6 @@ export function Step3Formulario({
 
             {/* Actions */}
             <View style={styles.actions}>
-              <TouchableOpacity style={styles.backButton} onPress={onBack} disabled={loading}>
-                <Text style={styles.backButtonText}>← Atrás</Text>
-              </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.submitButton, loading && styles.submitButtonDisabled]}
                 onPress={handleSubmit}
@@ -897,27 +894,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   actions: {
-    flexDirection: 'row',
-    gap: 12,
     marginTop: 24,
     paddingTop: 20,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
-  backButton: {
-    flex: 1,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  backButtonText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   submitButton: {
-    flex: 1,
+    width: '100%',
     paddingVertical: 16,
     alignItems: 'center',
     borderRadius: 12,

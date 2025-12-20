@@ -18,8 +18,6 @@ import {
   CreditCard,
   AlertCircle,
   Loader2,
-  ArrowLeft,
-  ArrowRight,
 } from 'lucide-react-native'
 import { type Convencion } from '@api/convenciones'
 import { inscripcionesApi } from '@api/inscripciones'
@@ -394,15 +392,6 @@ export function Step4Confirmacion({
         {/* Actions */}
         <View style={styles.actions}>
           <TouchableOpacity
-            style={styles.backButton}
-            onPress={onBack}
-            disabled={isSubmitting}
-            activeOpacity={0.7}
-          >
-            <ArrowLeft size={16} color="rgba(255, 255, 255, 0.7)" />
-            <Text style={styles.backButtonText}>Atrás</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             style={[styles.confirmButton, isSubmitting && styles.buttonDisabled]}
             onPress={handleConfirm}
             disabled={isSubmitting}
@@ -585,30 +574,13 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   actions: {
-    flexDirection: 'row',
-    gap: 10,
     marginTop: 6,
     paddingTop: 16,
     borderTopWidth: 0.5,
     borderTopColor: 'rgba(255, 255, 255, 0.08)',
   },
-  backButton: {
-    flex: 1,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    gap: 6,
-  },
-  backButtonText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-    fontWeight: '600',
-  },
   confirmButton: {
-    flex: 1,
+    width: '100%',
     borderRadius: 14,
     overflow: 'hidden',
     shadowColor: '#22c55e',

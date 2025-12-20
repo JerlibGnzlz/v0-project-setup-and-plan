@@ -22,7 +22,6 @@ import {
   Phone,
   CreditCard,
   CheckCircle2,
-  ArrowLeft,
   Loader2,
   Receipt,
   AlertCircle,
@@ -760,10 +759,6 @@ export function Step2FormularioCompleto({
 
           {/* Actions */}
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
-              <ArrowLeft size={16} color="rgba(255, 255, 255, 0.7)" />
-              <Text style={styles.backButtonText}>Atrás</Text>
-            </TouchableOpacity>
             <TouchableOpacity
               style={[styles.submitButton, (loading || yaInscrito) && styles.buttonDisabled]}
               onPress={handleSubmit}
@@ -1088,30 +1083,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   actions: {
-    flexDirection: 'row',
-    gap: 12,
     marginTop: 20,
     paddingTop: 20,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
-  backButton: {
-    flex: 1,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    gap: 6,
-  },
-  backButtonText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   submitButton: {
-    flex: 2,
+    width: '100%',
     borderRadius: 14,
     overflow: 'hidden',
     shadowColor: '#22c55e',
