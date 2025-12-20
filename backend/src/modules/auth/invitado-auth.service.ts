@@ -436,7 +436,7 @@ export class InvitadoAuthService {
         },
       })
 
-      // 2. Si no existe, buscar por email
+      // 2. Si no existe, buscar por email en InvitadoAuth
       if (!invitadoAuth) {
         this.logger.debug(`🔍 Invitado no encontrado por googleId, buscando por email: ${email}`)
         invitadoAuth = await this.prisma.invitadoAuth.findUnique({
@@ -475,7 +475,82 @@ export class InvitadoAuthService {
         this.logger.log(`✅ Invitado encontrado por googleId: ${email}`)
       }
 
-      // 3. Si no existe, crear nuevo invitado y auth
+      // 3. Si no existe InvitadoAuth, verificar si existe Invitado con ese email
+      // (puede haber sido creado desde otra fuente como inscripción)
+      if (!invitadoAuth) {
+        this.logger.debug(`🔍 No se encontró InvitadoAuth, verificando si existe Invitado con email: ${email}`)
+        const invitadoExistente = await this.prisma.invitado.findUnique({
+          where: { email },
+          include: {
+            auth: true,
+          },
+        })
+
+        if (invitadoExistente) {
+          // Si el invitado existe pero no tiene auth, crear el auth
+          if (!invitadoExistente.auth) {
+            this.logger.log(`📝 Creando InvitadoAuth para invitado existente: ${email}`)
+            const randomPassword = await bcrypt.hash(
+              Math.random().toString(36) + Date.now().toString(),
+              10
+            )
+
+            const nuevoAuth = await this.prisma.invitadoAuth.create({
+              data: {
+                invitadoId: invitadoExistente.id,
+                email,
+                password: randomPassword,
+                googleId,
+                emailVerificado: true,
+              },
+              include: {
+                invitado: true,
+              },
+            })
+
+            // Actualizar foto si no tiene y Google proporciona una
+            if (fotoUrl && !invitadoExistente.fotoUrl) {
+              await this.prisma.invitado.update({
+                where: { id: invitadoExistente.id },
+                data: { fotoUrl },
+              })
+              // Obtener datos actualizados con foto
+              invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+                where: { id: nuevoAuth.id },
+                include: {
+                  invitado: true,
+                },
+              })
+            } else {
+              invitadoAuth = nuevoAuth
+            }
+          } else {
+            // Si tiene auth pero no tiene googleId, actualizarlo
+            this.logger.log(`🔄 Actualizando InvitadoAuth existente con googleId: ${email}`)
+            await this.prisma.invitadoAuth.update({
+              where: { id: invitadoExistente.auth.id },
+              data: { googleId },
+            })
+
+            // Actualizar foto si no tiene y Google proporciona una
+            if (fotoUrl && !invitadoExistente.fotoUrl) {
+              await this.prisma.invitado.update({
+                where: { id: invitadoExistente.id },
+                data: { fotoUrl },
+              })
+            }
+
+            invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+              where: { id: invitadoExistente.auth.id },
+              include: {
+                invitado: true,
+              },
+            })
+          }
+        }
+      }
+
+      // 4. Si aún no existe, crear nuevo invitado y auth
       if (!invitadoAuth) {
         try {
           this.logger.log(`📝 Creando nuevo invitado con Google OAuth: ${email}`)
