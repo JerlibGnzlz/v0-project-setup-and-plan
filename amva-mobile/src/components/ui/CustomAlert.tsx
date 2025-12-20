@@ -120,7 +120,7 @@ export function CustomAlert({
       return '#ef4444'
     }
     if (buttonStyle === 'cancel') {
-      return 'rgba(255, 255, 255, 0.7)'
+      return 'rgba(255, 255, 255, 0.65)'
     }
     switch (type) {
       case 'success':
@@ -129,6 +129,8 @@ export function CustomAlert({
         return '#ef4444'
       case 'warning':
         return '#f59e0b'
+      case 'confirm':
+        return '#3b82f6'
       default:
         return '#3b82f6'
     }
