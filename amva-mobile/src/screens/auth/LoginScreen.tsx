@@ -165,12 +165,29 @@ export function LoginScreen() {
         const axiosError = error as {
           response?: {
             status?: number
+            statusText?: string
             data?: {
               message?: string | string[]
-              error?: { message?: string }
+              error?: string | { message?: string }
             }
           }
           message?: string
+        }
+        
+        // Manejar errores 400 específicamente
+        if (axiosError.response?.status === 400) {
+          const backendMessage = axiosError.response?.data?.message || 
+            (typeof axiosError.response?.data?.error === 'string' 
+              ? axiosError.response.data.error 
+              : axiosError.response?.data?.error?.message)
+          if (backendMessage) {
+            errorMessage = Array.isArray(backendMessage) 
+              ? backendMessage.join(', ') 
+              : backendMessage
+          } else {
+            errorMessage = 'Error de validación: Por favor verifica que el token de Google sea válido.'
+          }
+          console.error('❌ Error 400 del backend:', errorMessage)
         }
 
         // Manejar diferentes tipos de errores del backend
