@@ -415,7 +415,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                     style={styles.input}
                     value={formData.nombre}
                     onChangeText={value => handleChange('nombre', value)}
-                    placeholder="Ej: Juan (nombre registrado en AMVA)"
+                    placeholder="Nombre"
                     placeholderTextColor="rgba(255, 255, 255, 0.4)"
                     autoCapitalize="words"
                     returnKeyType="next"
@@ -463,7 +463,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                     style={styles.input}
                     value={formData.apellido}
                     onChangeText={value => handleChange('apellido', value)}
-                    placeholder="Ej: Pérez (apellido registrado en AMVA)"
+                    placeholder="Apellido"
                     placeholderTextColor="rgba(255, 255, 255, 0.4)"
                     autoCapitalize="words"
                     returnKeyType="next"
@@ -516,7 +516,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
-                  placeholder="tu.email@ejemplo.com (para acceso a AMVA Móvil)"
+                  placeholder="correo@ejemplo.com"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   returnKeyType="next"
                   onFocus={() => handleInputFocus('email')}
@@ -561,7 +561,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                   value={formData.telefono}
                   onChangeText={value => handleChange('telefono', value)}
                   keyboardType="phone-pad"
-                  placeholder="Ej: +54 11 1234-5678 (contacto AMVA)"
+                  placeholder="+54 11 1234-5678"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   returnKeyType="next"
                   onFocus={() => handleInputFocus('telefono')}
@@ -599,7 +599,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                   style={styles.input}
                   value={formData.sede}
                   onChangeText={value => handleChange('sede', value)}
-                  placeholder="Ej: Iglesia AMVA Buenos Aires (tu sede)"
+                  placeholder="Nombre de la iglesia"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   autoCapitalize="words"
                   returnKeyType="next"
@@ -643,7 +643,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                   value={formData.password}
                   onChangeText={value => handleChange('password', value)}
                   secureTextEntry={!showPassword}
-                  placeholder="Mínimo 8 caracteres (mayúscula, minúscula y número)"
+                  placeholder="••••••••"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   returnKeyType="next"
                   onFocus={() => handleInputFocus('password')}
@@ -716,7 +716,7 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
                   value={formData.confirmPassword}
                   onChangeText={value => handleChange('confirmPassword', value)}
                   secureTextEntry={!showConfirmPassword}
-                  placeholder="Repite tu contraseña para confirmar"
+                  placeholder="••••••••"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   returnKeyType="done"
                   onFocus={() => handleInputFocus('confirmPassword')}
