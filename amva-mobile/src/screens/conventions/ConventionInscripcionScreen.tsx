@@ -259,34 +259,83 @@ export function ConventionInscripcionScreen() {
 
   if (!convencion) {
     return (
-      <ScrollView style={styles.container} contentContainerStyle={styles.emptyContentContainer}>
-        {/* Header con logo */}
-        <View style={styles.emptyHeader}>
-          <Image
-            source={require('../../../assets/images/amvamovil.png')}
-            style={styles.emptyHeaderLogo}
-            resizeMode="contain"
-          />
-        </View>
-        <View style={styles.emptyCard}>
-          <View style={styles.emptyIconContainer}>
-            <Text style={styles.emptyIcon}>📅</Text>
-          </View>
-          <Text style={styles.emptyTitle}>No hay convención activa</Text>
-          <Text style={styles.emptySubtitle}>
-            En este momento no hay ninguna convención disponible para inscripción.
-          </Text>
-          <Text style={styles.emptyDescription}>
-            Te notificaremos cuando tengamos novedades sobre próximas convenciones.
-          </Text>
-          <TouchableOpacity
-            style={styles.backToHomeButton}
-            onPress={() => navigation.navigate('Inicio')}
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        <View style={styles.container}>
+          {/* Header con gradiente */}
+          <LinearGradient
+            colors={['rgba(34, 197, 94, 0.15)', 'rgba(59, 130, 246, 0.1)', 'transparent']}
+            style={styles.headerGradient}
           >
-            <Text style={styles.backToHomeButtonText}>🏠 Volver al Inicio</Text>
-          </TouchableOpacity>
+            <View style={styles.header}>
+              <View style={styles.logoHeaderContainer}>
+                <Image
+                  source={require('../../../assets/images/amvamovil.png')}
+                  style={styles.headerLogo}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.headerContent}>
+                <CalendarIcon size={28} color="#22c55e" />
+                <Text style={styles.title}>Inscripción a Convención</Text>
+              </View>
+            </View>
+          </LinearGradient>
+
+          <ScrollView 
+            style={styles.scrollView} 
+            contentContainerStyle={styles.emptyContentContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Mensaje "Muy Pronto" similar a la web */}
+            <View style={styles.comingSoonContainer}>
+              <View style={styles.comingSoonCard}>
+                {/* Gradient header animado */}
+                <LinearGradient
+                  colors={['rgba(14, 165, 233, 0.8)', 'rgba(34, 197, 94, 0.8)', 'rgba(251, 191, 36, 0.8)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.comingSoonGradientHeader}
+                />
+                
+                <View style={styles.comingSoonContent}>
+                  <View style={styles.comingSoonIconContainer}>
+                    <Clock size={32} color="#22c55e" />
+                  </View>
+                  
+                  <Text style={styles.comingSoonTitle}>
+                    Muy Pronto
+                  </Text>
+                  
+                  <Text style={styles.comingSoonSubtitle}>
+                    Gran Convención
+                  </Text>
+                  
+                  <Text style={styles.comingSoonDescription}>
+                    Estamos preparando un evento extraordinario para ti.{'\n'}
+                    ¡Pronto tendrás toda la información!
+                  </Text>
+                  
+                  <View style={styles.comingSoonInfoContainer}>
+                    <View style={styles.comingSoonInfoItem}>
+                      <CalendarIcon size={20} color="#60a5fa" />
+                      <Text style={styles.comingSoonInfoText}>Fecha por confirmar</Text>
+                    </View>
+                    
+                    <View style={styles.comingSoonInfoItem}>
+                      <MapPin size={20} color="#fbbf24" />
+                      <Text style={styles.comingSoonInfoText}>Ubicación por confirmar</Text>
+                    </View>
+                  </View>
+                  
+                  <Text style={styles.comingSoonFooter}>
+                    Estamos definiendo la fecha, ubicación y todos los detalles de nuestra próxima convención.
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
         </View>
-      </ScrollView>
+      </SafeAreaView>
     )
   }
 
@@ -615,66 +664,91 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 20,
+    paddingTop: 40,
   },
-  emptyHeader: {
+  comingSoonContainer: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 32,
   },
-  emptyHeaderLogo: {
-    width: 200,
-    height: 65,
-    opacity: 0.8,
-  },
-  emptyCard: {
+  comingSoonCard: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 32,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  comingSoonGradientHeader: {
+    height: 4,
+    width: '100%',
+  },
+  comingSoonContent: {
+    padding: 24,
     alignItems: 'center',
   },
-  emptyIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+  comingSoonIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
   },
-  emptyIcon: {
-    fontSize: 40,
-  },
-  emptyTitle: {
-    fontSize: 22,
+  comingSoonTitle: {
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 8,
     textAlign: 'center',
   },
-  emptyDescription: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.5)',
+  comingSoonSubtitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#22c55e',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  comingSoonDescription: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
     marginBottom: 24,
+    lineHeight: 24,
+  },
+  comingSoonInfoContainer: {
+    width: '100%',
+    gap: 12,
+    marginBottom: 20,
+  },
+  comingSoonInfoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  comingSoonInfoText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '500',
+    flex: 1,
+  },
+  comingSoonFooter: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.5)',
+    textAlign: 'center',
     lineHeight: 20,
-  },
-  backToHomeButton: {
-    backgroundColor: '#22c55e',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  backToHomeButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 })
