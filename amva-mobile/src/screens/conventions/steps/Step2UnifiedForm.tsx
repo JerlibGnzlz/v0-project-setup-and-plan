@@ -913,32 +913,6 @@ const styles = StyleSheet.create({
     top: 6,
     right: 6,
   },
-  paymentPlanContainer: {
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 0.5,
-    borderColor: 'rgba(245, 158, 11, 0.2)',
-  },
-  cuotaCardContent: {
-    flex: 1,
-  },
-  },
-  cuotaLabelSelected: {
-    color: '#4ade80',
-  },
-  cuotaValue: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.5)',
-  },
-  cuotaValueSelected: {
-    color: '#22c55e',
-    fontWeight: '600',
-  },
-  checkIcon: {
-    marginLeft: 8,
-  },
   summarySection: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: 12,
