@@ -260,77 +260,89 @@ export function InscripcionStatusScreen({
         {/* Lista de Pagos */}
         {pagos.length > 0 && (
           <View style={styles.paymentsListCard}>
-            {pagos.map((pago, index) => (
-              <View key={pago.id} style={styles.paymentItem}>
-                <View style={styles.paymentItemHeader}>
-                  <Text style={styles.paymentItemTitle}>Pago {pago.numeroCuota || index + 1}</Text>
-                  <View
-                    style={[
-                      styles.paymentStatusBadge,
-                      pago.estado === 'COMPLETADO' && styles.paymentStatusBadgeCompleted,
-                      pago.estado === 'PENDIENTE' && styles.paymentStatusBadgePending,
-                    ]}
-                  >
-                    <Text
+            {pagos.map((pago, index) => {
+              const numeroPago = pago.numeroCuota || index + 1
+              const estaPendiente = pago.estado === 'PENDIENTE'
+              const tieneComprobante = !!pago.comprobanteUrl
+              const estaSubiendo = uploadingComprobante && pagoSeleccionado === pago.id
+
+              return (
+                <View key={pago.id} style={styles.paymentItem}>
+                  <View style={styles.paymentItemHeader}>
+                    <Text style={styles.paymentItemTitle}>Pago {numeroPago}</Text>
+                    <View
                       style={[
-                        styles.paymentStatusBadgeText,
-                        pago.estado === 'COMPLETADO' && styles.paymentStatusBadgeTextCompleted,
-                        pago.estado === 'PENDIENTE' && styles.paymentStatusBadgeTextPending,
+                        styles.paymentStatusBadge,
+                        pago.estado === 'COMPLETADO' && styles.paymentStatusBadgeCompleted,
+                        pago.estado === 'PENDIENTE' && styles.paymentStatusBadgePending,
                       ]}
                     >
-                      {pago.estado === 'COMPLETADO' ? 'Completado' : 'Pendiente'}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.paymentStatusBadgeText,
+                          pago.estado === 'COMPLETADO' && styles.paymentStatusBadgeTextCompleted,
+                          pago.estado === 'PENDIENTE' && styles.paymentStatusBadgeTextPending,
+                        ]}
+                      >
+                        {pago.estado === 'COMPLETADO' ? 'Completado' : 'Pendiente'}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-                <Text style={styles.paymentAmount}>
-                  ${Number(pago.monto).toLocaleString('es-AR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{' '}
-                  (pesos argentinos)
-                </Text>
-                {pago.comprobanteUrl && (
-                  <View style={styles.comprobanteUploaded}>
-                    <CheckCircle2 size={16} color="#22c55e" />
-                    <Text style={styles.comprobanteUploadedText}>Comprobante cargado</Text>
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
-        )}
+                  <Text style={styles.paymentAmount}>
+                    ${Number(pago.monto).toLocaleString('es-AR', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{' '}
+                    (pesos argentinos)
+                  </Text>
+                  
+                  {/* Estado del comprobante */}
+                  {tieneComprobante ? (
+                    <View style={styles.comprobanteUploaded}>
+                      <CheckCircle2 size={16} color="#22c55e" />
+                      <Text style={styles.comprobanteUploadedText}>Comprobante cargado</Text>
+                    </View>
+                  ) : null}
 
-        {/* Subir Comprobante */}
-        {pagosPendientes.length > 0 && (
-          <View style={styles.uploadCard}>
-            <View style={styles.uploadHeader}>
-              <Receipt size={20} color="#f59e0b" />
-              <Text style={styles.uploadTitle}>Subir Comprobante de Transferencia</Text>
-            </View>
-            <Text style={styles.uploadDescription}>
-              Arrastra o selecciona una foto o captura de tu comprobante de transferencia bancaria
-              para el {pagosPendientes[0]?.numeroCuota ? `Pago ${pagosPendientes[0].numeroCuota}` : 'primer pago'}.
-            </Text>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={() => handleUploadComprobante(pagosPendientes[0].id)}
-              disabled={uploadingComprobante}
-            >
-              {uploadingComprobante && pagoSeleccionado === pagosPendientes[0].id ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <Upload size={20} color="#fff" />
-                  <Text style={styles.uploadButtonText}>Subir Comprobante</Text>
-                </>
-              )}
-            </TouchableOpacity>
-            <View style={styles.uploadWarning}>
-              <AlertCircle size={16} color="#ef4444" />
-              <Text style={styles.uploadWarningText}>
-                No se aceptan fotos de personas o imágenes sin texto
-              </Text>
-            </View>
+                  {/* Botón para subir comprobante (solo para pagos pendientes) */}
+                  {estaPendiente && (
+                    <View style={styles.paymentUploadSection}>
+                      <Text style={styles.paymentUploadDescription}>
+                        Sube el comprobante de transferencia bancaria para el Pago {numeroPago}
+                      </Text>
+                      <TouchableOpacity
+                        style={[
+                          styles.paymentUploadButton,
+                          estaSubiendo && styles.paymentUploadButtonDisabled,
+                        ]}
+                        onPress={() => handleUploadComprobante(pago.id)}
+                        disabled={estaSubiendo || uploadingComprobante}
+                      >
+                        {estaSubiendo ? (
+                          <View style={styles.paymentUploadButtonContent}>
+                            <ActivityIndicator color="#fff" size="small" />
+                            <Text style={styles.paymentUploadButtonText}>Subiendo...</Text>
+                          </View>
+                        ) : (
+                          <View style={styles.paymentUploadButtonContent}>
+                            <Upload size={18} color="#fff" />
+                            <Text style={styles.paymentUploadButtonText}>Subir Comprobante</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                      {!tieneComprobante && (
+                        <View style={styles.paymentUploadWarning}>
+                          <AlertCircle size={14} color="#ef4444" />
+                          <Text style={styles.paymentUploadWarningText}>
+                            No se aceptan fotos de personas o imágenes sin texto
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </View>
+              )
+            })}
           </View>
         )}
 
