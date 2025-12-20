@@ -405,7 +405,7 @@ export function LoginScreen() {
                   style={styles.input}
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="tu.email@ejemplo.com (usado en AMVA)"
+                  placeholder="correo@ejemplo.com"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   autoCapitalize="none"
                   keyboardType="email-address"
@@ -461,7 +461,7 @@ export function LoginScreen() {
                   style={styles.passwordInput}
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="Tu contraseña de acceso a AMVA Móvil"
+                  placeholder="••••••••"
                   placeholderTextColor="rgba(255, 255, 255, 0.4)"
                   secureTextEntry={!showPassword}
                   returnKeyType="done"
