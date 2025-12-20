@@ -15,7 +15,7 @@ import {
   Dimensions,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native'
+import { Mail, Lock, Eye, EyeOff, UserPlus } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useGoogleAuth } from '@hooks/useGoogleAuth'
 import { invitadoAuthApi } from '@api/invitado-auth'
@@ -549,7 +549,10 @@ export function LoginScreen() {
             )}
 
             <TouchableOpacity style={[styles.registerButton, isSmallScreen && styles.registerButtonSmall]} onPress={() => setShowRegister(true)}>
-              <Text style={[styles.registerButtonText, isSmallScreen && styles.registerButtonTextSmall]}>📝 Crear nueva cuenta</Text>
+              <View style={styles.registerButtonContent}>
+                <UserPlus size={14} color="rgba(255, 255, 255, 0.9)" />
+                <Text style={[styles.registerButtonText, isSmallScreen && styles.registerButtonTextSmall]}>Crear nueva cuenta</Text>
+              </View>
             </TouchableOpacity>
 
             {!isSmallScreen && (
