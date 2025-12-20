@@ -224,7 +224,16 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
     setLoading(true)
     try {
       console.log('🔐 Iniciando login con Google...')
+      
+      // Validar que el idToken no esté vacío
+      if (!idToken || idToken.trim().length === 0) {
+        const error = new Error('Token de Google no recibido')
+        console.error('❌ Error en login con Google:', error.message)
+        throw error
+      }
+      
       console.log('🔍 Token recibido (primeros 50 caracteres):', idToken.substring(0, 50) + '...')
+      console.log('🔍 Longitud del token:', idToken.length)
       
       // Obtener token de push si está disponible
       let deviceToken: string | undefined
@@ -255,6 +264,14 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
           }
         }
       }
+      
+      console.log('📤 Enviando datos al backend:', {
+        hasIdToken: !!idToken,
+        idTokenLength: idToken.length,
+        hasDeviceToken: !!deviceToken,
+        platform,
+        deviceId,
+      })
       
       const result = await invitadoAuthApi.loginWithGoogle(idToken, deviceToken, platform, deviceId)
       console.log('✅ Login con Google exitoso, guardando tokens...')
@@ -290,6 +307,35 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       console.error('❌ Error en login con Google:', errorMessage)
+      
+      // Log detallado del error para debugging
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as {
+          response?: {
+            status?: number
+            statusText?: string
+            data?: {
+              message?: string | string[]
+              error?: string
+            }
+          }
+        }
+        
+        console.error('📡 Detalles del error HTTP:', {
+          status: axiosError.response?.status,
+          statusText: axiosError.response?.statusText,
+          message: axiosError.response?.data?.message,
+          error: axiosError.response?.data?.error,
+        })
+        
+        // Si es un error 400, puede ser un problema de validación
+        if (axiosError.response?.status === 400) {
+          const backendMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Error de validación'
+          const detailedError = new Error(`Error de validación: ${Array.isArray(backendMessage) ? backendMessage.join(', ') : backendMessage}`)
+          console.error('❌ Error 400 - Validación fallida:', detailedError.message)
+          throw detailedError
+        }
+      }
       
       // Limpiar tokens si hay error
       try {
