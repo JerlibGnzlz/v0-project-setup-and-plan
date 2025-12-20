@@ -9,7 +9,7 @@ import {
   Image,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Clipboard from '@react-native-clipboard/clipboard'
+import * as Clipboard from 'expo-clipboard'
 import {
   CheckCircle2,
   Copy,
