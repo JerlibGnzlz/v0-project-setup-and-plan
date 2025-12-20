@@ -134,21 +134,12 @@ export function HomeScreen({ navigation }: Props) {
                 resizeMode="contain"
               />
             </View>
-            <View style={styles.welcomeContainer}>
-              <LinearGradient
-                colors={['#22c55e', '#10b981', '#06b6d4']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.welcomeGradient}
-              >
-                <Text style={styles.welcomeText}>Bienvenido</Text>
-              </LinearGradient>
-            </View>
             {invitado && (
-              <View style={styles.nameContainer}>
+              <View style={styles.welcomeContainer}>
                 <Text style={styles.nameText}>
                   {invitado.nombre} {invitado.apellido}
                 </Text>
+                <Text style={styles.welcomeSubtitle}>Bienvenido</Text>
               </View>
             )}
           </LinearGradient>
@@ -268,43 +259,26 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   welcomeContainer: {
+    marginTop: 8,
     marginBottom: 4,
-    overflow: 'hidden',
-    borderRadius: 12,
-  },
-  welcomeGradient: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: '900',
-    textAlign: 'center',
-    letterSpacing: 1,
-    color: '#fff',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
-  },
-  nameContainer: {
-    marginTop: 2,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.2)',
-  },
   nameText: {
-    fontSize: 15,
+    fontSize: 22,
     fontWeight: '600',
-    color: '#4ade80',
+    color: '#fff',
     textAlign: 'center',
-    letterSpacing: 0.3,
+    letterSpacing: -0.4,
+    marginBottom: 4,
+  },
+  welcomeSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.5)',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   cardsContainer: {
     flex: 1,
