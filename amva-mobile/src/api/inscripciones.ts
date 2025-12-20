@@ -5,6 +5,19 @@
 
 import { apiClient } from './client'
 
+export interface Pago {
+  id: string
+  inscripcionId: string
+  monto: number | string
+  numeroCuota?: number
+  estado: 'PENDIENTE' | 'COMPLETADO' | 'CANCELADO' | 'REEMBOLSADO'
+  comprobanteUrl?: string
+  fechaPago?: string
+  referencia?: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Inscripcion {
   id: string
   convencionId: string
@@ -20,10 +33,12 @@ export interface Inscripcion {
   origenRegistro?: string // 'web', 'mobile', 'dashboard'
   notas?: string
   dni?: string // DNI para relacionar con credenciales ministeriales y de capellanía
+  codigoReferencia?: string
   convencion?: {
     id: string
     titulo: string
   }
+  pagos?: Pago[]
 }
 
 export interface CreateInscripcionDto {

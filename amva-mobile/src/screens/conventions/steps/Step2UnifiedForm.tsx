@@ -33,6 +33,7 @@ import { inscripcionesApi } from '@api/inscripciones'
 import { uploadApi, pickImage } from '@api/upload'
 import { Alert } from '@utils/alert'
 import { format } from 'date-fns'
+import { InscripcionStatusScreen } from './InscripcionStatusScreen'
 
 interface Step2UnifiedFormProps {
   convencion: Convencion
@@ -230,13 +231,19 @@ export function Step2UnifiedForm({
     }
   }
 
+  // Si ya está inscrito, mostrar solo la pantalla de estado
+  if (yaInscrito && inscripcionExistente) {
+    return (
+      <InscripcionStatusScreen
+        convencion={convencion}
+        inscripcion={inscripcionExistente}
+        onBack={onBack}
+      />
+    )
+  }
+
   const handleSubmit = async () => {
     Keyboard.dismiss()
-
-    if (yaInscrito) {
-      Alert.alert('Ya inscrito', 'Ya estás inscrito en esta convención', undefined, 'info')
-      return
-    }
 
     if (!validateForm()) {
       const firstError = Object.keys(errors)[0]
@@ -397,29 +404,8 @@ export function Step2UnifiedForm({
             </View>
           </View>
 
-          {/* Mensaje si ya está inscrito */}
-          {yaInscrito && inscripcionExistente && (
-            <View style={styles.yaInscritoContainer}>
-              <View style={styles.yaInscritoCard}>
-                <CheckCircle2 size={24} color="#22c55e" />
-                <Text style={styles.yaInscritoTitle}>Ya estás inscrito</Text>
-                <Text style={styles.yaInscritoText}>
-                  Tu inscripción fue registrada el{' '}
-                  {new Date(inscripcionExistente.fechaInscripcion).toLocaleDateString('es-ES', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </Text>
-                <Text style={styles.yaInscritoSubtext}>
-                  Estado: <Text style={styles.estadoText}>{inscripcionExistente.estado}</Text>
-                </Text>
-              </View>
-            </View>
-          )}
-
           {/* Plan de Pago - Igual que en la web */}
-          {!yaInscrito && costo > 0 && (
+          {costo > 0 && (
             <View style={styles.paymentPlanSection}>
               <View style={styles.paymentPlanHeader}>
                 <CreditCard size={18} color="#f59e0b" />

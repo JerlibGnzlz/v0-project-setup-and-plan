@@ -393,7 +393,7 @@ export function ConventionInscripcionScreen() {
           )}
 
           {currentStep === 2 && convencion && invitado && (
-            <Step2Unified
+            <Step2UnifiedForm
               convencion={convencion}
               invitado={invitado}
               yaInscrito={yaInscrito}
