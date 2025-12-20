@@ -132,8 +132,8 @@ export function InscripcionStatusScreen({
     }
   }
 
-  const pagosPendientes = pagos.filter(p => p.estado === 'PENDIENTE')
-  const pagosCompletados = pagos.filter(p => p.estado === 'COMPLETADO')
+  const pagosPendientes = pagos.filter(p => String(p.estado).toUpperCase() === 'PENDIENTE')
+  const pagosCompletados = pagos.filter(p => String(p.estado).toUpperCase() === 'COMPLETADO')
   const totalPagos = pagos.length
   const totalCompletados = pagosCompletados.length
   const porcentajeCompletado = totalPagos > 0 ? Math.round((totalCompletados / totalPagos) * 100) : 0
@@ -270,9 +270,13 @@ export function InscripcionStatusScreen({
           <View style={styles.paymentsListCard}>
             {pagos.map((pago, index) => {
               const numeroPago = pago.numeroCuota || index + 1
-              const estaPendiente = pago.estado === 'PENDIENTE'
+              // Normalizar estado a mayúsculas para comparación
+              const estadoNormalizado = String(pago.estado).toUpperCase()
+              const estaPendiente = estadoNormalizado === 'PENDIENTE'
               const tieneComprobante = !!pago.comprobanteUrl
               const estaSubiendo = uploadingComprobante && pagoSeleccionado === pago.id
+              
+              console.log(`📋 Pago ${numeroPago}: estado=${pago.estado}, normalizado=${estadoNormalizado}, pendiente=${estaPendiente}`)
 
               return (
                 <View key={pago.id} style={styles.paymentItem}>
