@@ -1266,6 +1266,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 14,
     alignItems: 'center',
+    overflow: 'hidden', // Evitar que se vea contenido fuera del botón al presionar
   },
   googleButtonText: {
     color: '#60a5fa',
