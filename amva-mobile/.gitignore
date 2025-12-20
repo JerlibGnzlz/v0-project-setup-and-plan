@@ -5,7 +5,9 @@ node_modules/
 .env.production
 android/app/google-services.json
 android/app/amva-release-key.keystore
-android/gradle.properties
+# android/gradle.properties - NO ignorar, necesario para el build
+# Solo ignorar gradle.properties con credenciales sensibles si es necesario
+# android/gradle.properties
 *.keystore
 *.jks
 google-service-account.json
