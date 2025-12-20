@@ -63,7 +63,12 @@ export function InscripcionStatusScreen({
         
         // Si la inscripción tiene pagos, cargarlos
         if (inscripcionData.pagos && Array.isArray(inscripcionData.pagos)) {
+          console.log('📋 Pagos cargados:', inscripcionData.pagos.length)
+          console.log('📋 Detalles de pagos:', JSON.stringify(inscripcionData.pagos, null, 2))
           setPagos(inscripcionData.pagos as Pago[])
+        } else {
+          console.log('⚠️ No se encontraron pagos en la inscripción')
+          setPagos([])
         }
       } catch (error: unknown) {
         const errorMessage =
@@ -343,6 +348,12 @@ export function InscripcionStatusScreen({
                 </View>
               )
             })}
+          </View>
+        ) : (
+          <View style={styles.paymentsListCard}>
+            <Text style={styles.noPaymentsText}>
+              No hay pagos registrados para esta inscripción
+            </Text>
           </View>
         )}
 
