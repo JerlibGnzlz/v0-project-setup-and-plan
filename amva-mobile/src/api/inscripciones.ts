@@ -128,8 +128,11 @@ export interface UpdatePagoDto {
 }
 
 export const pagosApi = {
-  update: async (id: string, data: UpdatePagoDto): Promise<Pago> => {
-    const response = await apiClient.patch<Pago>(`/pagos/${id}`, data)
+  // Actualizar comprobante de pago (para invitados autenticados)
+  updateComprobante: async (id: string, comprobanteUrl: string): Promise<Pago> => {
+    const response = await apiClient.patch<Pago>(`/pagos/${id}/comprobante-invitado`, {
+      comprobanteUrl,
+    })
     return response.data
   },
 }

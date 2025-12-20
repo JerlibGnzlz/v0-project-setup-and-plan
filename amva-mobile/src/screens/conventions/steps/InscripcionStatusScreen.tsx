@@ -102,9 +102,7 @@ export function InscripcionStatusScreen({
         const uploadResponse = await uploadApi.uploadInscripcionDocumento(uri)
 
         // Actualizar el pago con el comprobante
-        await pagosApi.update(pagoId, {
-          comprobanteUrl: uploadResponse.url,
-        })
+        await pagosApi.updateComprobante(pagoId, uploadResponse.url)
 
         CustomAlert.alert('Éxito', 'Comprobante subido exitosamente', undefined, 'success')
         
