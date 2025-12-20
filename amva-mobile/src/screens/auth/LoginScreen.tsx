@@ -15,7 +15,7 @@ import {
   Dimensions,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Eye, EyeOff } from 'lucide-react-native'
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useGoogleAuth } from '@hooks/useGoogleAuth'
 import { invitadoAuthApi } from '@api/invitado-auth'
@@ -380,7 +380,10 @@ export function LoginScreen() {
             )}
 
             <View style={[styles.inputGroup, isSmallScreen && styles.inputGroupSmall]}>
-              <Text style={[styles.label, isSmallScreen && styles.labelSmall]}>📧 Correo electrónico</Text>
+              <View style={styles.labelContainer}>
+                <Mail size={14} color="rgba(255, 255, 255, 0.7)" style={styles.labelIcon} />
+                <Text style={[styles.label, isSmallScreen && styles.labelSmall]}>Correo electrónico</Text>
+              </View>
               <Animated.View
                 style={[
                   styles.inputContainer,
@@ -433,7 +436,10 @@ export function LoginScreen() {
             </View>
 
             <View style={[styles.inputGroup, isSmallScreen && styles.inputGroupSmall]}>
-              <Text style={[styles.label, isSmallScreen && styles.labelSmall]}>🔒 Contraseña</Text>
+              <View style={styles.labelContainer}>
+                <Lock size={14} color="rgba(255, 255, 255, 0.7)" style={styles.labelIcon} />
+                <Text style={[styles.label, isSmallScreen && styles.labelSmall]}>Contraseña</Text>
+              </View>
               <Animated.View
                 style={[
                   styles.inputContainer,
