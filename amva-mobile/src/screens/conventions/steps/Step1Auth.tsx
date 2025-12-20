@@ -346,18 +346,15 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
               <Image source={{ uri: invitado.fotoUrl }} style={styles.avatar} />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <User size={40} color="#22c55e" />
+                <User size={32} color="#22c55e" />
               </View>
             )}
             <View style={styles.checkBadge}>
-              <CheckCircle size={16} color="#fff" />
+              <CheckCircle size={14} color="#fff" />
             </View>
           </View>
-          <Text style={styles.welcomeTitle}>¡Bienvenido, {invitado.nombre}!</Text>
-          <Text style={styles.welcomeEmail}>{invitado.email}</Text>
-          <View style={styles.googleBadge}>
-            <Text style={styles.googleBadgeText}>Autenticado con Google</Text>
-          </View>
+          <Text style={styles.welcomeTitle}>{invitado.nombre}</Text>
+          <Text style={styles.welcomeSubtitle}>Bienvenido</Text>
           <Text style={styles.welcomeMessage}>Redirigiendo al formulario...</Text>
         </View>
       </View>
@@ -1305,75 +1302,67 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   welcomeCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+    padding: 0,
+    borderWidth: 0,
     alignItems: 'center',
     width: '100%',
     maxWidth: 400,
   },
   avatarContainer: {
     position: 'relative',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: '#22c55e',
-  },
-  avatarPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     borderWidth: 2,
     borderColor: 'rgba(34, 197, 94, 0.3)',
+  },
+  avatarPlaceholder: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(34, 197, 94, 0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(34, 197, 94, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkBadge: {
     position: 'absolute',
-    bottom: -2,
-    right: -2,
+    bottom: -1,
+    right: -1,
     backgroundColor: '#22c55e',
-    borderRadius: 12,
-    padding: 4,
+    borderRadius: 10,
+    padding: 3,
+    borderWidth: 2,
+    borderColor: '#0a1628',
   },
   welcomeTitle: {
-    fontSize: 21,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 6,
-    textAlign: 'center',
-    letterSpacing: -0.3,
-  },
-  welcomeEmail: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.65)',
-    marginBottom: 12,
-  },
-  googleBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginBottom: 16,
-  },
-  googleBadgeText: {
-    fontSize: 11,
+    fontSize: 24,
     fontWeight: '600',
     color: '#fff',
+    marginBottom: 4,
+    textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  welcomeSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginBottom: 20,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   welcomeMessage: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.4)',
     textAlign: 'center',
+    fontWeight: '400',
   },
 })
 
