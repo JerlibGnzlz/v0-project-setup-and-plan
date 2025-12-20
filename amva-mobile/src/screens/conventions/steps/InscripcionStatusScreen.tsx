@@ -130,9 +130,20 @@ export function InscripcionStatusScreen({
       if (!invitadoToken || !isAuthenticated) {
         CustomAlert.alert(
           'Autenticación requerida',
-          'Debes iniciar sesión para subir comprobantes. Por favor, inicia sesión con el mismo email con el que te inscribiste.',
-          undefined,
-          'error'
+          'Debes iniciar sesión para subir comprobantes.\n\nPor favor:\n1. Ve a la pantalla de inicio\n2. Inicia sesión con el mismo email con el que te inscribiste\n3. Luego podrás subir tus comprobantes',
+          [
+            {
+              text: 'Ir a Login',
+              onPress: () => {
+                // Navegar a login si es posible
+                // Por ahora solo mostramos el mensaje
+              },
+            },
+            {
+              text: 'Entendido',
+            },
+          ],
+          'warning'
         )
         return
       }
