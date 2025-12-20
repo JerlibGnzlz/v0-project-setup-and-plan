@@ -102,11 +102,14 @@ function MainTabs() {
   )
 }
 
+// Componente interno para manejar notificaciones dentro del NavigationContainer
+function NotificationsHandler() {
+  useNotifications()
+  return null
+}
+
 export function AppNavigator() {
   const { invitado, loading } = useInvitadoAuth()
-  
-  // Inicializar notificaciones (debe estar dentro de NavigationContainer)
-  useNotifications()
   
   // Animaciones para la pantalla de carga
   const fadeAnim = useRef(new Animated.Value(0)).current
@@ -199,6 +202,7 @@ export function AppNavigator() {
 
   return (
     <NavigationContainer>
+      <NotificationsHandler />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
           <>
