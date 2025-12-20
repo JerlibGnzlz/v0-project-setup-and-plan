@@ -958,6 +958,12 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     paddingHorizontal: 20,
   },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   buttonText: {
     color: '#fff',
     fontSize: 15,
