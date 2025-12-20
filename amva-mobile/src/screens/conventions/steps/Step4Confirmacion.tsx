@@ -24,6 +24,8 @@ import {
 import { type Convencion } from '@api/convenciones'
 import { inscripcionesApi } from '@api/inscripciones'
 import { Alert } from '@utils/alert'
+import { format, parseISO } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 interface Step4ConfirmacionProps {
   convencion: Convencion
@@ -53,15 +55,12 @@ export function Step4Confirmacion({
 }: Step4ConfirmacionProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const fechaInicio = new Date(convencion.fechaInicio)
-  const fechaFin = new Date(convencion.fechaFin)
+  // Usar parseISO para evitar problemas de zona horaria
+  const fechaInicio = parseISO(convencion.fechaInicio)
+  const fechaFin = parseISO(convencion.fechaFin)
 
   const formatoFecha = (fecha: Date) => {
-    return fecha.toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
+    return format(fecha, "d 'de' MMMM, yyyy", { locale: es })
   }
 
   const costo =

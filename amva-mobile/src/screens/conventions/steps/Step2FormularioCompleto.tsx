@@ -33,6 +33,8 @@ import { type Invitado } from '@api/invitado-auth'
 import { inscripcionesApi } from '@api/inscripciones'
 import { uploadApi, pickImage } from '@api/upload'
 import { Alert } from '@utils/alert'
+import { format, parseISO } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 interface Step2FormularioCompletoProps {
   convencion: Convencion
@@ -132,15 +134,12 @@ export function Step2FormularioCompleto({
   const [uploadingDocument, setUploadingDocument] = useState(false)
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null)
 
-  const fechaInicio = new Date(convencion.fechaInicio)
-  const fechaFin = new Date(convencion.fechaFin)
+  // Usar parseISO para evitar problemas de zona horaria
+  const fechaInicio = parseISO(convencion.fechaInicio)
+  const fechaFin = parseISO(convencion.fechaFin)
 
   const formatoFecha = (fecha: Date) => {
-    return fecha.toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
+    return format(fecha, "d 'de' MMMM, yyyy", { locale: es })
   }
 
   const costo =
@@ -406,11 +405,7 @@ export function Step2FormularioCompleto({
               <Text style={styles.yaInscritoTitle}>Ya estás inscrito</Text>
               <Text style={styles.yaInscritoText}>
                 Tu inscripción fue registrada el{' '}
-                {new Date(inscripcionExistente.fechaInscripcion).toLocaleDateString('es-ES', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
+                {format(parseISO(inscripcionExistente.fechaInscripcion), "d 'de' MMMM, yyyy", { locale: es })}
               </Text>
               <Text style={styles.yaInscritoSubtext}>
                 Estado: <Text style={styles.estadoText}>{inscripcionExistente.estado}</Text>

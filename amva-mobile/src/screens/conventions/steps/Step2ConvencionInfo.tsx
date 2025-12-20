@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Calendar, MapPin, Ticket, Star, CheckCircle2, CreditCard, ArrowRight, ArrowLeft } from 'lucide-react-native'
 import { type Convencion } from '@api/convenciones'
+import { format, parseISO } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 interface Step2ConvencionInfoProps {
   convencion: Convencion
@@ -22,15 +24,12 @@ export function Step2ConvencionInfo({
   initialNumeroCuotas = 3,
 }: Step2ConvencionInfoProps) {
   const [numeroCuotas, setNumeroCuotas] = useState<number>(initialNumeroCuotas)
-  const fechaInicio = new Date(convencion.fechaInicio)
-  const fechaFin = new Date(convencion.fechaFin)
+  // Usar parseISO para evitar problemas de zona horaria
+  const fechaInicio = parseISO(convencion.fechaInicio)
+  const fechaFin = parseISO(convencion.fechaFin)
 
   const formatoFecha = (fecha: Date) => {
-    return fecha.toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
+    return format(fecha, "d 'de' MMMM, yyyy", { locale: es })
   }
 
   const costo =
@@ -251,11 +250,7 @@ export function Step2ConvencionInfo({
               <Text style={styles.yaInscritoTitle}>Ya estás inscrito</Text>
               <Text style={styles.yaInscritoText}>
                 Tu inscripción fue registrada el{' '}
-                {new Date(inscripcionExistente.fechaInscripcion).toLocaleDateString('es-ES', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
+                {format(parseISO(inscripcionExistente.fechaInscripcion), "d 'de' MMMM, yyyy", { locale: es })}
               </Text>
               <Text style={styles.yaInscritoSubtext}>
                 Estado: <Text style={styles.estadoText}>{inscripcionExistente.estado}</Text>

@@ -32,6 +32,8 @@ import { uploadApi, pickImage } from '@api/upload'
 import { Alert as CustomAlert } from '@utils/alert'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import * as SecureStore from 'expo-secure-store'
+import { format, parseISO } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 interface InscripcionStatusScreenProps {
   convencion: Convencion
@@ -293,12 +295,9 @@ export function InscripcionStatusScreen({
   const montoPagado = pagosCompletados.reduce((sum, p) => sum + Number(p.monto), 0)
   const montoPendiente = montoTotal - montoPagado
 
-  const fechaInicio = new Date(convencion.fechaInicio)
-  const fechaFormateada = fechaInicio.toLocaleDateString('es-ES', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  // Usar parseISO para evitar problemas de zona horaria
+  const fechaInicio = parseISO(convencion.fechaInicio)
+  const fechaFormateada = format(fechaInicio, "d 'de' MMMM, yyyy", { locale: es })
 
   if (loading) {
     return (

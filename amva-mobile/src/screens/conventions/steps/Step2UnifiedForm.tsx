@@ -32,7 +32,8 @@ import { type Invitado } from '@api/invitado-auth'
 import { inscripcionesApi } from '@api/inscripciones'
 import { uploadApi, pickImage } from '@api/upload'
 import { Alert } from '@utils/alert'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
+import { es } from 'date-fns/locale'
 import { InscripcionStatusScreen } from './InscripcionStatusScreen'
 
 interface Step2UnifiedFormProps {
@@ -133,13 +134,11 @@ export function Step2UnifiedForm({
   const [uploadingDocument, setUploadingDocument] = useState(false)
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null)
 
-  const fechaInicio = new Date(convencion.fechaInicio)
-  const fechaFin = new Date(convencion.fechaFin)
-  const fechaFormateada = fechaInicio.toLocaleDateString('es-ES', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  // Usar parseISO para evitar problemas de zona horaria
+  const fechaInicio = parseISO(convencion.fechaInicio)
+  const fechaFin = parseISO(convencion.fechaFin)
+  const fechaFormateada = format(fechaInicio, "d 'de' MMMM, yyyy", { locale: es })
+  const fechaFinFormateada = format(fechaFin, "d 'de' MMMM, yyyy", { locale: es })
 
   const costo =
     typeof convencion.costo === 'number'
