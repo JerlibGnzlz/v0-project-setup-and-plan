@@ -266,7 +266,7 @@ export function InscripcionStatusScreen({
         </View>
 
         {/* Lista de Pagos */}
-        {pagos.length > 0 && (
+        {pagos.length > 0 ? (
           <View style={styles.paymentsListCard}>
             {pagos.map((pago, index) => {
               const numeroPago = pago.numeroCuota || index + 1
