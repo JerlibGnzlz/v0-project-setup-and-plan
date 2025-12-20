@@ -40,4 +40,10 @@ rootProject.name = 'AMVA Móvil'
 expoAutolinking.useExpoVersionCatalog()
 
 include ':app'
+
+// Asegurar que hermesEnabled esté disponible para el proyecto :app ANTES de que se evalúen los módulos
+// Esto permite que expo-modules-core acceda a project(':app').hermesEnabled durante su evaluación
+project(':app').projectDir = new File(rootProject.projectDir, 'app')
+project(':app').ext.hermesEnabled = rootProject.ext.hermesEnabled
+
 includeBuild(expoAutolinking.reactNativeGradlePlugin)
