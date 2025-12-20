@@ -465,7 +465,65 @@ export class NotificationsService {
       return
     }
 
+    // Si no es pastor, intentar como invitado
+    const invitado = await this.prisma.invitado.findUnique({
+      where: { email },
+      include: { auth: true },
+    })
+
+    if (invitado && invitado.auth) {
+      await this.registerInvitadoDeviceToken(invitado.id, token, platform as 'ios' | 'android', deviceId)
+      return
+    }
+
     throw new Error(`Usuario no encontrado para email: ${email}`)
+  }
+
+  /**
+   * Registra un token de dispositivo para un invitado
+   */
+  async registerInvitadoDeviceToken(
+    invitadoId: string,
+    token: string,
+    platform: 'ios' | 'android',
+    deviceId?: string,
+  ): Promise<void> {
+    try {
+      // Verificar si el token ya existe
+      const existing = await this.prisma.invitadoDeviceToken.findUnique({
+        where: { token },
+      })
+
+      if (existing) {
+        // Actualizar si ya existe
+        await this.prisma.invitadoDeviceToken.update({
+          where: { token },
+          data: {
+            invitadoId,
+            platform,
+            deviceId,
+            active: true,
+          },
+        })
+        this.logger.log(`Token de invitado actualizado para invitado ${invitadoId}`)
+      } else {
+        // Crear nuevo token
+        await this.prisma.invitadoDeviceToken.create({
+          data: {
+            invitadoId,
+            token,
+            platform,
+            deviceId,
+            active: true,
+          },
+        })
+        this.logger.log(`Token registrado para invitado ${invitadoId}`)
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error registrando token de invitado:`, errorMessage)
+      throw error
+    }
   }
 
   /**

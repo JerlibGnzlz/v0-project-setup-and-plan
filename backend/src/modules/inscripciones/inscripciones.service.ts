@@ -1386,6 +1386,77 @@ export class InscripcionesService {
                 }
             }
 
+            // Enviar push notification al invitado si tiene tokens registrados
+            if (this.notificationsService) {
+                try {
+                    const invitado = await this.prisma.invitado.findUnique({
+                        where: { email: inscripcion.email },
+                        include: {
+                            auth: {
+                                include: {
+                                    deviceTokens: {
+                                        where: { active: true },
+                                    },
+                                },
+                            },
+                        },
+                    })
+
+                    if (invitado?.auth?.deviceTokens && invitado.auth.deviceTokens.length > 0) {
+                        const montoFormateado = new Intl.NumberFormat('es-AR', {
+                            style: 'currency',
+                            currency: 'ARS',
+                        }).format(monto)
+
+                        const titulo = '✅ Pago Validado'
+                        const mensaje = `Tu pago de ${montoFormateado} (Cuota ${numeroCuota}/${numeroCuotas}) ha sido validado exitosamente.`
+
+                        let successCount = 0
+                        let errorCount = 0
+
+                        for (const deviceToken of invitado.auth.deviceTokens) {
+                            try {
+                                const sent = await this.notificationsService.sendPushNotification(
+                                    deviceToken.token,
+                                    titulo,
+                                    mensaje,
+                                    {
+                                        type: 'pago_validado',
+                                        pagoId: pago.id,
+                                        inscripcionId: inscripcion.id,
+                                        monto,
+                                        numeroCuota,
+                                        cuotasTotales: numeroCuotas,
+                                        cuotasPagadas,
+                                        convencionTitulo: convencion?.titulo || 'Convención',
+                                    }
+                                )
+
+                                if (sent) {
+                                    successCount++
+                                } else {
+                                    errorCount++
+                                }
+                            } catch (tokenError) {
+                                errorCount++
+                                this.logger.warn(`Error enviando push a token ${deviceToken.token}:`, tokenError)
+                            }
+                        }
+
+                        if (successCount > 0) {
+                            this.logger.log(
+                                `📱 Push notifications enviadas a invitado ${inscripcion.email}: ${successCount} exitosas, ${errorCount} errores`
+                            )
+                        }
+                    } else {
+                        this.logger.log(`ℹ️ Invitado ${inscripcion.email} no tiene tokens de dispositivo registrados`)
+                    }
+                } catch (pushError) {
+                    this.logger.error(`Error enviando push notifications a invitado ${inscripcion.email}:`, pushError)
+                    // No fallar si el push falla
+                }
+            }
+
             // Emitir evento como backup (para push/web notifications)
             this.eventEmitter.emit(NotificationEventType.PAGO_VALIDADO, event)
             this.logger.log(`📬 Evento PAGO_VALIDADO emitido para ${inscripcion.email}`)
