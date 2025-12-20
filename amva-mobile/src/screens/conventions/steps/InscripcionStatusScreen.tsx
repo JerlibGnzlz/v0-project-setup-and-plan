@@ -104,30 +104,98 @@ export function InscripcionStatusScreen({
 
   const handleUploadComprobante = async (pagoId: string) => {
     try {
+      console.log(`📤 Iniciando subida de comprobante para pago: ${pagoId}`)
       setUploadingComprobante(true)
       setPagoSeleccionado(pagoId)
 
-      const uri = await pickImage()
-      if (uri) {
-        const uploadResponse = await uploadApi.uploadInscripcionDocumento(uri)
-
-        // Actualizar el pago con el comprobante
-        await pagosApi.updateComprobante(pagoId, uploadResponse.url)
-
-        CustomAlert.alert('Éxito', 'Comprobante subido exitosamente', undefined, 'success')
-        
-        // Recargar la inscripción para obtener los datos actualizados
-        const inscripcionData = await inscripcionesApi.getById(inscripcion.id)
-        setInscripcionCompleta(inscripcionData)
-        if (inscripcionData.pagos && Array.isArray(inscripcionData.pagos)) {
-          setPagos(inscripcionData.pagos as Pago[])
-        }
-      }
+      // Mostrar opciones: Galería o Cámara
+      const { Alert: RNAlert } = await import('react-native')
+      RNAlert.alert(
+        'Seleccionar comprobante',
+        '¿Desde dónde deseas seleccionar el comprobante?',
+        [
+          {
+            text: 'Cancelar',
+            style: 'cancel',
+            onPress: () => {
+              setUploadingComprobante(false)
+              setPagoSeleccionado(null)
+            },
+          },
+          {
+            text: 'Galería',
+            onPress: async () => {
+              try {
+                const uri = await pickImage('gallery')
+                if (uri) {
+                  await uploadAndUpdateComprobante(pagoId, uri)
+                } else {
+                  setUploadingComprobante(false)
+                  setPagoSeleccionado(null)
+                }
+              } catch (err) {
+                setUploadingComprobante(false)
+                setPagoSeleccionado(null)
+              }
+            },
+          },
+          {
+            text: 'Cámara',
+            onPress: async () => {
+              try {
+                const uri = await pickImage('camera')
+                if (uri) {
+                  await uploadAndUpdateComprobante(pagoId, uri)
+                } else {
+                  setUploadingComprobante(false)
+                  setPagoSeleccionado(null)
+                }
+              } catch (err) {
+                setUploadingComprobante(false)
+                setPagoSeleccionado(null)
+              }
+            },
+          },
+        ],
+        { cancelable: true }
+      )
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : 'Error al subir el comprobante'
-      console.error('Error subiendo comprobante:', errorMessage)
+      console.error('❌ Error en handleUploadComprobante:', errorMessage)
       CustomAlert.alert('Error', errorMessage, undefined, 'error')
+      setUploadingComprobante(false)
+      setPagoSeleccionado(null)
+    }
+  }
+
+  const uploadAndUpdateComprobante = async (pagoId: string, uri: string) => {
+    try {
+      console.log(`📤 Subiendo imagen: ${uri}`)
+      const uploadResponse = await uploadApi.uploadInscripcionDocumento(uri)
+      console.log(`✅ Imagen subida exitosamente: ${uploadResponse.url}`)
+
+      // Actualizar el pago con el comprobante
+      console.log(`🔄 Actualizando pago ${pagoId} con comprobante...`)
+      await pagosApi.updateComprobante(pagoId, uploadResponse.url)
+      console.log(`✅ Pago actualizado exitosamente`)
+
+      CustomAlert.alert('Éxito', 'Comprobante subido exitosamente', undefined, 'success')
+
+      // Recargar la inscripción para obtener los datos actualizados
+      console.log(`🔄 Recargando inscripción...`)
+      const inscripcionData = await inscripcionesApi.getById(inscripcion.id)
+      setInscripcionCompleta(inscripcionData)
+      if (inscripcionData.pagos && Array.isArray(inscripcionData.pagos)) {
+        setPagos(inscripcionData.pagos as Pago[])
+      }
+      console.log(`✅ Inscripción recargada`)
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error al subir el comprobante'
+      console.error('❌ Error subiendo comprobante:', errorMessage)
+      console.error('❌ Error completo:', error)
+      CustomAlert.alert('Error', `No se pudo subir el comprobante: ${errorMessage}`, undefined, 'error')
     } finally {
       setUploadingComprobante(false)
       setPagoSeleccionado(null)
