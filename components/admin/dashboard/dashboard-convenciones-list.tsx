@@ -158,7 +158,7 @@ export function DashboardConvencionesList({
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {fechaInicio
-                          ? fechaInicio.toLocaleDateString('es-ES')
+                          ? format(fechaInicio, 'dd/MM/yyyy', { locale: es })
                           : 'Sin fecha'}
                         {ano && <span className="ml-2">• {ano}</span>}
                         {conv.fechaArchivado && (

@@ -80,11 +80,7 @@ export function DashboardConvencionControl({
               </span>
               <span className="text-sm font-semibold">
                 {convencionActiva?.fechaInicio
-                  ? new Date(convencionActiva.fechaInicio).toLocaleDateString('es-ES', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })
+                  ? format(new Date(convencionActiva.fechaInicio), 'dd/MM/yyyy', { locale: es })
                   : '-'}
               </span>
             </div>

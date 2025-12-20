@@ -18,6 +18,8 @@ import { useConvencionActiva } from '@/lib/hooks/use-convencion'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import type { Convencion } from '@/lib/api/convenciones'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 // Decorative corner component for invitation
 function DecorativeCorner({
@@ -507,12 +509,7 @@ export function ConventionsSection() {
   }
 
   const fechaConvencion = new Date(convencion.fechaInicio)
-  const fechaFormateada = fechaConvencion.toLocaleDateString('es-ES', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  const fechaFormateada = format(fechaConvencion, 'dd/MM/yyyy', { locale: es })
 
   return (
     <section

@@ -1,4 +1,6 @@
 import { Calendar } from 'lucide-react'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 interface DashboardHeaderProps {
   convencionActiva: {
@@ -25,11 +27,7 @@ export function DashboardHeader({ convencionActiva }: DashboardHeaderProps) {
               <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 animate-pulse" />
               {convencionActiva?.ubicacion || ''} •{' '}
               {convencionActiva?.fechaInicio
-                ? new Date(convencionActiva.fechaInicio).toLocaleDateString('es-ES', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  })
+                ? format(new Date(convencionActiva.fechaInicio), 'dd/MM/yyyy', { locale: es })
                 : ''}
             </p>
           </div>

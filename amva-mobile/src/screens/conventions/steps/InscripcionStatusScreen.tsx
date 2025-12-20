@@ -297,7 +297,7 @@ export function InscripcionStatusScreen({
 
   // Usar parseISO para evitar problemas de zona horaria
   const fechaInicio = parseISO(convencion.fechaInicio)
-  const fechaFormateada = format(fechaInicio, "d 'de' MMMM, yyyy", { locale: es })
+  const fechaFormateada = format(fechaInicio, 'dd/MM/yyyy', { locale: es })
 
   if (loading) {
     return (

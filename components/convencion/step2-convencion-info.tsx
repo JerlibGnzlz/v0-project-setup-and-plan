@@ -64,8 +64,8 @@ export function Step2ConvencionInfo({
 
   const fechaInicio = new Date(convencion.fechaInicio)
   const fechaFin = new Date(convencion.fechaFin)
-  const fechaFormateada = format(fechaInicio, "d 'de' MMMM, yyyy", { locale: es })
-  const fechaFinFormateada = format(fechaFin, "d 'de' MMMM, yyyy", { locale: es })
+  const fechaFormateada = format(fechaInicio, 'dd/MM/yyyy', { locale: es })
+  const fechaFinFormateada = format(fechaFin, 'dd/MM/yyyy', { locale: es })
 
   // Convertir costo a número de forma segura (puede venir como Decimal de Prisma)
   const costo =

@@ -60,7 +60,7 @@ export function Step4Confirmacion({
   const fechaFin = parseISO(convencion.fechaFin)
 
   const formatoFecha = (fecha: Date) => {
-    return format(fecha, "d 'de' MMMM, yyyy", { locale: es })
+    return format(fecha, 'dd/MM/yyyy', { locale: es })
   }
 
   const costo =

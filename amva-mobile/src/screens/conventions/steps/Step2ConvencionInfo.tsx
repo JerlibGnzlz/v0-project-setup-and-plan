@@ -29,7 +29,7 @@ export function Step2ConvencionInfo({
   const fechaFin = parseISO(convencion.fechaFin)
 
   const formatoFecha = (fecha: Date) => {
-    return format(fecha, "d 'de' MMMM, yyyy", { locale: es })
+    return format(fecha, 'dd/MM/yyyy', { locale: es })
   }
 
   const costo =
@@ -250,7 +250,7 @@ export function Step2ConvencionInfo({
               <Text style={styles.yaInscritoTitle}>Ya estás inscrito</Text>
               <Text style={styles.yaInscritoText}>
                 Tu inscripción fue registrada el{' '}
-                {format(parseISO(inscripcionExistente.fechaInscripcion), "d 'de' MMMM, yyyy", { locale: es })}
+                {format(parseISO(inscripcionExistente.fechaInscripcion), 'dd/MM/yyyy', { locale: es })}
               </Text>
               <Text style={styles.yaInscritoSubtext}>
                 Estado: <Text style={styles.estadoText}>{inscripcionExistente.estado}</Text>

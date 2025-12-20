@@ -65,8 +65,8 @@ export function Step4Resumen({
 
   const fechaInicio = new Date(convencion.fechaInicio)
   const fechaFin = new Date(convencion.fechaFin)
-  const fechaFormateada = format(fechaInicio, "d 'de' MMMM, yyyy", { locale: es })
-  const fechaFinFormateada = format(fechaFin, "d 'de' MMMM, yyyy", { locale: es })
+  const fechaFormateada = format(fechaInicio, 'dd/MM/yyyy', { locale: es })
+  const fechaFinFormateada = format(fechaFin, 'dd/MM/yyyy', { locale: es })
 
   const costo =
     typeof convencion.costo === 'number'
