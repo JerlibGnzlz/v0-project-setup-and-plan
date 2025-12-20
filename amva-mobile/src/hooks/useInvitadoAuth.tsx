@@ -315,8 +315,8 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
             status?: number
             statusText?: string
             data?: {
-              message?: string | string[]
-              error?: string
+              message?: string | string[] | unknown
+              error?: string | unknown
             }
           }
         }
@@ -324,15 +324,49 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
         console.error('📡 Detalles del error HTTP:', {
           status: axiosError.response?.status,
           statusText: axiosError.response?.statusText,
-          message: axiosError.response?.data?.message,
-          error: axiosError.response?.data?.error,
+          data: JSON.stringify(axiosError.response?.data, null, 2),
         })
         
         // Si es un error 400, puede ser un problema de validación
         if (axiosError.response?.status === 400) {
-          const backendMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Error de validación'
-          const detailedError = new Error(`Error de validación: ${Array.isArray(backendMessage) ? backendMessage.join(', ') : backendMessage}`)
-          console.error('❌ Error 400 - Validación fallida:', detailedError.message)
+          let backendMessage: string = 'Error de validación'
+          
+          // Extraer mensaje de diferentes formatos posibles
+          const responseData = axiosError.response?.data
+          if (responseData) {
+            // Formato 1: message como string
+            if (typeof responseData.message === 'string') {
+              backendMessage = responseData.message
+            }
+            // Formato 2: message como array
+            else if (Array.isArray(responseData.message)) {
+              backendMessage = responseData.message.join(', ')
+            }
+            // Formato 3: error como string
+            else if (typeof responseData.error === 'string') {
+              backendMessage = responseData.error
+            }
+            // Formato 4: message o error como objeto (extraer propiedades)
+            else if (responseData.message && typeof responseData.message === 'object') {
+              try {
+                backendMessage = JSON.stringify(responseData.message)
+              } catch {
+                backendMessage = 'Error de validación: Datos inválidos'
+              }
+            }
+            // Formato 5: error como objeto
+            else if (responseData.error && typeof responseData.error === 'object') {
+              try {
+                const errorObj = responseData.error as { message?: string; [key: string]: unknown }
+                backendMessage = errorObj.message || JSON.stringify(responseData.error)
+              } catch {
+                backendMessage = 'Error de validación: Datos inválidos'
+              }
+            }
+          }
+          
+          const detailedError = new Error(backendMessage)
+          console.error('❌ Error 400 - Validación fallida:', backendMessage)
           throw detailedError
         }
       }
