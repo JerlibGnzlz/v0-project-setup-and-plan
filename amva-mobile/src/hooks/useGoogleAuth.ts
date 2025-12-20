@@ -129,12 +129,17 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
 
       return userInfo.data.idToken
     } catch (err: unknown) {
-      // Verificar si el usuario canceló el inicio de sesión
+      // PRIMERO: Verificar si el usuario canceló el inicio de sesión
+      // Verificar por código de error
       if (err && typeof err === 'object' && 'code' in err) {
         const googleError = err as { code: string; message?: string }
 
-        if (googleError.code === statusCodes.SIGN_IN_CANCELLED) {
-          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+        if (
+          googleError.code === statusCodes.SIGN_IN_CANCELLED ||
+          googleError.code === '12500' || // Código de cancelación en Android
+          String(googleError.code) === String(statusCodes.SIGN_IN_CANCELLED)
+        ) {
+          console.log('ℹ️ Usuario canceló el inicio de sesión con Google (código:', googleError.code, ')')
           setError(null) // Limpiar error
           setLoading(false) // Asegurar que el loading se detenga
           // Crear un error especial para identificar cancelación
@@ -144,16 +149,28 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
         }
       }
       
-      // También verificar si el mensaje de error indica cancelación
+      // Verificar por nombre del error
       if (err instanceof Error) {
+        // Verificar por nombre
+        if (err.name === 'GoogleSignInCancelled' || err.message === 'SIGN_IN_CANCELLED') {
+          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+          setError(null)
+          setLoading(false)
+          const cancelError = new Error('SIGN_IN_CANCELLED')
+          cancelError.name = 'GoogleSignInCancelled'
+          throw cancelError
+        }
+        
+        // Verificar por mensaje de error
         const errorMessage = err.message.toLowerCase()
         if (
           errorMessage.includes('cancel') ||
           errorMessage.includes('cancelled') ||
           errorMessage.includes('cancelado') ||
-          errorMessage.includes('user_cancelled')
+          errorMessage.includes('user_cancelled') ||
+          (errorMessage.includes('no se recibió el token') && errorMessage.includes('cancel'))
         ) {
-          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+          console.log('ℹ️ Usuario canceló el inicio de sesión con Google (mensaje:', err.message, ')')
           setError(null)
           setLoading(false)
           const cancelError = new Error('SIGN_IN_CANCELLED')
