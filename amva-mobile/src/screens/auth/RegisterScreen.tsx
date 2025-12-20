@@ -14,7 +14,6 @@ import {
   Animated,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Mail, Lock, User, Phone, MapPin, CheckCircle, AlertCircle, Eye, EyeOff, UserPlus, ArrowLeft } from 'lucide-react-native'
 import { invitadoAuthApi } from '@api/invitado-auth'
 import * as SecureStore from 'expo-secure-store'
