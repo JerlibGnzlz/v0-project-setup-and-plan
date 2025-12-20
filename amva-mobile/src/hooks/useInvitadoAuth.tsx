@@ -315,9 +315,14 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
             status?: number
             statusText?: string
             data?: {
+              success?: boolean
+              error?: {
+                message?: string
+                statusCode?: number
+                error?: string
+                details?: unknown
+              }
               message?: string | string[] | unknown
-              error?: string | unknown
-              details?: unknown
             }
           }
         }
@@ -336,60 +341,35 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
           let backendMessage: string = 'Error de validación'
           
           if (responseData) {
-            // Formato 1: message como string (formato estándar de ErrorResponse)
-            if (typeof responseData.message === 'string') {
+            // Formato ErrorResponse estándar: response.data.error.message
+            if (responseData.error && typeof responseData.error === 'object') {
+              const errorObj = responseData.error as { message?: string; details?: unknown }
+              if (typeof errorObj.message === 'string') {
+                backendMessage = errorObj.message
+                
+                // Si hay details con validationErrors, agregarlos al mensaje
+                if (errorObj.details && typeof errorObj.details === 'object') {
+                  const details = errorObj.details as { validationErrors?: Array<{ field?: string; message?: string }> }
+                  if (details.validationErrors && Array.isArray(details.validationErrors) && details.validationErrors.length > 0) {
+                    const validationMessages = details.validationErrors
+                      .map(err => err.message || `${err.field}: Error de validación`)
+                      .join(', ')
+                    backendMessage = `${backendMessage}: ${validationMessages}`
+                  }
+                }
+              }
+            }
+            // Formato alternativo: response.data.message (compatibilidad)
+            else if (typeof responseData.message === 'string') {
               backendMessage = responseData.message
             }
-            // Formato 2: message como array
+            // Formato alternativo: message como array
             else if (Array.isArray(responseData.message)) {
               backendMessage = responseData.message.join(', ')
             }
-            // Formato 3: error como string
+            // Formato alternativo: error como string directo
             else if (typeof responseData.error === 'string') {
               backendMessage = responseData.error
-            }
-            // Formato 4: details puede contener validationErrors
-            else if (responseData.details && typeof responseData.details === 'object') {
-              const details = responseData.details as { validationErrors?: Array<{ field?: string; message?: string }> }
-              if (details.validationErrors && Array.isArray(details.validationErrors)) {
-                const validationMessages = details.validationErrors
-                  .map(err => err.message || `${err.field}: Error de validación`)
-                  .join(', ')
-                backendMessage = validationMessages || 'Error de validación'
-              } else {
-                // Intentar extraer cualquier propiedad de mensaje del objeto details
-                try {
-                  const detailsStr = JSON.stringify(responseData.details)
-                  if (detailsStr !== '{}') {
-                    backendMessage = `Error de validación: ${detailsStr}`
-                  }
-                } catch {
-                  backendMessage = 'Error de validación: Datos inválidos'
-                }
-              }
-            }
-            // Formato 5: message o error como objeto (último recurso)
-            else if (responseData.message && typeof responseData.message === 'object') {
-              try {
-                const messageObj = responseData.message as { [key: string]: unknown }
-                // Intentar extraer propiedades comunes
-                if ('message' in messageObj && typeof messageObj.message === 'string') {
-                  backendMessage = messageObj.message
-                } else {
-                  backendMessage = JSON.stringify(responseData.message)
-                }
-              } catch {
-                backendMessage = 'Error de validación: Datos inválidos'
-              }
-            }
-            // Formato 6: error como objeto
-            else if (responseData.error && typeof responseData.error === 'object') {
-              try {
-                const errorObj = responseData.error as { message?: string; [key: string]: unknown }
-                backendMessage = errorObj.message || JSON.stringify(responseData.error)
-              } catch {
-                backendMessage = 'Error de validación: Datos inválidos'
-              }
             }
           }
           
