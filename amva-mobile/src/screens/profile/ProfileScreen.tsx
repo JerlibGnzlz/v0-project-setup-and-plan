@@ -84,7 +84,7 @@ export function ProfileScreen() {
           {invitado.sede && (
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>Sede</Text>
-              <Text style={styles.infoValue} numberOfLines={1}>{invitado.sede}</Text>
+              <Text style={styles.infoValue}>{invitado.sede}</Text>
             </View>
           )}
 
