@@ -102,8 +102,25 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
       // Google Sign-In manejará internamente la verificación de Play Services si es necesario
       const userInfo = await GoogleSignin.signIn()
 
-      if (!userInfo.data?.idToken) {
-        throw new Error('No se recibió el token de Google')
+      // Verificar si el usuario canceló (userInfo puede ser null o no tener data)
+      if (!userInfo || !userInfo.data) {
+        console.log('ℹ️ Usuario canceló el inicio de sesión con Google (sin datos)')
+        setError(null)
+        setLoading(false)
+        const cancelError = new Error('SIGN_IN_CANCELLED')
+        cancelError.name = 'GoogleSignInCancelled'
+        throw cancelError
+      }
+
+      // Verificar si hay token
+      if (!userInfo.data.idToken) {
+        // Si no hay token, probablemente fue cancelación
+        console.log('ℹ️ Usuario canceló el inicio de sesión con Google (sin token)')
+        setError(null)
+        setLoading(false)
+        const cancelError = new Error('SIGN_IN_CANCELLED')
+        cancelError.name = 'GoogleSignInCancelled'
+        throw cancelError
       }
 
       console.log('✅ Login con Google exitoso')
