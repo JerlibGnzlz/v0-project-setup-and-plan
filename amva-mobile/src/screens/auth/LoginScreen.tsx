@@ -827,6 +827,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.1)',
+    overflow: 'hidden', // Evitar que se vea el cuadrito del logo al presionar
   },
   googleButtonSmall: {
     paddingVertical: 9,
