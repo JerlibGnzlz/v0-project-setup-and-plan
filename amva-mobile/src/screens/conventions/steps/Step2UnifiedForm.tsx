@@ -356,9 +356,11 @@ export function Step2UnifiedForm({
         ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
+        nestedScrollEnabled={true}
+        bounces={true}
       >
         <View style={styles.card}>
           {/* Header */}
@@ -774,7 +776,8 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 100,
+    paddingBottom: 150, // Más espacio para asegurar que se pueda hacer scroll completo
+    flexGrow: 1, // Permite que el contenido crezca más allá del viewport
   },
   card: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
