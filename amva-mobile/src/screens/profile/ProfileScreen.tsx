@@ -51,56 +51,73 @@ export function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) + 80 }]}>
-        <View style={styles.contentWrapper}>
-          {/* Header mejorado con gradiente */}
-          <LinearGradient
-            colors={['rgba(34, 197, 94, 0.2)', 'rgba(59, 130, 246, 0.15)', 'rgba(34, 197, 94, 0.05)', 'transparent']}
-            style={styles.headerGradient}
-          >
-            <View style={styles.header}>
-              {/* Avatar prominente */}
-              <View style={styles.avatarContainer}>
-                {invitado.fotoUrl ? (
-                  <Image source={{ uri: invitado.fotoUrl }} style={styles.profileImage} />
-                ) : (
-                  <View style={styles.avatarPlaceholder}>
-                    <LinearGradient
-                      colors={['rgba(34, 197, 94, 0.2)', 'rgba(34, 197, 94, 0.1)']}
-                      style={StyleSheet.absoluteFill}
-                    />
-                    <User size={32} color="#22c55e" />
-                  </View>
-                )}
-                <View style={styles.avatarBorder} />
-                <View style={styles.avatarGlow} />
-              </View>
-              
-              {/* Nombre del usuario */}
-              <Text style={styles.userName}>
+        {/* Header compacto con gradiente */}
+        <LinearGradient
+          colors={['rgba(34, 197, 94, 0.2)', 'rgba(59, 130, 246, 0.15)', 'rgba(34, 197, 94, 0.05)', 'transparent']}
+          style={styles.headerGradient}
+        >
+          <View style={styles.header}>
+            {/* Avatar compacto */}
+            <View style={styles.avatarContainer}>
+              {invitado.fotoUrl ? (
+                <Image source={{ uri: invitado.fotoUrl }} style={styles.profileImage} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <LinearGradient
+                    colors={['rgba(34, 197, 94, 0.2)', 'rgba(34, 197, 94, 0.1)']}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  <User size={28} color="#22c55e" />
+                </View>
+              )}
+              <View style={styles.avatarBorder} />
+            </View>
+            
+            {/* Información del usuario */}
+            <View style={styles.userInfo}>
+              <Text style={styles.userName} numberOfLines={1}>
                 {invitado.nombre} {invitado.apellido}
               </Text>
-              <Text style={styles.userEmail}>{invitado.email}</Text>
+              <View style={styles.emailRow}>
+                <Mail size={14} color="rgba(255, 255, 255, 0.6)" />
+                <Text style={styles.userEmail} numberOfLines={1}>{invitado.email}</Text>
+              </View>
             </View>
-          </LinearGradient>
+          </View>
+        </LinearGradient>
 
-          {/* Profile Card con nueva estética minimalista */}
-          <View style={styles.card}>
-            {invitado.telefono && (
-              <View style={styles.infoRow}>
-                <Phone size={16} color="rgba(255, 255, 255, 0.5)" />
-                <Text style={styles.infoText}>{invitado.telefono}</Text>
-              </View>
-            )}
-
-            {invitado.sede && (
-              <View style={styles.infoRow}>
-                <MapPin size={16} color="rgba(255, 255, 255, 0.5)" />
-                <Text style={styles.infoText}>{invitado.sede}</Text>
-              </View>
-            )}
-
+        {/* Profile Card optimizada */}
+        <View style={styles.card}>
+          {invitado.telefono && (
             <View style={styles.infoRow}>
-              <Tag size={16} color="rgba(255, 255, 255, 0.5)" />
+              <View style={styles.iconWrapper}>
+                <Phone size={18} color="#22c55e" />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Teléfono</Text>
+                <Text style={styles.infoText} numberOfLines={1}>{invitado.telefono}</Text>
+              </View>
+            </View>
+          )}
+
+          {invitado.sede && (
+            <View style={styles.infoRow}>
+              <View style={styles.iconWrapper}>
+                <MapPin size={18} color="#22c55e" />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Sede</Text>
+                <Text style={styles.infoText} numberOfLines={1}>{invitado.sede}</Text>
+              </View>
+            </View>
+          )}
+
+          <View style={[styles.infoRow, styles.lastInfoRow]}>
+            <View style={styles.iconWrapper}>
+              <Tag size={18} color="#22c55e" />
+            </View>
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Tipo de Usuario</Text>
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>Invitado</Text>
               </View>
@@ -133,33 +150,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0a1628',
-    padding: 12,
-    paddingTop: 8,
-    justifyContent: 'space-between',
-  },
-  contentWrapper: {
-    flex: 1,
+    padding: 16,
+    paddingTop: 12,
   },
   headerGradient: {
-    paddingTop: 24,
-    paddingBottom: 24,
+    paddingTop: 16,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
     marginBottom: 16,
-    borderRadius: 20,
-    marginHorizontal: -12,
+    borderRadius: 18,
+    marginHorizontal: -16,
     overflow: 'hidden',
   },
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 14,
   },
   avatarContainer: {
     position: 'relative',
-    marginBottom: 16,
   },
   avatarPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 3,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 2.5,
     borderColor: 'rgba(34, 197, 94, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -167,41 +182,35 @@ const styles = StyleSheet.create({
   },
   avatarBorder: {
     position: 'absolute',
-    top: -4,
-    left: -4,
-    right: -4,
-    bottom: -4,
-    borderRadius: 54,
-    borderWidth: 2,
+    top: -3,
+    left: -3,
+    right: -3,
+    bottom: -3,
+    borderRadius: 38,
+    borderWidth: 1.5,
     borderColor: 'rgba(34, 197, 94, 0.2)',
   },
-  avatarGlow: {
-    position: 'absolute',
-    top: -8,
-    left: -8,
-    right: -8,
-    bottom: -8,
-    borderRadius: 58,
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    shadowColor: '#22c55e',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 10,
+  userInfo: {
+    flex: 1,
+    justifyContent: 'center',
   },
   userName: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 4,
-    textAlign: 'center',
-    letterSpacing: -0.5,
+    marginBottom: 6,
+    letterSpacing: -0.4,
+  },
+  emailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   userEmail: {
-    fontSize: 14,
+    fontSize: 13,
     color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'center',
     fontWeight: '500',
+    flex: 1,
   },
   title: {
     fontSize: 21,
@@ -222,22 +231,46 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    marginBottom: 12,
-    gap: 12,
+    marginBottom: 16,
   },
   infoRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 12,
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
-  infoText: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '500',
+  lastInfoRow: {
+    borderBottomWidth: 0,
+    paddingBottom: 0,
+  },
+  iconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.2)',
+  },
+  infoContent: {
     flex: 1,
+    justifyContent: 'center',
+  },
+  infoLabel: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.5)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  infoText: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontWeight: '600',
   },
   badgeContainer: {
     backgroundColor: 'rgba(34, 197, 94, 0.12)',
@@ -285,10 +318,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 3,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 2.5,
     borderColor: 'rgba(34, 197, 94, 0.4)',
   },
 })
