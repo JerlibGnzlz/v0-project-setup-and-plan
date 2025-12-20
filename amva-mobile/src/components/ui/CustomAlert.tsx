@@ -88,15 +88,15 @@ export function CustomAlert({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircle size={48} color="#22c55e" />
+        return <CheckCircle size={40} color="#22c55e" />
       case 'error':
-        return <AlertCircle size={48} color="#ef4444" />
+        return <AlertCircle size={40} color="#ef4444" />
       case 'warning':
-        return <AlertTriangle size={48} color="#f59e0b" />
+        return <AlertTriangle size={32} color="#f59e0b" />
       case 'confirm':
-        return <Info size={48} color="#3b82f6" />
+        return <Info size={40} color="#3b82f6" />
       default:
-        return <Info size={48} color="#3b82f6" />
+        return <Info size={40} color="#3b82f6" />
     }
   }
 
@@ -107,7 +107,7 @@ export function CustomAlert({
       case 'error':
         return ['rgba(239, 68, 68, 0.15)', 'rgba(239, 68, 68, 0.05)']
       case 'warning':
-        return ['rgba(245, 158, 11, 0.15)', 'rgba(245, 158, 11, 0.05)']
+        return ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)'] // Más sutil para warning
       case 'confirm':
         return ['rgba(59, 130, 246, 0.15)', 'rgba(59, 130, 246, 0.05)']
       default:
@@ -188,11 +188,20 @@ export function CustomAlert({
               ]}
             >
               <LinearGradient colors={getGradientColors()} style={styles.content}>
-                <View style={styles.iconContainer}>{getIcon()}</View>
+                {type !== 'warning' && <View style={styles.iconContainer}>{getIcon()}</View>}
+                {type === 'warning' && (
+                  <View style={styles.warningIconContainer}>{getIcon()}</View>
+                )}
 
-                <Text style={styles.title}>{title}</Text>
+                <Text style={[styles.title, type === 'warning' && styles.warningTitle]}>
+                  {title}
+                </Text>
 
-                {message && <Text style={styles.message}>{message}</Text>}
+                {message && (
+                  <Text style={[styles.message, type === 'warning' && styles.warningMessage]}>
+                    {message}
+                  </Text>
+                )}
 
                 <View style={styles.buttonContainer}>
                   {buttons.map((button, index) => (
@@ -201,25 +210,38 @@ export function CustomAlert({
                       style={[
                         styles.button,
                         buttons.length > 1 && index < buttons.length - 1 && styles.buttonMargin,
+                        type === 'warning' && styles.warningButton,
                       ]}
                       onPress={() => handleButtonPress(button)}
                       activeOpacity={0.8}
                     >
-                      <LinearGradient
-                        colors={getButtonColors(button.style)}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={styles.buttonGradient}
-                      >
+                      {type === 'warning' ? (
                         <Text
                           style={[
                             styles.buttonText,
+                            styles.warningButtonText,
                             { color: getButtonTextColor(button.style) },
                           ]}
                         >
                           {button.text}
                         </Text>
-                      </LinearGradient>
+                      ) : (
+                        <LinearGradient
+                          colors={getButtonColors(button.style)}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={styles.buttonGradient}
+                        >
+                          <Text
+                            style={[
+                              styles.buttonText,
+                              { color: getButtonTextColor(button.style) },
+                            ]}
+                          >
+                            {button.text}
+                          </Text>
+                        </LinearGradient>
+                      )}
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -245,10 +267,10 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   content: {
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: 16,
+    padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
@@ -259,19 +281,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
+  warningIconContainer: {
+    alignItems: 'center',
     marginBottom: 12,
   },
-  message: {
-    fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.8)',
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 24,
+    marginBottom: 8,
+    letterSpacing: -0.3,
+  },
+  warningTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  message: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  warningMessage: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: 16,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -295,6 +332,18 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: '700',
+  },
+  warningButton: {
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.15)',
+    borderRadius: 10,
+  },
+  warningButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
 })
 
