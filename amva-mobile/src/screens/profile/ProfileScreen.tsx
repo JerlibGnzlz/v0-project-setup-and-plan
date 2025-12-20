@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { User, Mail, Phone, MapPin, Tag, LogOut } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
@@ -8,6 +8,7 @@ import { Alert } from '@utils/alert'
 
 export function ProfileScreen() {
   const { invitado, logout } = useInvitadoAuth()
+  const insets = useSafeAreaInsets()
 
   const handleLogout = () => {
     Alert.alert(
@@ -23,9 +24,12 @@ export function ProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              console.log('🚪 Iniciando proceso de cierre de sesión...')
               await logout()
+              console.log('✅ Sesión cerrada exitosamente')
+              // La navegación se actualizará automáticamente cuando invitado sea null
             } catch (error) {
-              console.error('Error al cerrar sesión:', error)
+              console.error('❌ Error al cerrar sesión:', error)
               Alert.alert('Error', 'No se pudo cerrar sesión. Intenta nuevamente.', undefined, 'error')
             }
           },
@@ -45,8 +49,8 @@ export function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) + 80 }]}>
         <View style={styles.contentWrapper}>
           {/* Header con gradiente */}
           <LinearGradient
@@ -307,13 +311,14 @@ const styles = StyleSheet.create({
   logoutButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    marginTop: 'auto',
-    marginBottom: 8,
+    marginTop: 12,
+    marginBottom: 0,
     shadowColor: '#ef4444',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 4,
+    zIndex: 10,
   },
   logoutGradient: {
     flexDirection: 'row',
