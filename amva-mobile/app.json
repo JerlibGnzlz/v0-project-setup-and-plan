@@ -25,7 +25,9 @@
           {
             "icon": "./assets/images/amvamovil.png",
             "color": "#22c55e",
-            "sounds": ["default"]
+            "sounds": [
+              "default"
+            ]
           }
         ]
       ]
@@ -51,7 +53,9 @@
           {
             "icon": "./assets/images/amvamovil.png",
             "color": "#22c55e",
-            "sounds": ["default"]
+            "sounds": [
+              "default"
+            ]
           }
         ]
       ],
@@ -67,7 +71,10 @@
               "host": "vidaabundante.org"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
