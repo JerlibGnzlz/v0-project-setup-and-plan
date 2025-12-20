@@ -19,9 +19,7 @@ import { convencionesApi, type Convencion, normalizeBoolean } from '@api/convenc
 import { inscripcionesApi } from '@api/inscripciones'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { Step1Auth } from './steps/Step1Auth'
-import { Step2ConvencionInfo } from './steps/Step2ConvencionInfo'
-import { Step3Formulario } from './steps/Step3Formulario'
-import { Step4Confirmacion } from './steps/Step4Confirmacion'
+import { Step2UnifiedForm } from './steps/Step2UnifiedForm'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
@@ -86,14 +84,9 @@ export function ConventionInscripcionScreen() {
                   if (inscripcion) {
                     setYaInscrito(true)
                     setInscripcionExistente(inscripcion)
-                    // Si ya está inscrito y autenticado, ir directamente al step 2 o 4 según estado
+                    // Si ya está inscrito y autenticado, ir directamente al step 2
                     if (isAuthenticated) {
-                      if (inscripcion.estado === 'confirmado') {
-                        setCurrentStep(4)
-                        setInscripcionCompleta(true)
-                      } else {
-                        setCurrentStep(2)
-                      }
+                      setCurrentStep(2)
                     }
                   } else {
                     setYaInscrito(false)
@@ -119,12 +112,7 @@ export function ConventionInscripcionScreen() {
                 if (inscripcion) {
                   setYaInscrito(true)
                   setInscripcionExistente(inscripcion)
-                  if (inscripcion.estado === 'confirmado') {
-                    setCurrentStep(4)
-                    setInscripcionCompleta(true)
-                  } else {
-                    setCurrentStep(2)
-                  }
+                  setCurrentStep(2)
                 } else {
                   setYaInscrito(false)
                   setInscripcionExistente(null)
@@ -186,20 +174,13 @@ export function ConventionInscripcionScreen() {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      // Cambiar step
+      // Cambiar step - Solo 2 pasos ahora
       if (step === 1 && isAuthenticated) {
-        if (yaInscrito) {
-          setCurrentStep(2)
-        } else {
-          setCurrentStep(2)
-        }
+        setCurrentStep(2)
       } else if (step === 2) {
-        setCurrentStep(3)
-      } else if (step === 3) {
+        // Inscripción completada
         setInscripcionCompleta(true)
-        setCurrentStep(4)
-      } else if (step < 4) {
-        setCurrentStep(step + 1)
+        navigation.navigate('Inicio')
       }
       
       // Animación de entrada
@@ -254,13 +235,6 @@ export function ConventionInscripcionScreen() {
     }
   }
 
-  const handleConfirm = () => {
-    // Después de confirmar, volver al inicio
-    setInscripcionCompleta(true)
-    setCurrentStep(2) // Volver a información en lugar de autenticación
-    setFormData(null)
-    navigation.navigate('Inicio')
-  }
 
   if (loadingConvencion) {
     return (
@@ -317,9 +291,7 @@ export function ConventionInscripcionScreen() {
 
   const steps = [
     { number: 1, title: 'Autenticación', description: 'Inicia sesión o crea tu cuenta' },
-    { number: 2, title: 'Información', description: 'Detalles de la convención' },
-    { number: 3, title: 'Formulario', description: 'Completa tus datos' },
-    { number: 4, title: 'Confirmación', description: 'Revisa y confirma' },
+    { number: 2, title: 'Inscripción', description: 'Completa tu inscripción' },
   ]
 
   return (
@@ -420,32 +392,13 @@ export function ConventionInscripcionScreen() {
             />
           )}
 
-          {currentStep === 2 && convencion && (
-            <Step2ConvencionInfo
-              convencion={convencion}
-              yaInscrito={yaInscrito}
-              inscripcionExistente={inscripcionExistente}
-              initialNumeroCuotas={formData?.numeroCuotas}
-              onComplete={data => handleStepComplete(2, data)}
-              onBack={handleBack}
-            />
-          )}
-
-          {currentStep === 3 && convencion && invitado && (
-            <Step3Formulario
+          {currentStep === 2 && convencion && invitado && (
+            <Step2UnifiedForm
               convencion={convencion}
               invitado={invitado}
-              initialData={formData}
-              onComplete={data => handleStepComplete(3, data)}
-              onBack={handleBack}
-            />
-          )}
-
-          {currentStep === 4 && convencion && formData && (
-            <Step4Confirmacion
-              convencion={convencion}
-              formData={formData}
-              onConfirm={handleConfirm}
+              yaInscrito={yaInscrito}
+              inscripcionExistente={inscripcionExistente}
+              onComplete={() => handleStepComplete(2)}
               onBack={handleBack}
             />
           )}
@@ -570,7 +523,7 @@ const styles = StyleSheet.create({
   stepHorizontalItem: {
     flex: 1,
     alignItems: 'center',
-    maxWidth: (SCREEN_WIDTH - 32) / 4,
+    maxWidth: (SCREEN_WIDTH - 32) / 2,
   },
   stepCircleHorizontal: {
     width: 36,
