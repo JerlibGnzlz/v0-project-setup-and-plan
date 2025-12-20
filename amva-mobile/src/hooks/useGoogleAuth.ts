@@ -96,48 +96,37 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
         }
       }
 
-      // Verificar que Google Play Services esté disponible (solo Android)
+      // En Android, necesitamos asegurar que la actividad esté lista
+      // antes de llamar a cualquier método de Google Sign-In
       if (Platform.OS === 'android') {
+        // Esperar un momento para asegurar que la actividad esté completamente inicializada
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Verificar Google Play Services solo después de asegurar que la actividad esté lista
+        // Usar showPlayServicesUpdateDialog: false para evitar problemas con la actividad
         try {
           const hasPlayServices = await GoogleSignin.hasPlayServices({
-            showPlayServicesUpdateDialog: true,
+            showPlayServicesUpdateDialog: false, // Cambiar a false para evitar problemas con actividad
           })
           if (!hasPlayServices) {
-            throw new Error('Google Play Services no está disponible')
+            // Si no hay Play Services, intentar continuar de todas formas
+            // ya que algunos dispositivos pueden funcionar sin él
+            console.warn('⚠️ Google Play Services no está disponible, pero continuando...')
           }
         } catch (playServicesError: unknown) {
+          // No lanzar error aquí, solo loguear
+          // El error "activity is null" puede ocurrir aquí pero no debería bloquear el flujo
           const errorMessage =
             playServicesError instanceof Error
               ? playServicesError.message
               : 'Error verificando Google Play Services'
-          console.error('❌ Error con Google Play Services:', errorMessage)
-          throw new Error(`Google Play Services: ${errorMessage}`)
+          console.warn('⚠️ Advertencia con Google Play Services:', errorMessage)
+          // Continuar de todas formas, ya que el signIn puede funcionar sin esta verificación
         }
       }
 
-      // Pequeño delay para asegurar que la actividad esté lista (solo Android)
-      // Esto ayuda a evitar el error "activity is null"
-      if (Platform.OS === 'android') {
-        await new Promise(resolve => setTimeout(resolve, 300))
-      }
-
-      // Verificar que no haya una sesión en progreso
-      try {
-        const isSignedIn = await GoogleSignin.isSignedIn()
-        if (isSignedIn) {
-          // Si ya hay una sesión, obtener el usuario actual
-          const currentUser = await GoogleSignin.getCurrentUser()
-          if (currentUser?.data?.idToken) {
-            console.log('✅ Usuario ya autenticado con Google')
-            return currentUser.data.idToken
-          }
-        }
-      } catch (checkError) {
-        // Continuar con el flujo normal si hay error al verificar
-        console.log('ℹ️ Verificando sesión existente...')
-      }
-
-      // Iniciar sesión
+      // Iniciar sesión directamente sin más verificaciones
+      // Google Sign-In manejará internamente la verificación de Play Services si es necesario
       const userInfo = await GoogleSignin.signIn()
 
       if (!userInfo.data?.idToken) {
