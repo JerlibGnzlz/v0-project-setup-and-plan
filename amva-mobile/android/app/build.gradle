@@ -3,6 +3,10 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "com.google.gms.google-services"
 
+// Definir hermesEnabled como propiedad del proyecto :app ANTES de que los módulos de Expo lo necesiten
+// Esto debe estar al principio del archivo para que esté disponible durante la configuración de módulos
+project.ext.hermesEnabled = (findProperty('hermesEnabled') ?: 'true').toBoolean()
+
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
 /**
@@ -82,9 +86,7 @@ def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBu
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
-// hermesEnabled está definido en gradle.properties y en el proyecto raíz
-// También lo definimos aquí como propiedad del proyecto :app para que los módulos de Expo puedan accederlo
-project.ext.hermesEnabled = (findProperty('hermesEnabled') ?: 'true').toBoolean()
+// hermesEnabled ya está definido arriba como propiedad del proyecto
 def hermesEnabled = project.ext.hermesEnabled
 
 android {
