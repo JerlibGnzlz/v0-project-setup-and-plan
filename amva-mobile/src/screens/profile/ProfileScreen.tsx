@@ -47,40 +47,41 @@ export function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.container}>
-        {/* Header con gradiente */}
-        <LinearGradient
-          colors={['rgba(34, 197, 94, 0.15)', 'rgba(59, 130, 246, 0.1)', 'transparent']}
-          style={styles.headerGradient}
-        >
-          <View style={styles.header}>
-            {/* Logo compacto */}
-            <View style={styles.logoContainer}>
-              <Image
-                source={require('../../../assets/images/amvamovil.png')}
-                style={styles.logoImage}
-                resizeMode="contain"
-              />
+        <View style={styles.contentWrapper}>
+          {/* Header con gradiente */}
+          <LinearGradient
+            colors={['rgba(34, 197, 94, 0.15)', 'rgba(59, 130, 246, 0.1)', 'transparent']}
+            style={styles.headerGradient}
+          >
+            <View style={styles.header}>
+              {/* Logo compacto */}
+              <View style={styles.logoContainer}>
+                <Image
+                  source={require('../../../assets/images/amvamovil.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.avatarContainer}>
+                {invitado.fotoUrl ? (
+                  <Image source={{ uri: invitado.fotoUrl }} style={styles.profileImage} />
+                ) : (
+                  <View style={styles.avatarPlaceholder}>
+                    <User size={24} color="#22c55e" />
+                  </View>
+                )}
+                <View style={styles.avatarBorder} />
+              </View>
             </View>
-            <View style={styles.avatarContainer}>
-              {invitado.fotoUrl ? (
-                <Image source={{ uri: invitado.fotoUrl }} style={styles.profileImage} />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <User size={24} color="#22c55e" />
-                </View>
-              )}
-              <View style={styles.avatarBorder} />
-            </View>
-          </View>
-        </LinearGradient>
+          </LinearGradient>
 
-        {/* Profile Card con gradiente */}
-        <LinearGradient
-          colors={['rgba(255, 255, 255, 0.08)', 'rgba(255, 255, 255, 0.03)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.card}
-        >
+          {/* Profile Card con gradiente */}
+          <LinearGradient
+            colors={['rgba(255, 255, 255, 0.08)', 'rgba(255, 255, 255, 0.03)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.card}
+          >
           <View style={styles.cardHeader}>
             <User size={20} color="#22c55e" />
             <Text style={styles.cardTitle}>Mi Perfil</Text>
@@ -134,8 +135,9 @@ export function ProfileScreen() {
             </View>
           </View>
         </LinearGradient>
+        </View>
 
-        {/* Logout Button con gradiente */}
+        {/* Logout Button con gradiente - Siempre visible en la parte inferior */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
           <LinearGradient
             colors={['rgba(239, 68, 68, 0.2)', 'rgba(239, 68, 68, 0.1)']}
@@ -162,6 +164,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a1628',
     padding: 12,
     paddingTop: 8,
+    justifyContent: 'space-between',
+  },
+  contentWrapper: {
+    flex: 1,
   },
   headerGradient: {
     paddingTop: 8,
@@ -230,7 +236,6 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     marginBottom: 10,
-    flex: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -302,7 +307,8 @@ const styles = StyleSheet.create({
   logoutButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    marginTop: 8,
+    marginTop: 'auto',
+    marginBottom: 8,
     shadowColor: '#ef4444',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
