@@ -72,25 +72,42 @@ export function LoginScreen() {
         idToken = await googleSignIn()
       } catch (signInError: unknown) {
         // Verificar si el error es por cancelación del usuario
-        if (signInError && typeof signInError === 'object' && 'code' in signInError) {
-          const googleError = signInError as { code: string; message?: string }
-          if (googleError.code === 'SIGN_IN_CANCELLED' || googleError.message?.includes('cancel')) {
+        if (signInError instanceof Error) {
+          // Verificar por nombre del error
+          if (
+            signInError.name === 'GoogleSignInCancelled' ||
+            signInError.message === 'SIGN_IN_CANCELLED'
+          ) {
             console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
             return // Salir silenciosamente sin mostrar error
           }
-        }
-        // Si el error es por cancelación en el mensaje
-        if (signInError instanceof Error) {
+          
+          // Verificar por mensaje de error
+          const errorMessage = signInError.message.toLowerCase()
           if (
-            signInError.message.includes('canceló') ||
-            signInError.message.includes('cancel') ||
-            signInError.message.includes('cancelled') ||
-            signInError.message.includes('SIGN_IN_CANCELLED')
+            errorMessage.includes('cancel') ||
+            errorMessage.includes('cancelled') ||
+            errorMessage.includes('cancelado') ||
+            errorMessage.includes('user_cancelled')
           ) {
             console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
             return // Salir silenciosamente sin mostrar error
           }
         }
+        
+        // Verificar si el error tiene código de cancelación
+        if (signInError && typeof signInError === 'object' && 'code' in signInError) {
+          const googleError = signInError as { code: string; message?: string }
+          if (
+            googleError.code === 'SIGN_IN_CANCELLED' ||
+            googleError.code === '12500' || // Código de cancelación en Android
+            googleError.message?.toLowerCase().includes('cancel')
+          ) {
+            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+            return // Salir silenciosamente sin mostrar error
+          }
+        }
+        
         // Si no es cancelación, relanzar el error
         throw signInError
       }
@@ -109,22 +126,39 @@ export function LoginScreen() {
       console.log('✅ Login con Google exitoso')
       // La navegación se actualizará automáticamente cuando el estado cambie
     } catch (error: unknown) {
+      // Verificar primero si es cancelación antes de mostrar cualquier error
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase()
+        if (
+          error.name === 'GoogleSignInCancelled' ||
+          error.message === 'SIGN_IN_CANCELLED' ||
+          errorMessage.includes('cancel') ||
+          errorMessage.includes('cancelled') ||
+          errorMessage.includes('cancelado') ||
+          errorMessage.includes('user_cancelled')
+        ) {
+          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+          return // Salir silenciosamente sin mostrar error
+        }
+      }
+      
+      // Verificar si el error tiene código de cancelación
+      if (error && typeof error === 'object' && 'code' in error) {
+        const googleError = error as { code: string; message?: string }
+        if (
+          googleError.code === 'SIGN_IN_CANCELLED' ||
+          googleError.code === '12500' ||
+          googleError.message?.toLowerCase().includes('cancel')
+        ) {
+          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+          return // Salir silenciosamente sin mostrar error
+        }
+      }
+      
       console.error('❌ Error en login con Google:', error)
       let errorMessage = 'No se pudo iniciar sesión con Google.'
 
       if (error instanceof Error) {
-        // Si el usuario canceló, no mostrar error
-        if (
-          error.name === 'GoogleSignInCancelled' ||
-          error.message === 'SIGN_IN_CANCELLED' ||
-          error.message.includes('canceló') ||
-          error.message.includes('cancel') ||
-          error.message.includes('cancelled') ||
-          error.message.includes('SIGN_IN_CANCELLED')
-        ) {
-          console.log('ℹ️ Usuario canceló el inicio de sesión')
-          return // Salir silenciosamente sin mostrar error
-        }
         errorMessage = error.message
       } else if (error && typeof error === 'object') {
         const axiosError = error as {

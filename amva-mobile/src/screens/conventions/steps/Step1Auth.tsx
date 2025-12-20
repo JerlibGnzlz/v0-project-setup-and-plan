@@ -116,10 +116,55 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
       console.log('🔐 Iniciando login con Google (nativo)...')
       
       // Obtener idToken usando el hook nativo
-      const idToken = await googleSignIn()
+      let idToken: string | null = null
+      try {
+        idToken = await googleSignIn()
+      } catch (signInError: unknown) {
+        // Verificar si el error es por cancelación del usuario
+        if (signInError instanceof Error) {
+          // Verificar por nombre del error
+          if (
+            signInError.name === 'GoogleSignInCancelled' ||
+            signInError.message === 'SIGN_IN_CANCELLED'
+          ) {
+            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+            return // Salir silenciosamente sin mostrar error
+          }
+          
+          // Verificar por mensaje de error
+          const errorMessage = signInError.message.toLowerCase()
+          if (
+            errorMessage.includes('cancel') ||
+            errorMessage.includes('cancelled') ||
+            errorMessage.includes('cancelado') ||
+            errorMessage.includes('user_cancelled')
+          ) {
+            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+            return // Salir silenciosamente sin mostrar error
+          }
+        }
+        
+        // Verificar si el error tiene código de cancelación
+        if (signInError && typeof signInError === 'object' && 'code' in signInError) {
+          const googleError = signInError as { code: string; message?: string }
+          if (
+            googleError.code === 'SIGN_IN_CANCELLED' ||
+            googleError.code === '12500' || // Código de cancelación en Android
+            googleError.message?.toLowerCase().includes('cancel')
+          ) {
+            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+            return // Salir silenciosamente sin mostrar error
+          }
+        }
+        
+        // Si no es cancelación, relanzar el error
+        throw signInError
+      }
       
+      // Si no se recibió token (usuario canceló), salir silenciosamente
       if (!idToken) {
-        throw new Error('No se recibió el token de Google')
+        console.log('ℹ️ Usuario canceló el inicio de sesión con Google (token null)')
+        return
       }
 
       console.log('✅ Token de Google obtenido, enviando al backend...')
@@ -130,10 +175,33 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
       console.log('✅ Login con Google exitoso')
       await onComplete(invitado)
     } catch (error: unknown) {
-      // Si el usuario canceló, no mostrar error
-      if (error instanceof Error && error.message.includes('canceló')) {
-        console.log('ℹ️ Usuario canceló el inicio de sesión')
-        return
+      // Verificar primero si es cancelación antes de mostrar cualquier error
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase()
+        if (
+          error.name === 'GoogleSignInCancelled' ||
+          error.message === 'SIGN_IN_CANCELLED' ||
+          errorMessage.includes('cancel') ||
+          errorMessage.includes('cancelled') ||
+          errorMessage.includes('cancelado') ||
+          errorMessage.includes('user_cancelled')
+        ) {
+          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+          return // Salir silenciosamente sin mostrar error
+        }
+      }
+      
+      // Verificar si el error tiene código de cancelación
+      if (error && typeof error === 'object' && 'code' in error) {
+        const googleError = error as { code: string; message?: string }
+        if (
+          googleError.code === 'SIGN_IN_CANCELLED' ||
+          googleError.code === '12500' ||
+          googleError.message?.toLowerCase().includes('cancel')
+        ) {
+          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+          return // Salir silenciosamente sin mostrar error
+        }
       }
       
       const errorMessage =

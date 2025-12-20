@@ -119,7 +119,26 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
         if (googleError.code === statusCodes.SIGN_IN_CANCELLED) {
           console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
           setError(null) // Limpiar error
+          setLoading(false) // Asegurar que el loading se detenga
           // Crear un error especial para identificar cancelación
+          const cancelError = new Error('SIGN_IN_CANCELLED')
+          cancelError.name = 'GoogleSignInCancelled'
+          throw cancelError
+        }
+      }
+      
+      // También verificar si el mensaje de error indica cancelación
+      if (err instanceof Error) {
+        const errorMessage = err.message.toLowerCase()
+        if (
+          errorMessage.includes('cancel') ||
+          errorMessage.includes('cancelled') ||
+          errorMessage.includes('cancelado') ||
+          errorMessage.includes('user_cancelled')
+        ) {
+          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+          setError(null)
+          setLoading(false)
           const cancelError = new Error('SIGN_IN_CANCELLED')
           cancelError.name = 'GoogleSignInCancelled'
           throw cancelError
