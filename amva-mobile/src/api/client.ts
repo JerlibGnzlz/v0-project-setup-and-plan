@@ -122,6 +122,7 @@ apiClient.interceptors.request.use(
         '/auth/invitado/google/mobile',
         '/auth/pastor/login',
         '/auth/pastor/register',
+        '/upload/inscripcion-documento', // Endpoint público para subir documentos de inscripción
       ]
 
       const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint))
@@ -136,6 +137,7 @@ apiClient.interceptors.request.use(
         config.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
         config.url?.includes('/credenciales-capellania/mis-credenciales') ||
         config.url?.includes('/inscripciones/my') ||
+        config.url?.includes('/inscripciones/invitado/') ||
         config.url?.includes('/auth/invitado/me') ||
         config.url?.includes('/solicitudes-credenciales/mis-solicitudes') ||
         // POST /solicitudes-credenciales también requiere token de invitado
@@ -150,6 +152,7 @@ apiClient.interceptors.request.use(
         config.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
         config.url?.includes('/credenciales-capellania/mis-credenciales') ||
         (config.url?.includes('/inscripciones') && !isPublicInscripcionPost) ||
+        config.url?.includes('/inscripciones/invitado/') ||
         config.url?.includes('/solicitudes-credenciales')
 
       // Detectar si es un endpoint de consulta de credenciales (acepta pastor o invitado)

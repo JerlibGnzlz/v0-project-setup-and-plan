@@ -14,7 +14,11 @@
     "icon": "./assets/images/amvamovil.png",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "org.vidaabundante.app"
+      "bundleIdentifier": "org.vidaabundante.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Necesitamos acceso a tu cámara para tomar fotos de comprobantes de pago.",
+        "NSPhotoLibraryUsageDescription": "Necesitamos acceso a tu galería para seleccionar comprobantes de pago."
+      }
     },
     "android": {
       "package": "org.vidaabundante.app",
@@ -22,6 +26,11 @@
       "adaptiveIcon": {
         "backgroundColor": "#0a1628"
       },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
