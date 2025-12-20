@@ -87,6 +87,8 @@ export function CredencialCapellaniaEditorDialog({
 
   const fotoUrl = watch('fotoUrl')
   const tipoCapellan = watch('tipoCapellan')
+  const fechaNacimiento = watch('fechaNacimiento')
+  const fechaVencimiento = watch('fechaVencimiento')
 
   useEffect(() => {
     if (credencial && open) {

@@ -87,6 +87,8 @@ export function CredencialEditorDialog({
 
   const fotoUrl = watch('fotoUrl')
   const tipoPastor = watch('tipoPastor')
+  const fechaNacimiento = watch('fechaNacimiento')
+  const fechaVencimiento = watch('fechaVencimiento')
 
   useEffect(() => {
     if (credencial && open) {
