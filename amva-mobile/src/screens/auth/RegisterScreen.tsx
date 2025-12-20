@@ -335,13 +335,47 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
       let errorMessage = 'No se pudo crear la cuenta. Intenta nuevamente.'
 
       if (error?.response?.status === 400) {
-        errorMessage =
-          error?.response?.data?.message ||
-          'El correo ya está registrado o los datos son inválidos.'
-      } else if (error?.response?.data?.message) {
+        const responseData = error?.response?.data
+        
+        // Manejar errores de validación (array de mensajes)
+        if (Array.isArray(responseData?.message)) {
+          const validationErrors = responseData.message
+          // Formatear errores de validación de manera más legible
+          errorMessage = validationErrors
+            .map((err: string) => {
+              // Extraer el mensaje de error de formato "campo debe tener..."
+              if (typeof err === 'string') {
+                return err
+              }
+              return err
+            })
+            .join('\n• ')
+          
+          if (errorMessage) {
+            errorMessage = 'Por favor corrige los siguientes errores:\n• ' + errorMessage
+          }
+        } 
+        // Manejar mensaje de error único
+        else if (responseData?.message) {
+          errorMessage = responseData.message
+        }
+        // Mensaje por defecto para error 400
+        else {
+          errorMessage = 'Los datos ingresados no son válidos. Por favor verifica:\n• Email válido\n• Contraseña de al menos 8 caracteres\n• Nombre y apellido de al menos 2 caracteres'
+        }
+      } 
+      // Manejar otros errores HTTP
+      else if (error?.response?.status === 409) {
+        errorMessage = 'Ya existe una cuenta con este correo electrónico. Por favor, inicia sesión.'
+      }
+      else if (error?.response?.data?.message) {
         errorMessage = Array.isArray(error.response.data.message)
-          ? error.response.data.message.join('\n')
+          ? 'Por favor corrige los siguientes errores:\n• ' + error.response.data.message.join('\n• ')
           : error.response.data.message
+      }
+      // Manejar errores de red
+      else if (error?.message?.includes('Network Error') || error?.code === 'NETWORK_ERROR') {
+        errorMessage = 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.'
       }
 
       Alert.alert('Error de registro', errorMessage, undefined, 'error')
