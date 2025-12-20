@@ -311,14 +311,20 @@ export function InscripcionStatusScreen({
     )
   }
 
+  // Verificar si todos los pagos están completados
+  const todosLosPagosCompletados = totalPagos > 0 && totalCompletados === totalPagos
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <ArrowLeft size={24} color="#fff" />
-          </TouchableOpacity>
+          {!todosLosPagosCompletados && (
+            <TouchableOpacity onPress={onBack} style={styles.backButton}>
+              <ArrowLeft size={24} color="#fff" />
+            </TouchableOpacity>
+          )}
+          {todosLosPagosCompletados && <View style={styles.backButtonPlaceholder} />}
           <Text style={styles.headerTitle}>Estado de Inscripción</Text>
         </View>
 
@@ -639,10 +645,16 @@ const styles = StyleSheet.create({
     marginRight: 12,
     padding: 4,
   },
+  backButtonPlaceholder: {
+    width: 32,
+    marginRight: 12,
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#fff',
+    flex: 1,
+    textAlign: 'center',
   },
   statusBanner: {
     flexDirection: 'row',
