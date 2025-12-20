@@ -26,6 +26,8 @@ import { type Convencion } from '@api/convenciones'
 import { inscripcionesApi, type Inscripcion, pagosApi } from '@api/inscripciones'
 import { uploadApi, pickImage } from '@api/upload'
 import { Alert as CustomAlert } from '@utils/alert'
+import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
+import * as SecureStore from 'expo-secure-store'
 
 interface InscripcionStatusScreenProps {
   convencion: Convencion
@@ -48,6 +50,7 @@ export function InscripcionStatusScreen({
   inscripcion,
   onBack,
 }: InscripcionStatusScreenProps) {
+  const { isAuthenticated, invitado } = useInvitadoAuth()
   const [loading, setLoading] = useState(false)
   const [uploadingComprobante, setUploadingComprobante] = useState(false)
   const [pagoSeleccionado, setPagoSeleccionado] = useState<string | null>(null)
@@ -106,6 +109,37 @@ export function InscripcionStatusScreen({
   const handleUploadComprobante = async (pagoId: string) => {
     try {
       console.log(`📤 Iniciando subida de comprobante para pago: ${pagoId}`)
+      
+      // Verificar autenticación antes de continuar
+      const invitadoToken = await SecureStore.getItemAsync('invitado_token')
+      console.log('🔍 Verificando autenticación:', {
+        isAuthenticated,
+        hasToken: !!invitadoToken,
+        invitadoEmail: invitado?.email,
+        inscripcionEmail: inscripcion.email,
+      })
+
+      if (!invitadoToken || !isAuthenticated) {
+        CustomAlert.alert(
+          'Autenticación requerida',
+          'Debes iniciar sesión para subir comprobantes. Por favor, inicia sesión con el mismo email con el que te inscribiste.',
+          undefined,
+          'error'
+        )
+        return
+      }
+
+      // Verificar que el email del invitado coincida con el email de la inscripción
+      if (invitado?.email && invitado.email.toLowerCase() !== inscripcion.email.toLowerCase()) {
+        CustomAlert.alert(
+          'Email no coincide',
+          `Debes iniciar sesión con el email ${inscripcion.email} para subir comprobantes de esta inscripción.`,
+          undefined,
+          'error'
+        )
+        return
+      }
+
       setUploadingComprobante(true)
       setPagoSeleccionado(pagoId)
 
@@ -195,7 +229,18 @@ export function InscripcionStatusScreen({
         error instanceof Error ? error.message : 'Error al subir el comprobante'
       console.error('❌ Error subiendo comprobante:', errorMessage)
       console.error('❌ Error completo:', error)
-      CustomAlert.alert('Error', `No se pudo subir el comprobante: ${errorMessage}`, undefined, 'error')
+      
+      // Manejar errores específicos
+      let alertMessage = `No se pudo subir el comprobante: ${errorMessage}`
+      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        alertMessage = 'No estás autenticado. Por favor, inicia sesión con el mismo email con el que te inscribiste para poder subir comprobantes.'
+      } else if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
+        alertMessage = 'No tienes permiso para actualizar este pago. Verifica que estés usando el mismo email con el que te inscribiste.'
+      } else if (errorMessage.includes('Network') || errorMessage.includes('timeout')) {
+        alertMessage = 'Error de conexión. Por favor, verifica tu conexión a internet e intenta de nuevo.'
+      }
+      
+      CustomAlert.alert('Error', alertMessage, undefined, 'error')
     } finally {
       setUploadingComprobante(false)
       setPagoSeleccionado(null)
