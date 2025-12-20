@@ -11,3 +11,4 @@ android/gradle.properties
 google-service-account.json
 .DS_Store
 *.log
+android/app/keystore-password.txt
