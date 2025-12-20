@@ -367,12 +367,21 @@ export function Step2UnifiedForm({
             <Text style={styles.subtitle}>Revisa y confirma tus datos</Text>
           </View>
 
-          {/* Información de Convención (Resumida) */}
+          {/* Información de Convención (Resumida) - Igual que en la web */}
           <View style={styles.convencionInfo}>
             <View style={styles.convencionInfoHeader}>
               <Calendar size={18} color="#22c55e" />
               <Text style={styles.convencionInfoTitle}>{convencion.titulo}</Text>
             </View>
+            {convencion.imagenUrl &&
+              !convencion.imagenUrl.includes('via.placeholder.com') &&
+              !convencion.imagenUrl.includes('placeholder.com') && (
+                <Image
+                  source={{ uri: convencion.imagenUrl }}
+                  style={styles.convencionImage}
+                  resizeMode="cover"
+                />
+              )}
             <View style={styles.convencionInfoDetails}>
               <View style={styles.convencionInfoRow}>
                 <Calendar size={14} color="rgba(255, 255, 255, 0.6)" />
@@ -403,6 +412,56 @@ export function Step2UnifiedForm({
                   Estado: <Text style={styles.estadoText}>{inscripcionExistente.estado}</Text>
                 </Text>
               </View>
+            </View>
+          )}
+
+          {/* Plan de Pago - Igual que en la web */}
+          {!yaInscrito && costo > 0 && (
+            <View style={styles.paymentPlanSection}>
+              <View style={styles.paymentPlanHeader}>
+                <CreditCard size={18} color="#f59e0b" />
+                <Text style={styles.paymentPlanTitle}>Plan de Pago</Text>
+              </View>
+              <View style={styles.cuotasContainer}>
+                {[1, 2, 3].map(num => {
+                  const monto =
+                    num === 1 ? montoPorCuota1 : num === 2 ? montoPorCuota2 : montoPorCuota3
+                  const isSelected = formData.numeroCuotas === num
+                  return (
+                    <TouchableOpacity
+                      key={num}
+                      style={[styles.cuotaCard, isSelected && styles.cuotaCardSelected]}
+                      onPress={() => handleChange('numeroCuotas', num)}
+                      activeOpacity={0.7}
+                    >
+                      {isSelected && (
+                        <LinearGradient
+                          colors={['rgba(34, 197, 94, 0.2)', 'rgba(34, 197, 94, 0.1)']}
+                          style={StyleSheet.absoluteFill}
+                        />
+                      )}
+                      <View style={styles.cuotaContent}>
+                        <Text style={[styles.cuotaLabel, isSelected && styles.cuotaLabelSelected]}>
+                          {num} {num === 1 ? 'Cuota' : 'Cuotas'}
+                        </Text>
+                        <Text style={[styles.cuotaValue, isSelected && styles.cuotaValueSelected]}>
+                          ${monto.toFixed(2)}
+                          {num > 1 && ' c/u'}
+                        </Text>
+                        {num === 3 && (
+                          <Text style={styles.recommendedBadge}>⭐ Recomendado</Text>
+                        )}
+                      </View>
+                      {isSelected && (
+                        <CheckCircle2 size={18} color="#22c55e" style={styles.checkIcon} />
+                      )}
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+              {errors.numeroCuotas && (
+                <Text style={styles.errorText}>{errors.numeroCuotas}</Text>
+              )}
             </View>
           )}
 
@@ -632,6 +691,36 @@ export function Step2UnifiedForm({
             </View>
           </View>
 
+          {/* Resumen de Costos - Igual que en la web */}
+          {!yaInscrito && costo > 0 && (
+            <View style={styles.summarySection}>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Costo total:</Text>
+                <Text style={styles.summaryValue}>${costo.toFixed(2)}</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Cuotas:</Text>
+                <Text style={styles.summaryValue}>{formData.numeroCuotas}</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Monto por cuota:</Text>
+                <Text style={styles.summaryValue}>
+                  ${(costo / (formData.numeroCuotas || 3)).toFixed(2)}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Información de Pago - Igual que en la web */}
+          {!yaInscrito && costo > 0 && (
+            <View style={styles.paymentInfoBox}>
+              <Text style={styles.paymentInfoText}>
+                💡 Los pagos se crearán después desde tu panel. Recibirás un código de referencia
+                único.
+              </Text>
+            </View>
+          )}
+
           {/* Actions */}
           <View style={styles.actions}>
             <TouchableOpacity
@@ -742,7 +831,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: 'rgba(255, 255, 255, 0.7)',
   },
-  paymentPlanContainer: {
+  convencionImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  paymentPlanSection: {
     backgroundColor: 'rgba(245, 158, 11, 0.08)',
     borderRadius: 16,
     padding: 16,
@@ -762,31 +857,73 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   cuotasContainer: {
+    flexDirection: 'row',
     gap: 10,
     marginBottom: 12,
   },
   cuotaCard: {
+    flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: 12,
-    padding: 14,
+    padding: 12,
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     position: 'relative',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    minHeight: 80,
+    justifyContent: 'center',
   },
   cuotaCardSelected: {
     borderColor: 'rgba(34, 197, 94, 0.5)',
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  cuotaContent: {
+    alignItems: 'center',
+  },
+  cuotaLabel: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  cuotaLabelSelected: {
+    color: '#4ade80',
+    fontWeight: '600',
+  },
+  cuotaValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 2,
+  },
+  cuotaValueSelected: {
+    color: '#22c55e',
+  },
+  recommendedBadge: {
+    fontSize: 9,
+    color: '#fbbf24',
+    marginTop: 2,
+  },
+  checkIcon: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+  },
+  paymentPlanContainer: {
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 0.5,
+    borderColor: 'rgba(245, 158, 11, 0.2)',
   },
   cuotaCardContent: {
     flex: 1,
   },
-  cuotaLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 4,
   },
   cuotaLabelSelected: {
     color: '#4ade80',
@@ -801,6 +938,41 @@ const styles = StyleSheet.create({
   },
   checkIcon: {
     marginLeft: 8,
+  },
+  summarySection: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  summaryLabel: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  paymentInfoBox: {
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 0.5,
+    borderColor: 'rgba(245, 158, 11, 0.2)',
+  },
+  paymentInfoText: {
+    fontSize: 11,
+    color: '#fbbf24',
+    lineHeight: 16,
   },
   resumenContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
