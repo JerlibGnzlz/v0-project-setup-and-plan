@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Calendar, MapPin, Ticket, Star, CheckCircle2, CreditCard } from 'lucide-react-native'
+import { Calendar, MapPin, Ticket, Star, CheckCircle2, CreditCard, ArrowRight, ArrowLeft } from 'lucide-react-native'
 import { type Convencion } from '@api/convenciones'
 
 interface Step2ConvencionInfoProps {
@@ -266,8 +266,13 @@ export function Step2ConvencionInfo({
 
         {/* Actions */}
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
-            <Text style={styles.backButtonText}>← Atrás</Text>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onBack}
+            activeOpacity={0.7}
+          >
+            <ArrowLeft size={16} color="rgba(255, 255, 255, 0.7)" />
+            <Text style={styles.backButtonText}>Atrás</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.continueButton, yaInscrito && styles.continueButtonDisabled]}
@@ -284,8 +289,9 @@ export function Step2ConvencionInfo({
               <Text
                 style={[styles.continueButtonText, yaInscrito && styles.continueButtonTextDisabled]}
               >
-                {yaInscrito ? '✓ Ya Inscrito' : '✓ Continuar'}
+                {yaInscrito ? '✓ Ya Inscrito' : 'Continuar'}
               </Text>
+              {!yaInscrito && <ArrowRight size={16} color="#fff" />}
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -544,9 +550,12 @@ const styles = StyleSheet.create({
   backButton: {
     flex: 1,
     paddingVertical: 14,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    gap: 6,
   },
   backButtonText: {
     color: 'rgba(255, 255, 255, 0.7)',
@@ -567,6 +576,8 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
   },
   continueButtonText: {
     color: '#fff',

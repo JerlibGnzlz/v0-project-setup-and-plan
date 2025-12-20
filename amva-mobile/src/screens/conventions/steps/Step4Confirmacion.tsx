@@ -18,6 +18,8 @@ import {
   CreditCard,
   AlertCircle,
   Loader2,
+  ArrowLeft,
+  ArrowRight,
 } from 'lucide-react-native'
 import { type Convencion } from '@api/convenciones'
 import { inscripcionesApi } from '@api/inscripciones'
@@ -398,7 +400,8 @@ export function Step4Confirmacion({
             disabled={isSubmitting}
             activeOpacity={0.7}
           >
-            <Text style={styles.backButtonText}>← Atrás</Text>
+            <ArrowLeft size={16} color="rgba(255, 255, 255, 0.7)" />
+            <Text style={styles.backButtonText}>Atrás</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.confirmButton, isSubmitting && styles.buttonDisabled]}
@@ -420,7 +423,7 @@ export function Step4Confirmacion({
               ) : (
                 <>
                   <CheckCircle2 size={18} color="#fff" />
-                  <Text style={styles.confirmButtonText}>Confirmar Inscripción</Text>
+                  <Text style={styles.confirmButtonText}>Confirmar</Text>
                 </>
               )}
             </LinearGradient>
@@ -593,9 +596,12 @@ const styles = StyleSheet.create({
   backButton: {
     flex: 1,
     paddingVertical: 12,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    gap: 6,
   },
   backButtonText: {
     color: 'rgba(255, 255, 255, 0.7)',
