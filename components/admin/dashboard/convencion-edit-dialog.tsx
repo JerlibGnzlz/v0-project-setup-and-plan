@@ -11,10 +11,12 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { DatePicker } from '@/components/ui/date-picker'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { convencionSchema, type ConvencionFormData } from '@/lib/validations/convencion'
 import { useEffect } from 'react'
+import { format } from 'date-fns'
 
 interface ConvencionEditDialogProps {
   open: boolean
@@ -62,10 +64,14 @@ export function ConvencionEditDialog({
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
+    watch,
   } = useForm<ConvencionFormData>({
     resolver: zodResolver(convencionSchema),
     defaultValues: convencionFormData,
   })
+
+  const fechaValue = watch('fecha')
 
   // Resetear formulario cuando cambia la convención
   useEffect(() => {
@@ -113,7 +119,18 @@ export function ConvencionEditDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="fecha">Fecha</Label>
-              <Input id="fecha" type="date" {...register('fecha')} />
+              <DatePicker
+                id="fecha"
+                value={fechaValue ? new Date(fechaValue) : undefined}
+                onChange={(date) => {
+                  if (date) {
+                    setValue('fecha', format(date, 'yyyy-MM-dd'), { shouldValidate: true })
+                  } else {
+                    setValue('fecha', '', { shouldValidate: true })
+                  }
+                }}
+                placeholder="Selecciona la fecha de inicio"
+              />
               {errors.fecha && (
                 <p className="text-sm text-destructive">{errors.fecha.message}</p>
               )}

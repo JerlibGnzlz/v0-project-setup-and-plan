@@ -11,9 +11,11 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { DatePicker } from '@/components/ui/date-picker'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { convencionSchema, type ConvencionFormData } from '@/lib/validations/convencion'
+import { format } from 'date-fns'
 
 interface ConvencionCreateDialogProps {
   open: boolean
@@ -33,9 +35,13 @@ export function ConvencionCreateDialog({
     handleSubmit,
     reset,
     formState: { errors },
+    setValue,
+    watch,
   } = useForm<ConvencionFormData>({
     resolver: zodResolver(convencionSchema),
   })
+
+  const fechaValue = watch('fecha')
 
   const handleFormSubmit = async (data: ConvencionFormData) => {
     await onSubmit(data)
@@ -65,7 +71,18 @@ export function ConvencionCreateDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="create-fecha">Fecha de Inicio</Label>
-            <Input id="create-fecha" type="date" {...register('fecha')} />
+            <DatePicker
+              id="create-fecha"
+              value={fechaValue ? new Date(fechaValue) : undefined}
+              onChange={(date) => {
+                if (date) {
+                  setValue('fecha', format(date, 'yyyy-MM-dd'), { shouldValidate: true })
+                } else {
+                  setValue('fecha', '', { shouldValidate: true })
+                }
+              }}
+              placeholder="Selecciona la fecha de inicio"
+            />
             {errors.fecha && <p className="text-sm text-red-500">{errors.fecha.message}</p>}
           </div>
           <div className="space-y-2">
