@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -8,10 +8,13 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  Animated,
+  Dimensions,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
+import { CheckCircle2 } from 'lucide-react-native'
 import { convencionesApi, type Convencion, normalizeBoolean } from '@api/convenciones'
 import { inscripcionesApi } from '@api/inscripciones'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
@@ -19,6 +22,8 @@ import { Step1Auth } from './steps/Step1Auth'
 import { Step2ConvencionInfo } from './steps/Step2ConvencionInfo'
 import { Step3Formulario } from './steps/Step3Formulario'
 import { Step4Confirmacion } from './steps/Step4Confirmacion'
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 type TabParamList = {
   Inicio: undefined
@@ -37,6 +42,14 @@ export function ConventionInscripcionScreen() {
   const [inscripcionCompleta, setInscripcionCompleta] = useState(false)
   const [yaInscrito, setYaInscrito] = useState(false)
   const [inscripcionExistente, setInscripcionExistente] = useState<any>(null)
+  const slideAnim = useRef(new Animated.Value(0)).current
+  const fadeAnim = useRef(new Animated.Value(1)).current
+
+  // Inicializar animaciones cuando cambia el step
+  useEffect(() => {
+    fadeAnim.setValue(1)
+    slideAnim.setValue(0)
+  }, [currentStep, fadeAnim, slideAnim])
 
   // Cargar convención activa (solo una vez al montar)
   useEffect(() => {
@@ -159,28 +172,85 @@ export function ConventionInscripcionScreen() {
     if (data) {
       setFormData((prev: any) => ({ ...prev, ...data }))
     }
-    if (step === 1 && isAuthenticated) {
-      // Después de autenticación, si ya está inscrito, ir a step 2 (info)
-      if (yaInscrito) {
-        setCurrentStep(2)
-      } else {
-        setCurrentStep(2) // Ir a información de convención
+    
+    // Animación de salida
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: -SCREEN_WIDTH * 0.1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // Cambiar step
+      if (step === 1 && isAuthenticated) {
+        if (yaInscrito) {
+          setCurrentStep(2)
+        } else {
+          setCurrentStep(2)
+        }
+      } else if (step === 2) {
+        setCurrentStep(3)
+      } else if (step === 3) {
+        setInscripcionCompleta(true)
+        setCurrentStep(4)
+      } else if (step < 4) {
+        setCurrentStep(step + 1)
       }
-    } else if (step === 2) {
-      // Después de información, ir a formulario
-      setCurrentStep(3)
-    } else if (step === 3) {
-      // Cuando se completa el step 3 (formulario), mostrar confirmación
-      setInscripcionCompleta(true)
-      setCurrentStep(4)
-    } else if (step < 4) {
-      setCurrentStep(step + 1)
-    }
+      
+      // Animación de entrada
+      slideAnim.setValue(SCREEN_WIDTH * 0.1)
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start()
+    })
   }
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      // Animación de salida
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: SCREEN_WIDTH * 0.1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setCurrentStep(currentStep - 1)
+        
+        // Animación de entrada
+        slideAnim.setValue(-SCREEN_WIDTH * 0.1)
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]).start()
+      })
     }
   }
 
@@ -268,49 +338,81 @@ export function ConventionInscripcionScreen() {
           <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
         </View>
 
-        {/* Progress Steps */}
+        {/* Progress Steps - Mejorado */}
         <View style={styles.stepsContainer}>
-          {steps.map((step, index) => (
-            <View key={step.number} style={styles.stepRow}>
-              <View style={styles.stepItem}>
-                <TouchableOpacity
-                  style={[
-                    styles.stepCircle,
-                    step.number < currentStep && styles.stepCircleCompleted,
-                    step.number === currentStep && styles.stepCircleActive,
-                  ]}
-                  disabled={step.number > currentStep && !inscripcionCompleta}
-                >
-                  <Text
-                    style={[
-                      styles.stepNumber,
-                      step.number < currentStep && styles.stepNumberCompleted,
-                      step.number === currentStep && styles.stepNumberActive,
-                    ]}
-                  >
-                    {step.number < currentStep ? '✓' : step.number}
-                  </Text>
-                </TouchableOpacity>
-                <View style={styles.stepTextContainer}>
-                  <Text
-                    style={[styles.stepTitle, step.number <= currentStep && styles.stepTitleActive]}
-                  >
-                    {step.title}
-                  </Text>
-                  <Text style={styles.stepDescription}>{step.description}</Text>
-                </View>
-              </View>
-              {index < steps.length - 1 && (
-                <View
-                  style={[styles.stepLine, step.number < currentStep && styles.stepLineCompleted]}
-                />
-              )}
+          {/* Barra de progreso horizontal */}
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressBarBackground}>
+              <Animated.View
+                style={[
+                  styles.progressBarFill,
+                  {
+                    width: `${((currentStep - 1) / (steps.length - 1)) * 100}%`,
+                  },
+                ]}
+              />
             </View>
-          ))}
+          </View>
+          
+          {/* Steps horizontales */}
+          <View style={styles.stepsHorizontal}>
+            {steps.map((step, index) => {
+              const isCompleted = step.number < currentStep
+              const isActive = step.number === currentStep
+              const isAccessible = step.number <= currentStep || inscripcionCompleta
+              
+              return (
+                <View key={step.number} style={styles.stepHorizontalItem}>
+                  <TouchableOpacity
+                    style={[
+                      styles.stepCircleHorizontal,
+                      isCompleted && styles.stepCircleCompleted,
+                      isActive && styles.stepCircleActive,
+                      !isAccessible && styles.stepCircleDisabled,
+                    ]}
+                    disabled={!isAccessible}
+                    activeOpacity={0.7}
+                  >
+                    {isCompleted ? (
+                      <CheckCircle2 size={20} color="#fff" />
+                    ) : (
+                      <Text
+                        style={[
+                          styles.stepNumberHorizontal,
+                          isActive && styles.stepNumberActive,
+                        ]}
+                      >
+                        {step.number}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                  <View style={styles.stepTextContainerHorizontal}>
+                    <Text
+                      style={[
+                        styles.stepTitleHorizontal,
+                        (isCompleted || isActive) && styles.stepTitleActive,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {step.title}
+                    </Text>
+                  </View>
+                </View>
+              )
+            })}
+          </View>
         </View>
 
-        {/* Content */}
-        <View style={styles.content}>
+        {/* Content con animaciones */}
+        <Animated.View
+          style={[
+            styles.content,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateX: slideAnim }],
+            },
+          ]}
+        >
           {currentStep === 1 && (
             <Step1Auth
               onComplete={userData => handleStepComplete(1, userData)}
@@ -347,7 +449,7 @@ export function ConventionInscripcionScreen() {
               onBack={handleBack}
             />
           )}
-        </View>
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   )
@@ -443,28 +545,43 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   stepsContainer: {
-    padding: 20,
+    padding: 16,
+    paddingBottom: 20,
   },
-  stepRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  progressBarContainer: {
     marginBottom: 20,
   },
-  stepItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+  progressBarBackground: {
+    height: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 2,
+    overflow: 'hidden',
   },
-  stepCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#22c55e',
+    borderRadius: 2,
+  },
+  stepsHorizontal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  stepHorizontalItem: {
+    flex: 1,
+    alignItems: 'center',
+    maxWidth: (SCREEN_WIDTH - 32) / 4,
+  },
+  stepCircleHorizontal: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginBottom: 8,
   },
   stepCircleCompleted: {
     backgroundColor: '#22c55e',
@@ -474,43 +591,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#22c55e',
     borderColor: '#22c55e',
     borderWidth: 3,
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  stepNumber: {
+  stepCircleDisabled: {
+    opacity: 0.4,
+  },
+  stepNumberHorizontal: {
     color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  stepNumberCompleted: {
-    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
   },
   stepNumberActive: {
     color: '#fff',
   },
-  stepTextContainer: {
-    flex: 1,
+  stepTextContainerHorizontal: {
+    width: '100%',
+    alignItems: 'center',
   },
-  stepTitle: {
-    fontSize: 14,
+  stepTitleHorizontal: {
+    fontSize: 10,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.5)',
-    marginBottom: 2,
+    color: 'rgba(255, 255, 255, 0.4)',
+    textAlign: 'center',
   },
   stepTitleActive: {
     color: '#fff',
-  },
-  stepDescription: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.4)',
-  },
-  stepLine: {
-    width: 2,
-    height: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    marginLeft: 20,
-    marginRight: 20,
-  },
-  stepLineCompleted: {
-    backgroundColor: '#22c55e',
+    fontWeight: '700',
   },
   content: {
     padding: 20,
