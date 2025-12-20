@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { User, LogOut } from 'lucide-react-native'
+import { User, LogOut, MapPin, UserCircle } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { Alert } from '@utils/alert'
 
@@ -83,13 +83,19 @@ export function ProfileScreen() {
 
           {invitado.sede && (
             <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Sede</Text>
+              <View style={styles.labelContainer}>
+                <MapPin size={12} color="rgba(255, 255, 255, 0.4)" />
+                <Text style={styles.infoLabel}>Sede</Text>
+              </View>
               <Text style={styles.infoValue}>{invitado.sede}</Text>
             </View>
           )}
 
           <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Tipo de Usuario</Text>
+            <View style={styles.labelContainer}>
+              <UserCircle size={12} color="rgba(255, 255, 255, 0.4)" />
+              <Text style={styles.infoLabel}>Tipo de Usuario</Text>
+            </View>
             <Text style={styles.infoValue}>Invitado</Text>
           </View>
         </View>
@@ -170,13 +176,18 @@ const styles = StyleSheet.create({
   infoItem: {
     marginBottom: 20,
   },
+  labelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
   infoLabel: {
     fontSize: 11,
     color: 'rgba(255, 255, 255, 0.4)',
     textTransform: 'uppercase',
     letterSpacing: 1,
     fontWeight: '500',
-    marginBottom: 6,
   },
   infoValue: {
     fontSize: 16,
