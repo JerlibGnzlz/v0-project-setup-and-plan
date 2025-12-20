@@ -9,7 +9,7 @@ import {
   Image,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Clipboard } from 'react-native'
+import Clipboard from '@react-native-clipboard/clipboard'
 import {
   CheckCircle2,
   Copy,
@@ -90,7 +90,7 @@ export function InscripcionStatusScreen({
 
   const handleCopyCode = async () => {
     try {
-      Clipboard.setString(codigoReferencia)
+      await Clipboard.setStringAsync(codigoReferencia)
       CustomAlert.alert('Código copiado', 'El código de referencia ha sido copiado al portapapeles', undefined, 'success')
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
