@@ -550,7 +550,57 @@ export class InvitadoAuthService {
         }
       }
 
-      // 4. Si aún no existe, crear nuevo invitado y auth
+      // 4. Si aún no existe, verificar UNA VEZ MÁS antes de crear (evitar race conditions)
+      if (!invitadoAuth) {
+        // Verificación final antes de crear para evitar race conditions
+        this.logger.debug(`🔍 Verificación final antes de crear: buscando Invitado con email: ${email}`)
+        const verificacionFinal = await this.prisma.invitado.findUnique({
+          where: { email },
+          include: {
+            auth: true,
+          },
+        })
+
+        if (verificacionFinal) {
+          this.logger.log(`⚠️ Invitado encontrado en verificación final (posible race condition): ${email}`)
+          // Si tiene auth, actualizar googleId
+          if (verificacionFinal.auth) {
+            if (!verificacionFinal.auth.googleId) {
+              await this.prisma.invitadoAuth.update({
+                where: { id: verificacionFinal.auth.id },
+                data: { googleId },
+              })
+            }
+            invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+              where: { id: verificacionFinal.auth.id },
+              include: {
+                invitado: true,
+              },
+            })
+          } else {
+            // Crear auth para invitado existente
+            const randomPassword = await bcrypt.hash(
+              Math.random().toString(36) + Date.now().toString(),
+              10
+            )
+            const nuevoAuth = await this.prisma.invitadoAuth.create({
+              data: {
+                invitadoId: verificacionFinal.id,
+                email,
+                password: randomPassword,
+                googleId,
+                emailVerificado: true,
+              },
+              include: {
+                invitado: true,
+              },
+            })
+            invitadoAuth = nuevoAuth
+          }
+        }
+      }
+
+      // 5. Si AÚN no existe, crear nuevo invitado y auth
       if (!invitadoAuth) {
         try {
           this.logger.log(`📝 Creando nuevo invitado con Google OAuth: ${email}`)
