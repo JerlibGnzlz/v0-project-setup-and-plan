@@ -90,12 +90,15 @@ export function InscripcionStatusScreen({
 
   const handleCopyCode = async () => {
     try {
+      console.log('📋 Intentando copiar código:', codigoReferencia)
       await Clipboard.setStringAsync(codigoReferencia)
+      console.log('✅ Código copiado exitosamente')
       CustomAlert.alert('Código copiado', 'El código de referencia ha sido copiado al portapapeles', undefined, 'success')
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-      console.error('Error copiando código:', errorMessage)
-      CustomAlert.alert('Error', 'No se pudo copiar el código', undefined, 'error')
+      console.error('❌ Error copiando código:', errorMessage)
+      console.error('❌ Error completo:', error)
+      CustomAlert.alert('Error', `No se pudo copiar el código: ${errorMessage}`, undefined, 'error')
     }
   }
 
