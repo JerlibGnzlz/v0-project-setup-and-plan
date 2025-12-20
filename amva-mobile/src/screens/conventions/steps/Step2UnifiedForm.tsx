@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 150, // Más espacio para asegurar que se pueda hacer scroll completo
+    paddingBottom: 250, // Más espacio para asegurar que se pueda hacer scroll completo y ver todos los campos
     flexGrow: 1, // Permite que el contenido crezca más allá del viewport
   },
   card: {
