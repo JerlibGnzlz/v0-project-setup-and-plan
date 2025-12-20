@@ -317,24 +317,26 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
             data?: {
               message?: string | string[] | unknown
               error?: string | unknown
+              details?: unknown
             }
           }
         }
         
+        // Log completo de la respuesta para debugging
+        const responseData = axiosError.response?.data
         console.error('📡 Detalles del error HTTP:', {
           status: axiosError.response?.status,
           statusText: axiosError.response?.statusText,
-          data: JSON.stringify(axiosError.response?.data, null, 2),
+          data: responseData,
+          dataStringified: JSON.stringify(responseData, null, 2),
         })
         
         // Si es un error 400, puede ser un problema de validación
         if (axiosError.response?.status === 400) {
           let backendMessage: string = 'Error de validación'
           
-          // Extraer mensaje de diferentes formatos posibles
-          const responseData = axiosError.response?.data
           if (responseData) {
-            // Formato 1: message como string
+            // Formato 1: message como string (formato estándar de ErrorResponse)
             if (typeof responseData.message === 'string') {
               backendMessage = responseData.message
             }
@@ -346,15 +348,41 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
             else if (typeof responseData.error === 'string') {
               backendMessage = responseData.error
             }
-            // Formato 4: message o error como objeto (extraer propiedades)
+            // Formato 4: details puede contener validationErrors
+            else if (responseData.details && typeof responseData.details === 'object') {
+              const details = responseData.details as { validationErrors?: Array<{ field?: string; message?: string }> }
+              if (details.validationErrors && Array.isArray(details.validationErrors)) {
+                const validationMessages = details.validationErrors
+                  .map(err => err.message || `${err.field}: Error de validación`)
+                  .join(', ')
+                backendMessage = validationMessages || 'Error de validación'
+              } else {
+                // Intentar extraer cualquier propiedad de mensaje del objeto details
+                try {
+                  const detailsStr = JSON.stringify(responseData.details)
+                  if (detailsStr !== '{}') {
+                    backendMessage = `Error de validación: ${detailsStr}`
+                  }
+                } catch {
+                  backendMessage = 'Error de validación: Datos inválidos'
+                }
+              }
+            }
+            // Formato 5: message o error como objeto (último recurso)
             else if (responseData.message && typeof responseData.message === 'object') {
               try {
-                backendMessage = JSON.stringify(responseData.message)
+                const messageObj = responseData.message as { [key: string]: unknown }
+                // Intentar extraer propiedades comunes
+                if ('message' in messageObj && typeof messageObj.message === 'string') {
+                  backendMessage = messageObj.message
+                } else {
+                  backendMessage = JSON.stringify(responseData.message)
+                }
               } catch {
                 backendMessage = 'Error de validación: Datos inválidos'
               }
             }
-            // Formato 5: error como objeto
+            // Formato 6: error como objeto
             else if (responseData.error && typeof responseData.error === 'object') {
               try {
                 const errorObj = responseData.error as { message?: string; [key: string]: unknown }
