@@ -225,17 +225,21 @@ async function registerTokenInBackend(token: string, email: string, userType: 'p
     const deviceId = token.substring(0, 20)
     
     if (userType === 'invitado') {
-      // Para invitados, registrar el token durante el login
-      // Este método se llama después del login exitoso
-      console.log('📱 Token de dispositivo disponible para invitado:', email)
-      // El token se registrará automáticamente en el próximo login
+      // Para invitados, usar el endpoint específico de invitados
+      await apiClient.post('/notifications/register/invitado', {
+        token,
+        platform: Platform.OS,
+        deviceId,
+      })
+      console.log('✅ Token registrado en el backend para invitado:', email)
     } else {
       // Para pastores, usar el endpoint de notificaciones
       await apiClient.post('/notifications/register', {
         token,
         platform: Platform.OS,
+        deviceId,
       })
-      console.log('✅ Token registrado en el backend para pastor', email)
+      console.log('✅ Token registrado en el backend para pastor:', email)
     }
   } catch (error) {
     console.error('❌ Error registrando token en el backend:', error)

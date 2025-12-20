@@ -628,6 +628,76 @@ export class InscripcionesService {
                 }
             }
 
+            // Enviar push notification al invitado si tiene tokens registrados
+            if (this.notificationsService) {
+                try {
+                    const invitado = await this.prisma.invitado.findUnique({
+                        where: { email: inscripcion.email },
+                        include: {
+                            auth: {
+                                include: {
+                                    deviceTokens: {
+                                        where: { active: true },
+                                    },
+                                },
+                            },
+                        },
+                    })
+
+                    if (invitado?.auth?.deviceTokens && invitado.auth.deviceTokens.length > 0) {
+                        const montoFormateado = new Intl.NumberFormat('es-AR', {
+                            style: 'currency',
+                            currency: 'ARS',
+                        }).format(costoTotal)
+
+                        const titulo = '✅ Inscripción Recibida'
+                        const mensaje = `Tu inscripción a "${convencion.titulo}" ha sido recibida exitosamente. Total: ${montoFormateado} (${numeroCuotas} cuotas).`
+
+                        let successCount = 0
+                        let errorCount = 0
+
+                        for (const deviceToken of invitado.auth.deviceTokens) {
+                            try {
+                                const sent = await this.notificationsService.sendPushNotification(
+                                    deviceToken.token,
+                                    titulo,
+                                    mensaje,
+                                    {
+                                        type: 'inscripcion_creada',
+                                        inscripcionId: inscripcion.id,
+                                        convencionId: convencion.id,
+                                        convencionTitulo: convencion.titulo,
+                                        numeroCuotas,
+                                        montoTotal: costoTotal,
+                                        origenRegistro,
+                                    }
+                                )
+
+                                if (sent) {
+                                    successCount++
+                                } else {
+                                    errorCount++
+                                }
+                            } catch (tokenError) {
+                                errorCount++
+                                this.logger.warn(`Error enviando push a token ${deviceToken.token}:`, tokenError)
+                            }
+                        }
+
+                        if (successCount > 0) {
+                            this.logger.log(
+                                `📱 Push notifications enviadas a invitado ${inscripcion.email}: ${successCount} exitosas, ${errorCount} errores`
+                            )
+                        }
+                    } else {
+                        this.logger.log(`ℹ️ Invitado ${inscripcion.email} no tiene tokens de dispositivo registrados`)
+                    }
+                } catch (pushError) {
+                    this.logger.error(`Error enviando push notifications a invitado ${inscripcion.email}:`, pushError)
+                    // No fallar si el push falla
+                }
+            }
+
             // Emitir evento de inscripción creada (para push/web notifications asíncronas)
             // El email ya se envió directamente arriba, este evento es solo para notificaciones adicionales
             try {

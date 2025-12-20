@@ -13,7 +13,8 @@ import {
 import { NotificationsService } from './notifications.service'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { PastorJwtAuthGuard } from '../auth/guards/pastor-jwt-auth.guard'
-import { AuthenticatedRequest, AuthenticatedPastorRequest } from '../auth/types/request.types'
+import { InvitadoJwtAuthGuard } from '../auth/guards/invitado-jwt-auth.guard'
+import { AuthenticatedRequest, AuthenticatedPastorRequest, AuthenticatedInvitadoRequest } from '../auth/types/request.types'
 
 @Controller('notifications')
 export class NotificationsController {
@@ -38,6 +39,20 @@ export class NotificationsController {
   @UseGuards(JwtAuthGuard)
   async registerAdminToken(
     @Req() req: AuthenticatedRequest,
+    @Body() body: { token: string; platform: string; deviceId?: string }
+  ) {
+    const email = req.user.email
+    if (!email) {
+      throw new Error('Email no disponible en el usuario autenticado')
+    }
+    return this.notificationsService.registerToken(email, body.token, body.platform, body.deviceId)
+  }
+
+  // Endpoint para invitados (desde app móvil)
+  @Post('register/invitado')
+  @UseGuards(InvitadoJwtAuthGuard)
+  async registerInvitadoToken(
+    @Req() req: AuthenticatedInvitadoRequest,
     @Body() body: { token: string; platform: string; deviceId?: string }
   ) {
     const email = req.user.email
