@@ -213,7 +213,23 @@ export class InvitadoAuthService {
         data: { ultimoLogin: new Date() },
       })
 
-      // 4. Generar tokens
+      // 4. Registrar token de dispositivo si se proporciona (para push notifications)
+      if (dto.deviceToken && dto.platform) {
+        try {
+          await this.notificationsService.registerInvitadoDeviceToken(
+            invitadoAuth.invitado.id,
+            dto.deviceToken,
+            dto.platform,
+            dto.deviceId
+          )
+          this.logger.log(`📱 Token de dispositivo registrado para invitado: ${invitadoAuth.email}`)
+        } catch (tokenError) {
+          // No fallar el login si el registro del token falla
+          this.logger.warn(`⚠️ Error registrando token de dispositivo:`, tokenError)
+        }
+      }
+
+      // 5. Generar tokens
       const { accessToken, refreshToken } = this.generateTokenPair(
         invitadoAuth.invitado.id,
         invitadoAuth.email,

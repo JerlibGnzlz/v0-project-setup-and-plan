@@ -32,6 +32,18 @@ export class InvitadoLoginDto {
   @IsString()
   @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
   password: string
+
+  @IsOptional()
+  @IsString()
+  deviceToken?: string
+
+  @IsOptional()
+  @IsString()
+  platform?: 'ios' | 'android'
+
+  @IsOptional()
+  @IsString()
+  deviceId?: string
 }
 
 export class InvitadoCompleteRegisterDto {
