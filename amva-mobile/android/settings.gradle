@@ -22,19 +22,10 @@ plugins {
   id("expo-autolinking-settings")
 }
 
-// Definir hermesEnabled ANTES de que se configuren los módulos de Expo
-// Esto es crítico porque expo-modules-core lo necesita durante su evaluación
-// En settings.gradle, leemos desde gradle.properties manualmente
-def hermesEnabledProp = 'true'
-def gradlePropsFile = new File(rootDir, 'gradle.properties')
-if (gradlePropsFile.exists()) {
-    gradlePropsFile.eachLine { line ->
-        if (line.startsWith('hermesEnabled=')) {
-            hermesEnabledProp = line.substring('hermesEnabled='.length()).trim()
-        }
-    }
-}
-rootProject.ext.hermesEnabled = hermesEnabledProp.toBoolean()
+// hermesEnabled se define en build.gradle después de aplicar los plugins
+// Aquí solo lo inicializamos con un valor por defecto para que esté disponible temprano
+// El valor real se sobrescribirá en build.gradle desde gradle.properties
+rootProject.ext.hermesEnabled = true
 
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   if (System.getenv('EXPO_USE_COMMUNITY_AUTOLINKING') == '1') {
