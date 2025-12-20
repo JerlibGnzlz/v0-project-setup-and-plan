@@ -60,7 +60,18 @@ export function RegisterScreen({ onSuccess, onBack }: RegisterScreenProps) {
   }
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    // Validación de caracteres permitidos según el tipo de campo
+    let filteredValue = value
+    
+    if (field === 'nombre' || field === 'apellido') {
+      // Solo permitir letras, espacios y algunos caracteres especiales comunes en nombres
+      filteredValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]/g, '')
+    } else if (field === 'telefono') {
+      // Solo permitir números, espacios, +, -, ( y )
+      filteredValue = value.replace(/[^\d\s+\-()]/g, '')
+    }
+    
+    setFormData(prev => ({ ...prev, [field]: filteredValue }))
     // Limpiar error del campo cuando se modifica
     if (errors[field]) {
       setErrors(prev => {
