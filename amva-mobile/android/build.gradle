@@ -21,9 +21,9 @@ allprojects {
   }
 }
 
-apply plugin: "expo-root-project"
-apply plugin: "com.facebook.react.rootproject"
-
-// Definir hermesEnabled desde gradle.properties (donde está definido como hermesEnabled=true)
+// Definir hermesEnabled ANTES de aplicar los plugins para que esté disponible cuando se evalúen los módulos
 // findProperty() lee automáticamente desde gradle.properties
 ext.hermesEnabled = (findProperty('hermesEnabled') ?: 'true').toBoolean()
+
+apply plugin: "expo-root-project"
+apply plugin: "com.facebook.react.rootproject"
