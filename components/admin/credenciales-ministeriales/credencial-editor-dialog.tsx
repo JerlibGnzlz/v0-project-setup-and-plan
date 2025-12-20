@@ -15,6 +15,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { DatePicker } from '@/components/ui/date-picker'
+import { format } from 'date-fns'
 import {
   Select,
   SelectContent,
@@ -263,10 +265,17 @@ export function CredencialEditorDialog({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="fechaNacimiento">Fecha de Nacimiento *</Label>
-                  <Input
+                  <DatePicker
                     id="fechaNacimiento"
-                    type="date"
-                    {...register('fechaNacimiento')}
+                    value={fechaNacimiento ? new Date(fechaNacimiento) : undefined}
+                    onChange={(date) => {
+                      if (date) {
+                        setValue('fechaNacimiento', format(date, 'yyyy-MM-dd'), { shouldValidate: true })
+                      } else {
+                        setValue('fechaNacimiento', '', { shouldValidate: true })
+                      }
+                    }}
+                    placeholder="Selecciona la fecha de nacimiento"
                   />
                   {errors.fechaNacimiento && (
                     <p className="text-xs text-destructive">
@@ -308,10 +317,17 @@ export function CredencialEditorDialog({
 
           <div className="space-y-2">
             <Label htmlFor="fechaVencimiento">Fecha de Vencimiento *</Label>
-            <Input
+            <DatePicker
               id="fechaVencimiento"
-              type="date"
-              {...register('fechaVencimiento')}
+              value={fechaVencimiento ? new Date(fechaVencimiento) : undefined}
+              onChange={(date) => {
+                if (date) {
+                  setValue('fechaVencimiento', format(date, 'yyyy-MM-dd'), { shouldValidate: true })
+                } else {
+                  setValue('fechaVencimiento', '', { shouldValidate: true })
+                }
+              }}
+              placeholder="Selecciona la fecha de vencimiento"
             />
             {errors.fechaVencimiento && (
               <p className="text-xs text-destructive">{errors.fechaVencimiento.message}</p>
