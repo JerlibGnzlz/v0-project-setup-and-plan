@@ -40,7 +40,7 @@ interface Step2UnifiedFormProps {
   invitado: Invitado
   yaInscrito?: boolean
   inscripcionExistente?: any
-  onComplete: () => void
+  onComplete: (inscripcion?: any) => void
   onBack: () => void
 }
 
@@ -287,7 +287,8 @@ export function Step2UnifiedForm({
         origenRegistro: 'mobile',
       }
 
-      await inscripcionesApi.create(datosInscripcion)
+      const inscripcionCreada = await inscripcionesApi.create(datosInscripcion)
+      console.log('✅ Inscripción creada:', inscripcionCreada)
 
       Alert.alert(
         '✅ Inscripción exitosa',
@@ -295,7 +296,10 @@ export function Step2UnifiedForm({
         [
           {
             text: 'OK',
-            onPress: onComplete,
+            onPress: () => {
+              // Pasar la inscripción creada a onComplete
+              onComplete(inscripcionCreada)
+            },
           },
         ],
         'success',
