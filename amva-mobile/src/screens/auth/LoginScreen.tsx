@@ -486,7 +486,7 @@ export function LoginScreen() {
                 googleAuthLoading && styles.buttonDisabled,
               ]}
               onPress={handleGoogleLogin}
-              disabled={googleAuthLoading || !!googleAuthError}
+              disabled={googleAuthLoading}
             >
               {googleAuthLoading ? (
                 <View style={styles.googleButtonContent}>

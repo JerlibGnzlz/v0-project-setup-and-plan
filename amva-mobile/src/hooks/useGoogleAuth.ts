@@ -41,7 +41,8 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
 
         if (!googleClientId || !googleClientId.includes('.apps.googleusercontent.com')) {
           console.warn('⚠️ Google Client ID no está configurado correctamente')
-          setError('Google Client ID no configurado')
+          // No establecer error aquí para no bloquear el botón
+          // El error se manejará cuando se intente usar
           return
         }
 
@@ -59,7 +60,8 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
         console.error('❌ Error configurando Google Sign-In:', errorMessage)
-        setError(errorMessage)
+        // No establecer error aquí para no bloquear el botón
+        // El error se manejará cuando se intente usar
       }
     }
 
