@@ -12,9 +12,10 @@ import {
   Dimensions,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useNavigation } from '@react-navigation/native'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
-import { CheckCircle2 } from 'lucide-react-native'
+import { CheckCircle2, Calendar as CalendarIcon } from 'lucide-react-native'
 import { convencionesApi, type Convencion, normalizeBoolean } from '@api/convenciones'
 import { inscripcionesApi } from '@api/inscripciones'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
@@ -296,22 +297,35 @@ export function ConventionInscripcionScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        {/* Header con logo */}
-        <View style={styles.header}>
-          <View style={styles.logoHeaderContainer}>
-            <Image
-              source={require('../../../assets/images/amvamovil.png')}
-              style={styles.headerLogo}
-              resizeMode="contain"
-            />
+      <View style={styles.container}>
+        {/* Header con gradiente - Sticky */}
+        <LinearGradient
+          colors={['rgba(34, 197, 94, 0.15)', 'rgba(59, 130, 246, 0.1)', 'transparent']}
+          style={styles.headerGradient}
+        >
+          <View style={styles.header}>
+            <View style={styles.logoHeaderContainer}>
+              <Image
+                source={require('../../../assets/images/amvamovil.png')}
+                style={styles.headerLogo}
+                resizeMode="contain"
+              />
+            </View>
+            <View style={styles.headerContent}>
+              <CalendarIcon size={28} color="#22c55e" />
+              <Text style={styles.title}>Inscripción a Convención</Text>
+            </View>
+            <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
           </View>
-          <Text style={styles.title}>Inscripción a Convención</Text>
-          <Text style={styles.subtitle}>Asociación Misionera Vida Abundante</Text>
-        </View>
+        </LinearGradient>
 
-        {/* Progress Steps - Mejorado */}
-        <View style={styles.stepsContainer}>
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={true}
+        >
+          {/* Progress Steps - Mejorado */}
+          <View style={styles.stepsContainer}>
           {/* Barra de progreso horizontal */}
           <View style={styles.progressBarContainer}>
             <View style={styles.progressBarBackground}>
@@ -403,7 +417,8 @@ export function ConventionInscripcionScreen() {
             />
           )}
         </Animated.View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   )
 }
@@ -417,9 +432,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0a1628',
   },
+  scrollView: {
+    flex: 1,
+  },
   contentContainer: {
     paddingTop: 8,
     paddingBottom: 100,
+  },
+  headerGradient: {
+    padding: 12,
+    paddingTop: 8,
+    paddingBottom: 12,
+    alignItems: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    width: '100%',
+    overflow: 'hidden',
+    zIndex: 10,
   },
   loadingContainer: {
     flex: 1,
@@ -468,33 +499,35 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   header: {
-    padding: 20,
-    paddingTop: 24,
-    paddingBottom: 24,
     alignItems: 'center',
-    backgroundColor: '#0d1f35',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    width: '100%',
   },
   logoHeaderContainer: {
-    width: 160,
-    height: 52,
-    marginBottom: 16,
+    width: 140,
+    height: 45,
+    marginBottom: 12,
+    alignSelf: 'center',
   },
   headerLogo: {
     width: '100%',
     height: '100%',
   },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 8,
+    justifyContent: 'center',
+  },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 4,
-    textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.7)',
+    marginTop: 4,
     textAlign: 'center',
   },
   stepsContainer: {
