@@ -668,19 +668,95 @@ export class InvitadoAuthService {
             googleId,
             fotoUrlGuardada: invitadoAuth.invitado.fotoUrl,
           })
-        } catch (error) {
+        } catch (error: unknown) {
           this.logger.error('❌ Error al crear invitado:', error)
+          
+          // Si es un error de constraint único (email duplicado), intentar recuperar el invitado existente
           if (error && typeof error === 'object' && 'code' in error) {
+            const prismaError = error as { code?: string; meta?: { target?: string[] } }
             this.logger.error('❌ Error de Prisma:', {
-              code: (error as { code?: string }).code,
-              meta: (error as { meta?: unknown }).meta
+              code: prismaError.code,
+              meta: prismaError.meta
             })
+            
+            // Si es un error de constraint único en email, buscar el invitado existente
+            if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('email')) {
+              this.logger.log(`🔄 Error de constraint único detectado, buscando invitado existente: ${email}`)
+              try {
+                const invitadoExistente = await this.prisma.invitado.findUnique({
+                  where: { email },
+                  include: {
+                    auth: true,
+                  },
+                })
+                
+                if (invitadoExistente) {
+                  this.logger.log(`✅ Invitado existente encontrado: ${email}`)
+                  
+                  // Si tiene auth, actualizar googleId si falta
+                  if (invitadoExistente.auth) {
+                    if (!invitadoExistente.auth.googleId) {
+                      await this.prisma.invitadoAuth.update({
+                        where: { id: invitadoExistente.auth.id },
+                        data: { googleId },
+                      })
+                    }
+                    invitadoAuth = await this.prisma.invitadoAuth.findUnique({
+                      where: { id: invitadoExistente.auth.id },
+                      include: {
+                        invitado: true,
+                      },
+                    })
+                  } else {
+                    // Crear auth para invitado existente
+                    const randomPassword = await bcrypt.hash(
+                      Math.random().toString(36) + Date.now().toString(),
+                      10
+                    )
+                    const nuevoAuth = await this.prisma.invitadoAuth.create({
+                      data: {
+                        invitadoId: invitadoExistente.id,
+                        email,
+                        password: randomPassword,
+                        googleId,
+                        emailVerificado: true,
+                      },
+                      include: {
+                        invitado: true,
+                      },
+                    })
+                    invitadoAuth = nuevoAuth
+                  }
+                  
+                  // Si se recuperó exitosamente, continuar con el flujo normal
+                  if (invitadoAuth) {
+                    this.logger.log(`✅ Invitado recuperado exitosamente: ${email}`)
+                    // No lanzar error, continuar con el flujo
+                  } else {
+                    throw error
+                  }
+                } else {
+                  // Si no se encuentra el invitado, lanzar el error original
+                  throw error
+                }
+              } catch (recoveryError) {
+                this.logger.error('❌ Error al recuperar invitado existente:', recoveryError)
+                throw error // Lanzar el error original
+              }
+            } else {
+              // Si no es un error de constraint único, lanzar el error original
+              throw error
+            }
+          } else {
+            throw error
           }
-          throw error
         }
-      } else {
-        if (!invitadoAuth) {
-          throw new Error('InvitadoAuth no encontrado')
+      }
+
+      // 5. Si tenemos invitadoAuth (ya existía o fue recuperado), actualizar último login
+      if (invitadoAuth) {
+        if (!invitadoAuth.invitado) {
+          throw new Error('InvitadoAuth no tiene invitado asociado')
         }
 
         // Actualizar último login
@@ -721,6 +797,8 @@ export class InvitadoAuthService {
           tieneFoto: !!invitadoAuth.invitado.fotoUrl,
           ultimoLogin: new Date().toISOString(),
         })
+      } else {
+        throw new Error('InvitadoAuth no encontrado después de todos los intentos')
       }
 
       // 4. Generar tokens
