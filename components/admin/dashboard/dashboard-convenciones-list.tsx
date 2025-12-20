@@ -164,7 +164,7 @@ export function DashboardConvencionesList({
                         {conv.fechaArchivado && (
                           <span className="ml-2 text-amber-600 dark:text-amber-400">
                             • Archivada:{' '}
-                            {new Date(conv.fechaArchivado).toLocaleDateString('es-ES')}
+                            {format(new Date(conv.fechaArchivado), 'dd/MM/yyyy', { locale: es })}
                           </span>
                         )}
                       </p>
