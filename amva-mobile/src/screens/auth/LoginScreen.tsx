@@ -721,8 +721,8 @@ const styles = StyleSheet.create({
   },
   passwordToggle: {
     position: 'absolute',
-    right: 10,
-    top: 10,
+    right: 14,
+    top: 12,
     padding: 4,
     justifyContent: 'center',
     alignItems: 'center',
