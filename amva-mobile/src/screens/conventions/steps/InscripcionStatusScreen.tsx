@@ -266,103 +266,103 @@ export function InscripcionStatusScreen({
         </View>
 
         {/* Lista de Pagos */}
-        {pagos.length > 0 ? (
-          <View style={styles.paymentsListCard}>
-            {pagos.map((pago, index) => {
-              const numeroPago = pago.numeroCuota || index + 1
-              // Normalizar estado a mayúsculas para comparación
-              const estadoNormalizado = String(pago.estado).toUpperCase()
-              const estaPendiente = estadoNormalizado === 'PENDIENTE'
-              const tieneComprobante = !!pago.comprobanteUrl
-              const estaSubiendo = uploadingComprobante && pagoSeleccionado === pago.id
-              
-              console.log(`📋 Pago ${numeroPago}: estado=${pago.estado}, normalizado=${estadoNormalizado}, pendiente=${estaPendiente}`)
+        <View style={styles.paymentsListCard}>
+          {pagos.length > 0 ? (
+            <>
+              {pagos.map((pago, index) => {
+                const numeroPago = pago.numeroCuota || index + 1
+                // Normalizar estado a mayúsculas para comparación
+                const estadoNormalizado = String(pago.estado).toUpperCase()
+                const estaPendiente = estadoNormalizado === 'PENDIENTE'
+                const tieneComprobante = !!pago.comprobanteUrl
+                const estaSubiendo = uploadingComprobante && pagoSeleccionado === pago.id
+                
+                console.log(`📋 Pago ${numeroPago}: estado=${pago.estado}, normalizado=${estadoNormalizado}, pendiente=${estaPendiente}`)
 
-              return (
-                <View key={pago.id} style={styles.paymentItem}>
-                  <View style={styles.paymentItemHeader}>
-                    <Text style={styles.paymentItemTitle}>Pago {numeroPago}</Text>
-                    <View
-                      style={[
-                        styles.paymentStatusBadge,
-                        estadoNormalizado === 'COMPLETADO' && styles.paymentStatusBadgeCompleted,
-                        estadoNormalizado === 'PENDIENTE' && styles.paymentStatusBadgePending,
-                      ]}
-                    >
-                      <Text
+                return (
+                  <View key={pago.id} style={styles.paymentItem}>
+                    <View style={styles.paymentItemHeader}>
+                      <Text style={styles.paymentItemTitle}>Pago {numeroPago}</Text>
+                      <View
                         style={[
-                          styles.paymentStatusBadgeText,
-                          estadoNormalizado === 'COMPLETADO' && styles.paymentStatusBadgeTextCompleted,
-                          estadoNormalizado === 'PENDIENTE' && styles.paymentStatusBadgeTextPending,
+                          styles.paymentStatusBadge,
+                          estadoNormalizado === 'COMPLETADO' && styles.paymentStatusBadgeCompleted,
+                          estadoNormalizado === 'PENDIENTE' && styles.paymentStatusBadgePending,
                         ]}
                       >
-                        {estadoNormalizado === 'COMPLETADO' ? 'Completado' : 'Pendiente'}
-                      </Text>
+                        <Text
+                          style={[
+                            styles.paymentStatusBadgeText,
+                            estadoNormalizado === 'COMPLETADO' && styles.paymentStatusBadgeTextCompleted,
+                            estadoNormalizado === 'PENDIENTE' && styles.paymentStatusBadgeTextPending,
+                          ]}
+                        >
+                          {estadoNormalizado === 'COMPLETADO' ? 'Completado' : 'Pendiente'}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                  <Text style={styles.paymentAmount}>
-                    ${Number(pago.monto).toLocaleString('es-AR', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{' '}
-                    (pesos argentinos)
-                  </Text>
-                  
-                  {/* Estado del comprobante */}
-                  {tieneComprobante ? (
-                    <View style={styles.comprobanteUploaded}>
-                      <CheckCircle2 size={16} color="#22c55e" />
-                      <Text style={styles.comprobanteUploadedText}>Comprobante cargado</Text>
-                    </View>
-                  ) : null}
+                    <Text style={styles.paymentAmount}>
+                      ${Number(pago.monto).toLocaleString('es-AR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{' '}
+                      (pesos argentinos)
+                    </Text>
+                    
+                    {/* Estado del comprobante */}
+                    {tieneComprobante ? (
+                      <View style={styles.comprobanteUploaded}>
+                        <CheckCircle2 size={16} color="#22c55e" />
+                        <Text style={styles.comprobanteUploadedText}>Comprobante cargado</Text>
+                      </View>
+                    ) : null}
 
-                  {/* Botón para subir comprobante (solo para pagos pendientes) */}
-                  {estaPendiente && (
-                    <View style={styles.paymentUploadSection}>
-                      <Text style={styles.paymentUploadDescription}>
-                        Sube el comprobante de transferencia bancaria para el Pago {numeroPago}
-                      </Text>
-                      <TouchableOpacity
-                        style={[
-                          styles.paymentUploadButton,
-                          estaSubiendo && styles.paymentUploadButtonDisabled,
-                        ]}
-                        onPress={() => handleUploadComprobante(pago.id)}
-                        disabled={estaSubiendo || uploadingComprobante}
-                      >
-                        {estaSubiendo ? (
-                          <View style={styles.paymentUploadButtonContent}>
-                            <ActivityIndicator color="#fff" size="small" />
-                            <Text style={styles.paymentUploadButtonText}>Subiendo...</Text>
-                          </View>
-                        ) : (
-                          <View style={styles.paymentUploadButtonContent}>
-                            <Upload size={18} color="#fff" />
-                            <Text style={styles.paymentUploadButtonText}>Subir Comprobante</Text>
+                    {/* Botón para subir comprobante (solo para pagos pendientes) */}
+                    {estaPendiente && (
+                      <View style={styles.paymentUploadSection}>
+                        <Text style={styles.paymentUploadDescription}>
+                          Sube el comprobante de transferencia bancaria para el Pago {numeroPago}
+                        </Text>
+                        <TouchableOpacity
+                          style={[
+                            styles.paymentUploadButton,
+                            estaSubiendo && styles.paymentUploadButtonDisabled,
+                          ]}
+                          onPress={() => handleUploadComprobante(pago.id)}
+                          disabled={estaSubiendo || uploadingComprobante}
+                        >
+                          {estaSubiendo ? (
+                            <View style={styles.paymentUploadButtonContent}>
+                              <ActivityIndicator color="#fff" size="small" />
+                              <Text style={styles.paymentUploadButtonText}>Subiendo...</Text>
+                            </View>
+                          ) : (
+                            <View style={styles.paymentUploadButtonContent}>
+                              <Upload size={18} color="#fff" />
+                              <Text style={styles.paymentUploadButtonText}>Subir Comprobante</Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                        {!tieneComprobante && (
+                          <View style={styles.paymentUploadWarning}>
+                            <AlertCircle size={14} color="#ef4444" />
+                            <Text style={styles.paymentUploadWarningText}>
+                              No se aceptan fotos de personas o imágenes sin texto
+                            </Text>
                           </View>
                         )}
-                      </TouchableOpacity>
-                      {!tieneComprobante && (
-                        <View style={styles.paymentUploadWarning}>
-                          <AlertCircle size={14} color="#ef4444" />
-                          <Text style={styles.paymentUploadWarningText}>
-                            No se aceptan fotos de personas o imágenes sin texto
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  )}
-                </View>
-              )
-            })}
-          </View>
-        ) : (
-          <View style={styles.paymentsListCard}>
+                      </View>
+                    )}
+                  </View>
+                )
+              })}
+            </>
+          ) : (
             <Text style={styles.noPaymentsText}>
               No hay pagos registrados para esta inscripción
             </Text>
-          </View>
-        )}
+          )}
+        </View>
 
         {/* Información de Convención */}
         <View style={styles.convencionInfoCard}>
