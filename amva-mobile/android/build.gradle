@@ -21,11 +21,6 @@ allprojects {
   }
 }
 
-// Forzar AndroidX explícitamente antes de aplicar plugins
-// Esto asegura que esté disponible cuando se evalúen los módulos
-ext.useAndroidX = true
-ext.enableJetifier = true
-
 // Definir hermesEnabled ANTES de aplicar los plugins para que esté disponible cuando se evalúen los módulos
 // findProperty() lee automáticamente desde gradle.properties
 ext.hermesEnabled = (findProperty('hermesEnabled') ?: 'true').toBoolean()
