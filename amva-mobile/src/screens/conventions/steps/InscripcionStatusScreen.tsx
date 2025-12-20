@@ -281,18 +281,18 @@ export function InscripcionStatusScreen({
                     <View
                       style={[
                         styles.paymentStatusBadge,
-                        pago.estado === 'COMPLETADO' && styles.paymentStatusBadgeCompleted,
-                        pago.estado === 'PENDIENTE' && styles.paymentStatusBadgePending,
+                        estadoNormalizado === 'COMPLETADO' && styles.paymentStatusBadgeCompleted,
+                        estadoNormalizado === 'PENDIENTE' && styles.paymentStatusBadgePending,
                       ]}
                     >
                       <Text
                         style={[
                           styles.paymentStatusBadgeText,
-                          pago.estado === 'COMPLETADO' && styles.paymentStatusBadgeTextCompleted,
-                          pago.estado === 'PENDIENTE' && styles.paymentStatusBadgeTextPending,
+                          estadoNormalizado === 'COMPLETADO' && styles.paymentStatusBadgeTextCompleted,
+                          estadoNormalizado === 'PENDIENTE' && styles.paymentStatusBadgeTextPending,
                         ]}
                       >
-                        {pago.estado === 'COMPLETADO' ? 'Completado' : 'Pendiente'}
+                        {estadoNormalizado === 'COMPLETADO' ? 'Completado' : 'Pendiente'}
                       </Text>
                     </View>
                   </View>
