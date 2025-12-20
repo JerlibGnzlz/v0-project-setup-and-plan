@@ -19,12 +19,12 @@ allprojects {
     mavenCentral()
     maven { url 'https://www.jitpack.io' }
   }
+  
+  // Forzar AndroidX explícitamente en todos los proyectos (backup si gradle.properties no se lee)
+  // Esto es necesario porque EAS Build puede no leer gradle.properties correctamente
+  project.ext.setProperty("android.useAndroidX", "true")
+  project.ext.setProperty("android.enableJetifier", "true")
 }
-
-// Forzar AndroidX explícitamente (backup si gradle.properties no se lee en EAS Build)
-// Esto es necesario porque EAS Build puede no leer gradle.properties correctamente
-ext.useAndroidX = true
-ext.enableJetifier = true
 
 // Definir hermesEnabled ANTES de aplicar los plugins para que esté disponible cuando se evalúen los módulos
 // findProperty() lee automáticamente desde gradle.properties
