@@ -31,6 +31,7 @@ function GoogleLogo() {
         source={require('../../../assets/images/google.png')}
         style={styles.googleLogoImage}
         resizeMode="contain"
+        resizeMethod="resize"
       />
     </View>
   )
