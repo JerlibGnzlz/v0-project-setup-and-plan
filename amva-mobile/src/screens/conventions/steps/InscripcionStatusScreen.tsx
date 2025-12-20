@@ -51,7 +51,10 @@ export function InscripcionStatusScreen({
   const [uploadingComprobante, setUploadingComprobante] = useState(false)
   const [pagoSeleccionado, setPagoSeleccionado] = useState<string | null>(null)
   const [inscripcionCompleta, setInscripcionCompleta] = useState<Inscripcion | null>(inscripcion)
-  const [pagos, setPagos] = useState<Pago[]>([])
+  // Inicializar pagos desde la inscripción si ya vienen incluidos
+  const [pagos, setPagos] = useState<Pago[]>(
+    inscripcion.pagos && Array.isArray(inscripcion.pagos) ? (inscripcion.pagos as Pago[]) : []
+  )
 
   // Cargar información completa de la inscripción con pagos
   useEffect(() => {
