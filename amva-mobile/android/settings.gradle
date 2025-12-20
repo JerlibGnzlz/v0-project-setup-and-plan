@@ -24,7 +24,20 @@ plugins {
 
 // Definir hermesEnabled ANTES de que se configuren los módulos de Expo
 // Esto es crítico porque expo-modules-core lo necesita durante su evaluación
-rootProject.ext.hermesEnabled = (findProperty('hermesEnabled') ?: 'true').toBoolean()
+// En settings.gradle, necesitamos acceder a las propiedades de forma diferente
+def hermesEnabledProp = System.getProperty('hermesEnabled') ?: System.getenv('hermesEnabled')
+if (hermesEnabledProp == null) {
+    // Intentar leer desde gradle.properties manualmente
+    def gradlePropsFile = new File(rootDir, 'gradle.properties')
+    if (gradlePropsFile.exists()) {
+        gradlePropsFile.eachLine { line ->
+            if (line.startsWith('hermesEnabled=')) {
+                hermesEnabledProp = line.substring('hermesEnabled='.length()).trim()
+            }
+        }
+    }
+}
+rootProject.ext.hermesEnabled = (hermesEnabledProp ?: 'true').toBoolean()
 
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   if (System.getenv('EXPO_USE_COMMUNITY_AUTOLINKING') == '1') {
