@@ -88,49 +88,30 @@ export function CustomAlert({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircle size={40} color="#22c55e" />
+        return <CheckCircle size={36} color="#22c55e" />
       case 'error':
-        return <AlertCircle size={40} color="#ef4444" />
+        return <AlertCircle size={36} color="#ef4444" />
       case 'warning':
-        return <AlertTriangle size={32} color="#f59e0b" />
+        return <AlertTriangle size={28} color="#f59e0b" />
       case 'confirm':
-        return <Info size={40} color="#3b82f6" />
+        return <Info size={36} color="#3b82f6" />
       default:
-        return <Info size={40} color="#3b82f6" />
+        return <Info size={36} color="#3b82f6" />
     }
   }
 
   const getGradientColors = () => {
     switch (type) {
       case 'success':
-        return ['rgba(34, 197, 94, 0.15)', 'rgba(34, 197, 94, 0.05)']
+        return ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)']
       case 'error':
-        return ['rgba(239, 68, 68, 0.15)', 'rgba(239, 68, 68, 0.05)']
+        return ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)']
       case 'warning':
-        return ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)'] // Más sutil para warning
+        return ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)']
       case 'confirm':
-        return ['rgba(59, 130, 246, 0.15)', 'rgba(59, 130, 246, 0.05)']
+        return ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)']
       default:
-        return ['rgba(59, 130, 246, 0.15)', 'rgba(59, 130, 246, 0.05)']
-    }
-  }
-
-  const getButtonColors = (buttonStyle?: string) => {
-    if (buttonStyle === 'destructive') {
-      return ['rgba(239, 68, 68, 0.2)', 'rgba(239, 68, 68, 0.1)']
-    }
-    if (buttonStyle === 'cancel') {
-      return ['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']
-    }
-    switch (type) {
-      case 'success':
-        return ['rgba(34, 197, 94, 0.2)', 'rgba(34, 197, 94, 0.1)']
-      case 'error':
-        return ['rgba(239, 68, 68, 0.2)', 'rgba(239, 68, 68, 0.1)']
-      case 'warning':
-        return ['rgba(245, 158, 11, 0.2)', 'rgba(245, 158, 11, 0.1)']
-      default:
-        return ['rgba(59, 130, 246, 0.2)', 'rgba(59, 130, 246, 0.1)']
+        return ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)']
     }
   }
 
@@ -139,7 +120,7 @@ export function CustomAlert({
       return '#ef4444'
     }
     if (buttonStyle === 'cancel') {
-      return 'rgba(255, 255, 255, 0.8)'
+      return 'rgba(255, 255, 255, 0.7)'
     }
     switch (type) {
       case 'success':
@@ -188,20 +169,11 @@ export function CustomAlert({
               ]}
             >
               <LinearGradient colors={getGradientColors()} style={styles.content}>
-                {type !== 'warning' && <View style={styles.iconContainer}>{getIcon()}</View>}
-                {type === 'warning' && (
-                  <View style={styles.warningIconContainer}>{getIcon()}</View>
-                )}
+                <View style={styles.iconContainer}>{getIcon()}</View>
 
-                <Text style={[styles.title, type === 'warning' && styles.warningTitle]}>
-                  {title}
-                </Text>
+                <Text style={styles.title}>{title}</Text>
 
-                {message && (
-                  <Text style={[styles.message, type === 'warning' && styles.warningMessage]}>
-                    {message}
-                  </Text>
-                )}
+                {message && <Text style={styles.message}>{message}</Text>}
 
                 <View style={styles.buttonContainer}>
                   {buttons.map((button, index) => (
@@ -210,38 +182,18 @@ export function CustomAlert({
                       style={[
                         styles.button,
                         buttons.length > 1 && index < buttons.length - 1 && styles.buttonMargin,
-                        type === 'warning' && styles.warningButton,
                       ]}
                       onPress={() => handleButtonPress(button)}
                       activeOpacity={0.8}
                     >
-                      {type === 'warning' ? (
-                        <Text
-                          style={[
-                            styles.buttonText,
-                            styles.warningButtonText,
-                            { color: getButtonTextColor(button.style) },
-                          ]}
-                        >
-                          {button.text}
-                        </Text>
-                      ) : (
-                        <LinearGradient
-                          colors={getButtonColors(button.style)}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={styles.buttonGradient}
-                        >
-                          <Text
-                            style={[
-                              styles.buttonText,
-                              { color: getButtonTextColor(button.style) },
-                            ]}
-                          >
-                            {button.text}
-                          </Text>
-                        </LinearGradient>
-                      )}
+                      <Text
+                        style={[
+                          styles.buttonText,
+                          { color: getButtonTextColor(button.style) },
+                        ]}
+                      >
+                        {button.text}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -267,83 +219,56 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   content: {
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 14,
+    padding: 18,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 16,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 12,
   },
   iconContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  warningIconContainer: {
     alignItems: 'center',
     marginBottom: 12,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
     letterSpacing: -0.3,
   },
-  warningTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 6,
-  },
   message: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  warningMessage: {
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.6)',
-    marginBottom: 16,
+    color: 'rgba(255, 255, 255, 0.65)',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 18,
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   button: {
     flex: 1,
-    borderRadius: 12,
-    overflow: 'hidden',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 11,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonMargin: {
     marginRight: 0,
   },
-  buttonGradient: {
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-  },
   buttonText: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  warningButton: {
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.15)',
-    borderRadius: 10,
-  },
-  warningButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
   },
 })
 
