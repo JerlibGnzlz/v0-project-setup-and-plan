@@ -123,6 +123,21 @@ export function ConventionInscripcionScreen() {
               } catch (error) {
                 console.error('Error verificando inscripción:', error)
               }
+            } else if (hasInitialized && invitado?.email && currentStep === 2 && isAuthenticated) {
+              // Si ya estamos en step 2, verificar inscripción para actualizar el estado
+              // Esto es útil cuando el usuario vuelve a la pantalla después de inscribirse
+              try {
+                const inscripcion = await inscripcionesApi.checkInscripcion(activa.id, invitado.email)
+                if (inscripcion) {
+                  setYaInscrito(true)
+                  setInscripcionExistente(inscripcion)
+                } else {
+                  setYaInscrito(false)
+                  setInscripcionExistente(null)
+                }
+              } catch (error) {
+                console.error('Error verificando inscripción en step 2:', error)
+              }
             }
           } else {
             setConvencion(null)
@@ -158,7 +173,7 @@ export function ConventionInscripcionScreen() {
     }
   }, [invitado?.email, isAuthenticated, currentStep])
 
-  const handleStepComplete = (step: number, data?: any) => {
+  const handleStepComplete = async (step: number, data?: any) => {
     if (data) {
       setFormData((prev: any) => ({ ...prev, ...data }))
     }
@@ -175,7 +190,7 @@ export function ConventionInscripcionScreen() {
         duration: 200,
         useNativeDriver: true,
       }),
-    ]).start(() => {
+    ]).start(async () => {
       // Cambiar step - Solo 2 pasos ahora
       if (step === 1 && isAuthenticated) {
         setCurrentStep(2)
@@ -185,18 +200,25 @@ export function ConventionInscripcionScreen() {
         // Recargar la inscripción para obtener los datos actualizados
         if (convencion && invitado?.email) {
           try {
+            console.log('🔄 Recargando inscripción después de completar...')
             const inscripcion = await inscripcionesApi.checkInscripcion(convencion.id, invitado.email)
+            console.log('✅ Inscripción recargada:', inscripcion)
             if (inscripcion) {
               setYaInscrito(true)
               setInscripcionExistente(inscripcion)
+              // Mantener en step 2 para mostrar el estado
               // No navegar a Inicio, quedarse en la pantalla mostrando el estado
+            } else {
+              console.warn('⚠️ No se encontró inscripción después de crear')
+              navigation.navigate('Inicio')
             }
           } catch (error) {
-            console.error('Error recargando inscripción:', error)
+            console.error('❌ Error recargando inscripción:', error)
             // Si hay error, navegar a Inicio como fallback
             navigation.navigate('Inicio')
           }
         } else {
+          console.warn('⚠️ No hay convención o email del invitado')
           navigation.navigate('Inicio')
         }
       }
