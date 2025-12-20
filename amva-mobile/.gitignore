@@ -2,3 +2,12 @@ node_modules/
 .expo/
 .env
 .env.local
+.env.production
+android/app/google-services.json
+android/app/amva-release-key.keystore
+android/gradle.properties
+*.keystore
+*.jks
+google-service-account.json
+.DS_Store
+*.log
