@@ -197,11 +197,23 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
     })
     token = tokenData.data
     console.log('✅ Token de notificación obtenido:', token)
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    
     // Silenciar errores relacionados con Expo Go
-    if (!error?.message?.includes('Expo Go') && !error?.message?.includes('development build')) {
-      console.error('❌ Error obteniendo token de notificación:', error)
+    if (errorMessage.includes('Expo Go') || errorMessage.includes('development build')) {
+      return null
     }
+    
+    // Manejar error de Firebase no inicializado
+    if (errorMessage.includes('FirebaseApp') || errorMessage.includes('Firebase') || errorMessage.includes('FCM')) {
+      console.warn('⚠️ Firebase no está configurado. Las notificaciones push no estarán disponibles.')
+      console.warn('💡 Para habilitar notificaciones push, sigue la guía: https://docs.expo.dev/push-notifications/fcm-credentials/')
+      return null
+    }
+    
+    // Otros errores
+    console.error('❌ Error obteniendo token de notificación:', errorMessage)
   }
 
   return token

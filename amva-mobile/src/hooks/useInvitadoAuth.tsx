@@ -173,8 +173,16 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
             deviceId = deviceToken.substring(0, 20)
             console.log('📱 Token de dispositivo obtenido para login')
           }
-        } catch (tokenError) {
-          console.warn('⚠️ No se pudo obtener token de dispositivo:', tokenError)
+        } catch (tokenError: unknown) {
+          const errorMessage = tokenError instanceof Error ? tokenError.message : String(tokenError)
+          
+          // Manejar error de Firebase no inicializado
+          if (errorMessage.includes('FirebaseApp') || errorMessage.includes('Firebase') || errorMessage.includes('FCM')) {
+            console.warn('⚠️ Firebase no está configurado. Las notificaciones push no estarán disponibles.')
+            console.warn('💡 Para habilitar notificaciones push, sigue la guía: https://docs.expo.dev/push-notifications/fcm-credentials/')
+          } else {
+            console.warn('⚠️ No se pudo obtener token de dispositivo:', errorMessage)
+          }
         }
       }
       
@@ -235,8 +243,16 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
             deviceId = deviceToken.substring(0, 20)
             console.log('📱 Token de dispositivo obtenido para login con Google')
           }
-        } catch (tokenError) {
-          console.warn('⚠️ No se pudo obtener token de dispositivo:', tokenError)
+        } catch (tokenError: unknown) {
+          const errorMessage = tokenError instanceof Error ? tokenError.message : String(tokenError)
+          
+          // Manejar error de Firebase no inicializado
+          if (errorMessage.includes('FirebaseApp') || errorMessage.includes('Firebase') || errorMessage.includes('FCM')) {
+            console.warn('⚠️ Firebase no está configurado. Las notificaciones push no estarán disponibles.')
+            console.warn('💡 Para habilitar notificaciones push, sigue la guía: https://docs.expo.dev/push-notifications/fcm-credentials/')
+          } else {
+            console.warn('⚠️ No se pudo obtener token de dispositivo:', errorMessage)
+          }
         }
       }
       
