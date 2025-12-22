@@ -122,3 +122,5 @@ En la app, busca en los logs:
 4. Probar login con Google en la app
 5. Si no funciona, esperar hasta 30 minutos y verificar logs
 
+
+

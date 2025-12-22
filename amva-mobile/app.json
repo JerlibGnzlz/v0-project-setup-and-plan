@@ -7,11 +7,11 @@
     "scheme": "amva-app",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/amvamovil.png",
+      "image": "./assets/images/splash-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a1628"
     },
-    "icon": "./assets/images/amvamovil.png",
+    "icon": "./assets/images/icon.png",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.vidaabundante.app",
@@ -23,7 +23,7 @@
         [
           "expo-notifications",
           {
-            "icon": "./assets/images/amvamovil.png",
+            "icon": "./assets/images/icon.png",
             "color": "#22c55e",
             "sounds": [
               "default"
@@ -36,7 +36,7 @@
       "package": "org.vidaabundante.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/amvamovil.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0a1628"
       },
       "googleServicesFile": "./android/app/google-services.json",
@@ -51,7 +51,7 @@
         [
           "expo-notifications",
           {
-            "icon": "./assets/images/amvamovil.png",
+            "icon": "./assets/images/icon.png",
             "color": "#22c55e",
             "sounds": [
               "default"
