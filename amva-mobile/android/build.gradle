@@ -6,18 +6,12 @@ buildscript {
     mavenCentral()
   }
   dependencies {
+        classpath 'com.google.gms:google-services:4.4.1'
     classpath('com.android.tools.build:gradle')
     classpath('com.facebook.react:react-native-gradle-plugin')
     classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
-    classpath('com.google.gms:google-services:4.4.0')
   }
 }
-
-// Forzar AndroidX explícitamente ANTES de configurar proyectos (backup si gradle.properties no se lee)
-// Esto es necesario porque EAS Build puede no leer gradle.properties correctamente
-// Usamos System.setProperty para que Gradle lo detecte
-System.setProperty("android.useAndroidX", "true")
-System.setProperty("android.enableJetifier", "true")
 
 allprojects {
   repositories {
@@ -26,10 +20,6 @@ allprojects {
     maven { url 'https://www.jitpack.io' }
   }
 }
-
-// Definir hermesEnabled ANTES de aplicar los plugins para que esté disponible cuando se evalúen los módulos
-// findProperty() lee automáticamente desde gradle.properties
-ext.hermesEnabled = (findProperty('hermesEnabled') ?: 'true').toBoolean()
 
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"

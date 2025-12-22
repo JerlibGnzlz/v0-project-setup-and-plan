@@ -1,11 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-apply plugin: "com.google.gms.google-services"
-
-// hermesEnabled está definido en build.gradle (proyecto raíz)
-// Lo hacemos disponible como propiedad del proyecto :app para que los módulos de Expo puedan accederlo
-project.ext.hermesEnabled = rootProject.ext.hermesEnabled
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
@@ -86,9 +81,6 @@ def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBu
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
-// hermesEnabled ya está definido arriba como propiedad del proyecto
-def hermesEnabled = project.ext.hermesEnabled
-
 android {
     ndkVersion rootProject.ext.ndkVersion
 
@@ -96,22 +88,12 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'org.vidaabundante.app'
-    
     defaultConfig {
         applicationId 'org.vidaabundante.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        
-        // Versioning: Leer desde app.json o usar valores por defecto
-        // Estos valores se sincronizan automáticamente con app.json mediante prebuild de Expo
-        // Para producción, siempre incrementar versionCode en cada release
-        def appJsonFile = file("${rootDir}/../app.json")
-        def appJson = new groovy.json.JsonSlurper().parse(appJsonFile)
-        def versionCodeFromAppJson = appJson.expo.android.versionCode ?: 1
-        def versionNameFromAppJson = appJson.expo.version ?: "1.0.0"
-        
-        versionCode versionCodeFromAppJson
-        versionName versionNameFromAppJson
+        versionCode 1
+        versionName "1.0.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
@@ -122,71 +104,21 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
-        release {
-            // IMPORTANTE: Para producción, necesitas generar tu propio keystore
-            // Usa el script: ./scripts/generate-keystore.sh
-            // O manualmente: keytool -genkeypair -v -storetype PKCS12 -keystore amva-release-key.keystore -alias amva-key-alias -keyalg RSA -keysize 2048 -validity 10000
-            //
-            // Luego configura estas propiedades en android/gradle.properties:
-            // MYAPP_RELEASE_STORE_FILE=amva-release-key.keystore
-            // MYAPP_RELEASE_KEY_ALIAS=amva-key-alias
-            // MYAPP_RELEASE_STORE_PASSWORD=tu-password-seguro
-            // MYAPP_RELEASE_KEY_PASSWORD=tu-password-seguro
-            
-            // Intentar usar keystore de producción si está configurado
-            def keystorePropertiesFile = rootProject.file("gradle.properties")
-            def keystoreProperties = new Properties()
-            
-            if (keystorePropertiesFile.exists()) {
-                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-                
-                def releaseStoreFile = keystoreProperties['MYAPP_RELEASE_STORE_FILE']
-                def releaseKeyAlias = keystoreProperties['MYAPP_RELEASE_KEY_ALIAS']
-                def releaseStorePassword = keystoreProperties['MYAPP_RELEASE_STORE_PASSWORD']
-                def releaseKeyPassword = keystoreProperties['MYAPP_RELEASE_KEY_PASSWORD']
-                
-                if (releaseStoreFile && releaseKeyAlias && releaseStorePassword && releaseKeyPassword) {
-                    // Usar keystore de producción
-                    storeFile file(releaseStoreFile)
-                    storePassword releaseStorePassword
-                    keyAlias releaseKeyAlias
-                    keyPassword releaseKeyPassword
-                    println "✅ Usando keystore de producción: $releaseStoreFile"
-                } else {
-                    // Fallback a debug keystore (NO usar en producción real)
-                    println "⚠️  Keystore de producción no configurado, usando debug keystore"
-                    storeFile file('debug.keystore')
-                    storePassword 'android'
-                    keyAlias 'androiddebugkey'
-                    keyPassword 'android'
-                }
-            } else {
-                // Fallback a debug keystore si no existe gradle.properties
-                println "⚠️  gradle.properties no encontrado, usando debug keystore"
-                storeFile file('debug.keystore')
-                storePassword 'android'
-                keyAlias 'androiddebugkey'
-                keyPassword 'android'
-            }
-        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
-            applicationIdSuffix ".debug"
-            versionNameSuffix "-debug"
         }
         release {
-            signingConfig signingConfigs.release
-            // Optimizaciones para producción
-            shrinkResources true
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
-            crunchPngs true
-            
-            // Configuración adicional para producción
-            debuggable false
-            zipAlignEnabled true
+            // Caution! In production, you need to generate your own keystore file.
+            // see https://reactnative.dev/docs/signed-apk-android.
+            signingConfig signingConfigs.debug
+            def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
+            shrinkResources enableShrinkResources.toBoolean()
+            minifyEnabled enableMinifyInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            def enablePngCrunchInRelease = findProperty('android.enablePngCrunchInReleaseBuilds') ?: 'true'
+            crunchPngs enablePngCrunchInRelease.toBoolean()
         }
     }
     packagingOptions {
@@ -248,3 +180,5 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+apply plugin: 'com.google.gms.google-services'

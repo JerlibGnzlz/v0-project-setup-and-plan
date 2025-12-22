@@ -36,5 +36,4 @@ rootProject.name = 'AMVA Móvil'
 expoAutolinking.useExpoVersionCatalog()
 
 include ':app'
-
 includeBuild(expoAutolinking.reactNativeGradlePlugin)
