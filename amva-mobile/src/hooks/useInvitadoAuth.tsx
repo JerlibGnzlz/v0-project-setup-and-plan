@@ -166,7 +166,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
           const { status } = await Notifications.getPermissionsAsync()
           if (status === 'granted') {
             const tokenData = await Notifications.getExpoPushTokenAsync({
-              projectId: 'amva-mobile-example',
+              projectId: Constants?.expoConfig?.extra?.eas?.projectId || '89b63cb9-113c-4901-bfb6-c1622478bc56',
             })
             deviceToken = tokenData.data
             platform = Platform.OS as 'ios' | 'android'
@@ -245,7 +245,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
           const { status } = await Notifications.getPermissionsAsync()
           if (status === 'granted') {
             const tokenData = await Notifications.getExpoPushTokenAsync({
-              projectId: 'amva-mobile-example',
+              projectId: Constants?.expoConfig?.extra?.eas?.projectId || '89b63cb9-113c-4901-bfb6-c1622478bc56',
             })
             deviceToken = tokenData.data
             platform = Platform.OS as 'ios' | 'android'
