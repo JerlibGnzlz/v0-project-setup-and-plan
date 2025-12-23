@@ -170,7 +170,9 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
             })
             deviceToken = tokenData.data
             platform = Platform.OS as 'ios' | 'android'
-            deviceId = deviceToken.substring(0, 20)
+            if (deviceToken) {
+              deviceId = deviceToken.substring(0, 20)
+            }
             console.log('📱 Token de dispositivo obtenido para login')
           }
         } catch (tokenError: unknown) {
@@ -249,7 +251,9 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
             })
             deviceToken = tokenData.data
             platform = Platform.OS as 'ios' | 'android'
-            deviceId = deviceToken.substring(0, 20)
+            if (deviceToken) {
+              deviceId = deviceToken.substring(0, 20)
+            }
             console.log('📱 Token de dispositivo obtenido para login con Google')
           }
         } catch (tokenError: unknown) {
