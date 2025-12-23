@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { DayPicker } from 'react-day-picker'
 import { es } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
-import 'react-day-picker/dist/style.css'
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
