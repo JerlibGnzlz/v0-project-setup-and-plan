@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { DatePickerEnhanced } from '@/components/ui/date-picker-enhanced'
+import { DatePickerSimple } from '@/components/ui/date-picker-simple'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { convencionSchema, type ConvencionFormData } from '@/lib/validations/convencion'
@@ -131,17 +131,9 @@ export function ConvencionEditDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="fecha">Fecha</Label>
-              <DatePickerEnhanced
+              <DatePickerSimple
                 id="fecha"
-                value={
-                  fechaValue
-                    ? (() => {
-                        // Convertir string yyyy-MM-dd a Date usando zona horaria local
-                        const [year, month, day] = fechaValue.split('-').map(Number)
-                        return new Date(year, month - 1, day)
-                      })()
-                    : undefined
-                }
+                value={fechaValue || undefined}
                 onChange={(date) => {
                   if (date) {
                     // Formatear fecha usando métodos locales para evitar problemas de zona horaria
@@ -155,7 +147,6 @@ export function ConvencionEditDialog({
                 }}
                 placeholder="Selecciona la fecha de inicio"
                 minDate={new Date()}
-                showClearButton={true}
               />
               {errors.fecha && (
                 <p className="text-sm text-destructive">{errors.fecha.message}</p>
