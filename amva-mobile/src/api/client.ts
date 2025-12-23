@@ -144,6 +144,9 @@ apiClient.interceptors.request.use(
         // POST /solicitudes-credenciales también requiere token de invitado
         (config.url?.includes('/solicitudes-credenciales') && config.method === 'post')
 
+      // Detectar endpoint unificado de credenciales (acepta pastor o invitado)
+      const isCredencialesUnificadoEndpoint = config.url?.includes('/credenciales/mis-credenciales')
+
       // Detectar si es un endpoint de invitados o inscripciones (que también usa invitados)
       // NOTA: POST /inscripciones es público (no requiere autenticación)
       const isPublicInscripcionPost = config.url === '/inscripciones' && config.method === 'post'
@@ -190,6 +193,27 @@ apiClient.interceptors.request.use(
         if (__DEV__) {
           console.log('🌐 POST /inscripciones es público, no se requiere token')
         }
+        return config
+      }
+
+      // Para endpoint unificado de credenciales, intentar ambos tokens (pastor o invitado)
+      if (isCredencialesUnificadoEndpoint) {
+        // Intentar primero con token de invitado
+        const invitadoToken = await SecureStore.getItemAsync('invitado_token')
+        if (invitadoToken) {
+          config.headers.Authorization = `Bearer ${invitadoToken}`
+          console.log('🔑 Token de invitado agregado a request unificado:', config.url?.substring(0, 50))
+          return config
+        }
+        // Si no hay token de invitado, intentar con token de pastor
+        const pastorToken = await SecureStore.getItemAsync('access_token')
+        if (pastorToken) {
+          config.headers.Authorization = `Bearer ${pastorToken}`
+          console.log('🔑 Token de pastor agregado a request unificado:', config.url?.substring(0, 50))
+          return config
+        }
+        // Si no hay ningún token, dejar que el backend responda con 401
+        console.warn('⚠️ Endpoint unificado de credenciales requiere token, pero no se encontró ninguno')
         return config
       }
 

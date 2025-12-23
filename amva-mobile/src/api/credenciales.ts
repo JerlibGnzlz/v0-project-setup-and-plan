@@ -169,9 +169,55 @@ export const credencialesApi = {
   },
 
   /**
-   * Obtener todas las credenciales del invitado autenticado
+   * Obtener todas las credenciales del usuario autenticado (unificado)
+   * Funciona tanto para pastores como para invitados
+   * Retorna credenciales pastorales si es pastor, o credenciales ministeriales/capellanía si es invitado
+   * Requiere autenticación de pastor o invitado
+   */
+  obtenerMisCredencialesUnificado: async (): Promise<{
+    tieneCredenciales: boolean
+    credenciales: CredencialUnificada[]
+    resumen?: {
+      total: number
+      vigentes: number
+      porVencer: number
+      vencidas: number
+    }
+    mensaje?: string
+  }> => {
+    try {
+      console.log('🔍 Obteniendo credenciales unificadas...')
+      const response = await apiClient.get<{
+        tieneCredenciales: boolean
+        credenciales: CredencialUnificada[]
+        resumen?: {
+          total: number
+          vigentes: number
+          porVencer: number
+          vencidas: number
+        }
+        mensaje?: string
+      }>('/credenciales/mis-credenciales')
+      
+      console.log('✅ Respuesta unificada recibida:', {
+        tieneCredenciales: response.data.tieneCredenciales,
+        cantidad: response.data.credenciales?.length || 0,
+        resumen: response.data.resumen,
+      })
+      
+      return response.data
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('❌ Error obteniendo credenciales unificadas:', errorMessage)
+      throw error
+    }
+  },
+
+  /**
+   * Obtener todas las credenciales del invitado autenticado (método anterior - mantener para compatibilidad)
    * Basado en el DNI de sus inscripciones
    * Requiere autenticación de invitado
+   * @deprecated Usar obtenerMisCredencialesUnificado() en su lugar
    */
   obtenerMisCredenciales: async (): Promise<{
     ministerial?: Credencial[]
