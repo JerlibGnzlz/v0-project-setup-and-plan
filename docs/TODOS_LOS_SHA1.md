@@ -2,17 +2,29 @@
 
 ## 📋 SHA-1 Encontrados
 
-### 1. SHA-1 del Keystore de Debug (Emulador/Desarrollo)
+### 1. SHA-1 del Keystore de Debug Estándar (Emulador/Desarrollo)
 ```
 56:46:F7:AE:10:42:F8:3E:F0:CC:3F:70:37:54:7F:BF:DE:BC:3E:30
 ```
 **Uso**: Para probar en emulador y builds de desarrollo
-**Keystore**: `~/.android/debug.keystore`
+**Keystore**: `~/.android/debug.keystore` (ubicación estándar de Android)
 **Alias**: `androiddebugkey`
+**Estado**: ⚠️ **Este es el que falta y causa el DEVELOPER_ERROR**
 
 ---
 
-### 2. SHA-1 de Producción (EAS Build - Default)
+### 2. SHA-1 del Keystore de Debug Local (Alternativo)
+```
+5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25
+```
+**Uso**: Si el emulador usa este keystore local
+**Keystore**: `./android/app/debug.keystore` (en el proyecto)
+**Alias**: `androiddebugkey`
+**Estado**: ⚠️ **También agregar este por si acaso**
+
+---
+
+### 3. SHA-1 de Producción (EAS Build - Default)
 ```
 BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3
 ```
@@ -22,7 +34,7 @@ BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3
 
 ---
 
-### 3. SHA-1 de Producción (EAS Build - Anterior)
+### 4. SHA-1 de Producción (EAS Build - Anterior)
 ```
 4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40
 ```
@@ -32,7 +44,7 @@ BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3
 
 ---
 
-### 4. SHA-1 de Producción (EAS Build - Otro)
+### 5. SHA-1 de Producción (EAS Build - Otro)
 ```
 9B:AF:07:1F:4A:A2:70:9C:E6:AB:79:E4:EC:ED:AE:22:CE:F6:DB:8A
 ```
@@ -43,11 +55,19 @@ BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3
 
 ## ✅ SHA-1 que DEBES Agregar en Google Cloud Console
 
-### Para Emulador/Desarrollo (OBLIGATORIO)
+### Para Emulador/Desarrollo (OBLIGATORIO - Agregar AMBOS)
+
+**1. SHA-1 del Keystore Estándar:**
 ```
 56:46:F7:AE:10:42:F8:3E:F0:CC:3F:70:37:54:7F:BF:DE:BC:3E:30
 ```
-**Este es el que falta y causa el DEVELOPER_ERROR en el emulador**
+**Este es el más común y probablemente el que falta**
+
+**2. SHA-1 del Keystore Local (Por si acaso):**
+```
+5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25
+```
+**Agregar este también por si el emulador usa el keystore local**
 
 ### Para Producción (Ya debería estar agregado)
 ```
@@ -73,7 +93,8 @@ Agrega **TODOS** estos SHA-1 en Google Cloud Console para evitar problemas:
 
 | SHA-1 | Tipo | Estado | Acción |
 |-------|------|--------|--------|
-| `56:46:F7:AE:10:42:F8:3E:F0:CC:3F:70:37:54:7F:BF:DE:BC:3E:30` | Debug (Emulador) | ⚠️ **FALTA** | ✅ **AGREGAR** |
+| `56:46:F7:AE:10:42:F8:3E:F0:CC:3F:70:37:54:7F:BF:DE:BC:3E:30` | Debug Estándar | ⚠️ **FALTA** | ✅ **AGREGAR** |
+| `5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25` | Debug Local | ⚠️ **FALTA** | ✅ **AGREGAR** |
 | `BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3` | Producción (EAS Default) | ✅ Ya agregado | Verificar |
 | `4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40` | Producción (EAS Anterior) | ⚠️ Puede estar obsoleto | Opcional |
 | `9B:AF:07:1F:4A:A2:70:9C:E6:AB:79:E4:EC:ED:AE:22:CE:F6:DB:8A` | Producción (EAS Otro) | ⚠️ Puede estar obsoleto | Opcional |
@@ -83,9 +104,10 @@ Agrega **TODOS** estos SHA-1 en Google Cloud Console para evitar problemas:
 ## 🎯 Recomendación
 
 ### Mínimo Necesario (OBLIGATORIO)
-Agrega estos 2 SHA-1:
-1. ✅ `56:46:F7:AE:10:42:F8:3E:F0:CC:3F:70:37:54:7F:BF:DE:BC:3E:30` (Debug - para emulador)
-2. ✅ `BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3` (Producción - EAS Default)
+Agrega estos 3 SHA-1:
+1. ✅ `56:46:F7:AE:10:42:F8:3E:F0:CC:3F:70:37:54:7F:BF:DE:BC:3E:30` (Debug Estándar - para emulador)
+2. ✅ `5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25` (Debug Local - por si acaso)
+3. ✅ `BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3` (Producción - EAS Default)
 
 ### Opcional (Si Quieres Mantener Compatibilidad)
 Si tienes builds antiguos con los otros keystores, también agrégalos:
@@ -162,7 +184,8 @@ org.vidaabundante.app
 
 | SHA-1 | Prioridad | Estado Actual |
 |-------|-----------|---------------|
-| Debug (`56:46:F7...`) | 🔴 **CRÍTICO** | ⚠️ **FALTA** - Causa el error |
+| Debug Estándar (`56:46:F7...`) | 🔴 **CRÍTICO** | ⚠️ **FALTA** - Causa el error |
+| Debug Local (`5E:8F:16...`) | 🔴 **CRÍTICO** | ⚠️ **FALTA** - Agregar por si acaso |
 | Producción EAS Default (`BC:0C:2C...`) | 🟢 **IMPORTANTE** | ✅ Debería estar agregado |
 | Producción EAS Anterior (`4B:24:0F...`) | 🟡 **OPCIONAL** | ⚠️ Puede estar obsoleto |
 | Producción EAS Otro (`9B:AF:07...`) | 🟡 **OPCIONAL** | ⚠️ Puede estar obsoleto |
@@ -171,7 +194,8 @@ org.vidaabundante.app
 
 ## ✅ Checklist Final
 
-- [ ] SHA-1 de debug agregado: `56:46:F7:AE:10:42:F8:3E:F0:CC:3F:70:37:54:7F:BF:DE:BC:3E:30`
+- [ ] SHA-1 de debug estándar agregado: `56:46:F7:AE:10:42:F8:3E:F0:CC:3F:70:37:54:7F:BF:DE:BC:3E:30`
+- [ ] SHA-1 de debug local agregado: `5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25`
 - [ ] SHA-1 de producción verificado: `BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3`
 - [ ] Package name verificado: `org.vidaabundante.app`
 - [ ] OAuth Consent Screen configurado
@@ -181,5 +205,5 @@ org.vidaabundante.app
 
 ---
 
-**El SHA-1 de debug (`56:46:F7...`) es el que falta y causa el DEVELOPER_ERROR. Agrégalo primero.**
+**Los SHA-1 de debug (`56:46:F7...` y `5E:8F:16...`) son los que faltan y causan el DEVELOPER_ERROR. Agrégales AMBOS primero.**
 
