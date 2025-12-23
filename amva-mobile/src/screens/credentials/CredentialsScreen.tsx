@@ -35,8 +35,10 @@ import type { CredencialUnificada } from '@api/credenciales'
 
 export function CredentialsScreen() {
   const { invitado, isAuthenticated: isInvitadoAuthenticated } = useInvitadoAuth()
-  const { pastor, isAuthenticated: isPastorAuthenticated } = useAuth()
+  const { pastor } = useAuth()
   const { data, isLoading, error, refetch, isRefetching } = useMisCredenciales()
+
+  const isPastorAuthenticated = pastor !== null
 
   const [currentStep, setCurrentStep] = useState(1)
   const [currentCredencialIndex, setCurrentCredencialIndex] = useState(0)
