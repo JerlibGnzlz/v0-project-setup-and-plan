@@ -35,14 +35,14 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
     try {
       const token = await SecureStore.getItemAsync('invitado_token')
       const refreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
-      
+
       console.log('🔍 Intentando cargar perfil de invitado...', {
         hasToken: !!token,
         hasRefreshToken: !!refreshToken,
         tokenLength: token?.length || 0,
         refreshTokenLength: refreshToken?.length || 0,
       })
-      
+
       if (!token) {
         console.log('⚠️ No hay token de invitado, estableciendo invitado como null')
         setInvitado(null)
@@ -55,7 +55,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? (error.message || 'Error desconocido') : 'Error desconocido'
       console.error('❌ Error cargando invitado:', errorMessage)
-      
+
       // El interceptor debería haber intentado refrescar el token automáticamente
       // Si llegamos aquí, significa que el refresh también falló o no había refresh token
       if (error && typeof error === 'object' && 'response' in error) {
@@ -64,7 +64,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
           status: axiosError.response?.status,
           data: axiosError.response?.data,
         })
-        
+
         if (axiosError.response?.status === 401) {
           // Verificar si hay refresh token antes de limpiar
           const refreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
@@ -80,12 +80,12 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
             // Verificar si los tokens aún existen (el interceptor puede haberlos limpiado)
             const tokenStillExists = await SecureStore.getItemAsync('invitado_token')
             const refreshTokenStillExists = await SecureStore.getItemAsync('invitado_refresh_token')
-            
+
             console.log('🔍 Estado de tokens después del error:', {
               tokenExists: !!tokenStillExists,
               refreshTokenExists: !!refreshTokenStillExists,
             })
-            
+
             if (!tokenStillExists) {
               console.log('✅ Tokens ya fueron limpiados por el interceptor')
               setInvitado(null)
@@ -155,12 +155,12 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
     setLoading(true)
     try {
       console.log('🔐 Iniciando login de invitado...')
-      
+
       // Obtener token de push si está disponible
       let deviceToken: string | undefined
       let platform: 'ios' | 'android' | undefined
       let deviceId: string | undefined
-      
+
       if (!isExpoGo && Notifications) {
         try {
           const { status } = await Notifications.getPermissionsAsync()
@@ -177,7 +177,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
           }
         } catch (tokenError: unknown) {
           const errorMessage = tokenError instanceof Error ? tokenError.message : String(tokenError)
-          
+
           // Manejar error de Firebase no inicializado
           if (errorMessage.includes('FirebaseApp') || errorMessage.includes('Firebase') || errorMessage.includes('FCM')) {
             console.warn('⚠️ Firebase no está configurado. Las notificaciones push no estarán disponibles.')
@@ -187,7 +187,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
           }
         }
       }
-      
+
       const result = await invitadoAuthApi.login(email, password, deviceToken, platform, deviceId)
       console.log('✅ Login exitoso, guardando tokens...')
       console.log('🔍 Verificando tokens recibidos:', {
@@ -196,10 +196,10 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
         accessTokenLength: result.access_token?.length || 0,
         refreshTokenLength: result.refresh_token?.length || 0,
       })
-      
+
       await SecureStore.setItemAsync('invitado_token', result.access_token)
       await SecureStore.setItemAsync('invitado_refresh_token', result.refresh_token)
-      
+
       // Verificar que se guardaron correctamente
       const savedToken = await SecureStore.getItemAsync('invitado_token')
       const savedRefreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
@@ -209,7 +209,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
         tokenLength: savedToken?.length || 0,
         refreshTokenLength: savedRefreshToken?.length || 0,
       })
-      
+
       console.log('✅ Tokens guardados, estableciendo invitado...')
       setInvitado(result.invitado)
       console.log('✅ Invitado establecido:', result.invitado.email)
@@ -226,22 +226,22 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
     setLoading(true)
     try {
       console.log('🔐 Iniciando login con Google...')
-      
+
       // Validar que el idToken no esté vacío
       if (!idToken || idToken.trim().length === 0) {
         const error = new Error('Token de Google no recibido')
         console.error('❌ Error en login con Google:', error.message)
         throw error
       }
-      
+
       console.log('🔍 Token recibido (primeros 50 caracteres):', idToken.substring(0, 50) + '...')
       console.log('🔍 Longitud del token:', idToken.length)
-      
+
       // Obtener token de push si está disponible
       let deviceToken: string | undefined
       let platform: 'ios' | 'android' | undefined
       let deviceId: string | undefined
-      
+
       if (!isExpoGo && Notifications) {
         try {
           const { status } = await Notifications.getPermissionsAsync()
@@ -258,7 +258,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
           }
         } catch (tokenError: unknown) {
           const errorMessage = tokenError instanceof Error ? tokenError.message : String(tokenError)
-          
+
           // Manejar error de Firebase no inicializado
           if (errorMessage.includes('FirebaseApp') || errorMessage.includes('Firebase') || errorMessage.includes('FCM')) {
             console.warn('⚠️ Firebase no está configurado. Las notificaciones push no estarán disponibles.')
@@ -268,7 +268,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
           }
         }
       }
-      
+
       console.log('📤 Enviando datos al backend:', {
         hasIdToken: !!idToken,
         idTokenLength: idToken.length,
@@ -276,7 +276,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
         platform,
         deviceId,
       })
-      
+
       const result = await invitadoAuthApi.loginWithGoogle(idToken, deviceToken, platform, deviceId)
       console.log('✅ Login con Google exitoso, guardando tokens...')
       console.log('🔍 Verificando tokens recibidos:', {
@@ -286,11 +286,11 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
         refreshTokenLength: result.refresh_token?.length || 0,
         invitadoEmail: result.invitado?.email,
       })
-      
+
       // Guardar tokens de forma segura
       await SecureStore.setItemAsync('invitado_token', result.access_token)
       await SecureStore.setItemAsync('invitado_refresh_token', result.refresh_token)
-      
+
       // Verificar que se guardaron correctamente
       const savedToken = await SecureStore.getItemAsync('invitado_token')
       const savedRefreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
@@ -300,18 +300,18 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
         tokenLength: savedToken?.length || 0,
         refreshTokenLength: savedRefreshToken?.length || 0,
       })
-      
+
       // Establecer el invitado ANTES de setLoading(false) para que la navegación se actualice
       setInvitado(result.invitado)
       console.log('✅ Invitado establecido:', result.invitado.email)
       console.log('✅ Estado de autenticación actualizado, navegación debería actualizarse automáticamente')
-      
+
       // Pequeño delay para asegurar que el estado se propague antes de continuar
       await new Promise(resolve => setTimeout(resolve, 100))
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       console.error('❌ Error en login con Google:', errorMessage)
-      
+
       // Log detallado del error para debugging
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as {
@@ -330,7 +330,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
             }
           }
         }
-        
+
         // Log completo de la respuesta para debugging
         const responseData = axiosError.response?.data
         console.error('📡 Detalles del error HTTP:', {
@@ -339,18 +339,18 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
           data: responseData,
           dataStringified: JSON.stringify(responseData, null, 2),
         })
-        
+
         // Si es un error 400, puede ser un problema de validación
         if (axiosError.response?.status === 400) {
           let backendMessage: string = 'Error de validación'
-          
+
           if (responseData) {
             // Formato ErrorResponse estándar: response.data.error.message
             if (responseData.error && typeof responseData.error === 'object') {
               const errorObj = responseData.error as { message?: string; details?: unknown }
               if (typeof errorObj.message === 'string') {
                 backendMessage = errorObj.message
-                
+
                 // Si hay details con validationErrors, agregarlos al mensaje
                 if (errorObj.details && typeof errorObj.details === 'object') {
                   const details = errorObj.details as { validationErrors?: Array<{ field?: string; message?: string }> }
@@ -376,13 +376,13 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
               backendMessage = responseData.error
             }
           }
-          
+
           const detailedError = new Error(backendMessage)
           console.error('❌ Error 400 - Validación fallida:', backendMessage)
           throw detailedError
         }
       }
-      
+
       // Limpiar tokens si hay error
       try {
         await SecureStore.deleteItemAsync('invitado_token')
@@ -390,7 +390,7 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
       } catch (cleanupError) {
         console.error('⚠️ Error al limpiar tokens después de error:', cleanupError)
       }
-      
+
       throw error
     } finally {
       setLoading(false)
