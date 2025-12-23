@@ -54,6 +54,7 @@ export function DatePicker({
   }
 
   const [date, setDate] = React.useState<Date | undefined>(parseDateValue(value))
+  const [open, setOpen] = React.useState(false)
 
   React.useEffect(() => {
     setDate(parseDateValue(value))
@@ -62,36 +63,42 @@ export function DatePicker({
   const handleSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate)
     onChange?.(selectedDate)
+    // Cerrar el popover después de seleccionar
+    setOpen(false)
   }
 
+  const parsedValue = parseDateValue(value)
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           id={id}
           variant={'outline'}
           className={cn(
             'w-full justify-start text-left font-normal',
-            !date && 'text-muted-foreground',
+            !parsedValue && 'text-muted-foreground',
             className
           )}
           disabled={disabled}
+          type="button"
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? (
-            format(date, 'dd/MM/yyyy', { locale: es })
+          {parsedValue ? (
+            format(parsedValue, 'dd/MM/yyyy', { locale: es })
           ) : (
             <span>{placeholder}</span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
         <Calendar
           mode="single"
-          selected={date}
+          selected={parsedValue}
           onSelect={handleSelect}
           initialFocus
           locale={es}
+          defaultMonth={parsedValue || new Date()}
         />
       </PopoverContent>
     </Popover>
