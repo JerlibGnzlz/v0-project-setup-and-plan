@@ -844,37 +844,39 @@ export function CredentialsScreen() {
                     <Clock size={20} color="rgba(255, 255, 255, 0.5)" style={styles.dateIcon} />
                   </TouchableOpacity>
                   {showDatePicker && (
-                    <DateTimePicker
-                      value={fechaNacimientoDate || new Date(2000, 0, 1)}
-                      mode="date"
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      onChange={handleDateChange}
-                      maximumDate={new Date()}
-                      minimumDate={new Date(1900, 0, 1)}
-                    />
-                  )}
-                  {Platform.OS === 'ios' && showDatePicker && (
-                    <View style={styles.datePickerActions}>
-                      <TouchableOpacity
-                        style={styles.datePickerButton}
-                        onPress={() => {
-                          setShowDatePicker(false)
-                        }}
-                      >
-                        <Text style={styles.datePickerButtonText}>Cancelar</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.datePickerButton, styles.datePickerButtonPrimary]}
-                        onPress={() => {
-                          if (fechaNacimientoDate) {
-                            handleDateChange(null, fechaNacimientoDate)
-                          }
-                          setShowDatePicker(false)
-                        }}
-                      >
-                        <Text style={styles.datePickerButtonText}>Seleccionar</Text>
-                      </TouchableOpacity>
-                    </View>
+                    <>
+                      <DateTimePicker
+                        value={fechaNacimientoDate || new Date(2000, 0, 1)}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        onChange={handleDateChange}
+                        maximumDate={new Date()}
+                        minimumDate={new Date(1900, 0, 1)}
+                      />
+                      {Platform.OS === 'ios' && (
+                        <View style={styles.datePickerActions}>
+                          <TouchableOpacity
+                            style={styles.datePickerButton}
+                            onPress={() => {
+                              setShowDatePicker(false)
+                            }}
+                          >
+                            <Text style={styles.datePickerButtonText}>Cancelar</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.datePickerButton, styles.datePickerButtonPrimary]}
+                            onPress={() => {
+                              if (fechaNacimientoDate) {
+                                handleDateChange(null, fechaNacimientoDate)
+                              }
+                              setShowDatePicker(false)
+                            }}
+                          >
+                            <Text style={styles.datePickerButtonText}>Seleccionar</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </>
                   )}
                 </View>
 
