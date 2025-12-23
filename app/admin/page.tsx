@@ -43,9 +43,15 @@ export default function AdminDashboard() {
 
     try {
       // Convertir el formato del formulario al formato del backend
-      const fechaInicio = new Date(data.fecha)
-      const fechaFin = new Date(data.fecha)
-      fechaFin.setDate(fechaFin.getDate() + 2) // Asumir 3 días de duración
+      // Usar fecha local para evitar problemas de zona horaria
+      // data.fecha viene en formato yyyy-MM-dd
+      const [year, month, day] = data.fecha.split('-').map(Number)
+      
+      // Crear fecha de inicio a las 00:00:00 en zona horaria local
+      const fechaInicio = new Date(year, month - 1, day, 0, 0, 0)
+      
+      // Crear fecha de fin 2 días después a las 23:59:59 en zona horaria local
+      const fechaFin = new Date(year, month - 1, day + 2, 23, 59, 59)
 
       await updateConvencionMutation.mutateAsync({
         id: convencionActiva.id,
@@ -123,9 +129,16 @@ export default function AdminDashboard() {
 
   const handleCreateConvencion = async (data: ConvencionFormData) => {
     try {
-      const fechaInicio = new Date(data.fecha)
-      const fechaFin = new Date(data.fecha)
-      fechaFin.setDate(fechaFin.getDate() + 2)
+      // Convertir el formato del formulario al formato del backend
+      // Usar fecha local para evitar problemas de zona horaria
+      // data.fecha viene en formato yyyy-MM-dd
+      const [year, month, day] = data.fecha.split('-').map(Number)
+      
+      // Crear fecha de inicio a las 00:00:00 en zona horaria local
+      const fechaInicio = new Date(year, month - 1, day, 0, 0, 0)
+      
+      // Crear fecha de fin 2 días después a las 23:59:59 en zona horaria local
+      const fechaFin = new Date(year, month - 1, day + 2, 23, 59, 59)
 
       await createConvencionMutation.mutateAsync({
         titulo: data.nombre,

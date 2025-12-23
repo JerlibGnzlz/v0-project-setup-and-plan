@@ -18,6 +18,26 @@ import { convencionSchema, type ConvencionFormData } from '@/lib/validations/con
 import { useEffect } from 'react'
 import { format } from 'date-fns'
 
+// Función helper para convertir fecha ISO a formato local yyyy-MM-dd sin problemas de zona horaria
+function formatDateToLocal(dateString: string | Date): string {
+  if (!dateString) return ''
+  
+  let date: Date
+  if (typeof dateString === 'string') {
+    // Si es string ISO, crear Date y usar métodos locales para evitar problemas de zona horaria
+    date = new Date(dateString)
+  } else {
+    date = dateString
+  }
+  
+  // Usar métodos locales para obtener año, mes y día sin problemas de zona horaria
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  
+  return `${year}-${month}-${day}`
+}
+
 interface ConvencionEditDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -42,11 +62,7 @@ export function ConvencionEditDialog({
   const convencionFormData: ConvencionFormData = convencion
     ? {
         nombre: convencion.titulo || '',
-        fecha: convencion.fechaInicio
-          ? typeof convencion.fechaInicio === 'string'
-            ? convencion.fechaInicio.split('T')[0]
-            : new Date(convencion.fechaInicio).toISOString().split('T')[0]
-          : '',
+        fecha: convencion.fechaInicio ? formatDateToLocal(convencion.fechaInicio) : '',
         lugar: convencion.ubicacion || '',
         monto: convencion.costo ? Number(convencion.costo) : 0,
         cuotas: 3, // Por defecto
@@ -78,11 +94,7 @@ export function ConvencionEditDialog({
     if (convencion) {
       reset({
         nombre: convencion.titulo || '',
-        fecha: convencion.fechaInicio
-          ? typeof convencion.fechaInicio === 'string'
-            ? convencion.fechaInicio.split('T')[0]
-            : new Date(convencion.fechaInicio).toISOString().split('T')[0]
-          : '',
+        fecha: convencion.fechaInicio ? formatDateToLocal(convencion.fechaInicio) : '',
         lugar: convencion.ubicacion || '',
         monto: convencion.costo ? Number(convencion.costo) : 0,
         cuotas: 3,
