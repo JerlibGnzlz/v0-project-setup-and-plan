@@ -182,6 +182,44 @@ apiClient.interceptors.request.use(
           console.error('❌ Endpoint exclusivo de invitado requiere token de invitado, pero no se encontró')
           console.error('❌ URL:', config.url)
           console.error('❌ Método:', config.method?.toUpperCase())
+          console.error('❌ Verificando si hay refresh token disponible...')
+          
+          // Si hay refresh token, intentar refrescar antes de fallar
+          if (invitadoRefreshToken) {
+            console.log('🔄 Refresh token encontrado, intentando refrescar...')
+            try {
+              const refreshAxios = axios.create({
+                baseURL: API_URL,
+                timeout: 8000,
+                headers: {
+                  'Content-Type': 'application/json',
+                  Accept: 'application/json',
+                },
+              })
+              
+              const refreshResponse = await refreshAxios.post('/auth/invitado/refresh', {
+                refreshToken: invitadoRefreshToken,
+              })
+              
+              const { access_token, refresh_token: newRefreshToken } = refreshResponse.data
+              
+              if (access_token) {
+                await SecureStore.setItemAsync('invitado_token', access_token)
+                if (newRefreshToken) {
+                  await SecureStore.setItemAsync('invitado_refresh_token', newRefreshToken)
+                }
+                config.headers.Authorization = `Bearer ${access_token}`
+                console.log('✅ Token refrescado y agregado a request')
+                return config
+              }
+            } catch (refreshError) {
+              console.error('❌ Error al refrescar token:', refreshError)
+              // Limpiar tokens inválidos
+              await SecureStore.deleteItemAsync('invitado_token').catch(() => {})
+              await SecureStore.deleteItemAsync('invitado_refresh_token').catch(() => {})
+            }
+          }
+          
           console.error('❌ NO se usará token de pastor como fallback para este endpoint')
           // No agregar token de pastor, dejar que el backend responda con 401
           return config

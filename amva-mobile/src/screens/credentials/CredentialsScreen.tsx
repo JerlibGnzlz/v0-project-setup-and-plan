@@ -11,7 +11,9 @@ import {
   Animated,
   Image,
   RefreshControl,
+  Platform,
 } from 'react-native'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import {
@@ -47,6 +49,8 @@ export function CredentialsScreen() {
   const [loadingSolicitudes, setLoadingSolicitudes] = useState(false)
   const [showSolicitarModal, setShowSolicitarModal] = useState(false)
   const [solicitandoCredencial, setSolicitandoCredencial] = useState(false)
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [fechaNacimientoDate, setFechaNacimientoDate] = useState<Date | null>(null)
   const [formSolicitud, setFormSolicitud] = useState({
     tipo: TipoCredencial.MINISTERIAL as TipoCredencial,
     dni: '',
@@ -168,6 +172,22 @@ export function CredentialsScreen() {
     }
   }, [credencialesList.length])
 
+  const handleDateChange = (event: unknown, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false)
+    }
+
+    if (selectedDate) {
+      setFechaNacimientoDate(selectedDate)
+      // Formatear fecha como YYYY-MM-DD
+      const year = selectedDate.getFullYear()
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0')
+      const day = String(selectedDate.getDate()).padStart(2, '0')
+      const fechaFormateada = `${year}-${month}-${day}`
+      setFormSolicitud(prev => ({ ...prev, fechaNacimiento: fechaFormateada }))
+    }
+  }
+
   const handleSolicitarCredencial = async () => {
     // Validar campos requeridos
     if (!formSolicitud.dni.trim()) {
@@ -183,8 +203,21 @@ export function CredentialsScreen() {
       return
     }
 
+    // Verificar autenticación antes de enviar
+    if (!isInvitadoAuthenticated) {
+      Alert.alert(
+        'Autenticación requerida',
+        'Debes estar autenticado como invitado para solicitar una credencial. Por favor, inicia sesión.'
+      )
+      return
+    }
+
     setSolicitandoCredencial(true)
     try {
+      console.log('📤 Enviando solicitud de credencial...')
+      console.log('🔍 Usuario autenticado:', isInvitadoAuthenticated)
+      console.log('🔍 Invitado:', invitado?.email)
+      
       await solicitudesCredencialesApi.create({
         tipo: formSolicitud.tipo,
         dni: formSolicitud.dni.trim(),
@@ -796,13 +829,53 @@ export function CredentialsScreen() {
 
                 <View style={styles.formGroup}>
                   <Text style={styles.formLabel}>Fecha de Nacimiento</Text>
-                  <TextInput
-                    style={styles.formInput}
-                    placeholder="YYYY-MM-DD"
-                    placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                    value={formSolicitud.fechaNacimiento}
-                    onChangeText={value => setFormSolicitud(prev => ({ ...prev, fechaNacimiento: value }))}
-                  />
+                  <TouchableOpacity
+                    style={styles.dateInputContainer}
+                    onPress={() => setShowDatePicker(true)}
+                  >
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="Selecciona tu fecha de nacimiento"
+                      placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                      value={formSolicitud.fechaNacimiento}
+                      editable={false}
+                      pointerEvents="none"
+                    />
+                    <Clock size={20} color="rgba(255, 255, 255, 0.5)" style={styles.dateIcon} />
+                  </TouchableOpacity>
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={fechaNacimientoDate || new Date(2000, 0, 1)}
+                      mode="date"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleDateChange}
+                      maximumDate={new Date()}
+                      minimumDate={new Date(1900, 0, 1)}
+                    />
+                  )}
+                  {Platform.OS === 'ios' && showDatePicker && (
+                    <View style={styles.datePickerActions}>
+                      <TouchableOpacity
+                        style={styles.datePickerButton}
+                        onPress={() => {
+                          setShowDatePicker(false)
+                        }}
+                      >
+                        <Text style={styles.datePickerButtonText}>Cancelar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.datePickerButton, styles.datePickerButtonPrimary]}
+                        onPress={() => {
+                          if (fechaNacimientoDate) {
+                            handleDateChange(null, fechaNacimientoDate)
+                          }
+                          setShowDatePicker(false)
+                        }}
+                      >
+                        <Text style={styles.datePickerButtonText}>Seleccionar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
 
                 <View style={styles.formGroup}>
@@ -1364,6 +1437,34 @@ const styles = StyleSheet.create({
   },
   radioTextSelected: {
     color: '#fff',
+    fontWeight: '600',
+  },
+  dateInputContainer: {
+    position: 'relative',
+  },
+  dateIcon: {
+    position: 'absolute',
+    right: 14,
+    top: 14,
+  },
+  datePickerActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+  },
+  datePickerButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+  },
+  datePickerButtonPrimary: {
+    backgroundColor: '#22c55e',
+  },
+  datePickerButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: '600',
   },
 })
