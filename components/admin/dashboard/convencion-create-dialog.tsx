@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { DatePicker } from '@/components/ui/date-picker'
+import { DatePickerEnhanced } from '@/components/ui/date-picker-enhanced'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { convencionSchema, type ConvencionFormData } from '@/lib/validations/convencion'
@@ -71,7 +71,7 @@ export function ConvencionCreateDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="create-fecha">Fecha de Inicio</Label>
-            <DatePicker
+            <DatePickerEnhanced
               id="create-fecha"
               value={
                 fechaValue
@@ -94,6 +94,8 @@ export function ConvencionCreateDialog({
                 }
               }}
               placeholder="Selecciona la fecha de inicio"
+              minDate={new Date()}
+              showClearButton={true}
             />
             {errors.fecha && <p className="text-sm text-red-500">{errors.fecha.message}</p>}
           </div>
