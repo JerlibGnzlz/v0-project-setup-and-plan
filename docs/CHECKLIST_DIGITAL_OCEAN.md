@@ -41,14 +41,15 @@
 
 ---
 
-### 3. **Nginx Configuration** (FALTA)
+### 3. **Nginx Configuration** (FALTA - Se puede crear después)
 
-- [ ] `nginx.conf` para reverse proxy
-- [ ] Configuración SSL/HTTPS
-- [ ] Configuración de dominio
+- [ ] `nginx.conf` para reverse proxy (template básico)
+- [ ] Configuración SSL/HTTPS (se configura en el servidor con Certbot)
+- [ ] Configuración de dominio (se configura en Digital Ocean)
 - [ ] Headers de seguridad
 
 **Prioridad**: 🔴 ALTA - Necesario para servir la aplicación
+**Nota**: ⚠️ El template de `nginx.conf` se puede crear ahora, pero la configuración SSL/HTTPS se hace **directamente en el servidor** cuando despliegues.
 
 ---
 
@@ -105,13 +106,14 @@ MERCADOPAGO_ACCESS_TOKEN=...
 
 ---
 
-### 6. **SSL/HTTPS** (FALTA)
+### 6. **SSL/HTTPS** (FALTA - Se configura en el servidor)
 
-- [ ] Configuración de Let's Encrypt / Certbot
-- [ ] Renovación automática de certificados
-- [ ] Redirección HTTP → HTTPS
+- [ ] Configuración de Let's Encrypt / Certbot (en Digital Ocean)
+- [ ] Renovación automática de certificados (en Digital Ocean)
+- [ ] Redirección HTTP → HTTPS (en Nginx del servidor)
 
 **Prioridad**: 🔴 ALTA - Necesario para producción segura
+**Nota**: ⚠️ Esto se configura **directamente en el servidor de Digital Ocean**, no en el código del proyecto. Puedes dejarlo para cuando despliegues.
 
 ---
 
