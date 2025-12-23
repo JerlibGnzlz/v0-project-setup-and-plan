@@ -30,16 +30,33 @@ export function DatePicker({
   className,
   id,
 }: DatePickerProps) {
-  const [date, setDate] = React.useState<Date | undefined>(
-    value ? (typeof value === 'string' ? new Date(value) : value) : undefined
-  )
+  // Función helper para convertir string yyyy-MM-dd a Date usando zona horaria local
+  const parseDateValue = (val: Date | string | undefined): Date | undefined => {
+    if (!val) return undefined
+    
+    if (val instanceof Date) {
+      return val
+    }
+    
+    // Si es string en formato yyyy-MM-dd, crear Date usando zona horaria local
+    if (typeof val === 'string') {
+      // Verificar si es formato yyyy-MM-dd
+      const dateMatch = val.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+      if (dateMatch) {
+        const [, year, month, day] = dateMatch.map(Number)
+        return new Date(year, month - 1, day)
+      }
+      // Si no es formato yyyy-MM-dd, usar new Date normal
+      return new Date(val)
+    }
+    
+    return undefined
+  }
+
+  const [date, setDate] = React.useState<Date | undefined>(parseDateValue(value))
 
   React.useEffect(() => {
-    if (value) {
-      setDate(typeof value === 'string' ? new Date(value) : value)
-    } else {
-      setDate(undefined)
-    }
+    setDate(parseDateValue(value))
   }, [value])
 
   const handleSelect = (selectedDate: Date | undefined) => {

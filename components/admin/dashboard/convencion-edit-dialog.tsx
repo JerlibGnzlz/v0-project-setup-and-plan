@@ -133,10 +133,22 @@ export function ConvencionEditDialog({
               <Label htmlFor="fecha">Fecha</Label>
               <DatePicker
                 id="fecha"
-                value={fechaValue ? new Date(fechaValue) : undefined}
+                value={
+                  fechaValue
+                    ? (() => {
+                        // Convertir string yyyy-MM-dd a Date usando zona horaria local
+                        const [year, month, day] = fechaValue.split('-').map(Number)
+                        return new Date(year, month - 1, day)
+                      })()
+                    : undefined
+                }
                 onChange={(date) => {
                   if (date) {
-                    setValue('fecha', format(date, 'yyyy-MM-dd'), { shouldValidate: true })
+                    // Formatear fecha usando métodos locales para evitar problemas de zona horaria
+                    const year = date.getFullYear()
+                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                    const day = String(date.getDate()).padStart(2, '0')
+                    setValue('fecha', `${year}-${month}-${day}`, { shouldValidate: true })
                   } else {
                     setValue('fecha', '', { shouldValidate: true })
                   }
