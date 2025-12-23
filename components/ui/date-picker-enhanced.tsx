@@ -37,7 +37,7 @@ export function DatePickerEnhanced({
   showClearButton = true,
 }: DatePickerEnhancedProps) {
   // Función helper para convertir string yyyy-MM-dd a Date usando zona horaria local
-  const parseDateValue = (val: Date | string | undefined): Date | undefined => {
+  const parseDateValue = React.useCallback((val: Date | string | undefined): Date | undefined => {
     if (!val) return undefined
     
     if (val instanceof Date) {
@@ -55,21 +55,55 @@ export function DatePickerEnhanced({
     }
     
     return undefined
-  }
+  }, [])
 
   const [open, setOpen] = React.useState(false)
-  const parsedValue = parseDateValue(value)
+  const parsedValue = React.useMemo(() => parseDateValue(value), [value, parseDateValue])
 
-  const handleSelect = (selectedDate: Date | undefined) => {
-    onChange?.(selectedDate)
-    // Cerrar después de seleccionar
-    setOpen(false)
-  }
+  const handleSelect = React.useCallback((selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      onChange?.(selectedDate)
+      // Cerrar después de seleccionar con un pequeño delay para mejor UX
+      setTimeout(() => {
+        setOpen(false)
+      }, 100)
+    } else {
+      onChange?.(undefined)
+    }
+  }, [onChange])
 
-  const handleClear = (e: React.MouseEvent) => {
+  const handleClear = React.useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
+    e.preventDefault()
     onChange?.(undefined)
-  }
+    setOpen(false)
+  }, [onChange])
+
+  // Función para deshabilitar fechas
+  const isDateDisabled = React.useCallback((date: Date): boolean => {
+    if (disabled) return true
+    
+    // Normalizar fechas para comparación (solo día, sin hora)
+    const normalizeDate = (d: Date): Date => {
+      const normalized = new Date(d)
+      normalized.setHours(0, 0, 0, 0)
+      return normalized
+    }
+    
+    const normalizedDate = normalizeDate(date)
+    
+    if (minDate) {
+      const normalizedMin = normalizeDate(minDate)
+      if (normalizedDate < normalizedMin) return true
+    }
+    
+    if (maxDate) {
+      const normalizedMax = normalizeDate(maxDate)
+      if (normalizedDate > normalizedMax) return true
+    }
+    
+    return false
+  }, [disabled, minDate, maxDate])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -85,6 +119,12 @@ export function DatePickerEnhanced({
           )}
           disabled={disabled}
           type="button"
+          onClick={(e) => {
+            if (!disabled) {
+              e.preventDefault()
+              setOpen(true)
+            }
+          }}
         >
           <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
           <span className="flex-1 truncate">
@@ -96,8 +136,9 @@ export function DatePickerEnhanced({
           </span>
           {showClearButton && parsedValue && !disabled && (
             <X
-              className="ml-2 h-4 w-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
+              className="ml-2 h-4 w-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground cursor-pointer"
               onClick={handleClear}
+              onMouseDown={(e) => e.stopPropagation()}
             />
           )}
         </Button>
@@ -106,6 +147,9 @@ export function DatePickerEnhanced({
         className="w-auto p-0" 
         align="start"
         onOpenAutoFocus={(e) => e.preventDefault()}
+        onInteractOutside={(e) => {
+          // Permitir cerrar al hacer click fuera
+        }}
       >
         <Calendar
           mode="single"
@@ -114,12 +158,7 @@ export function DatePickerEnhanced({
           initialFocus
           locale={es}
           defaultMonth={parsedValue || new Date()}
-          disabled={(date) => {
-            if (disabled) return true
-            if (minDate && date < minDate) return true
-            if (maxDate && date > maxDate) return true
-            return false
-          }}
+          disabled={isDateDisabled}
           className="rounded-md border-0"
         />
       </PopoverContent>
