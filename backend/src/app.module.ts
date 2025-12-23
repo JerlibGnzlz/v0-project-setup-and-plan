@@ -16,6 +16,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { MercadoPagoModule } from './modules/mercado-pago/mercado-pago.module'
 import { CredencialesMinisterialesModule } from './modules/credenciales-ministeriales/credenciales-ministeriales.module'
 import { CredencialesCapellaniaModule } from './modules/credenciales-capellania/credenciales-capellania.module'
+import { CredencialesModule } from './modules/credenciales/credenciales.module'
 import { SedesModule } from './modules/sedes/sedes.module'
 import { PublicModule } from './modules/public/public.module'
 import { SolicitudesCredencialesModule } from './modules/solicitudes-credenciales/solicitudes-credenciales.module'
@@ -61,6 +62,7 @@ import { SolicitudesCredencialesModule } from './modules/solicitudes-credenciale
     MercadoPagoModule,
     CredencialesMinisterialesModule,
     CredencialesCapellaniaModule,
+    CredencialesModule,
     SedesModule,
     PublicModule,
     SolicitudesCredencialesModule,
