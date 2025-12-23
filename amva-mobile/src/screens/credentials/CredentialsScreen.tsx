@@ -10,25 +10,34 @@ import {
   Alert,
   Animated,
   Image,
+  RefreshControl,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { CreditCard, CheckCircle, AlertCircle, Clock, Search, Badge, ChevronRight, ChevronLeft, FileText, X, Plus } from 'lucide-react-native'
-import { credencialesApi, type Credencial } from '@api/credenciales'
-import { inscripcionesApi } from '@api/inscripciones'
+import {
+  CreditCard,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  Search,
+  ChevronRight,
+  ChevronLeft,
+  FileText,
+  X,
+  Plus,
+  RefreshCw,
+} from 'lucide-react-native'
+import { useMisCredenciales, getEstadoColor, getEstadoMensaje, getCredencialTipoLegible, getCredencialIdentificador } from '@hooks/use-credenciales'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
+import { useAuth } from '@hooks/useAuth'
 import { solicitudesCredencialesApi, type SolicitudCredencial, TipoCredencial, EstadoSolicitud } from '@api/solicitudes-credenciales'
+import type { CredencialUnificada } from '@api/credenciales'
 
 export function CredentialsScreen() {
   const { invitado, isAuthenticated: isInvitadoAuthenticated } = useInvitadoAuth()
-  const [documento, setDocumento] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [autoLoading, setAutoLoading] = useState(false)
-  const [loadingDni, setLoadingDni] = useState(false)
-  const [credenciales, setCredenciales] = useState<{
-    ministerial?: Credencial | Credencial[]
-    capellania?: Credencial | Credencial[]
-  }>({})
+  const { pastor, isAuthenticated: isPastorAuthenticated } = useAuth()
+  const { data, isLoading, error, refetch, isRefetching } = useMisCredenciales()
+
   const [currentStep, setCurrentStep] = useState(1)
   const [currentCredencialIndex, setCurrentCredencialIndex] = useState(0)
   const fadeAnim = React.useRef(new Animated.Value(1)).current
@@ -46,204 +55,35 @@ export function CredentialsScreen() {
     motivo: '',
   })
 
-  // Obtener DNI del invitado desde sus inscripciones
+  const isAuthenticated = isInvitadoAuthenticated || isPastorAuthenticated
+
+  // Cargar solicitudes si es invitado
   useEffect(() => {
-    let isMounted = true
-
-    const obtenerDniDelInvitado = async () => {
-      if (!isInvitadoAuthenticated || !invitado || loadingDni) {
-        return
-      }
-
-      setLoadingDni(true)
-      try {
-        console.log('🔍 Obteniendo DNI del invitado desde sus inscripciones...')
-        const inscripciones = await inscripcionesApi.getMyInscripciones()
-
-        if (!isMounted) return
-
-        // Buscar el primer DNI válido en las inscripciones
-        const dniEncontrado = inscripciones
-          .map(insc => insc.dni)
-          .find(dni => dni && dni.trim() !== '')
-
-        if (dniEncontrado && !documento) {
-          console.log('✅ DNI encontrado en inscripciones:', dniEncontrado)
-          setDocumento(dniEncontrado.trim())
-        } else if (!dniEncontrado) {
-          console.log('⚠️ No se encontró DNI en las inscripciones del invitado')
-        }
-      } catch (error: unknown) {
-        if (!isMounted) return
-        const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-        console.error('❌ Error obteniendo DNI del invitado:', errorMessage)
-        // No mostrar alerta, solo loggear
-      } finally {
-        if (isMounted) {
-          setLoadingDni(false)
-        }
-      }
-    }
-
-    void obtenerDniDelInvitado()
-
-    return () => {
-      isMounted = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInvitadoAuthenticated, invitado?.id])
-
-  // Buscar automáticamente credenciales si el usuario está autenticado como invitado
-  // Solo ejecutar una vez cuando el invitado se autentica, no en cada render
-  useEffect(() => {
-    let isMounted = true
-
-    const buscarCredencialesAutomaticamente = async () => {
-      // Solo buscar si está autenticado, tiene invitado, y no está cargando
-      if (!isInvitadoAuthenticated || !invitado || autoLoading) {
-        return
-      }
-
-      setAutoLoading(true)
-      try {
-        console.log('🔍 Buscando credenciales automáticamente para invitado:', invitado.email)
-        const result = await credencialesApi.obtenerMisCredenciales()
-
-        if (!isMounted) return // Evitar actualizar estado si el componente se desmontó
-
-        console.log('📊 Resultado de búsqueda automática:', {
-          tieneMinisterial: !!result.ministerial,
-          tieneCapellania: !!result.capellania,
-          cantidadMinisterial: result.ministerial?.length || 0,
-          cantidadCapellania: result.capellania?.length || 0,
-        })
-
-        if (result.ministerial || result.capellania) {
-          setCredenciales(result)
-          console.log('✅ Credenciales cargadas automáticamente')
-        } else {
-          console.log('⚠️ No se encontraron credenciales automáticamente')
-        }
-      } catch (error: unknown) {
-        if (!isMounted) return // Evitar actualizar estado si el componente se desmontó
-
-        const errorMessage =
-          error instanceof Error ? error.message : 'Error al obtener credenciales'
-        console.error('❌ Error obteniendo credenciales automáticamente:', errorMessage)
-        if (error instanceof Error && error.stack) {
-          console.error('Stack trace:', error.stack)
-        }
-        // No mostrar alerta, solo loggear el error (el usuario puede buscar manualmente)
-      } finally {
-        if (isMounted) {
-          setAutoLoading(false)
-        }
-      }
-    }
-
-    void buscarCredencialesAutomaticamente()
-
-    return () => {
-      isMounted = false
-    }
-    // Remover autoLoading de las dependencias para evitar loops infinitos
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInvitadoAuthenticated, invitado?.id])
-
-  const handleConsultar = async () => {
-    // Si es invitado autenticado, usar el endpoint automático
     if (isInvitadoAuthenticated && invitado) {
-      setLoading(true)
-      try {
-        console.log('🔍 Consultando credenciales para invitado:', invitado.email)
-        const result = await credencialesApi.obtenerMisCredenciales()
-        console.log('📊 Resultado de consulta:', {
-          tieneMinisterial: !!result.ministerial,
-          tieneCapellania: !!result.capellania,
-          cantidadMinisterial: result.ministerial?.length || 0,
-          cantidadCapellania: result.capellania?.length || 0,
+      setLoadingSolicitudes(true)
+      solicitudesCredencialesApi
+        .getMisSolicitudes()
+        .then(setSolicitudes)
+        .catch(error => {
+          console.error('Error cargando solicitudes:', error)
         })
-
-        if (result.ministerial || result.capellania) {
-          setCredenciales(result)
-          console.log('✅ Credenciales encontradas y cargadas')
-        } else {
-          console.log('⚠️ No se encontraron credenciales')
-          Alert.alert(
-            'No se encontraron credenciales',
-            'No se encontraron credenciales asociadas a tus inscripciones.\n\n' +
-            'Posibles causas:\n' +
-            '• No has ingresado tu DNI al inscribirte a una convención\n' +
-            '• Tu credencial no está registrada en el sistema\n' +
-            '• El DNI ingresado no coincide con el de tu credencial\n\n' +
-            'Verifica que hayas ingresado tu DNI correctamente al inscribirte.'
-          )
-        }
-      } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Error al consultar credenciales'
-        console.error('❌ Error consultando credenciales:', errorMessage)
-        if (error instanceof Error && error.stack) {
-          console.error('Stack trace:', error.stack)
-        }
-
-        // Mensaje más específico según el tipo de error
-        let mensajeUsuario = 'Error al consultar credenciales'
-        if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
-          mensajeUsuario = 'No estás autenticado. Por favor, inicia sesión nuevamente.'
-        } else if (errorMessage.includes('Network')) {
-          mensajeUsuario = 'Error de conexión. Verifica tu conexión a internet.'
-        } else {
-          mensajeUsuario = `Error: ${errorMessage}`
-        }
-
-        Alert.alert('Error', mensajeUsuario)
-      } finally {
-        setLoading(false)
-      }
-      return
+        .finally(() => setLoadingSolicitudes(false))
     }
+  }, [isInvitadoAuthenticated, invitado?.id])
 
-    // Si no es invitado o no está autenticado, usar búsqueda manual por documento
-    if (!documento.trim()) {
-      Alert.alert('Campo requerido', 'Por favor ingresa tu número de documento')
-      return
+  // Pre-llenar formulario de solicitud con datos del invitado
+  useEffect(() => {
+    if (isInvitadoAuthenticated && invitado && !formSolicitud.dni) {
+      setFormSolicitud(prev => ({
+        ...prev,
+        dni: prev.dni || '',
+        nombre: prev.nombre || invitado.nombre || '',
+        apellido: prev.apellido || invitado.apellido || '',
+      }))
     }
+  }, [isInvitadoAuthenticated, invitado])
 
-    setLoading(true)
-    try {
-      const result = await credencialesApi.consultarAmbas(documento.trim())
-      setCredenciales(result)
-
-      if (!result.ministerial && !result.capellania) {
-        Alert.alert(
-          'No se encontraron credenciales',
-          'No se encontraron credenciales para este documento. Verifica que el número sea correcto.'
-        )
-      }
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Error al consultar credenciales'
-      Alert.alert('Error', errorMessage)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const getEstadoColor = (estado: string) => {
-    switch (estado) {
-      case 'vigente':
-        return '#22c55e'
-      case 'por_vencer':
-        return '#f59e0b'
-      case 'vencida':
-        return '#ef4444'
-      default:
-        return '#64748b'
-    }
-  }
-
-  const getEstadoIcon = (estado: string) => {
+  const getEstadoIcon = (estado: 'vigente' | 'por_vencer' | 'vencida') => {
     switch (estado) {
       case 'vigente':
         return CheckCircle
@@ -252,43 +92,27 @@ export function CredentialsScreen() {
       case 'vencida':
         return AlertCircle
       default:
-        return Badge
+        return CreditCard
     }
   }
 
-  const getEstadoLabel = (estado: string) => {
-    switch (estado) {
-      case 'vigente':
-        return 'Vigente'
-      case 'por_vencer':
-        return 'Por Vencer'
-      case 'vencida':
-        return 'Vencida'
-      default:
-        return estado
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    } catch {
+      return dateString
     }
   }
 
-  // Normalizar credenciales a arrays para facilitar navegación
+  // Normalizar credenciales a lista para navegación
   const credencialesList = useMemo(() => {
-    const list: Array<{ credencial: Credencial; tipo: 'ministerial' | 'capellania' }> = []
-
-    if (credenciales.ministerial) {
-      const ministerial = Array.isArray(credenciales.ministerial)
-        ? credenciales.ministerial
-        : [credenciales.ministerial]
-      ministerial.forEach(c => list.push({ credencial: c, tipo: 'ministerial' }))
-    }
-
-    if (credenciales.capellania) {
-      const capellania = Array.isArray(credenciales.capellania)
-        ? credenciales.capellania
-        : [credenciales.capellania]
-      capellania.forEach(c => list.push({ credencial: c, tipo: 'capellania' }))
-    }
-
-    return list
-  }, [credenciales])
+    return data?.credenciales || []
+  }, [data?.credenciales])
 
   const totalSteps = credencialesList.length > 0 ? credencialesList.length + 1 : 1 // +1 para el paso de resumen
 
@@ -342,19 +166,6 @@ export function CredentialsScreen() {
     }
   }, [credencialesList.length])
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString)
-      return date.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    } catch {
-      return dateString
-    }
-  }
-
   const handleSolicitarCredencial = async () => {
     // Validar campos requeridos
     if (!formSolicitud.dni.trim()) {
@@ -390,8 +201,9 @@ export function CredentialsScreen() {
             text: 'OK',
             onPress: () => {
               setShowSolicitarModal(false)
-              // Recargar solicitudes
+              // Recargar solicitudes y credenciales
               solicitudesCredencialesApi.getMisSolicitudes().then(setSolicitudes).catch(console.error)
+              refetch()
             },
           },
         ]
@@ -400,12 +212,12 @@ export function CredentialsScreen() {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       console.error('❌ Error solicitando credencial:', errorMessage)
 
-      // Detectar error 404 específicamente
       let mensajeUsuario = 'No se pudo enviar la solicitud'
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { status?: number; statusText?: string; data?: unknown } }
         if (axiosError.response?.status === 404) {
-          mensajeUsuario = 'El endpoint de solicitudes no está disponible.\n\n' +
+          mensajeUsuario =
+            'El endpoint de solicitudes no está disponible.\n\n' +
             'Esto puede deberse a:\n' +
             '• El backend no está desplegado con los últimos cambios\n' +
             '• El servicio está en mantenimiento\n\n' +
@@ -459,10 +271,9 @@ export function CredentialsScreen() {
 
   // Renderizar paso de resumen
   const renderResumenStep = () => {
-    const totalMinisterial = credencialesList.filter(c => c.tipo === 'ministerial').length
-    const totalCapellania = credencialesList.filter(c => c.tipo === 'capellania').length
-    const totalVigentes = credencialesList.filter(c => c.credencial.estado === 'vigente').length
-    const totalPorVencer = credencialesList.filter(c => c.credencial.estado === 'por_vencer').length
+    if (!data?.resumen) return null
+
+    const { total, vigentes, porVencer, vencidas } = data.resumen
 
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
@@ -475,58 +286,78 @@ export function CredentialsScreen() {
 
             <View style={styles.resumenStats}>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{credencialesList.length}</Text>
-                <Text style={styles.statLabel}>Total Credenciales</Text>
+                <Text style={styles.statValue}>{total}</Text>
+                <Text style={styles.statLabel}>Total</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: '#22c55e' }]}>{totalVigentes}</Text>
+                <Text style={[styles.statValue, { color: '#22c55e' }]}>{vigentes}</Text>
                 <Text style={styles.statLabel}>Vigentes</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: '#f59e0b' }]}>{totalPorVencer}</Text>
+                <Text style={[styles.statValue, { color: '#f59e0b' }]}>{porVencer}</Text>
                 <Text style={styles.statLabel}>Por Vencer</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, { color: '#ef4444' }]}>{vencidas}</Text>
+                <Text style={styles.statLabel}>Vencidas</Text>
               </View>
             </View>
 
             <View style={styles.resumenBreakdown}>
-              {totalMinisterial > 0 && (
+              {credencialesList
+                .filter(c => c.tipo === 'pastoral')
+                .length > 0 && (
+                <View style={styles.breakdownItem}>
+                  <View style={styles.breakdownIconContainer}>
+                    <CreditCard size={20} color="#22c55e" />
+                  </View>
+                  <View style={styles.breakdownContent}>
+                    <Text style={styles.breakdownTitle}>Credenciales Pastorales</Text>
+                    <Text style={styles.breakdownValue}>
+                      {credencialesList.filter(c => c.tipo === 'pastoral').length} encontrada
+                      {credencialesList.filter(c => c.tipo === 'pastoral').length > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {credencialesList.filter(c => c.tipo === 'ministerial').length > 0 && (
                 <View style={styles.breakdownItem}>
                   <View style={styles.breakdownIconContainer}>
                     <CreditCard size={20} color="#3b82f6" />
                   </View>
                   <View style={styles.breakdownContent}>
                     <Text style={styles.breakdownTitle}>Credenciales Ministeriales</Text>
-                    <Text style={styles.breakdownValue}>{totalMinisterial} encontrada{totalMinisterial > 1 ? 's' : ''}</Text>
+                    <Text style={styles.breakdownValue}>
+                      {credencialesList.filter(c => c.tipo === 'ministerial').length} encontrada
+                      {credencialesList.filter(c => c.tipo === 'ministerial').length > 1 ? 's' : ''}
+                    </Text>
                   </View>
                 </View>
               )}
 
-              {totalCapellania > 0 && (
+              {credencialesList.filter(c => c.tipo === 'capellania').length > 0 && (
                 <View style={styles.breakdownItem}>
                   <View style={styles.breakdownIconContainer}>
                     <CreditCard size={20} color="#8b5cf6" />
                   </View>
                   <View style={styles.breakdownContent}>
                     <Text style={styles.breakdownTitle}>Credenciales de Capellanía</Text>
-                    <Text style={styles.breakdownValue}>{totalCapellania} encontrada{totalCapellania > 1 ? 's' : ''}</Text>
+                    <Text style={styles.breakdownValue}>
+                      {credencialesList.filter(c => c.tipo === 'capellania').length} encontrada
+                      {credencialesList.filter(c => c.tipo === 'capellania').length > 1 ? 's' : ''}
+                    </Text>
                   </View>
                 </View>
               )}
             </View>
-
-            {documento && (
-              <View style={styles.dniInfo}>
-                <Text style={styles.dniLabel}>DNI consultado:</Text>
-                <Text style={styles.dniValue}>{documento}</Text>
-              </View>
-            )}
           </View>
         </View>
       </Animated.View>
     )
   }
 
-  const renderCredencialCardSingle = (credencial: Credencial, tipo: 'ministerial' | 'capellania') => {
+  const renderCredencialCard = (credencial: CredencialUnificada) => {
     const estadoColor = getEstadoColor(credencial.estado)
     const EstadoIcon = getEstadoIcon(credencial.estado)
 
@@ -541,14 +372,12 @@ export function CredentialsScreen() {
           <View style={styles.cardHeader}>
             <View style={styles.cardTitleContainer}>
               <CreditCard size={24} color={estadoColor} />
-              <Text style={styles.cardTitle}>
-                Credencial {tipo === 'ministerial' ? 'Ministerial' : 'de Capellanía'}
-              </Text>
+              <Text style={styles.cardTitle}>{getCredencialTipoLegible(credencial.tipo)}</Text>
             </View>
             <View style={[styles.badgeContainer, { backgroundColor: `${estadoColor}20` }]}>
               <EstadoIcon size={16} color={estadoColor} />
               <Text style={[styles.badgeText, { color: estadoColor }]}>
-                {getEstadoLabel(credencial.estado)}
+                {credencial.estado.toUpperCase()}
               </Text>
             </View>
           </View>
@@ -560,46 +389,42 @@ export function CredentialsScreen() {
                 {credencial.nombre} {credencial.apellido}
               </Text>
             </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Documento:</Text>
-              <Text style={styles.infoValue}>{credencial.documento}</Text>
-            </View>
+
+            {(credencial.numero || credencial.documento) && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>
+                  {credencial.tipo === 'pastoral' ? 'Número:' : 'Documento:'}
+                </Text>
+                <Text style={styles.infoValue}>
+                  {getCredencialIdentificador(credencial)}
+                </Text>
+              </View>
+            )}
+
             {credencial.fechaEmision && (
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Fecha de Emisión:</Text>
                 <Text style={styles.infoValue}>{formatDate(credencial.fechaEmision)}</Text>
               </View>
             )}
+
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Fecha de Vencimiento:</Text>
               <Text style={[styles.infoValue, { color: estadoColor }]}>
                 {formatDate(credencial.fechaVencimiento)}
               </Text>
             </View>
-            {credencial.diasRestantes !== undefined && (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Días Restantes:</Text>
-                <Text
-                  style={[
-                    styles.infoValue,
-                    {
-                      color: estadoColor,
-                      fontWeight: 'bold',
-                    },
-                  ]}
-                >
-                  {credencial.diasRestantes > 0
-                    ? `${credencial.diasRestantes} días`
-                    : credencial.diasRestantes === 0
-                      ? 'Vence hoy'
-                      : `Vencida hace ${Math.abs(credencial.diasRestantes)} días`}
-                </Text>
-              </View>
-            )}
-            {credencial.observaciones && (
-              <View style={styles.observacionesContainer}>
-                <Text style={styles.observacionesLabel}>Observaciones:</Text>
-                <Text style={styles.observacionesText}>{credencial.observaciones}</Text>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Estado:</Text>
+              <Text style={[styles.infoValue, { color: estadoColor, fontWeight: 'bold' }]}>
+                {getEstadoMensaje(credencial.estado, credencial.diasRestantes)}
+              </Text>
+            </View>
+
+            {credencial.fotoUrl && (
+              <View style={styles.fotoContainer}>
+                <Image source={{ uri: credencial.fotoUrl }} style={styles.foto} />
               </View>
             )}
           </View>
@@ -610,8 +435,14 @@ export function CredentialsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        {/* Header con logo */}
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#22c55e" />
+        }
+      >
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoHeaderContainer}>
             <Image
@@ -620,122 +451,66 @@ export function CredentialsScreen() {
               resizeMode="contain"
             />
           </View>
-          <Text style={styles.title}>Consultar Credenciales</Text>
+          <Text style={styles.title}>Mis Credenciales</Text>
           <Text style={styles.subtitle}>
-            {isInvitadoAuthenticated && invitado
-              ? 'Tus credenciales se cargan automáticamente basándose en tu DNI de inscripciones'
-              : 'Ingresa tu número de documento para consultar tus credenciales'}
+            {isPastorAuthenticated && pastor
+              ? 'Tus credenciales pastorales'
+              : isInvitadoAuthenticated && invitado
+                ? 'Tus credenciales ministeriales y de capellanía'
+                : 'Consulta el estado de tus credenciales'}
           </Text>
         </View>
 
-        {/* Campo de búsqueda manual - siempre visible */}
-        <View style={styles.searchContainer}>
-          <View style={styles.searchInputContainer}>
-            <Search size={20} color="rgba(255, 255, 255, 0.5)" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder={
-                isInvitadoAuthenticated && invitado
-                  ? 'DNI (se pre-llenó desde tus inscripciones)'
-                  : 'Número de documento (DNI)'
-              }
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              value={documento}
-              onChangeText={setDocumento}
-              keyboardType="numeric"
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loadingDni}
-            />
-            {loadingDni && (
-              <ActivityIndicator size="small" color="rgba(255, 255, 255, 0.5)" style={styles.dniLoader} />
-            )}
-          </View>
-          {isInvitadoAuthenticated && invitado && documento && (
-            <Text style={styles.dniHint}>
-              💡 DNI obtenido de tus inscripciones. Puedes cambiarlo para buscar otro documento.
-            </Text>
-          )}
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={[styles.searchButton, (loading || autoLoading) && styles.searchButtonDisabled]}
-              onPress={handleConsultar}
-              disabled={loading || autoLoading}
-            >
-              {(loading || autoLoading) ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <Search size={20} color="#fff" />
-                  <Text style={styles.searchButtonText}>
-                    {isInvitadoAuthenticated && invitado ? 'Buscar por DNI' : 'Consultar'}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-            {isInvitadoAuthenticated && invitado && (
-              <TouchableOpacity
-                style={[styles.refreshButton, (loading || autoLoading) && styles.searchButtonDisabled]}
-                onPress={async () => {
-                  setLoading(true)
-                  try {
-                    const result = await credencialesApi.obtenerMisCredenciales()
-                    setCredenciales(result)
-                    if (!result.ministerial && !result.capellania) {
-                      Alert.alert(
-                        'No se encontraron credenciales',
-                        'No se encontraron credenciales asociadas a tu DNI de inscripciones.'
-                      )
-                    }
-                  } catch (error: unknown) {
-                    const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-                    Alert.alert('Error', errorMessage)
-                  } finally {
-                    setLoading(false)
-                  }
-                }}
-                disabled={loading || autoLoading}
-              >
-                {loading || autoLoading ? (
-                  <ActivityIndicator color="#22c55e" />
-                ) : (
-                  <>
-                    <Text style={styles.refreshButtonText}>🔄 Mis Credenciales</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
-        {/* Mostrar loading automático si es invitado */}
-        {isInvitadoAuthenticated && invitado && autoLoading && (
-          <View style={styles.autoLoadingContainer}>
-            <View
-              style={{
-                width: 120,
-                height: 120,
-                marginBottom: 16,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.15,
-                shadowRadius: 12,
-                elevation: 8,
-              }}
-            >
-              <Image
-                source={require('../../../assets/images/amvamovil.png')}
-                style={{ width: '100%', height: '100%' }}
-                resizeMode="contain"
-              />
-            </View>
-            <ActivityIndicator color="#22c55e" size="large" />
-            <Text style={styles.autoLoadingText}>Buscando tus credenciales...</Text>
+        {/* Loading State */}
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#22c55e" />
+            <Text style={styles.loadingText}>Cargando credenciales...</Text>
           </View>
         )}
 
-        {/* Wizard de Credenciales */}
-        {credencialesList.length > 0 && !autoLoading && (
+        {/* Error State */}
+        {error && !isLoading && (
+          <View style={styles.errorContainer}>
+            <AlertCircle size={48} color="#ef4444" />
+            <Text style={styles.errorTitle}>Error al cargar credenciales</Text>
+            <Text style={styles.errorText}>
+              {error instanceof Error ? error.message : 'Error desconocido'}
+            </Text>
+            <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+              <RefreshCw size={20} color="#fff" />
+              <Text style={styles.retryButtonText}>Reintentar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Empty State - Sin credenciales */}
+        {!isLoading &&
+          !error &&
+          (!data?.tieneCredenciales || credencialesList.length === 0) && (
+            <View style={styles.emptyContainer}>
+              <CreditCard size={64} color="rgba(255, 255, 255, 0.3)" />
+              <Text style={styles.emptyTitle}>No tienes credenciales</Text>
+              <Text style={styles.emptyText}>
+                {data?.mensaje ||
+                  (isInvitadoAuthenticated
+                    ? 'No se encontraron credenciales asociadas a tu DNI.\n\nSi necesitas una credencial, puedes solicitarla desde aquí.'
+                    : 'No se encontraron credenciales registradas.')}
+              </Text>
+              {isInvitadoAuthenticated && (
+                <TouchableOpacity
+                  style={styles.solicitarButton}
+                  onPress={() => setShowSolicitarModal(true)}
+                >
+                  <Plus size={20} color="#fff" />
+                  <Text style={styles.solicitarButtonText}>Solicitar Credencial</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
+        {/* Credenciales encontradas */}
+        {!isLoading && !error && data?.tieneCredenciales && credencialesList.length > 0 && (
           <>
             {/* Progress Steps */}
             <View style={styles.stepsContainer}>
@@ -773,16 +548,12 @@ export function CredentialsScreen() {
                         <Text style={styles.stepDescription}>
                           {stepNumber === 1
                             ? 'Resumen de credenciales'
-                            : credencialesList[stepNumber - 2]?.tipo === 'ministerial'
-                              ? 'Credencial Ministerial'
-                              : 'Credencial de Capellanía'}
+                            : getCredencialTipoLegible(credencialesList[stepNumber - 2]?.tipo)}
                         </Text>
                       </View>
                     </View>
                     {index < totalSteps - 1 && (
-                      <View
-                        style={[styles.stepLine, isCompleted && styles.stepLineCompleted]}
-                      />
+                      <View style={[styles.stepLine, isCompleted && styles.stepLineCompleted]} />
                     )}
                   </View>
                 )
@@ -795,10 +566,7 @@ export function CredentialsScreen() {
 
               {currentStep > 1 && currentCredencialIndex < credencialesList.length && (
                 <View style={styles.wizardStepContainer}>
-                  {renderCredencialCardSingle(
-                    credencialesList[currentCredencialIndex].credencial,
-                    credencialesList[currentCredencialIndex].tipo
-                  )}
+                  {renderCredencialCard(credencialesList[currentCredencialIndex])}
                 </View>
               )}
             </Animated.View>
@@ -806,20 +574,14 @@ export function CredentialsScreen() {
             {/* Navigation Buttons */}
             <View style={styles.navigationContainer}>
               {currentStep > 1 && (
-                <TouchableOpacity
-                  style={styles.navButton}
-                  onPress={handlePrevious}
-                >
+                <TouchableOpacity style={styles.navButton} onPress={handlePrevious}>
                   <ChevronLeft size={20} color="#fff" />
                   <Text style={styles.navButtonText}>Anterior</Text>
                 </TouchableOpacity>
               )}
 
               {currentStep < totalSteps && (
-                <TouchableOpacity
-                  style={[styles.navButton, styles.navButtonPrimary]}
-                  onPress={handleNext}
-                >
+                <TouchableOpacity style={[styles.navButton, styles.navButtonPrimary]} onPress={handleNext}>
                   <Text style={styles.navButtonText}>Siguiente</Text>
                   <ChevronRight size={20} color="#fff" />
                 </TouchableOpacity>
@@ -840,30 +602,6 @@ export function CredentialsScreen() {
           </>
         )}
 
-        {!loading &&
-          !autoLoading &&
-          !credenciales.ministerial &&
-          !credenciales.capellania &&
-          (documento || (isInvitadoAuthenticated && invitado)) && (
-            <View style={styles.emptyContainer}>
-              <CreditCard size={48} color="rgba(255, 255, 255, 0.3)" />
-              <Text style={styles.emptyText}>
-                {isInvitadoAuthenticated && invitado
-                  ? 'No se encontraron credenciales asociadas a tu DNI.\n\nSi necesitas una credencial, puedes solicitarla desde aquí.'
-                  : 'Ingresa un número de documento y presiona "Consultar" para ver tus credenciales'}
-              </Text>
-              {isInvitadoAuthenticated && invitado && (
-                <TouchableOpacity
-                  style={styles.solicitarButton}
-                  onPress={() => setShowSolicitarModal(true)}
-                >
-                  <Plus size={20} color="#fff" />
-                  <Text style={styles.solicitarButtonText}>Solicitar Credencial</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
-
         {/* Lista de Solicitudes */}
         {isInvitadoAuthenticated && invitado && solicitudes.length > 0 && (
           <View style={styles.solicitudesContainer}>
@@ -882,7 +620,8 @@ export function CredentialsScreen() {
                       <View style={styles.cardTitleContainer}>
                         <FileText size={20} color={estadoColor} />
                         <Text style={styles.cardTitle}>
-                          Credencial {solicitud.tipo === TipoCredencial.MINISTERIAL ? 'Ministerial' : 'de Capellanía'}
+                          Credencial{' '}
+                          {solicitud.tipo === TipoCredencial.MINISTERIAL ? 'Ministerial' : 'de Capellanía'}
                         </Text>
                       </View>
                       <View style={[styles.badgeContainer, { backgroundColor: `${estadoColor}20` }]}>
@@ -933,6 +672,24 @@ export function CredentialsScreen() {
           </View>
         )}
 
+        {/* Botón para solicitar credencial si no tiene ninguna */}
+        {isInvitadoAuthenticated &&
+          invitado &&
+          !isLoading &&
+          !error &&
+          (!data?.tieneCredenciales || credencialesList.length === 0) &&
+          solicitudes.length === 0 && (
+            <View style={styles.solicitarContainer}>
+              <TouchableOpacity
+                style={styles.solicitarButton}
+                onPress={() => setShowSolicitarModal(true)}
+              >
+                <Plus size={20} color="#fff" />
+                <Text style={styles.solicitarButtonText}>Solicitar Credencial</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
         {/* Modal para Solicitar Credencial */}
         {showSolicitarModal && (
           <View style={styles.modalOverlay}>
@@ -956,7 +713,9 @@ export function CredentialsScreen() {
                         styles.radioOption,
                         formSolicitud.tipo === TipoCredencial.MINISTERIAL && styles.radioOptionSelected,
                       ]}
-                      onPress={() => setFormSolicitud(prev => ({ ...prev, tipo: TipoCredencial.MINISTERIAL }))}
+                      onPress={() =>
+                        setFormSolicitud(prev => ({ ...prev, tipo: TipoCredencial.MINISTERIAL }))
+                      }
                     >
                       <Text
                         style={[
@@ -972,7 +731,9 @@ export function CredentialsScreen() {
                         styles.radioOption,
                         formSolicitud.tipo === TipoCredencial.CAPELLANIA && styles.radioOptionSelected,
                       ]}
-                      onPress={() => setFormSolicitud(prev => ({ ...prev, tipo: TipoCredencial.CAPELLANIA }))}
+                      onPress={() =>
+                        setFormSolicitud(prev => ({ ...prev, tipo: TipoCredencial.CAPELLANIA }))
+                      }
                     >
                       <Text
                         style={[
@@ -1123,76 +884,70 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: 'center',
   },
-  searchContainer: {
-    marginBottom: 24,
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
+  loadingContainer: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    justifyContent: 'center',
+    paddingVertical: 48,
+    gap: 16,
   },
-  searchIcon: {
-    marginRight: 12,
-  },
-  searchInput: {
-    flex: 1,
-    color: '#fff',
+  loadingText: {
     fontSize: 16,
-    paddingVertical: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
   },
-  searchButton: {
+  errorContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    gap: 16,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ef4444',
+  },
+  errorText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#22c55e',
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     gap: 8,
   },
-  searchButtonDisabled: {
-    opacity: 0.6,
-  },
-  searchButtonText: {
+  retryButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  refreshButton: {
-    flex: 1,
-    flexDirection: 'row',
+  emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.3)',
-    borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 48,
   },
-  refreshButtonText: {
-    color: '#22c55e',
-    fontSize: 16,
-    fontWeight: '600',
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 16,
+    marginBottom: 8,
   },
-  dniHint: {
-    fontSize: 12,
+  emptyText: {
+    fontSize: 14,
     color: 'rgba(255, 255, 255, 0.6)',
-    marginBottom: 12,
-    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 16,
+    lineHeight: 20,
+    marginBottom: 24,
   },
-  dniLoader: {
-    marginLeft: 8,
-  },
-  credentialsContainer: {
-    gap: 16,
+  solicitarContainer: {
+    marginTop: 24,
   },
   credentialCard: {
     borderRadius: 16,
@@ -1253,6 +1008,17 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'right',
   },
+  fotoContainer: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  foto: {
+    width: 120,
+    height: 150,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
   observacionesContainer: {
     marginTop: 8,
     paddingTop: 12,
@@ -1268,28 +1034,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     lineHeight: 20,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 48,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.6)',
-    textAlign: 'center',
-    marginTop: 16,
-    lineHeight: 20,
-  },
-  autoLoadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 24,
-    gap: 12,
-  },
-  autoLoadingText: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
   },
   wizardStepContainer: {
     marginBottom: 24,
@@ -1372,22 +1116,6 @@ const styles = StyleSheet.create({
   breakdownValue: {
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.7)',
-  },
-  dniInfo: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  dniLabel: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
-    marginBottom: 4,
-  },
-  dniValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#22c55e',
   },
   navigationContainer: {
     flexDirection: 'row',
@@ -1637,4 +1365,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 })
-
