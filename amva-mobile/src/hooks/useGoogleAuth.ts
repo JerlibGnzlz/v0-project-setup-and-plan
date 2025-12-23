@@ -53,8 +53,7 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
 
         if (!googleClientId || !googleClientId.includes('.apps.googleusercontent.com')) {
           console.warn('⚠️ Google Client ID no está configurado correctamente')
-          // No establecer error aquí para no bloquear el botón
-          // El error se manejará cuando se intente usar
+          setError('Google Client ID no configurado')
           return
         }
 
@@ -74,13 +73,12 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
         })
 
         console.log('✅ Google Sign-In configurado correctamente')
-        setError(null)
+        setError(null) // Limpiar cualquier error previo
         setIsConfigured(true)
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
         console.error('❌ Error configurando Google Sign-In:', errorMessage)
-        // No establecer error aquí para no bloquear el botón
-        // El error se manejará cuando se intente usar
+        setError(errorMessage)
       }
     }
 
@@ -213,11 +211,24 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
           case statusCodes.SIGN_IN_REQUIRED:
             errorMessage = 'Se requiere iniciar sesión'
             break
+          case '10': // DEVELOPER_ERROR
+            errorMessage = 'DEVELOPER_ERROR: Verifica que el SHA-1 esté configurado en Google Cloud Console. Consulta la documentación para más detalles.'
+            break
           default:
-            errorMessage = googleError.message || `Error desconocido: ${googleError.code}`
+            // Si el mensaje contiene DEVELOPER_ERROR, proporcionar ayuda específica
+            if (googleError.message?.includes('DEVELOPER_ERROR') || googleError.code === '10') {
+              errorMessage = 'DEVELOPER_ERROR: El SHA-1 del keystore no está configurado en Google Cloud Console. Consulta docs/FIX_GOOGLE_SIGNIN_EMULADOR.md para resolverlo.'
+            } else {
+              errorMessage = googleError.message || `Error desconocido: ${googleError.code}`
+            }
         }
       } else if (err instanceof Error) {
-        errorMessage = err.message
+        // Verificar si el mensaje contiene DEVELOPER_ERROR
+        if (err.message.includes('DEVELOPER_ERROR')) {
+          errorMessage = 'DEVELOPER_ERROR: El SHA-1 del keystore no está configurado en Google Cloud Console. Consulta docs/FIX_GOOGLE_SIGNIN_EMULADOR.md para resolverlo.'
+        } else {
+          errorMessage = err.message
+        }
       }
 
       console.error('❌ Error en signIn con Google:', errorMessage)

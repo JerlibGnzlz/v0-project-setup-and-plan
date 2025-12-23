@@ -193,7 +193,7 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
     }
 
     const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: 'amva-mobile-example', // Debe coincidir con app.json
+      projectId: Constants?.expoConfig?.extra?.eas?.projectId || '89b63cb9-113c-4901-bfb6-c1622478bc56',
     })
     token = tokenData.data
     console.log('✅ Token de notificación obtenido:', token)

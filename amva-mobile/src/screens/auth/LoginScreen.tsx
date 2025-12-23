@@ -58,7 +58,10 @@ export function LoginScreen() {
   // Manejar errores de Google Auth
   useEffect(() => {
     if (googleAuthError) {
-      console.warn('⚠️ Error en configuración de Google Auth:', googleAuthError)
+      // Solo mostrar warning si no es DEVELOPER_ERROR (ese se maneja mejor en el botón)
+      if (!googleAuthError.includes('DEVELOPER_ERROR')) {
+        console.warn('⚠️ Error en configuración de Google Auth:', googleAuthError)
+      }
     }
   }, [googleAuthError])
 
@@ -160,7 +163,12 @@ export function LoginScreen() {
       let errorMessage = 'No se pudo iniciar sesión con Google.'
 
       if (error instanceof Error) {
-        errorMessage = error.message
+        // Manejar DEVELOPER_ERROR específicamente
+        if (error.message.includes('DEVELOPER_ERROR')) {
+          errorMessage = 'Error de configuración: El SHA-1 del keystore no está configurado en Google Cloud Console.\n\nConsulta docs/FIX_GOOGLE_SIGNIN_EMULADOR.md para resolverlo.'
+        } else {
+          errorMessage = error.message
+        }
       } else if (error && typeof error === 'object') {
         const axiosError = error as {
           response?: {
@@ -559,9 +567,14 @@ export function LoginScreen() {
                 </View>
               )}
             </TouchableOpacity>
-            {googleAuthError && (
+            {googleAuthError && !googleAuthError.includes('DEVELOPER_ERROR') && (
               <Text style={[styles.hint, isSmallScreen && styles.hintSmall]}>
                 ⚠️ Login con Google no disponible: {googleAuthError}
+              </Text>
+            )}
+            {googleAuthError && googleAuthError.includes('DEVELOPER_ERROR') && (
+              <Text style={[styles.hint, isSmallScreen && styles.hintSmall, { color: '#f59e0b' }]}>
+                ⚠️ Configuración requerida: Agrega el SHA-1 del keystore en Google Cloud Console. Consulta la documentación.
               </Text>
             )}
 
