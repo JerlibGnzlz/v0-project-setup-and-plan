@@ -131,8 +131,8 @@ export class PagosRecordatoriosService {
               email: inscripcion.email,
               inscripcionId: inscripcion.id,
               convencionTitulo: inscripcion.convencion.titulo,
-              pagosPendientes: pagosPendientes.length,
-              montoTotalPendiente: totalPendiente,
+              cuotasPendientes: pagosPendientes.length,
+              montoPendiente: totalPendiente,
               nombre: inscripcion.nombre,
               apellido: inscripcion.apellido || '',
             })
