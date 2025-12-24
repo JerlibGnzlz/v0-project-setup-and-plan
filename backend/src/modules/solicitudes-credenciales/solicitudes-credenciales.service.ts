@@ -79,20 +79,47 @@ export class SolicitudesCredencialesService {
         )
       }
 
+      // Normalizar valores para asegurar compatibilidad con Prisma
+      // El schema usa String, no enum, así que convertimos el enum a string
+      const tipoString = dto.tipo === TipoCredencial.MINISTERIAL ? 'ministerial' : 'capellania'
+      const estadoString = 'pendiente' // EstadoSolicitud.PENDIENTE es 'pendiente'
+      
+      // Validar y parsear fecha de nacimiento si se proporciona
+      let fechaNacimientoParsed: Date | null = null
+      if (dto.fechaNacimiento) {
+        try {
+          fechaNacimientoParsed = new Date(dto.fechaNacimiento)
+          if (isNaN(fechaNacimientoParsed.getTime())) {
+            throw new BadRequestException('Fecha de nacimiento inválida')
+          }
+        } catch (dateError: unknown) {
+          const dateErrorMessage = dateError instanceof Error ? dateError.message : 'Error desconocido'
+          this.logger.error(`Error parseando fecha de nacimiento: ${dateErrorMessage}`)
+          throw new BadRequestException('Fecha de nacimiento inválida')
+        }
+      }
+
+      this.logger.log(`📝 Creando solicitud con datos normalizados:`, {
+        invitadoId,
+        tipo: tipoString,
+        dni: dto.dni,
+        nombre: dto.nombre,
+        apellido: dto.apellido,
+        estado: estadoString,
+      })
+
       // Crear la solicitud
       const solicitud = await this.prisma.solicitudCredencial.create({
         data: {
           invitadoId,
-          tipo: dto.tipo,
-          dni: dto.dni,
-          nombre: dto.nombre,
-          apellido: dto.apellido,
-          nacionalidad: dto.nacionalidad,
-          fechaNacimiento: dto.fechaNacimiento
-            ? new Date(dto.fechaNacimiento)
-            : null,
-          motivo: dto.motivo,
-          estado: EstadoSolicitud.PENDIENTE,
+          tipo: tipoString,
+          dni: dto.dni.trim(),
+          nombre: dto.nombre.trim(),
+          apellido: dto.apellido.trim(),
+          nacionalidad: dto.nacionalidad?.trim() || null,
+          fechaNacimiento: fechaNacimientoParsed,
+          motivo: dto.motivo?.trim() || null,
+          estado: estadoString,
         },
         include: {
           invitado: {
