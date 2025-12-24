@@ -106,52 +106,98 @@ export class SolicitudesCredencialesService {
         nombre: dto.nombre,
         apellido: dto.apellido,
         estado: estadoString,
+        nacionalidad: dto.nacionalidad || null,
+        fechaNacimiento: fechaNacimientoParsed ? fechaNacimientoParsed.toISOString() : null,
+        motivo: dto.motivo || null,
+      })
+
+      // Preparar datos para Prisma
+      const dataToCreate = {
+        invitadoId,
+        tipo: tipoString,
+        dni: dto.dni.trim(),
+        nombre: dto.nombre.trim(),
+        apellido: dto.apellido.trim(),
+        nacionalidad: dto.nacionalidad?.trim() || null,
+        fechaNacimiento: fechaNacimientoParsed,
+        motivo: dto.motivo?.trim() || null,
+        estado: estadoString,
+      }
+
+      this.logger.log(`📝 Datos preparados para Prisma:`, {
+        ...dataToCreate,
+        fechaNacimiento: dataToCreate.fechaNacimiento ? dataToCreate.fechaNacimiento.toISOString() : null,
       })
 
       // Crear la solicitud
-      const solicitud = await this.prisma.solicitudCredencial.create({
-        data: {
-          invitadoId,
-          tipo: tipoString,
-          dni: dto.dni.trim(),
-          nombre: dto.nombre.trim(),
-          apellido: dto.apellido.trim(),
-          nacionalidad: dto.nacionalidad?.trim() || null,
-          fechaNacimiento: fechaNacimientoParsed,
-          motivo: dto.motivo?.trim() || null,
-          estado: estadoString,
-        },
-        include: {
-          invitado: {
-            select: {
-              id: true,
-              nombre: true,
-              apellido: true,
-              email: true,
+      let solicitud: SolicitudCredencial
+      try {
+        this.logger.log('📝 Intentando crear solicitud en Prisma...')
+        solicitud = await this.prisma.solicitudCredencial.create({
+          data: dataToCreate,
+          include: {
+            invitado: {
+              select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                email: true,
+              },
             },
           },
-        },
-      })
+        })
+        this.logger.log(`✅ Solicitud creada en Prisma: ${solicitud.id}`)
+      } catch (prismaError: unknown) {
+        const prismaErrorMessage = prismaError instanceof Error ? prismaError.message : 'Error desconocido'
+        const prismaErrorStack = prismaError instanceof Error ? prismaError.stack : undefined
+        
+        // Si es un error de Prisma, proporcionar más detalles
+        if (prismaError && typeof prismaError === 'object' && 'code' in prismaError) {
+          const prismaErrorCode = prismaError as { code?: string; meta?: unknown }
+          this.logger.error(`❌ Error de Prisma al crear solicitud:`)
+          this.logger.error(`   Código: ${prismaErrorCode.code}`)
+          this.logger.error(`   Mensaje: ${prismaErrorMessage}`)
+          this.logger.error(`   Meta: ${JSON.stringify(prismaErrorCode.meta)}`)
+          
+          // Errores comunes de Prisma
+          if (prismaErrorCode.code === 'P2002') {
+            throw new BadRequestException('Ya existe una solicitud con estos datos')
+          }
+          if (prismaErrorCode.code === 'P2003') {
+            throw new BadRequestException('Referencia inválida: el invitado no existe')
+          }
+        }
+        
+        this.logger.error(`❌ Error al crear solicitud en Prisma: ${prismaErrorMessage}`)
+        if (prismaErrorStack) {
+          this.logger.error(`Stack trace: ${prismaErrorStack}`)
+        }
+        throw prismaError
+      }
 
       this.logger.log(
         `✅ Solicitud de credencial ${dto.tipo} creada para invitado ${invitado.email} (DNI: ${dto.dni})`
       )
 
       // Notificar a todos los admins (no bloquear si falla)
-      // Ejecutar en background sin esperar
-      setImmediate(async () => {
+      // Ejecutar en background sin esperar - usar setTimeout en lugar de setImmediate para mejor compatibilidad
+      setTimeout(async () => {
         try {
+          this.logger.log('📧 Iniciando proceso de notificaciones a admins...')
           const admins = await this.prisma.user.findMany()
           if (!admins || admins.length === 0) {
             this.logger.warn('No hay admins para notificar')
             return
           }
 
+          this.logger.log(`📧 Encontrados ${admins.length} admin(s) para notificar`)
+
           const tipoLabel = dto.tipo === TipoCredencial.MINISTERIAL ? 'Ministerial' : 'de Capellanía'
 
           // Enviar notificaciones en paralelo sin bloquear
           const notificationPromises = admins.map(async (admin) => {
             try {
+              this.logger.log(`📧 Enviando notificación a admin ${admin.email}...`)
               await this.notificationsService.sendNotificationToAdmin(
                 admin.email,
                 'Nueva Solicitud de Credencial',
@@ -167,19 +213,28 @@ export class SolicitudesCredencialesService {
               this.logger.log(`✅ Notificación enviada a admin ${admin.email}`)
             } catch (notificationError: unknown) {
               const errorMessage = notificationError instanceof Error ? notificationError.message : 'Error desconocido'
-              this.logger.warn(`No se pudo enviar notificación a admin ${admin.email}: ${errorMessage}`)
+              const errorStack = notificationError instanceof Error ? notificationError.stack : undefined
+              this.logger.warn(`⚠️ No se pudo enviar notificación a admin ${admin.email}: ${errorMessage}`)
+              if (errorStack) {
+                this.logger.warn(`Stack trace: ${errorStack}`)
+              }
               // No lanzar error, solo loggear
             }
           })
 
           // Esperar todas las notificaciones sin bloquear
           await Promise.allSettled(notificationPromises)
+          this.logger.log('✅ Proceso de notificaciones completado')
         } catch (notificationError: unknown) {
           const errorMessage = notificationError instanceof Error ? notificationError.message : 'Error desconocido'
-          this.logger.warn(`Error enviando notificaciones a admins: ${errorMessage}`)
+          const errorStack = notificationError instanceof Error ? notificationError.stack : undefined
+          this.logger.error(`❌ Error enviando notificaciones a admins: ${errorMessage}`)
+          if (errorStack) {
+            this.logger.error(`Stack trace: ${errorStack}`)
+          }
           // No lanzar error, la solicitud ya fue creada exitosamente
         }
-      })
+      }, 0) // Usar setTimeout con delay 0 en lugar de setImmediate
 
       return solicitud
     } catch (error: unknown) {
