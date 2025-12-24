@@ -12,6 +12,8 @@ import {
   Image,
   RefreshControl,
   Platform,
+  AppState,
+  AppStateStatus,
 } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -41,6 +43,20 @@ export function CredentialsScreen() {
   const { invitado, isAuthenticated: isInvitadoAuthenticated } = useInvitadoAuth()
   const { pastor } = useAuth()
   const { data, isLoading, error, refetch, isRefetching } = useMisCredenciales()
+
+  // Refetch automático cuando la app vuelve a estar activa
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') {
+        console.log('🔄 App activa, refetch de credenciales...')
+        refetch()
+      }
+    })
+
+    return () => {
+      subscription.remove()
+    }
+  }, [refetch])
 
   const isPastorAuthenticated = pastor !== null
 

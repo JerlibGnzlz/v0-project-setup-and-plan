@@ -3,7 +3,8 @@
  * Funciona tanto para pastores como para invitados
  */
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { credencialesApi, CredencialUnificada } from '../api/credenciales'
 import { useWebSocketSync } from './use-websocket-sync'
 
@@ -25,16 +26,35 @@ export interface CredencialesResponse {
  * Incluye sincronización en tiempo real via WebSockets
  */
 export function useMisCredenciales() {
+  const queryClient = useQueryClient()
+  
   // Conectar a WebSocket para sincronización en tiempo real
-  useWebSocketSync()
+  const { isConnected } = useWebSocketSync()
 
-  return useQuery<CredencialesResponse>({
+  const query = useQuery<CredencialesResponse>({
     queryKey: ['credenciales', 'mis-credenciales'],
     queryFn: () => credencialesApi.obtenerMisCredencialesUnificado(),
     staleTime: 5 * 60 * 1000, // 5 minutos
     retry: 2,
     retryDelay: 1000,
+    // Refetch automático cuando la app vuelve a estar activa
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   })
+
+  // Refetch automático cuando se conecta el WebSocket
+  useEffect(() => {
+    if (isConnected && query.data) {
+      console.log('🔄 WebSocket conectado, verificando credenciales actualizadas...')
+      // Pequeño delay para asegurar que el evento llegue primero
+      const timeoutId = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
+      }, 500)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [isConnected, queryClient])
+
+  return query
 }
 
 /**

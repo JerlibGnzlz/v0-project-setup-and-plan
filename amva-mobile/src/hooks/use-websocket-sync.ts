@@ -94,20 +94,25 @@ export function useWebSocketSync() {
       socket.on('data-sync', (event: DataSyncEvent) => {
         console.log('📡 Evento de sincronización recibido:', event.type, event.data)
 
-        // Invalidar queries según el tipo de evento
+        // Invalidar queries según el tipo de evento y hacer refetch automático
         switch (event.type) {
           case 'credencial_updated':
-            console.log('🔄 Invalidando queries de credenciales')
+            console.log('🔄 Invalidando queries de credenciales y refetch automático')
             queryClient.invalidateQueries({ queryKey: ['credenciales'] })
             queryClient.invalidateQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
+            // Refetch inmediato para actualizar la UI
+            queryClient.refetchQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
             break
 
           case 'convencion_updated':
           case 'convencion_created':
           case 'convencion_deleted':
-            console.log('🔄 Invalidando queries de convenciones')
+            console.log('🔄 Invalidando queries de convenciones y refetch automático')
             queryClient.invalidateQueries({ queryKey: ['convencion'] })
             queryClient.invalidateQueries({ queryKey: ['convenciones'] })
+            // Refetch inmediato
+            queryClient.refetchQueries({ queryKey: ['convenciones'] })
+            queryClient.refetchQueries({ queryKey: ['convencion', 'active'] })
             break
 
           default:
