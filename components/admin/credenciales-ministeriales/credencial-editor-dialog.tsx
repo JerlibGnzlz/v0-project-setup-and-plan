@@ -15,8 +15,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { DatePicker } from '@/components/ui/date-picker'
-import { format } from 'date-fns'
+import { DatePickerSimple } from '@/components/ui/date-picker-simple'
 import {
   Select,
   SelectContent,
@@ -267,12 +266,12 @@ export function CredencialEditorDialog({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="fechaNacimiento">Fecha de Nacimiento *</Label>
-                  <DatePicker
+                  <DatePickerSimple
                     id="fechaNacimiento"
-                    value={fechaNacimiento ? new Date(fechaNacimiento) : undefined}
-                    onChange={(date) => {
-                      if (date) {
-                        setValue('fechaNacimiento', format(date, 'yyyy-MM-dd'), { shouldValidate: true })
+                    value={fechaNacimiento || undefined}
+                    onChange={(dateString) => {
+                      if (dateString) {
+                        setValue('fechaNacimiento', dateString, { shouldValidate: true })
                       } else {
                         setValue('fechaNacimiento', '', { shouldValidate: true })
                       }
@@ -319,12 +318,12 @@ export function CredencialEditorDialog({
 
           <div className="space-y-2">
             <Label htmlFor="fechaVencimiento">Fecha de Vencimiento *</Label>
-            <DatePicker
+            <DatePickerSimple
               id="fechaVencimiento"
-              value={fechaVencimiento ? new Date(fechaVencimiento) : undefined}
-              onChange={(date) => {
-                if (date) {
-                  setValue('fechaVencimiento', format(date, 'yyyy-MM-dd'), { shouldValidate: true })
+              value={fechaVencimiento || undefined}
+              onChange={(dateString) => {
+                if (dateString) {
+                  setValue('fechaVencimiento', dateString, { shouldValidate: true })
                 } else {
                   setValue('fechaVencimiento', '', { shouldValidate: true })
                 }
