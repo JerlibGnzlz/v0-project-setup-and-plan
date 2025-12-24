@@ -142,4 +142,14 @@ export class NotificationsController {
   async getDiagnostics() {
     return this.diagnosticsService.getDiagnostics()
   }
+
+  /**
+   * Endpoint para enviar notificación de prueba a un usuario específico por documento
+   * Solo disponible para admins
+   */
+  @Post('push/test-by-documento')
+  @UseGuards(JwtAuthGuard)
+  async sendTestPushNotificationByDocumento(@Body() body: { documento: string }) {
+    return this.notificationsService.sendTestPushNotificationByDocumento(body.documento)
+  }
 }

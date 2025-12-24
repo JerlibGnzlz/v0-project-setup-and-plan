@@ -847,6 +847,259 @@ export class NotificationsService {
   }
 
   /**
+   * Envía una notificación push de prueba a un usuario específico por documento
+   * Útil para debugging y pruebas
+   */
+  async sendTestPushNotificationByDocumento(
+    documento: string,
+  ): Promise<{
+    encontrado: boolean
+    credencial?: {
+      id: string
+      tipo: 'ministerial' | 'capellania'
+      documento: string
+      nombre: string
+      apellido: string
+      fechaVencimiento: Date
+      invitadoId: string | null
+    }
+    invitado?: {
+      id: string
+      email: string
+      nombre: string
+      apellido: string
+      tieneAuth: boolean
+      tokensActivos: number
+      tokens: Array<{ token: string; platform: string; active: boolean }>
+    }
+    enviado: boolean
+    error?: string
+  }> {
+    try {
+      this.logger.log(`🔍 Buscando credencial con documento: ${documento}`)
+
+      // Buscar credencial ministerial
+      let credencial = await this.prisma.credencialMinisterial.findUnique({
+        where: { documento },
+        include: {
+          invitado: {
+            include: {
+              auth: {
+                include: {
+                  deviceTokens: {
+                    where: { active: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      })
+
+      let tipoCredencial: 'ministerial' | 'capellania' = 'ministerial'
+
+      // Si no se encuentra, buscar en capellanía
+      if (!credencial) {
+        const credencialCapellania = await this.prisma.credencialCapellania.findUnique({
+          where: { documento },
+          include: {
+            invitado: {
+              include: {
+                auth: {
+                  include: {
+                    deviceTokens: {
+                      where: { active: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        })
+
+        if (credencialCapellania) {
+          credencial = credencialCapellania as unknown as typeof credencial
+          tipoCredencial = 'capellania'
+        }
+      }
+
+      if (!credencial) {
+        this.logger.warn(`❌ No se encontró credencial con documento: ${documento}`)
+        return {
+          encontrado: false,
+          enviado: false,
+          error: 'Credencial no encontrada',
+        }
+      }
+
+      this.logger.log(`✅ Credencial encontrada: ${credencial.id} (${tipoCredencial})`)
+
+      // Verificar si tiene invitadoId
+      if (!credencial.invitadoId) {
+        this.logger.warn(`⚠️ Credencial no tiene invitadoId asignado`)
+
+        // Intentar buscar invitado por documento en inscripciones
+        const inscripcion = await this.prisma.inscripcion.findFirst({
+          where: {
+            dni: documento,
+            invitadoId: { not: null },
+          },
+          include: {
+            invitado: {
+              include: {
+                auth: {
+                  include: {
+                    deviceTokens: {
+                      where: { active: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        })
+
+        if (inscripcion?.invitado) {
+          // Asignar invitadoId
+          if (tipoCredencial === 'ministerial') {
+            await this.prisma.credencialMinisterial.update({
+              where: { id: credencial.id },
+              data: { invitadoId: inscripcion.invitado.id },
+            })
+          } else {
+            await this.prisma.credencialCapellania.update({
+              where: { id: credencial.id },
+              data: { invitadoId: inscripcion.invitado.id },
+            })
+          }
+          credencial.invitadoId = inscripcion.invitado.id
+          credencial.invitado = inscripcion.invitado
+          this.logger.log(`✅ Asignado invitadoId ${inscripcion.invitado.id} a credencial`)
+        } else {
+          return {
+            encontrado: true,
+            credencial: {
+              id: credencial.id,
+              tipo: tipoCredencial,
+              documento: credencial.documento,
+              nombre: credencial.nombre,
+              apellido: credencial.apellido,
+              fechaVencimiento: credencial.fechaVencimiento,
+              invitadoId: null,
+            },
+            enviado: false,
+            error: 'Credencial no tiene invitadoId y no se encontró invitado por documento',
+          }
+        }
+      }
+
+      // Verificar invitado
+      if (!credencial.invitado) {
+        return {
+          encontrado: true,
+          credencial: {
+            id: credencial.id,
+            tipo: tipoCredencial,
+            documento: credencial.documento,
+            nombre: credencial.nombre,
+            apellido: credencial.apellido,
+            fechaVencimiento: credencial.fechaVencimiento,
+            invitadoId: credencial.invitadoId || null,
+          },
+          enviado: false,
+          error: 'Invitado no encontrado',
+        }
+      }
+
+      const invitado = credencial.invitado
+      const tokensActivos = invitado.auth?.deviceTokens || []
+      const tieneTokens = tokensActivos.length > 0
+
+      this.logger.log(
+        `📱 Invitado encontrado: ${invitado.email}, tokens activos: ${tokensActivos.length}`,
+      )
+
+      if (!tieneTokens) {
+        return {
+          encontrado: true,
+          credencial: {
+            id: credencial.id,
+            tipo: tipoCredencial,
+            documento: credencial.documento,
+            nombre: credencial.nombre,
+            apellido: credencial.apellido,
+            fechaVencimiento: credencial.fechaVencimiento,
+            invitadoId: credencial.invitadoId || null,
+          },
+          invitado: {
+            id: invitado.id,
+            email: invitado.email,
+            nombre: invitado.nombre,
+            apellido: invitado.apellido,
+            tieneAuth: !!invitado.auth,
+            tokensActivos: 0,
+            tokens: [],
+          },
+          enviado: false,
+          error: 'El usuario no tiene tokens de dispositivo activos. Debe abrir la app móvil e iniciar sesión.',
+        }
+      }
+
+      // Enviar notificación de prueba
+      const titulo = '🔔 Notificación de Prueba - Credencial Vencida'
+      const mensaje = `Hola ${invitado.nombre}, esta es una notificación de prueba. Tu credencial ${tipoCredencial === 'ministerial' ? 'ministerial' : 'de capellanía'} está vencida.`
+
+      const exito = await this.sendPushNotificationToInvitado(
+        invitado.email,
+        titulo,
+        mensaje,
+        {
+          type: 'credencial_vencida',
+          credencialId: credencial.id,
+          tipoCredencial,
+          test: true,
+        },
+      )
+
+      return {
+        encontrado: true,
+        credencial: {
+          id: credencial.id,
+          tipo: tipoCredencial,
+          documento: credencial.documento,
+          nombre: credencial.nombre,
+          apellido: credencial.apellido,
+          fechaVencimiento: credencial.fechaVencimiento,
+          invitadoId: credencial.invitadoId || null,
+        },
+        invitado: {
+          id: invitado.id,
+          email: invitado.email,
+          nombre: invitado.nombre,
+          apellido: invitado.apellido,
+          tieneAuth: !!invitado.auth,
+          tokensActivos: tokensActivos.length,
+          tokens: tokensActivos.map((dt) => ({
+            token: dt.token.substring(0, 20) + '...',
+            platform: dt.platform,
+            active: dt.active,
+          })),
+        },
+        enviado: exito,
+        error: exito ? undefined : 'Error al enviar notificación',
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en sendTestPushNotificationByDocumento:`, errorMessage)
+      return {
+        encontrado: false,
+        enviado: false,
+        error: errorMessage,
+      }
+    }
+  }
+
+  /**
    * Envía notificaciones push masivas a usuarios con credenciales vencidas o por vencer
    */
   async sendPushNotificationsCredencialesVencidas(

@@ -20,7 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Bell, Loader2, Info } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Bell, Loader2, Info, Send } from 'lucide-react'
 import { notificationsApi } from '@/lib/api/notifications'
 
 interface EnviarNotificacionesDialogProps {
@@ -37,6 +38,9 @@ export function EnviarNotificacionesDialog({
   const [isLoadingDiagnostics, setIsLoadingDiagnostics] = useState(false)
   const [showDiagnostics, setShowDiagnostics] = useState(false)
   const [diagnostics, setDiagnostics] = useState<any>(null)
+  const [testDocumento, setTestDocumento] = useState('')
+  const [isLoadingTest, setIsLoadingTest] = useState(false)
+  const [testResult, setTestResult] = useState<any>(null)
   const [resultado, setResultado] = useState<{
     enviadas: number
     errores: number
@@ -56,6 +60,45 @@ export function EnviarNotificacionesDialog({
       })
     } finally {
       setIsLoadingDiagnostics(false)
+    }
+  }
+
+  const handleTestPorDocumento = async () => {
+    if (!testDocumento.trim()) {
+      toast.error('Documento requerido', {
+        description: 'Por favor ingresa un número de documento',
+      })
+      return
+    }
+
+    setIsLoadingTest(true)
+    setTestResult(null)
+
+    try {
+      const result = await notificationsApi.sendTestPushNotificationByDocumento(testDocumento.trim())
+      setTestResult(result)
+
+      if (result.encontrado && result.enviado) {
+        toast.success('Notificación de prueba enviada', {
+          description: `Se envió correctamente a ${result.invitado?.email}`,
+        })
+      } else if (result.encontrado && !result.enviado) {
+        toast.warning('No se pudo enviar', {
+          description: result.error || 'El usuario no tiene tokens activos',
+          duration: 8000,
+        })
+      } else {
+        toast.error('Credencial no encontrada', {
+          description: result.error || 'No se encontró credencial con ese documento',
+        })
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error('Error al enviar notificación de prueba', {
+        description: errorMessage,
+      })
+    } finally {
+      setIsLoadingTest(false)
     }
   }
 
@@ -200,6 +243,89 @@ export function EnviarNotificacionesDialog({
         )}
 
         <div className="space-y-4 py-4">
+          {/* Sección de prueba por documento */}
+          <div className="p-4 rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/30">
+            <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+              <Send className="h-4 w-4" />
+              Prueba por Documento Específico
+            </h4>
+            <p className="text-xs text-muted-foreground mb-3">
+              Envía una notificación de prueba a un usuario específico ingresando su número de documento
+            </p>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Ej: 95774063"
+                value={testDocumento}
+                onChange={(e) => setTestDocumento(e.target.value)}
+                className="flex-1"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !isLoadingTest) {
+                    handleTestPorDocumento()
+                  }
+                }}
+              />
+              <Button
+                onClick={handleTestPorDocumento}
+                disabled={isLoadingTest || !testDocumento.trim()}
+                size="sm"
+              >
+                {isLoadingTest ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Probar
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {testResult && (
+              <div className="mt-3 p-3 rounded bg-white dark:bg-gray-900 border">
+                {testResult.encontrado ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium">Credencial:</span>
+                      <span className="text-xs">
+                        {testResult.credencial?.nombre} {testResult.credencial?.apellido}
+                      </span>
+                    </div>
+                    {testResult.invitado && (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium">Email:</span>
+                          <span className="text-xs">{testResult.invitado.email}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium">Tokens activos:</span>
+                          <span className="text-xs">{testResult.invitado.tokensActivos}</span>
+                        </div>
+                      </>
+                    )}
+                    {testResult.enviado ? (
+                      <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Notificación enviada exitosamente
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400">
+                        <AlertCircle className="h-3 w-3" />
+                        {testResult.error || 'No se pudo enviar'}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-xs text-red-600 dark:text-red-400">
+                    ❌ {testResult.error || 'Credencial no encontrada'}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Tipo de credenciales</label>
             <Select value={tipo} onValueChange={(value) => setTipo(value as typeof tipo)}>

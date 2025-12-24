@@ -86,6 +86,33 @@ export const notificationsApi = {
     return response.data
   },
 
+  sendTestPushNotificationByDocumento: async (documento: string): Promise<{
+    encontrado: boolean
+    credencial?: {
+      id: string
+      tipo: 'ministerial' | 'capellania'
+      documento: string
+      nombre: string
+      apellido: string
+      fechaVencimiento: string
+      invitadoId: string | null
+    }
+    invitado?: {
+      id: string
+      email: string
+      nombre: string
+      apellido: string
+      tieneAuth: boolean
+      tokensActivos: number
+      tokens: Array<{ token: string; platform: string; active: boolean }>
+    }
+    enviado: boolean
+    error?: string
+  }> => {
+    const response = await apiClient.post('/notifications/push/test-by-documento', { documento })
+    return response.data
+  },
+
   getDiagnostics: async (): Promise<{
     deviceTokens: {
       total: number
