@@ -80,6 +80,18 @@ export class NotificationsService {
   }
 
   /**
+   * Envía un email a un admin (alias de sendEmailToUser)
+   */
+  async sendEmailToAdmin(
+    email: string,
+    title: string,
+    body: string,
+    data?: Record<string, unknown>,
+  ): Promise<boolean> {
+    return this.sendEmailToUser(email, title, body, data)
+  }
+
+  /**
    * Envía una notificación push a un invitado por su ID
    */
   async sendPushNotification(

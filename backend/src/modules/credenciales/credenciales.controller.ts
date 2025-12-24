@@ -261,12 +261,13 @@ export class CredencialesController {
 
       if (credenciales.length === 0) {
         this.logger.warn(`No se encontraron credenciales para el usuario`)
+        const invitadoId = isInvitado ? req.user.id : null
         return {
           tieneCredenciales: false,
           credenciales: [],
           mensaje: isPastor
             ? 'No tienes credenciales pastorales registradas'
-            : 'No se encontraron credenciales para tu DNI. Verifica que tus credenciales estén registradas en el sistema.',
+            : 'No se encontraron credenciales asociadas a tu cuenta. Si tienes credenciales registradas, asegúrate de que estén vinculadas a tu DNI o contacta al administrador.',
         }
       }
 
