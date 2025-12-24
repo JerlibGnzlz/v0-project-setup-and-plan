@@ -71,11 +71,14 @@ export function useNotifications() {
       if (token) {
         setExpoPushToken(token)
         // Registrar token en el backend si hay un usuario autenticado
-        if (pastor?.email) {
-          registerTokenInBackend(token, pastor.email, 'pastor')
-        } else if (invitado?.email) {
-          registerTokenInBackend(token, invitado.email, 'invitado')
-        }
+        // Esperar un momento para asegurar que la autenticación esté lista
+        setTimeout(() => {
+          if (pastor?.email) {
+            registerTokenInBackend(token, pastor.email, 'pastor')
+          } else if (invitado?.email) {
+            registerTokenInBackend(token, invitado.email, 'invitado')
+          }
+        }, 1000) // Esperar 1 segundo para que la autenticación esté lista
       }
     })
 
@@ -135,12 +138,18 @@ export function useNotifications() {
     }
   }, [pastor?.email, invitado?.email, handleNotificationNavigation])
 
-  // Registrar token cuando el usuario cambia
+  // Registrar token cuando el usuario cambia (con delay para asegurar autenticación)
   useEffect(() => {
-    if (expoPushToken && pastor?.email) {
-      registerTokenInBackend(expoPushToken, pastor.email, 'pastor')
-    } else if (expoPushToken && invitado?.email) {
-      registerTokenInBackend(expoPushToken, invitado.email, 'invitado')
+    if (expoPushToken) {
+      const timeoutId = setTimeout(() => {
+        if (pastor?.email) {
+          registerTokenInBackend(expoPushToken, pastor.email, 'pastor')
+        } else if (invitado?.email) {
+          registerTokenInBackend(expoPushToken, invitado.email, 'invitado')
+        }
+      }, 500) // Pequeño delay para asegurar que el token de autenticación esté disponible
+      
+      return () => clearTimeout(timeoutId)
     }
   }, [expoPushToken, pastor?.email, invitado?.email])
 
@@ -221,6 +230,16 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
 
 async function registerTokenInBackend(token: string, email: string, userType: 'pastor' | 'invitado') {
   try {
+    // Verificar que hay un token de autenticación disponible
+    const authToken = await SecureStore.getItemAsync(
+      userType === 'invitado' ? 'invitado_token' : 'access_token'
+    )
+    
+    if (!authToken) {
+      console.warn(`⚠️ No hay token de autenticación disponible para ${userType}. El registro de token de push se omitirá.`)
+      return
+    }
+    
     // Obtener deviceId único (usar el token como fallback)
     const deviceId = token.substring(0, 20)
     
@@ -241,7 +260,19 @@ async function registerTokenInBackend(token: string, email: string, userType: 'p
       })
       console.log('✅ Token registrado en el backend para pastor:', email)
     }
-  } catch (error) {
-    console.error('❌ Error registrando token en el backend:', error)
+  } catch (error: unknown) {
+    // Manejar errores específicos
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { status?: number } }
+      if (axiosError.response?.status === 401) {
+        console.warn('⚠️ Token de autenticación expirado o inválido. El registro de token de push se omitirá.')
+        console.warn('💡 El token se registrará automáticamente después del próximo login.')
+      } else {
+        console.error('❌ Error registrando token en el backend:', error)
+      }
+    } else {
+      console.error('❌ Error registrando token en el backend:', error)
+    }
+    // No lanzar error, solo loggear - el registro de token de push no es crítico
   }
 }
