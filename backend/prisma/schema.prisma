@@ -16,12 +16,8 @@ model User {
   nombre         String
   rol            UserRole             @default(ADMIN)
   avatar         String?
-  passwordResets PasswordResetToken[]
   deviceTokens   AdminDeviceToken[]
-  // NOTA: Columnas de seguridad removidas temporalmente porque no existen en la BD
-  // Si las necesitas, crea una migración para agregarlas:
-  // ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0;
-  // ALTER TABLE users ADD COLUMN locked_until TIMESTAMP;
+  passwordResets PasswordResetToken[]
 
   @@map("users")
 }
@@ -83,9 +79,9 @@ model Pastor {
   region                 String?
   tipo                   TipoPastor            @default(PASTOR)
   trayectoria            String?
-  auth                   PastorAuth?
   credencialesPastorales CredencialPastoral[]
   NotificationHistory    NotificationHistory[]
+  auth                   PastorAuth?
 
   @@index([activo])
   @@index([tipo])
@@ -104,8 +100,8 @@ model PastorAuth {
   ultimoLogin     DateTime?     @map("ultimo_login")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
-  pastor          Pastor        @relation(fields: [pastorId], references: [id], onDelete: Cascade)
   deviceTokens    DeviceToken[]
+  pastor          Pastor        @relation(fields: [pastorId], references: [id], onDelete: Cascade)
 
   @@index([email])
   @@index([googleId])
@@ -136,27 +132,28 @@ model CredencialPastoral {
 }
 
 model SolicitudCredencial {
-  id                      String    @id @default(uuid())
-  invitadoId              String    @map("invitado_id")
-  tipo                    String // 'ministerial' | 'capellania'
-  dni                     String
-  nombre                  String
-  apellido                String
-  nacionalidad            String?
-  fechaNacimiento         DateTime? @map("fecha_nacimiento")
-  motivo                  String? // Motivo de la solicitud
-  estado                  String    @default("pendiente") // 'pendiente' | 'aprobada' | 'rechazada' | 'completada'
-  observaciones           String? // Observaciones del admin
-  credencialMinisterialId String?   @unique @map("credencial_ministerial_id")
-  credencialCapellaniaId  String?   @unique @map("credencial_capellania_id")
-  createdAt               DateTime  @default(now()) @map("created_at")
-  updatedAt               DateTime  @updatedAt @map("updated_at")
-  aprobadaAt              DateTime? @map("aprobada_at")
-  completadaAt            DateTime? @map("completada_at")
-
-  invitado              Invitado               @relation(fields: [invitadoId], references: [id], onDelete: Cascade)
-  credencialMinisterial CredencialMinisterial?
-  credencialCapellania  CredencialCapellania?
+  id                                                                                                        String                 @id @default(uuid())
+  invitadoId                                                                                                String                 @map("invitado_id")
+  tipo                                                                                                      String
+  dni                                                                                                       String
+  nombre                                                                                                    String
+  apellido                                                                                                  String
+  nacionalidad                                                                                              String?
+  fechaNacimiento                                                                                           DateTime?              @map("fecha_nacimiento")
+  motivo                                                                                                    String?
+  estado                                                                                                    String                 @default("pendiente")
+  observaciones                                                                                             String?
+  credencialMinisterialId                                                                                   String?                @unique @map("credencial_ministerial_id")
+  credencialCapellaniaId                                                                                    String?                @unique @map("credencial_capellania_id")
+  createdAt                                                                                                 DateTime               @default(now()) @map("created_at")
+  updatedAt                                                                                                 DateTime               @updatedAt @map("updated_at")
+  aprobadaAt                                                                                                DateTime?              @map("aprobada_at")
+  completadaAt                                                                                              DateTime?              @map("completada_at")
+  credencialCapellania                                                                                      CredencialCapellania?
+  credencialMinisterial                                                                                     CredencialMinisterial?
+  credenciales_capellania_solicitudes_credenciales_credencial_capellania_idTocredenciales_capellania        CredencialCapellania?  @relation("solicitudes_credenciales_credencial_capellania_idTocredenciales_capellania", fields: [credencialCapellaniaId], references: [id])
+  credenciales_ministeriales_solicitudes_credenciales_credencial_ministerial_idTocredenciales_ministeriales CredencialMinisterial? @relation("solicitudes_credenciales_credencial_ministerial_idTocredenciales_ministeriales", fields: [credencialMinisterialId], references: [id])
+  invitado                                                                                                  Invitado               @relation(fields: [invitadoId], references: [id], onDelete: Cascade)
 
   @@index([invitadoId])
   @@index([estado])
@@ -166,23 +163,23 @@ model SolicitudCredencial {
 }
 
 model CredencialMinisterial {
-  id                    String   @id @default(uuid())
-  apellido              String
-  nombre                String
-  documento             String   @unique
-  nacionalidad          String
-  fechaNacimiento       DateTime @map("fecha_nacimiento")
-  tipoPastor            String   @default("PASTOR") @map("tipo_pastor") // PASTOR, PASTORA, etc.
-  fechaVencimiento      DateTime @map("fecha_vencimiento")
-  fotoUrl               String?  @map("foto_url")
-  activa                Boolean  @default(true)
-  invitadoId            String?  @map("invitado_id") // Relación opcional con invitado
-  solicitudCredencialId String?  @unique @map("solicitud_credencial_id") // Relación con solicitud
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
-
-  invitado            Invitado?            @relation(fields: [invitadoId], references: [id], onDelete: SetNull)
-  solicitudCredencial SolicitudCredencial? @relation(fields: [solicitudCredencialId], references: [id])
+  id                                                                                                      String               @id @default(uuid())
+  apellido                                                                                                String
+  nombre                                                                                                  String
+  documento                                                                                               String               @unique
+  nacionalidad                                                                                            String
+  fechaNacimiento                                                                                         DateTime             @map("fecha_nacimiento")
+  tipoPastor                                                                                              String               @default("PASTOR") @map("tipo_pastor")
+  fechaVencimiento                                                                                        DateTime             @map("fecha_vencimiento")
+  fotoUrl                                                                                                 String?              @map("foto_url")
+  activa                                                                                                  Boolean              @default(true)
+  createdAt                                                                                               DateTime             @default(now()) @map("created_at")
+  updatedAt                                                                                               DateTime             @updatedAt @map("updated_at")
+  invitadoId                                                                                              String?              @map("invitado_id")
+  solicitudCredencialId                                                                                   String?              @unique @map("solicitud_credencial_id")
+  invitado                                                                                                Invitado?            @relation(fields: [invitadoId], references: [id])
+  solicitudCredencial                                                                                     SolicitudCredencial? @relation(fields: [solicitudCredencialId], references: [id])
+  solicitudes_credenciales_solicitudes_credenciales_credencial_ministerial_idTocredenciales_ministeriales SolicitudCredencial? @relation("solicitudes_credenciales_credencial_ministerial_idTocredenciales_ministeriales")
 
   @@index([documento])
   @@index([fechaVencimiento])
@@ -192,23 +189,23 @@ model CredencialMinisterial {
 }
 
 model CredencialCapellania {
-  id                    String   @id @default(uuid())
-  apellido              String
-  nombre                String
-  documento             String   @unique
-  nacionalidad          String
-  fechaNacimiento       DateTime @map("fecha_nacimiento")
-  tipoCapellan          String   @default("CAPELLAN") @map("tipo_capellan") // CAPELLAN, CAPELLANA, etc.
-  fechaVencimiento      DateTime @map("fecha_vencimiento")
-  fotoUrl               String?  @map("foto_url")
-  activa                Boolean  @default(true)
-  invitadoId            String?  @map("invitado_id") // Relación opcional con invitado
-  solicitudCredencialId String?  @unique @map("solicitud_credencial_id") // Relación con solicitud
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
-
-  invitado            Invitado?            @relation(fields: [invitadoId], references: [id], onDelete: SetNull)
-  solicitudCredencial SolicitudCredencial? @relation(fields: [solicitudCredencialId], references: [id])
+  id                                                                                                  String               @id @default(uuid())
+  apellido                                                                                            String
+  nombre                                                                                              String
+  documento                                                                                           String               @unique
+  nacionalidad                                                                                        String
+  fechaNacimiento                                                                                     DateTime             @map("fecha_nacimiento")
+  tipoCapellan                                                                                        String               @default("CAPELLAN") @map("tipo_capellan")
+  fechaVencimiento                                                                                    DateTime             @map("fecha_vencimiento")
+  fotoUrl                                                                                             String?              @map("foto_url")
+  activa                                                                                              Boolean              @default(true)
+  createdAt                                                                                           DateTime             @default(now()) @map("created_at")
+  updatedAt                                                                                           DateTime             @updatedAt @map("updated_at")
+  invitadoId                                                                                          String?              @map("invitado_id")
+  solicitudCredencialId                                                                               String?              @unique @map("solicitud_credencial_id")
+  invitado                                                                                            Invitado?            @relation(fields: [invitadoId], references: [id])
+  solicitudCredencial                                                                                 SolicitudCredencial? @relation(fields: [solicitudCredencialId], references: [id])
+  solicitudes_credenciales_solicitudes_credenciales_credencial_capellania_idTocredenciales_capellania SolicitudCredencial? @relation("solicitudes_credenciales_credencial_capellania_idTocredenciales_capellania")
 
   @@index([documento])
   @@index([fechaVencimiento])
@@ -218,15 +215,14 @@ model CredencialCapellania {
 }
 
 model DeviceToken {
-  id        String   @id @default(uuid())
-  pastorId  String   @map("pastor_id")
-  token     String   @unique
-  platform  String // 'ios' | 'android'
-  deviceId  String?  @map("device_id")
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
+  id         String     @id @default(uuid())
+  pastorId   String     @map("pastor_id")
+  token      String     @unique
+  platform   String
+  deviceId   String?    @map("device_id")
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
   pastorAuth PastorAuth @relation(fields: [pastorId], references: [pastorId], onDelete: Cascade)
 
   @@index([pastorId])
@@ -238,13 +234,12 @@ model AdminDeviceToken {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
   token     String   @unique
-  platform  String // 'ios' | 'android'
+  platform  String
   deviceId  String?  @map("device_id")
   active    Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
@@ -258,14 +253,14 @@ model Invitado {
   email                     String                  @unique
   telefono                  String?
   sede                      String?
-  fotoUrl                   String?                 @map("foto_url")
   createdAt                 DateTime                @default(now()) @map("created_at")
   updatedAt                 DateTime                @updatedAt @map("updated_at")
-  auth                      InvitadoAuth?
-  inscripciones             Inscripcion[]
-  solicitudesCredenciales   SolicitudCredencial[]
-  credencialesMinisteriales CredencialMinisterial[]
+  fotoUrl                   String?                 @map("foto_url")
   credencialesCapellania    CredencialCapellania[]
+  credencialesMinisteriales CredencialMinisterial[]
+  inscripciones             Inscripcion[]
+  auth                      InvitadoAuth?
+  solicitudesCredenciales   SolicitudCredencial[]
 
   @@index([email])
   @@map("invitados")
@@ -290,15 +285,14 @@ model InvitadoAuth {
 }
 
 model InvitadoDeviceToken {
-  id         String   @id @default(uuid())
-  invitadoId String   @map("invitado_id")
-  token      String   @unique
-  platform   String // 'ios' | 'android'
-  deviceId   String?  @map("device_id")
-  active     Boolean  @default(true)
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-
+  id           String       @id @default(uuid())
+  invitadoId   String       @map("invitado_id")
+  token        String       @unique
+  platform     String
+  deviceId     String?      @map("device_id")
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
   invitadoAuth InvitadoAuth @relation(fields: [invitadoId], references: [invitadoId], onDelete: Cascade)
 
   @@index([invitadoId])
@@ -312,24 +306,24 @@ model Inscripcion {
   apellido         String
   email            String
   telefono         String?
-  dni              String? // DNI para relacionar con credenciales ministeriales y de capellanía
   createdAt        DateTime   @default(now()) @map("created_at")
   convencionId     String     @map("convencion_id")
   estado           String     @default("pendiente")
   fechaInscripcion DateTime   @default(now()) @map("fecha_inscripcion")
   notas            String?
   sede             String?
-  pais             String?
-  provincia        String?
   tipoInscripcion  String     @default("pastor") @map("tipo_inscripcion")
   updatedAt        DateTime   @updatedAt @map("updated_at")
   numeroCuotas     Int        @default(3) @map("numero_cuotas")
   origenRegistro   String     @default("web") @map("origen_registro")
   documentoUrl     String?    @map("documento_url")
   codigoReferencia String?    @unique @map("codigo_referencia")
-  invitadoId       String?    @map("invitado_id") // Relación opcional con invitado
+  invitadoId       String?    @map("invitado_id")
+  pais             String?
+  provincia        String?
+  dni              String?    @db.VarChar(20)
   convencion       Convencion @relation(fields: [convencionId], references: [id], onDelete: Cascade)
-  invitado         Invitado?  @relation(fields: [invitadoId], references: [id], onDelete: SetNull)
+  invitado         Invitado?  @relation(fields: [invitadoId], references: [id])
   pagos            Pago[]
 
   @@index([convencionId])
@@ -337,7 +331,7 @@ model Inscripcion {
   @@index([origenRegistro])
   @@index([codigoReferencia])
   @@index([invitadoId])
-  @@index([dni])
+  @@index([dni], map: "idx_inscripciones_dni")
   @@map("inscripciones")
 }
 
@@ -377,8 +371,8 @@ model Pago {
   referencia     String?
   numeroCuota    Int?            @map("numero_cuota")
   comprobanteUrl String?         @map("comprobante_url")
-  inscripcion    Inscripcion     @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
   auditorias     AuditoriaPago[]
+  inscripcion    Inscripcion     @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
 
   @@index([inscripcionId])
   @@index([estado])
@@ -390,12 +384,12 @@ model AuditoriaPago {
   id             String   @id @default(uuid())
   pagoId         String   @map("pago_id")
   inscripcionId  String   @map("inscripcion_id")
-  accion         String // VALIDAR, RECHAZAR, REHABILITAR, ACTUALIZAR
+  accion         String
   estadoAnterior String?  @map("estado_anterior")
   estadoNuevo    String?  @map("estado_nuevo")
   usuarioId      String?  @map("usuario_id")
   motivo         String?
-  metadata       Json? // Información adicional (monto, referencia, etc.)
+  metadata       Json?
   createdAt      DateTime @default(now()) @map("created_at")
   pago           Pago     @relation(fields: [pagoId], references: [id], onDelete: Cascade)
 
@@ -431,6 +425,47 @@ model Noticia {
   @@index([fechaPublicacion])
   @@index([slug])
   @@map("noticias")
+}
+
+model NotificationHistory {
+  id           String    @id @default(uuid())
+  pastorId     String    @map("pastor_id")
+  email        String
+  title        String
+  body         String
+  type         String
+  data         Json?
+  sentVia      String    @default("push") @map("sent_via")
+  pushSuccess  Boolean   @default(false) @map("push_success")
+  emailSuccess Boolean   @default(false) @map("email_success")
+  read         Boolean   @default(false)
+  readAt       DateTime? @map("read_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  pastor       Pastor    @relation(fields: [pastorId], references: [id], onDelete: Cascade)
+
+  @@index([pastorId])
+  @@index([email])
+  @@index([type])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notification_history")
+}
+
+model Sede {
+  id          String   @id @default(uuid())
+  pais        String
+  ciudad      String
+  descripcion String
+  imagenUrl   String   @map("imagen_url")
+  bandera     String
+  activa      Boolean  @default(true)
+  orden       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([activa])
+  @@index([orden])
+  @@map("sedes")
 }
 
 enum UserRole {
@@ -472,46 +507,4 @@ enum EstadoCredencial {
   VIGENTE
   POR_VENCER
   VENCIDA
-}
-
-model NotificationHistory {
-  id           String    @id @default(uuid())
-  pastorId     String    @map("pastor_id")
-  email        String
-  title        String
-  body         String
-  type         String // 'pago_validado', 'inscripcion_confirmada', etc.
-  data         Json? // Datos adicionales en formato JSON
-  sentVia      String    @default("push") @map("sent_via") // 'push', 'email', 'both'
-  pushSuccess  Boolean   @default(false) @map("push_success")
-  emailSuccess Boolean   @default(false) @map("email_success")
-  read         Boolean   @default(false)
-  readAt       DateTime? @map("read_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
-
-  pastor Pastor @relation(fields: [pastorId], references: [id], onDelete: Cascade)
-
-  @@index([pastorId])
-  @@index([email])
-  @@index([type])
-  @@index([read])
-  @@index([createdAt])
-  @@map("notification_history")
-}
-
-model Sede {
-  id          String   @id @default(uuid())
-  pais        String
-  ciudad      String
-  descripcion String
-  imagenUrl   String   @map("imagen_url")
-  bandera     String
-  activa      Boolean  @default(true)
-  orden       Int      @default(0)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  @@index([activa])
-  @@index([orden])
-  @@map("sedes")
 }

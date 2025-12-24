@@ -286,9 +286,13 @@ export function CredencialCapellaniaEditorDialog({
                   <DatePickerSimple
                     id="fechaNacimiento"
                     value={fechaNacimiento || undefined}
-                    onChange={(dateString) => {
-                      if (dateString) {
-                        setValue('fechaNacimiento', dateString, { shouldValidate: true })
+                    onChange={(date) => {
+                      if (date) {
+                        // Formatear fecha usando métodos locales para evitar problemas de zona horaria
+                        const year = date.getFullYear()
+                        const month = String(date.getMonth() + 1).padStart(2, '0')
+                        const day = String(date.getDate()).padStart(2, '0')
+                        setValue('fechaNacimiento', `${year}-${month}-${day}`, { shouldValidate: true })
                       } else {
                         setValue('fechaNacimiento', '', { shouldValidate: true })
                       }
@@ -338,9 +342,13 @@ export function CredencialCapellaniaEditorDialog({
             <DatePickerSimple
               id="fechaVencimiento"
               value={fechaVencimiento || undefined}
-              onChange={(dateString) => {
-                if (dateString) {
-                  setValue('fechaVencimiento', dateString, { shouldValidate: true })
+              onChange={(date) => {
+                if (date) {
+                  // Formatear fecha usando métodos locales para evitar problemas de zona horaria
+                  const year = date.getFullYear()
+                  const month = String(date.getMonth() + 1).padStart(2, '0')
+                  const day = String(date.getDate()).padStart(2, '0')
+                  setValue('fechaVencimiento', `${year}-${month}-${day}`, { shouldValidate: true })
                 } else {
                   setValue('fechaVencimiento', '', { shouldValidate: true })
                 }
