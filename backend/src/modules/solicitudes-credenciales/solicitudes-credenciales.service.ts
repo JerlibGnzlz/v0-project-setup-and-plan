@@ -63,13 +63,16 @@ export class SolicitudesCredencialesService {
         throw new NotFoundException('Invitado no encontrado')
       }
 
+      // Normalizar tipo antes de verificar solicitud existente
+      const tipoString = dto.tipo === TipoCredencial.MINISTERIAL ? 'ministerial' : 'capellania'
+      
       // Verificar que no haya una solicitud pendiente para este DNI y tipo
       const solicitudExistente = await this.prisma.solicitudCredencial.findFirst({
         where: {
           invitadoId,
-          dni: dto.dni,
-          tipo: dto.tipo,
-          estado: EstadoSolicitud.PENDIENTE,
+          dni: dto.dni.trim(),
+          tipo: tipoString,
+          estado: 'pendiente', // Usar string directamente, no enum
         },
       })
 
@@ -79,9 +82,7 @@ export class SolicitudesCredencialesService {
         )
       }
 
-      // Normalizar valores para asegurar compatibilidad con Prisma
-      // El schema usa String, no enum, así que convertimos el enum a string
-      const tipoString = dto.tipo === TipoCredencial.MINISTERIAL ? 'ministerial' : 'capellania'
+      // tipoString ya está definido arriba, reutilizarlo
       const estadoString = 'pendiente' // EstadoSolicitud.PENDIENTE es 'pendiente'
       
       // Validar y parsear fecha de nacimiento si se proporciona
