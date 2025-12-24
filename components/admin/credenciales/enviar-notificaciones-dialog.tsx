@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { Bell, Loader2, Info, Send } from 'lucide-react'
+import { Bell, Loader2, Info, Send, CheckCircle2, AlertCircle } from 'lucide-react'
 import { notificationsApi } from '@/lib/api/notifications'
 
 interface EnviarNotificacionesDialogProps {
