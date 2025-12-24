@@ -91,14 +91,31 @@ export function CredencialEditorDialog({
 
   useEffect(() => {
     if (credencial && open) {
+      // Función helper para convertir fecha a string yyyy-MM-dd
+      const formatDateToString = (date: string | Date | undefined): string => {
+        if (!date) return ''
+        if (typeof date === 'string') {
+          // Si es string ISO, extraer solo la parte de fecha
+          return date.split('T')[0]
+        }
+        if (date instanceof Date) {
+          // Si es Date, convertir a string yyyy-MM-dd
+          const year = date.getFullYear()
+          const month = String(date.getMonth() + 1).padStart(2, '0')
+          const day = String(date.getDate()).padStart(2, '0')
+          return `${year}-${month}-${day}`
+        }
+        return ''
+      }
+
       reset({
         apellido: credencial.apellido,
         nombre: credencial.nombre,
         documento: credencial.documento,
         nacionalidad: credencial.nacionalidad,
-        fechaNacimiento: credencial.fechaNacimiento.split('T')[0],
+        fechaNacimiento: formatDateToString(credencial.fechaNacimiento as string | Date | undefined),
         tipoPastor: credencial.tipoPastor,
-        fechaVencimiento: credencial.fechaVencimiento.split('T')[0],
+        fechaVencimiento: formatDateToString(credencial.fechaVencimiento as string | Date | undefined),
         fotoUrl: credencial.fotoUrl || '',
       })
     } else if (!open) {
