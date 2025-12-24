@@ -28,6 +28,7 @@ import {
   X,
   Plus,
   RefreshCw,
+  Info,
 } from 'lucide-react-native'
 import { useMisCredenciales, getEstadoColor, getEstadoMensaje, getCredencialTipoLegible, getCredencialIdentificador } from '@hooks/use-credenciales'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
@@ -457,22 +458,77 @@ export function CredentialsScreen() {
           !error &&
           (!data?.tieneCredenciales || credencialesList.length === 0) && (
             <View style={styles.emptyContainer}>
-              <CreditCard size={64} color="rgba(255, 255, 255, 0.3)" />
-              <Text style={styles.emptyTitle}>No tienes credenciales</Text>
-              <Text style={styles.emptyText}>
-                {data?.mensaje ||
-                  (isInvitadoAuthenticated
-                    ? 'No se encontraron credenciales asociadas a tu DNI.\n\nSi necesitas una credencial, puedes solicitarla desde aquí.'
-                    : 'No se encontraron credenciales registradas.')}
-              </Text>
+              {/* Tarjeta por defecto cuando no hay credenciales */}
+              <View style={styles.defaultCard}>
+                <LinearGradient
+                  colors={['rgba(34, 197, 94, 0.2)', 'rgba(15, 23, 42, 0.8)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.cardGradient}
+                >
+                  <View style={styles.defaultCardHeader}>
+                    <View style={styles.defaultCardIconContainer}>
+                      <CreditCard size={32} color="#22c55e" />
+                    </View>
+                    <View style={styles.defaultCardTitleContainer}>
+                      <Text style={styles.defaultCardTitle}>Credencial Digital</Text>
+                      <Text style={styles.defaultCardSubtitle}>Ministerio AMVA</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.defaultCardContent}>
+                    <View style={styles.defaultCardInfo}>
+                      <Text style={styles.defaultCardLabel}>Estado</Text>
+                      <View style={styles.defaultCardBadge}>
+                        <Text style={styles.defaultCardBadgeText}>No Disponible</Text>
+                      </View>
+                    </View>
+                    <View style={styles.defaultCardInfo}>
+                      <Text style={styles.defaultCardLabel}>Tipo</Text>
+                      <Text style={styles.defaultCardValue}>Ministerial / Capellanía</Text>
+                    </View>
+                    <View style={styles.defaultCardDivider} />
+                    <Text style={styles.defaultCardMessage}>
+                      {isInvitadoAuthenticated
+                        ? 'No tienes credenciales activas asociadas a tu cuenta.\n\nSolicita tu credencial digital completando el formulario a continuación.'
+                        : 'No se encontraron credenciales registradas para tu cuenta.'}
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </View>
+
+              {/* Botón prominente para solicitar credencial */}
               {isInvitadoAuthenticated && (
                 <TouchableOpacity
-                  style={styles.solicitarButton}
+                  style={styles.solicitarButtonLarge}
                   onPress={() => setShowSolicitarModal(true)}
                 >
-                  <Plus size={20} color="#fff" />
-                  <Text style={styles.solicitarButtonText}>Solicitar Credencial</Text>
+                  <LinearGradient
+                    colors={['#22c55e', '#16a34a']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.solicitarButtonGradient}
+                  >
+                    <Plus size={24} color="#fff" />
+                    <Text style={styles.solicitarButtonLargeText}>Solicitar Mi Credencial</Text>
+                  </LinearGradient>
                 </TouchableOpacity>
+              )}
+
+              {/* Información adicional */}
+              {isInvitadoAuthenticated && (
+                <View style={styles.infoBox}>
+                  <View style={styles.infoBoxHeader}>
+                    <Info size={20} color="#3b82f6" />
+                    <Text style={styles.infoBoxTitle}>¿Cómo funciona?</Text>
+                  </View>
+                  <Text style={styles.infoBoxText}>
+                    1. Completa el formulario con tus datos{'\n'}
+                    2. Espera la aprobación del administrador{'\n'}
+                    3. Recibirás una notificación cuando tu credencial esté lista{'\n'}
+                    4. Podrás ver tu credencial digital en esta pantalla
+                  </Text>
+                </View>
               )}
             </View>
           )}
@@ -1401,5 +1457,129 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  solicitarButtonLarge: {
+    marginTop: 24,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  solicitarButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 32,
+    gap: 12,
+  },
+  solicitarButtonLargeText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  defaultCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+    marginBottom: 16,
+  },
+  defaultCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    gap: 16,
+  },
+  defaultCardIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  defaultCardTitleContainer: {
+    flex: 1,
+  },
+  defaultCardTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  defaultCardSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.6)',
+  },
+  defaultCardContent: {
+    padding: 20,
+    paddingTop: 0,
+  },
+  defaultCardInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  defaultCardLabel: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.6)',
+  },
+  defaultCardValue: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: '500',
+  },
+  defaultCardBadge: {
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  defaultCardBadgeText: {
+    color: '#ef4444',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  defaultCardDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginVertical: 16,
+  },
+  defaultCardMessage: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  infoBox: {
+    marginTop: 24,
+    padding: 16,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.2)',
+  },
+  infoBoxHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  infoBoxTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#3b82f6',
+  },
+  infoBoxText: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.8)',
+    lineHeight: 20,
   },
 })
