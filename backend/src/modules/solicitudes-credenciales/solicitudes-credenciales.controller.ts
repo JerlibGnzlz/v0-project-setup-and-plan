@@ -47,12 +47,32 @@ export class SolicitudesCredencialesController {
         throw new BadRequestException('Usuario no autenticado')
       }
 
+      // Validar que el DTO tenga los campos requeridos
+      if (!dto.tipo || !dto.dni || !dto.nombre || !dto.apellido) {
+        this.logger.error('❌ DTO incompleto:', {
+          tieneTipo: !!dto.tipo,
+          tieneDni: !!dto.dni,
+          tieneNombre: !!dto.nombre,
+          tieneApellido: !!dto.apellido,
+        })
+        throw new BadRequestException('Faltan campos requeridos en la solicitud')
+      }
+
+      // Validar que el tipo sea válido
+      if (dto.tipo !== TipoCredencial.MINISTERIAL && dto.tipo !== TipoCredencial.CAPELLANIA) {
+        this.logger.error(`❌ Tipo de credencial inválido: ${dto.tipo}`)
+        throw new BadRequestException(`Tipo de credencial inválido: ${dto.tipo}`)
+      }
+
       this.logger.log(`📝 Creando solicitud de credencial ${dto.tipo} para invitado ${invitadoId}`)
       this.logger.log(`📝 DTO recibido en controller:`, {
         tipo: dto.tipo,
         dni: dto.dni,
         nombre: dto.nombre,
         apellido: dto.apellido,
+        nacionalidad: dto.nacionalidad,
+        fechaNacimiento: dto.fechaNacimiento,
+        motivo: dto.motivo ? dto.motivo.substring(0, 50) + '...' : undefined,
       })
 
       const solicitud = await this.solicitudesCredencialesService.create(invitadoId, dto)
@@ -61,12 +81,20 @@ export class SolicitudesCredencialesController {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       const errorStack = error instanceof Error ? error.stack : undefined
+      
+      // Si es un error conocido de NestJS, re-lanzarlo tal cual
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        this.logger.error(`❌ Error conocido en controller: ${errorMessage}`)
+        throw error
+      }
+      
       this.logger.error(`❌ Error en controller create solicitud: ${errorMessage}`)
       if (errorStack) {
         this.logger.error(`Stack trace: ${errorStack}`)
       }
-      // Re-lanzar el error para que el GlobalExceptionFilter lo maneje
-      throw error
+      
+      // Si es un error desconocido, lanzar BadRequestException con el mensaje
+      throw new BadRequestException(`Error al crear solicitud: ${errorMessage}`)
     }
   }
 
