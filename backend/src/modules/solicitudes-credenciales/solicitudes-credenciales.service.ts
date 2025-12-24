@@ -110,23 +110,39 @@ export class SolicitudesCredencialesService {
         `✅ Solicitud de credencial ${dto.tipo} creada para invitado ${invitado.email} (DNI: ${dto.dni})`
       )
 
-      // Notificar a todos los admins
-      const admins = await this.prisma.user.findMany()
-      const tipoLabel = dto.tipo === TipoCredencial.MINISTERIAL ? 'Ministerial' : 'de Capellanía'
+      // Notificar a todos los admins (no bloquear si falla)
+      try {
+        const admins = await this.prisma.user.findMany()
+        const tipoLabel = dto.tipo === TipoCredencial.MINISTERIAL ? 'Ministerial' : 'de Capellanía'
 
-      for (const admin of admins) {
-        await this.notificationsService.sendNotificationToAdmin(
-          admin.email,
-          'Nueva Solicitud de Credencial',
-          `${invitado.nombre} ${invitado.apellido} (${invitado.email}) ha solicitado una credencial ${tipoLabel}.\n\nDNI: ${dto.dni}\nMotivo: ${dto.motivo || 'No especificado'}`,
-          {
-            tipo: 'solicitud_credencial',
-            solicitudId: solicitud.id,
-            invitadoId,
-            tipoCredencial: dto.tipo,
-            dni: dto.dni,
+        // Enviar notificaciones en paralelo sin bloquear
+        const notificationPromises = admins.map(async (admin) => {
+          try {
+            await this.notificationsService.sendNotificationToAdmin(
+              admin.email,
+              'Nueva Solicitud de Credencial',
+              `${invitado.nombre} ${invitado.apellido} (${invitado.email}) ha solicitado una credencial ${tipoLabel}.\n\nDNI: ${dto.dni}\nMotivo: ${dto.motivo || 'No especificado'}`,
+              {
+                tipo: 'solicitud_credencial',
+                solicitudId: solicitud.id,
+                invitadoId,
+                tipoCredencial: dto.tipo,
+                dni: dto.dni,
+              }
+            )
+          } catch (notificationError: unknown) {
+            const errorMessage = notificationError instanceof Error ? notificationError.message : 'Error desconocido'
+            this.logger.warn(`No se pudo enviar notificación a admin ${admin.email}: ${errorMessage}`)
+            // No lanzar error, solo loggear
           }
-        )
+        })
+
+        // Esperar todas las notificaciones sin bloquear
+        await Promise.allSettled(notificationPromises)
+      } catch (notificationError: unknown) {
+        const errorMessage = notificationError instanceof Error ? notificationError.message : 'Error desconocido'
+        this.logger.warn(`Error enviando notificaciones a admins: ${errorMessage}`)
+        // No lanzar error, la solicitud ya fue creada exitosamente
       }
 
       return solicitud
