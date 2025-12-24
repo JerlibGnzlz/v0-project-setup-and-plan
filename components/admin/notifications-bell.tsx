@@ -110,16 +110,22 @@ export function NotificationsBell() {
         break
 
       case 'solicitud_credencial':
-        // Navegar a la página de credenciales según el tipo
+        // Navegar a la página de solicitudes de credenciales
         setOpen(false)
-        const tipoCredencial = data.tipoCredencial as string
-        if (tipoCredencial === 'ministerial') {
-          router.push('/admin/visor-credenciales')
-        } else if (tipoCredencial === 'capellania') {
-          router.push('/admin/visor-credenciales-capellania')
-        } else {
-          // Por defecto, ir a credenciales ministeriales
-          router.push('/admin/visor-credenciales')
+        router.push('/admin/solicitudes-credenciales')
+        // Si hay un solicitudId en los datos, intentar scroll a esa solicitud
+        if (data.solicitudId) {
+          setTimeout(() => {
+            const element = document.querySelector(`[data-solicitud-id="${data.solicitudId}"]`)
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              // Resaltar la solicitud
+              element.classList.add('ring-2', 'ring-amber-500', 'ring-offset-2')
+              setTimeout(() => {
+                element.classList.remove('ring-2', 'ring-amber-500', 'ring-offset-2')
+              }, 3000)
+            }
+          }, 500)
         }
         toast.info('Nueva solicitud de credencial recibida', {
           description: `DNI: ${data.dni || 'N/A'}`,
