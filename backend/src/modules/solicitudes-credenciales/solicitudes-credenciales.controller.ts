@@ -10,6 +10,8 @@ import {
   Query,
   Logger,
   BadRequestException,
+  HttpException,
+  InternalServerErrorException,
 } from '@nestjs/common'
 import { SolicitudesCredencialesService } from './solicitudes-credenciales.service'
 import {
