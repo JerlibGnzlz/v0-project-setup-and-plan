@@ -3,6 +3,7 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
 import {
@@ -13,7 +14,6 @@ import {
 } from './dto/solicitud-credencial.dto'
 import { SolicitudCredencial } from '@prisma/client'
 import { NotificationsService } from '../notifications/notifications.service'
-import { EventEmitter2 } from '@nestjs/event-emitter'
 
 export interface SolicitudCredencialWithRelations extends SolicitudCredencial {
   invitado: {
@@ -42,8 +42,7 @@ export class SolicitudesCredencialesService {
 
   constructor(
     private prisma: PrismaService,
-    private notificationsService: NotificationsService,
-    private eventEmitter: EventEmitter2
+    private notificationsService: NotificationsService
   ) {}
 
   /**
@@ -199,13 +198,30 @@ export class SolicitudesCredencialesService {
         this.logger.error(`Prisma error meta: ${JSON.stringify(prismaError.meta)}`)
       }
       
-      // Si es un error de validación, re-lanzarlo tal cual
+      // Si es un error conocido de NestJS, re-lanzarlo tal cual
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error
       }
       
-      // Para otros errores, lanzar un error más descriptivo
-      throw new Error(`Error al crear solicitud de credencial: ${errorMessage}`)
+      // Si es un error de Prisma, proporcionar más contexto
+      if (error && typeof error === 'object' && 'code' in error) {
+        const prismaError = error as { code?: string; meta?: unknown }
+        this.logger.error(`Prisma error code: ${prismaError.code}`)
+        this.logger.error(`Prisma error meta: ${JSON.stringify(prismaError.meta)}`)
+        
+        // Errores comunes de Prisma
+        if (prismaError.code === 'P2002') {
+          throw new BadRequestException('Ya existe una solicitud con estos datos')
+        }
+        if (prismaError.code === 'P2003') {
+          throw new BadRequestException('Referencia inválida en la base de datos')
+        }
+      }
+      
+      // Para otros errores, lanzar un InternalServerErrorException con más detalles
+      throw new InternalServerErrorException(
+        `Error al crear solicitud de credencial: ${errorMessage}`
+      )
     }
   }
 
