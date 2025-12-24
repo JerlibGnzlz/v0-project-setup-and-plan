@@ -157,8 +157,27 @@ export class SolicitudesCredencialesService {
       return solicitud
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-      this.logger.error(`Error creando solicitud de credencial: ${errorMessage}`)
-      throw error
+      const errorStack = error instanceof Error ? error.stack : undefined
+      
+      this.logger.error(`❌ Error creando solicitud de credencial: ${errorMessage}`)
+      if (errorStack) {
+        this.logger.error(`Stack trace: ${errorStack}`)
+      }
+      
+      // Si es un error conocido de Prisma, proporcionar más detalles
+      if (error && typeof error === 'object' && 'code' in error) {
+        const prismaError = error as { code?: string; meta?: unknown }
+        this.logger.error(`Prisma error code: ${prismaError.code}`)
+        this.logger.error(`Prisma error meta: ${JSON.stringify(prismaError.meta)}`)
+      }
+      
+      // Si es un error de validación, re-lanzarlo tal cual
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error
+      }
+      
+      // Para otros errores, lanzar un error más descriptivo
+      throw new Error(`Error al crear solicitud de credencial: ${errorMessage}`)
     }
   }
 
