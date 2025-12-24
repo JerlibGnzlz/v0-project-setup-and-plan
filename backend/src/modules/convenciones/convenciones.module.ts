@@ -3,6 +3,7 @@ import { PrismaModule } from '../../prisma/prisma.module'
 import { ConvencionesController } from './convenciones.controller'
 import { ConvencionesService } from './convenciones.service'
 import { ConvencionRepository } from './repositories/convencion.repository'
+import { DataSyncModule } from '../data-sync/data-sync.module'
 
 /**
  * Módulo de Convenciones
@@ -13,7 +14,7 @@ import { ConvencionRepository } from './repositories/convencion.repository'
  * - Repository: Acceso a datos (abstrae Prisma)
  */
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, DataSyncModule],
   controllers: [ConvencionesController],
   providers: [
     ConvencionRepository, // Repository primero (dependencia del service)

@@ -72,4 +72,17 @@ export const notificationsApi = {
     )
     return response.data
   },
+
+  sendPushNotificationsCredencialesVencidas: async (tipo: 'vencidas' | 'por_vencer' | 'ambas'): Promise<{
+    enviadas: number
+    errores: number
+    detalles: Array<{ email: string; nombre: string; estado: string; exito: boolean; error?: string }>
+  }> => {
+    const response = await apiClient.post<{
+      enviadas: number
+      errores: number
+      detalles: Array<{ email: string; nombre: string; estado: string; exito: boolean; error?: string }>
+    }>('/notifications/push/credenciales-vencidas', { tipo })
+    return response.data
+  },
 }

@@ -5,6 +5,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { credencialesApi, CredencialUnificada } from '../api/credenciales'
+import { useWebSocketSync } from './use-websocket-sync'
 
 export interface CredencialesResponse {
   tieneCredenciales: boolean
@@ -21,8 +22,12 @@ export interface CredencialesResponse {
 /**
  * Hook para obtener todas las credenciales del usuario autenticado
  * Retorna credenciales pastorales si es pastor, o credenciales ministeriales/capellanía si es invitado
+ * Incluye sincronización en tiempo real via WebSockets
  */
 export function useMisCredenciales() {
+  // Conectar a WebSocket para sincronización en tiempo real
+  useWebSocketSync()
+
   return useQuery<CredencialesResponse>({
     queryKey: ['credenciales', 'mis-credenciales'],
     queryFn: () => credencialesApi.obtenerMisCredencialesUnificado(),

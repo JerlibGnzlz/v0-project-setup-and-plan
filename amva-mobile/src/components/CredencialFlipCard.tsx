@@ -9,8 +9,9 @@ import {
   Dimensions,
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { RotateCcw } from 'lucide-react-native'
+import { RotateCcw, CheckCircle, Clock, AlertCircle } from 'lucide-react-native'
 import type { CredencialUnificada } from '@api/credenciales'
+import { getEstadoColor, getEstadoMensaje } from '@hooks/use-credenciales'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const CARD_WIDTH = Math.min(SCREEN_WIDTH - 40, 400)
@@ -100,6 +101,29 @@ export function CredencialFlipCard({ credencial }: CredencialFlipCardProps) {
 
   const gradientColors = getGradientColors()
 
+  // Obtener información del estado
+  const estadoColor = credencial.estado !== 'sin_credencial' 
+    ? getEstadoColor(credencial.estado as 'vigente' | 'por_vencer' | 'vencida')
+    : '#6b7280'
+  const estadoMensaje = credencial.estado !== 'sin_credencial'
+    ? getEstadoMensaje(credencial.estado as 'vigente' | 'por_vencer' | 'vencida', credencial.diasRestantes)
+    : 'Sin estado'
+  
+  const getEstadoIcon = () => {
+    switch (credencial.estado) {
+      case 'vigente':
+        return CheckCircle
+      case 'por_vencer':
+        return Clock
+      case 'vencida':
+        return AlertCircle
+      default:
+        return Clock
+    }
+  }
+  
+  const EstadoIcon = getEstadoIcon()
+
   return (
     <View style={styles.container}>
       {/* Botón para voltear */}
@@ -133,7 +157,13 @@ export function CredencialFlipCard({ credencial }: CredencialFlipCardProps) {
                 <View style={styles.photoSection}>
                   <View style={styles.photoContainer}>
                     {credencial.fotoUrl ? (
-                      <Image source={{ uri: credencial.fotoUrl }} style={styles.photo} />
+                      <Image
+                        source={{
+                          uri: `${credencial.fotoUrl}${credencial.fotoUrl.includes('?') ? '&' : '?'}t=${credencial.id}`,
+                        }}
+                        style={styles.photo}
+                        key={`photo-${credencial.id}-${credencial.fotoUrl}`}
+                      />
                     ) : (
                       <Text style={styles.photoPlaceholder}>FOTO</Text>
                     )}
@@ -174,6 +204,22 @@ export function CredencialFlipCard({ credencial }: CredencialFlipCardProps) {
                     <View style={styles.infoRow}>
                       <Text style={styles.infoLabel}>Fecha de nacimiento / Birthdate</Text>
                       <Text style={styles.infoValue}>{fechaNacimiento}</Text>
+                    </View>
+                  )}
+                  {/* Estado y días restantes */}
+                  {credencial.estado !== 'sin_credencial' && (
+                    <View style={styles.estadoContainer}>
+                      <View style={[styles.estadoBadge, { backgroundColor: `${estadoColor}20` }]}>
+                        <EstadoIcon size={10} color={estadoColor} />
+                        <Text style={[styles.estadoText, { color: estadoColor }]}>
+                          {credencial.estado.toUpperCase()}
+                        </Text>
+                      </View>
+                      <Text style={styles.diasRestantesText}>
+                        {credencial.diasRestantes > 0 
+                          ? `${credencial.diasRestantes} días restantes`
+                          : `Vencida hace ${Math.abs(credencial.diasRestantes)} días`}
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -268,6 +314,22 @@ export function CredencialFlipCard({ credencial }: CredencialFlipCardProps) {
                     />
                   </View>
                   <Text style={styles.venceText}>VENCE: {fechaVencimiento}</Text>
+                  {/* Estado y días restantes en el dorso */}
+                  {credencial.estado !== 'sin_credencial' && (
+                    <View style={styles.dorsoEstadoContainer}>
+                      <View style={[styles.dorsoEstadoBadge, { backgroundColor: `${estadoColor}20` }]}>
+                        <EstadoIcon size={8} color={estadoColor} />
+                        <Text style={[styles.dorsoEstadoText, { color: estadoColor }]}>
+                          {credencial.estado.toUpperCase()}
+                        </Text>
+                      </View>
+                      <Text style={styles.dorsoDiasText}>
+                        {credencial.diasRestantes > 0 
+                          ? `${credencial.diasRestantes} días`
+                          : `${Math.abs(credencial.diasRestantes)} días vencida`}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               </View>
             </View>
@@ -549,6 +611,59 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
     lineHeight: 8,
+  },
+  estadoContainer: {
+    marginTop: 4,
+    gap: 2,
+  },
+  estadoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+  },
+  estadoText: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  diasRestantesText: {
+    fontSize: 8,
+    fontWeight: '600',
+    color: '#0D374E',
+    textShadowColor: 'rgba(255, 255, 255, 0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  dorsoEstadoContainer: {
+    alignItems: 'flex-end',
+    gap: 2,
+    marginTop: 4,
+  },
+  dorsoEstadoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
+  },
+  dorsoEstadoText: {
+    fontSize: 6,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  dorsoDiasText: {
+    fontSize: 6,
+    fontWeight: '600',
+    color: '#0D374E',
+    textAlign: 'right',
+    textShadowColor: 'rgba(255, 255, 255, 0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 })
 

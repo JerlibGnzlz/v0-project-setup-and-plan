@@ -14,6 +14,7 @@ import { CredencialMinisterial, Prisma, TipoPastor } from '@prisma/client'
 import { BaseService } from '../../common/base.service'
 import { PrismaModelDelegate } from '../../common/types/prisma.types'
 import { NotificationsService } from '../notifications/notifications.service'
+import { DataSyncGateway } from '../data-sync/data-sync.gateway'
 
 export interface CredencialMinisterialWithEstado extends CredencialMinisterial {
   estado: 'vigente' | 'por_vencer' | 'vencida'
@@ -36,7 +37,8 @@ export class CredencialesMinisterialesService extends BaseService<
 
   constructor(
     private prisma: PrismaService,
-    private notificationsService: NotificationsService
+    private notificationsService: NotificationsService,
+    private dataSyncGateway: DataSyncGateway
   ) {
     super(
       prisma.credencialMinisterial as unknown as PrismaModelDelegate<CredencialMinisterial>,
@@ -238,6 +240,9 @@ export class CredencialesMinisterialesService extends BaseService<
         `✅ Credencial ministerial creada: ${dto.documento} - ${dto.nombre} ${dto.apellido}`
       )
 
+      // Emitir evento de sincronización
+      this.dataSyncGateway.emitCredencialUpdated(credencial.id, 'ministerial')
+
       return credencial
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
@@ -339,6 +344,9 @@ export class CredencialesMinisterialesService extends BaseService<
       })
 
       this.logger.log(`✅ Credencial ministerial actualizada: ${id}`)
+
+      // Emitir evento de sincronización
+      this.dataSyncGateway.emitCredencialUpdated(id, 'ministerial')
 
       return updated
     } catch (error: unknown) {

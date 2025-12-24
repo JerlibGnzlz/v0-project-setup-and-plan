@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { CreateConvencionDto, UpdateConvencionDto } from './dto/convencion.dto'
 import { ConvencionRepository } from './repositories/convencion.repository'
 import { Convencion, Prisma } from '@prisma/client'
+import { DataSyncGateway } from '../data-sync/data-sync.gateway'
 
 /**
  * Servicio para gestión de Convenciones
@@ -20,7 +21,10 @@ import { Convencion, Prisma } from '@prisma/client'
 export class ConvencionesService {
   private readonly logger = new Logger(ConvencionesService.name)
 
-  constructor(private readonly repository: ConvencionRepository) {}
+  constructor(
+    private readonly repository: ConvencionRepository,
+    private readonly dataSyncGateway: DataSyncGateway
+  ) {}
 
   /**
    * Obtiene todas las convenciones
@@ -67,7 +71,12 @@ export class ConvencionesService {
       activa: dto.activa ?? false,
       archivada: dto.archivada ?? false,
     }
-    return this.repository.create(data as unknown as Partial<Convencion>)
+    const convencion = await this.repository.create(data as unknown as Partial<Convencion>)
+    
+    // Emitir evento de sincronización
+    this.dataSyncGateway.emitConvencionCreated(convencion.id)
+    
+    return convencion
   }
 
   /**
@@ -99,6 +108,10 @@ export class ConvencionesService {
       const result = await this.repository.update(id, data as unknown as Partial<Convencion>)
 
       this.logger.log(`✅ Convención actualizada: ${result.titulo} (activa: ${result.activa})`)
+      
+      // Emitir evento de sincronización
+      this.dataSyncGateway.emitConvencionUpdated(id)
+      
       return result
     } catch (error) {
       this.logger.error(`❌ Error actualizando convención: ${error}`)
@@ -136,7 +149,12 @@ export class ConvencionesService {
    */
   async remove(id: string): Promise<Convencion> {
     this.logger.warn(`🗑️ Eliminando convención: ${id}`)
-    return this.repository.delete(id)
+    const convencion = await this.repository.delete(id)
+    
+    // Emitir evento de sincronización
+    this.dataSyncGateway.emitConvencionDeleted(id)
+    
+    return convencion
   }
 
   /**

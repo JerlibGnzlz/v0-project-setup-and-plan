@@ -20,6 +20,7 @@ import { CredencialesModule } from './modules/credenciales/credenciales.module'
 import { SedesModule } from './modules/sedes/sedes.module'
 import { PublicModule } from './modules/public/public.module'
 import { SolicitudesCredencialesModule } from './modules/solicitudes-credenciales/solicitudes-credenciales.module'
+import { DataSyncModule } from './modules/data-sync/data-sync.module'
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { SolicitudesCredencialesModule } from './modules/solicitudes-credenciale
     SedesModule,
     PublicModule,
     SolicitudesCredencialesModule,
+    DataSyncModule,
   ],
   providers: [
     // Guard global para rate limiting

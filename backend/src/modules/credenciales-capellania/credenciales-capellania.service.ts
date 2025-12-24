@@ -14,6 +14,7 @@ import { CredencialCapellania, Prisma } from '@prisma/client'
 import { BaseService } from '../../common/base.service'
 import { PrismaModelDelegate } from '../../common/types/prisma.types'
 import { NotificationsService } from '../notifications/notifications.service'
+import { DataSyncGateway } from '../data-sync/data-sync.gateway'
 
 export interface CredencialCapellaniaWithEstado extends CredencialCapellania {
   estado: 'vigente' | 'por_vencer' | 'vencida'
@@ -36,7 +37,8 @@ export class CredencialesCapellaniaService extends BaseService<
 
   constructor(
     private prisma: PrismaService,
-    private notificationsService: NotificationsService
+    private notificationsService: NotificationsService,
+    private dataSyncGateway: DataSyncGateway
   ) {
     super(
       prisma.credencialCapellania as unknown as PrismaModelDelegate<CredencialCapellania>,
@@ -129,6 +131,9 @@ export class CredencialesCapellaniaService extends BaseService<
       this.logger.log(
         `✅ Credencial de capellanía creada: ${dto.documento} - ${dto.nombre} ${dto.apellido}`
       )
+
+      // Emitir evento de sincronización
+      this.dataSyncGateway.emitCredencialUpdated(credencial.id, 'capellania')
 
       return credencial
     } catch (error: unknown) {
@@ -231,6 +236,9 @@ export class CredencialesCapellaniaService extends BaseService<
       })
 
       this.logger.log(`✅ Credencial de capellanía actualizada: ${id}`)
+
+      // Emitir evento de sincronización
+      this.dataSyncGateway.emitCredencialUpdated(id, 'capellania')
 
       return updated
     } catch (error: unknown) {

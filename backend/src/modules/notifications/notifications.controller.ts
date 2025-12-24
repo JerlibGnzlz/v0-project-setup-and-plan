@@ -116,4 +116,16 @@ export class NotificationsController {
     const email = req.user.email
     return this.notificationsService.deleteNotifications(email, body)
   }
+
+  /**
+   * Endpoint para enviar notificaciones push masivas a usuarios con credenciales vencidas o por vencer
+   * Solo disponible para admins
+   */
+  @Post('push/credenciales-vencidas')
+  @UseGuards(JwtAuthGuard)
+  async sendPushNotificationsCredencialesVencidas(
+    @Body() body: { tipo: 'vencidas' | 'por_vencer' | 'ambas' }
+  ) {
+    return this.notificationsService.sendPushNotificationsCredencialesVencidas(body.tipo || 'ambas')
+  }
 }

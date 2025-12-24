@@ -13,6 +13,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service'
 import { CredencialesMinisterialesService } from '../credenciales-ministeriales/credenciales-ministeriales.service'
 import { CredencialesCapellaniaService } from '../credenciales-capellania/credenciales-capellania.service'
+import { DataSyncGateway } from '../data-sync/data-sync.gateway'
 
 interface CredencialUnificada {
   id: string
@@ -36,7 +37,8 @@ export class CredencialesController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly credencialesMinisterialesService: CredencialesMinisterialesService,
-    private readonly credencialesCapellaniaService: CredencialesCapellaniaService
+    private readonly credencialesCapellaniaService: CredencialesCapellaniaService,
+    private readonly dataSyncGateway: DataSyncGateway
   ) {}
 
   /**
@@ -104,12 +106,13 @@ export class CredencialesController {
           }
         }
 
-        // Obtener información del pastor para nombre y apellido
+        // Obtener información del pastor para nombre, apellido y foto
         const pastor = await this.prisma.pastor.findUnique({
           where: { id: pastorId },
           select: {
             nombre: true,
             apellido: true,
+            fotoUrl: true,
           },
         })
 
@@ -126,6 +129,7 @@ export class CredencialesController {
             fechaVencimiento: credencial.fechaVencimiento,
             estado,
             diasRestantes,
+            fotoUrl: pastor?.fotoUrl || null,
             activa: credencial.activa,
           })
         }

@@ -31,6 +31,25 @@ export interface CredencialResponse {
   mensaje?: string
 }
 
+export interface CredencialUnificada {
+  id: string
+  tipo: 'pastoral' | 'ministerial' | 'capellania'
+  numero?: string
+  documento?: string
+  nombre: string
+  apellido: string
+  fechaEmision?: string | Date
+  fechaVencimiento: string | Date
+  estado: 'vigente' | 'por_vencer' | 'vencida' | 'sin_credencial'
+  diasRestantes: number
+  fotoUrl?: string | null
+  activa: boolean
+  nacionalidad?: string
+  fechaNacimiento?: string | Date
+  tipoPastor?: string
+  tipoCapellan?: string
+}
+
 export const credencialesApi = {
   /**
    * Obtener todas las credenciales del usuario autenticado (unificado)

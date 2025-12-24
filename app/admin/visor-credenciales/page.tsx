@@ -44,10 +44,12 @@ import {
   Eye,
   FileText,
   ArrowRight,
+  Bell,
 } from 'lucide-react'
 import { CredencialCard } from '@/components/admin/credenciales-ministeriales/credencial-card'
 import { CredencialFlipCardCompact } from '@/components/admin/credenciales-ministeriales/credencial-flip-card-compact'
 import { CredencialEditorDialog } from '@/components/admin/credenciales-ministeriales/credencial-editor-dialog'
+import { EnviarNotificacionesDialog } from '@/components/admin/credenciales/enviar-notificaciones-dialog'
 import { toast } from 'sonner'
 
 const ESTADO_COLORS = {
@@ -75,6 +77,7 @@ export default function VisorCredencialesPage() {
   const [wizardStep, setWizardStep] = useState<'create' | 'preview' | 'list'>('list')
   const [credencialToDelete, setCredencialToDelete] = useState<CredencialMinisterial | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showNotificacionesDialog, setShowNotificacionesDialog] = useState(false)
 
 
   const filters = {
@@ -274,10 +277,16 @@ export default function VisorCredencialesPage() {
             Gestiona las credenciales ministeriales físicas para impresión
           </p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nueva Credencial
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowNotificacionesDialog(true)}>
+            <Bell className="w-4 h-4 mr-2" />
+            Enviar Notificaciones
+          </Button>
+          <Button onClick={handleCreate}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nueva Credencial
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -634,6 +643,12 @@ export default function VisorCredencialesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog para enviar notificaciones push */}
+      <EnviarNotificacionesDialog
+        open={showNotificacionesDialog}
+        onOpenChange={setShowNotificacionesDialog}
+      />
     </div>
   )
 }

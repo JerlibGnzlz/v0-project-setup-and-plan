@@ -752,5 +752,301 @@ export class NotificationsService {
 
     await this.prisma.notificationHistory.deleteMany({ where })
   }
+
+  /**
+   * Envía una notificación push a un invitado por su email o invitadoId
+   */
+  async sendPushNotificationToInvitado(
+    emailOrId: string,
+    title: string,
+    body: string,
+    data?: Record<string, unknown>,
+  ): Promise<boolean> {
+    try {
+      // Buscar invitado por email o ID
+      const invitado = await this.prisma.invitado.findFirst({
+        where: {
+          OR: [{ email: emailOrId }, { id: emailOrId }],
+        },
+        include: {
+          auth: {
+            include: {
+              deviceTokens: {
+                where: { active: true },
+              },
+            },
+          },
+        },
+      })
+
+      if (!invitado || !invitado.auth || invitado.auth.deviceTokens.length === 0) {
+        this.logger.warn(`No se encontraron tokens de dispositivo para el invitado: ${emailOrId}`)
+        return false
+      }
+
+      // Obtener todos los tokens activos
+      const tokens = invitado.auth.deviceTokens.map((dt) => dt.token)
+
+      if (tokens.length === 0) {
+        this.logger.warn(`No hay tokens activos para el invitado: ${emailOrId}`)
+        return false
+      }
+
+      // Preparar mensajes para Expo
+      const messages: ExpoPushMessage[] = tokens.map((token) => ({
+        to: token,
+        sound: 'default',
+        title,
+        body,
+        data: data || {},
+        badge: 1,
+      }))
+
+      // Enviar notificaciones a través de Expo
+      const response = await axios.post(this.expoPushUrl, messages, {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'Accept-Encoding': 'gzip, deflate',
+        },
+      })
+
+      if (response.data && 'data' in response.data && Array.isArray(response.data.data)) {
+        const results = response.data.data as Array<{ status: 'ok' | 'error'; id?: string; message?: string }>
+        const successCount = results.filter((r) => r.status === 'ok').length
+        const errorCount = results.filter((r) => r.status === 'error').length
+
+        this.logger.log(
+          `📱 Notificación enviada a invitado ${emailOrId}: ${successCount} exitosas, ${errorCount} errores`,
+        )
+
+        // Desactivar tokens que fallaron
+        for (let i = 0; i < results.length; i++) {
+          if (results[i].status === 'error') {
+            const error = results[i].message
+            // Si el token es inválido, desactivarlo
+            if (error?.includes('Invalid') || error?.includes('DeviceNotRegistered')) {
+              await this.prisma.invitadoDeviceToken.updateMany({
+                where: { token: tokens[i] },
+                data: { active: false },
+              })
+              this.logger.warn(`Token de invitado desactivado: ${tokens[i]}`)
+            }
+          }
+        }
+
+        return successCount > 0
+      }
+
+      return false
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error enviando notificación push a invitado ${emailOrId}:`, errorMessage)
+      return false
+    }
+  }
+
+  /**
+   * Envía notificaciones push masivas a usuarios con credenciales vencidas o por vencer
+   */
+  async sendPushNotificationsCredencialesVencidas(
+    tipo: 'vencidas' | 'por_vencer' | 'ambas',
+  ): Promise<{
+    enviadas: number
+    errores: number
+    detalles: Array<{ email: string; nombre: string; estado: string; exito: boolean; error?: string }>
+  }> {
+    try {
+      const hoy = new Date()
+      hoy.setHours(0, 0, 0, 0)
+      const en30Dias = new Date()
+      en30Dias.setDate(en30Dias.getDate() + 30)
+      en30Dias.setHours(23, 59, 59, 999)
+
+      const usuarios: Array<{
+        email: string
+        nombre: string
+        apellido: string
+        invitadoId: string
+        estado: 'vencida' | 'por_vencer'
+        tipoCredencial: 'ministerial' | 'capellania'
+        diasRestantes: number
+      }> = []
+
+      // Buscar credenciales ministeriales
+      const credencialesMinisteriales = await this.prisma.credencialMinisterial.findMany({
+        where: {
+          activa: true,
+          invitadoId: { not: null },
+          ...(tipo === 'vencidas'
+            ? { fechaVencimiento: { lt: hoy } }
+            : tipo === 'por_vencer'
+              ? { fechaVencimiento: { gte: hoy, lte: en30Dias } }
+              : {
+                  OR: [{ fechaVencimiento: { lt: hoy } }, { fechaVencimiento: { gte: hoy, lte: en30Dias } }],
+                }),
+        },
+        include: {
+          invitado: {
+            select: {
+              id: true,
+              email: true,
+              nombre: true,
+              apellido: true,
+            },
+          },
+        },
+      })
+
+      for (const credencial of credencialesMinisteriales) {
+        if (credencial.invitado) {
+          const diasRestantes = Math.ceil(
+            (credencial.fechaVencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24),
+          )
+          const estado = diasRestantes < 0 ? 'vencida' : 'por_vencer'
+
+          if (tipo === 'ambas' || (tipo === 'vencidas' && estado === 'vencida') || (tipo === 'por_vencer' && estado === 'por_vencer')) {
+            usuarios.push({
+              email: credencial.invitado.email,
+              nombre: credencial.invitado.nombre,
+              apellido: credencial.invitado.apellido,
+              invitadoId: credencial.invitado.id,
+              estado,
+              tipoCredencial: 'ministerial',
+              diasRestantes: Math.abs(diasRestantes),
+            })
+          }
+        }
+      }
+
+      // Buscar credenciales de capellanía
+      const credencialesCapellania = await this.prisma.credencialCapellania.findMany({
+        where: {
+          activa: true,
+          invitadoId: { not: null },
+          ...(tipo === 'vencidas'
+            ? { fechaVencimiento: { lt: hoy } }
+            : tipo === 'por_vencer'
+              ? { fechaVencimiento: { gte: hoy, lte: en30Dias } }
+              : {
+                  OR: [{ fechaVencimiento: { lt: hoy } }, { fechaVencimiento: { gte: hoy, lte: en30Dias } }],
+                }),
+        },
+        include: {
+          invitado: {
+            select: {
+              id: true,
+              email: true,
+              nombre: true,
+              apellido: true,
+            },
+          },
+        },
+      })
+
+      for (const credencial of credencialesCapellania) {
+        if (credencial.invitado) {
+          const diasRestantes = Math.ceil(
+            (credencial.fechaVencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24),
+          )
+          const estado = diasRestantes < 0 ? 'vencida' : 'por_vencer'
+
+          if (tipo === 'ambas' || (tipo === 'vencidas' && estado === 'vencida') || (tipo === 'por_vencer' && estado === 'por_vencer')) {
+            // Evitar duplicados si ya está en la lista
+            const existe = usuarios.find(u => u.email === credencial.invitado?.email && u.tipoCredencial === 'capellania')
+            if (!existe) {
+              usuarios.push({
+                email: credencial.invitado.email,
+                nombre: credencial.invitado.nombre,
+                apellido: credencial.invitado.apellido,
+                invitadoId: credencial.invitado.id,
+                estado,
+                tipoCredencial: 'capellania',
+                diasRestantes: Math.abs(diasRestantes),
+              })
+            }
+          }
+        }
+      }
+
+      // Eliminar duplicados por email (si un usuario tiene múltiples credenciales)
+      const usuariosUnicos = Array.from(
+        new Map(usuarios.map(u => [u.email, u])).values()
+      )
+
+      this.logger.log(`📱 Enviando notificaciones push a ${usuariosUnicos.length} usuarios con credenciales ${tipo}`)
+
+      const detalles: Array<{ email: string; nombre: string; estado: string; exito: boolean; error?: string }> = []
+      let enviadas = 0
+      let errores = 0
+
+      // Enviar notificaciones a cada usuario
+      for (const usuario of usuariosUnicos) {
+        try {
+          const estadoTexto = usuario.estado === 'vencida' ? 'vencida' : 'por vencer'
+          const diasTexto = usuario.estado === 'vencida' 
+            ? `hace ${usuario.diasRestantes} días` 
+            : `en ${usuario.diasRestantes} días`
+          
+          const titulo = `Credencial ${estadoTexto.charAt(0).toUpperCase() + estadoTexto.slice(1)}`
+          const mensaje = `Tu credencial ${usuario.tipoCredencial === 'ministerial' ? 'ministerial' : 'de capellanía'} está ${estadoTexto} (vence ${diasTexto}). Por favor, renueva tu credencial.`
+
+          const exito = await this.sendPushNotificationToInvitado(
+            usuario.email,
+            titulo,
+            mensaje,
+            {
+              type: 'credencial_vencida',
+              estado: usuario.estado,
+              tipoCredencial: usuario.tipoCredencial,
+              diasRestantes: usuario.diasRestantes,
+            },
+          )
+
+          if (exito) {
+            enviadas++
+            detalles.push({
+              email: usuario.email,
+              nombre: `${usuario.nombre} ${usuario.apellido}`,
+              estado: estadoTexto,
+              exito: true,
+            })
+          } else {
+            errores++
+            detalles.push({
+              email: usuario.email,
+              nombre: `${usuario.nombre} ${usuario.apellido}`,
+              estado: estadoTexto,
+              exito: false,
+              error: 'No se encontraron tokens de dispositivo activos',
+            })
+          }
+        } catch (error: unknown) {
+          errores++
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+          detalles.push({
+            email: usuario.email,
+            nombre: `${usuario.nombre} ${usuario.apellido}`,
+            estado: usuario.estado,
+            exito: false,
+            error: errorMessage,
+          })
+          this.logger.error(`Error enviando notificación a ${usuario.email}:`, errorMessage)
+        }
+      }
+
+      this.logger.log(`✅ Notificaciones enviadas: ${enviadas} exitosas, ${errores} errores`)
+
+      return {
+        enviadas,
+        errores,
+        detalles,
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error enviando notificaciones push masivas:`, errorMessage)
+      throw error
+    }
+  }
 }
 
