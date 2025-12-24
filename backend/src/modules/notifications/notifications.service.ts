@@ -874,6 +874,18 @@ export class NotificationsService {
       }> = []
 
       // Buscar credenciales ministeriales
+      // Primero buscar todas las credenciales activas para debugging
+      const totalCredencialesMinisteriales = await this.prisma.credencialMinisterial.count({
+        where: { activa: true },
+      })
+      const credencialesConInvitado = await this.prisma.credencialMinisterial.count({
+        where: { activa: true, invitadoId: { not: null } },
+      })
+
+      this.logger.log(
+        `🔍 Total credenciales ministeriales activas: ${totalCredencialesMinisteriales}, con invitadoId: ${credencialesConInvitado}`,
+      )
+
       const credencialesMinisteriales = await this.prisma.credencialMinisterial.findMany({
         where: {
           activa: true,
@@ -898,6 +910,10 @@ export class NotificationsService {
         },
       })
 
+      this.logger.log(
+        `🔍 Credenciales ministeriales encontradas con filtros (${tipo}): ${credencialesMinisteriales.length}`,
+      )
+
       for (const credencial of credencialesMinisteriales) {
         if (credencial.invitado) {
           const diasRestantes = Math.ceil(
@@ -920,6 +936,17 @@ export class NotificationsService {
       }
 
       // Buscar credenciales de capellanía
+      const totalCredencialesCapellania = await this.prisma.credencialCapellania.count({
+        where: { activa: true },
+      })
+      const credencialesCapellaniaConInvitado = await this.prisma.credencialCapellania.count({
+        where: { activa: true, invitadoId: { not: null } },
+      })
+
+      this.logger.log(
+        `🔍 Total credenciales capellanía activas: ${totalCredencialesCapellania}, con invitadoId: ${credencialesCapellaniaConInvitado}`,
+      )
+
       const credencialesCapellania = await this.prisma.credencialCapellania.findMany({
         where: {
           activa: true,
@@ -943,6 +970,10 @@ export class NotificationsService {
           },
         },
       })
+
+      this.logger.log(
+        `🔍 Credenciales capellanía encontradas con filtros (${tipo}): ${credencialesCapellania.length}`,
+      )
 
       for (const credencial of credencialesCapellania) {
         if (credencial.invitado) {
@@ -974,7 +1005,21 @@ export class NotificationsService {
         new Map(usuarios.map(u => [u.email, u])).values()
       )
 
+      this.logger.log(
+        `📱 Usuarios encontrados antes de eliminar duplicados: ${usuarios.length}, después: ${usuariosUnicos.length}`,
+      )
       this.logger.log(`📱 Enviando notificaciones push a ${usuariosUnicos.length} usuarios con credenciales ${tipo}`)
+
+      if (usuariosUnicos.length === 0) {
+        this.logger.warn(
+          `⚠️ No se encontraron usuarios con credenciales ${tipo}. Verifica que las credenciales tengan invitadoId y cumplan los criterios de fecha.`,
+        )
+        return {
+          enviadas: 0,
+          errores: 0,
+          detalles: [],
+        }
+      }
 
       const detalles: Array<{ email: string; nombre: string; estado: string; exito: boolean; error?: string }> = []
       let enviadas = 0

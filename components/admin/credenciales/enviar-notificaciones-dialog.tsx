@@ -52,11 +52,15 @@ export function EnviarNotificacionesDialog({
         toast.success('Notificaciones enviadas', {
           description: `Se enviaron ${resultado.enviadas} notificaciones push exitosamente${resultado.errores > 0 ? ` (${resultado.errores} errores)` : ''}`,
         })
+      } else if (resultado.detalles.length === 0) {
+        toast.warning('No se encontraron credenciales', {
+          description: `No se encontraron credenciales ${tipo === 'vencidas' ? 'vencidas' : tipo === 'por_vencer' ? 'por vencer' : 'vencidas o por vencer'} con invitadoId asociado. Verifica que las credenciales tengan un invitado asignado y cumplan los criterios de fecha.`,
+          duration: 8000,
+        })
       } else {
         toast.warning('No se enviaron notificaciones', {
-          description: resultado.errores > 0 
-            ? `No se encontraron usuarios con tokens de dispositivo activos para credenciales ${tipo === 'vencidas' ? 'vencidas' : tipo === 'por_vencer' ? 'por vencer' : 'vencidas o por vencer'}`
-            : 'No se encontraron usuarios con credenciales en ese estado',
+          description: `Se encontraron ${resultado.detalles.length} usuarios pero ninguno tiene tokens de dispositivo activos. Los usuarios deben tener la app móvil instalada y haber iniciado sesión.`,
+          duration: 8000,
         })
       }
     } catch (error: unknown) {
@@ -111,9 +115,15 @@ export function EnviarNotificacionesDialog({
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Resultado:</span>
                 <div className="flex gap-2">
-                  <span className="text-sm text-green-600 dark:text-green-400">
-                    ✅ {resultado.enviadas} enviadas
-                  </span>
+                  {resultado.enviadas > 0 ? (
+                    <span className="text-sm text-green-600 dark:text-green-400">
+                      ✅ {resultado.enviadas} enviadas
+                    </span>
+                  ) : (
+                    <span className="text-sm text-amber-600 dark:text-amber-400">
+                      ⚠️ 0 enviadas
+                    </span>
+                  )}
                   {resultado.errores > 0 && (
                     <span className="text-sm text-red-600 dark:text-red-400">
                       ❌ {resultado.errores} errores
@@ -121,6 +131,25 @@ export function EnviarNotificacionesDialog({
                   )}
                 </div>
               </div>
+
+              {resultado.detalles.length === 0 && (
+                <div className="mt-2 p-3 rounded bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30">
+                  <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
+                    No se encontraron credenciales
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                    Posibles causas:
+                  </p>
+                  <ul className="text-xs text-amber-700 dark:text-amber-300 mt-1 list-disc list-inside space-y-1">
+                    <li>Las credenciales no tienen un invitado asociado (invitadoId)</li>
+                    <li>Las credenciales no cumplen los criterios de fecha seleccionados</li>
+                    <li>Las credenciales no están marcadas como activas</li>
+                  </ul>
+                  <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+                    💡 Verifica en la página de credenciales que tengan un invitado asignado y que las fechas de vencimiento sean correctas.
+                  </p>
+                </div>
+              )}
 
               {resultado.detalles.length > 0 && (
                 <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
