@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Platform, Alert } from 'react-native'
 import Constants from 'expo-constants'
+import * as SecureStore from 'expo-secure-store'
 import { useAuth } from './useAuth'
 import { useInvitadoAuth } from './useInvitadoAuth'
 import { apiClient } from '@api/client'
