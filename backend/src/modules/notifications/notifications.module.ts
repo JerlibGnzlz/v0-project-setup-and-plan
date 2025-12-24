@@ -8,6 +8,7 @@ import { EmailTestController } from './email-test.controller'
 import { NotificationsService } from './notifications.service'
 import { EmailService } from './email.service'
 import { EmailDiagnosticService } from './email-diagnostic.service'
+import { NotificationsDiagnosticsService } from './notifications-diagnostics.service'
 import { NotificationsGateway } from './notifications.gateway'
 import { NotificationsCleanupService } from './notifications-cleanup.service'
 import { NotificationListener } from './listeners/notification.listener'
@@ -73,6 +74,7 @@ if (isRedisConfigured) {
   providers: [
     EmailService,
     EmailDiagnosticService,
+    NotificationsDiagnosticsService,
     NotificationsGateway,
     NotificationsService,
     NotificationsCleanupService,

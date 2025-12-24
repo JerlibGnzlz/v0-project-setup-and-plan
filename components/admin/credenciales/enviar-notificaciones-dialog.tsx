@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Bell, Loader2 } from 'lucide-react'
+import { Bell, Loader2, Info } from 'lucide-react'
 import { notificationsApi } from '@/lib/api/notifications'
 
 interface EnviarNotificacionesDialogProps {
@@ -34,11 +34,30 @@ export function EnviarNotificacionesDialog({
 }: EnviarNotificacionesDialogProps) {
   const [tipo, setTipo] = useState<'vencidas' | 'por_vencer' | 'ambas'>('ambas')
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingDiagnostics, setIsLoadingDiagnostics] = useState(false)
+  const [showDiagnostics, setShowDiagnostics] = useState(false)
+  const [diagnostics, setDiagnostics] = useState<any>(null)
   const [resultado, setResultado] = useState<{
     enviadas: number
     errores: number
     detalles: Array<{ email: string; nombre: string; estado: string; exito: boolean; error?: string }>
   } | null>(null)
+
+  const handleVerDiagnostico = async () => {
+    setIsLoadingDiagnostics(true)
+    try {
+      const diag = await notificationsApi.getDiagnostics()
+      setDiagnostics(diag)
+      setShowDiagnostics(true)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error('Error al obtener diagnóstico', {
+        description: errorMessage,
+      })
+    } finally {
+      setIsLoadingDiagnostics(false)
+    }
+  }
 
   const handleEnviar = async () => {
     setIsLoading(true)
@@ -94,6 +113,91 @@ export function EnviarNotificacionesDialog({
             Solo se enviarán a usuarios que tengan la app móvil instalada y tokens de dispositivo activos.
           </AlertDialogDescription>
         </AlertDialogHeader>
+
+        <div className="flex justify-end mb-4">
+          <button
+            type="button"
+            onClick={handleVerDiagnostico}
+            disabled={isLoadingDiagnostics}
+            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+          >
+            {isLoadingDiagnostics ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Cargando...
+              </>
+            ) : (
+              <>
+                <Info className="h-3 w-3" />
+                Ver diagnóstico del sistema
+              </>
+            )}
+          </button>
+        </div>
+
+        {showDiagnostics && diagnostics && (
+          <div className="mb-4 p-4 rounded-lg border bg-muted/50 space-y-3">
+            <h4 className="text-sm font-semibold">Diagnóstico del Sistema</h4>
+            
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span className="text-muted-foreground">Tokens activos:</span>
+                <span className="ml-2 font-medium">{diagnostics.deviceTokens.activos}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Android:</span>
+                <span className="ml-2 font-medium">{diagnostics.deviceTokens.porPlataforma.android}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">iOS:</span>
+                <span className="ml-2 font-medium">{diagnostics.deviceTokens.porPlataforma.ios}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Invitados:</span>
+                <span className="ml-2 font-medium">{diagnostics.deviceTokens.porTipoUsuario.invitado}</span>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Credenciales con invitadoId:</span>
+                <span className="font-medium">{diagnostics.credenciales.conInvitadoId}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs mt-1">
+                <span className="text-muted-foreground">Credenciales vencidas/por vencer:</span>
+                <span className="font-medium">{diagnostics.credenciales.vencidas + diagnostics.credenciales.porVencer}</span>
+              </div>
+              {diagnostics.credencialesConUsuariosSinTokens.length > 0 && (
+                <div className="mt-2 p-2 rounded bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30">
+                  <p className="text-xs text-amber-800 dark:text-amber-200 font-medium">
+                    ⚠️ {diagnostics.credencialesConUsuariosSinTokens.length} usuarios sin tokens activos
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {diagnostics.usuariosConTokens.length > 0 && (
+              <div className="pt-2 border-t">
+                <p className="text-xs text-muted-foreground mb-1">Usuarios con tokens:</p>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {diagnostics.usuariosConTokens.slice(0, 5).map((usuario: any, idx: number) => (
+                    <div key={idx} className="text-xs flex items-center justify-between">
+                      <span className="truncate">{usuario.email}</span>
+                      <span className="ml-2 text-muted-foreground">
+                        ({usuario.tokensActivos} {usuario.plataformas.join(', ')})
+                      </span>
+                    </div>
+                  ))}
+                  {diagnostics.usuariosConTokens.length > 5 && (
+                    <p className="text-xs text-muted-foreground">
+                      ... y {diagnostics.usuariosConTokens.length - 5} más
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">

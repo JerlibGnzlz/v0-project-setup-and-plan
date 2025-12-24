@@ -11,6 +11,7 @@ import {
   Delete,
 } from '@nestjs/common'
 import { NotificationsService } from './notifications.service'
+import { NotificationsDiagnosticsService } from './notifications-diagnostics.service'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { PastorJwtAuthGuard } from '../auth/guards/pastor-jwt-auth.guard'
 import { InvitadoJwtAuthGuard } from '../auth/guards/invitado-jwt-auth.guard'
@@ -18,7 +19,10 @@ import { AuthenticatedRequest, AuthenticatedPastorRequest, AuthenticatedInvitado
 
 @Controller('notifications')
 export class NotificationsController {
-  constructor(private notificationsService: NotificationsService) {}
+  constructor(
+    private notificationsService: NotificationsService,
+    private diagnosticsService: NotificationsDiagnosticsService
+  ) {}
 
   // Endpoint para mobile (pastores) - DEPRECATED: usar /register/admin para admins
   @Post('register')
@@ -127,5 +131,15 @@ export class NotificationsController {
     @Body() body: { tipo: 'vencidas' | 'por_vencer' | 'ambas' }
   ) {
     return this.notificationsService.sendPushNotificationsCredencialesVencidas(body.tipo || 'ambas')
+  }
+
+  /**
+   * Endpoint de diagnóstico para verificar el estado del sistema de notificaciones
+   * Solo disponible para admins
+   */
+  @Get('diagnostics')
+  @UseGuards(JwtAuthGuard)
+  async getDiagnostics() {
+    return this.diagnosticsService.getDiagnostics()
   }
 }

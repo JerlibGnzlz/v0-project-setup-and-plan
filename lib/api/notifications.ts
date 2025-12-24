@@ -85,4 +85,38 @@ export const notificationsApi = {
     }>('/notifications/push/credenciales-vencidas', { tipo })
     return response.data
   },
+
+  getDiagnostics: async (): Promise<{
+    deviceTokens: {
+      total: number
+      activos: number
+      porPlataforma: { ios: number; android: number }
+      porTipoUsuario: { admin: number; pastor: number; invitado: number }
+    }
+    credenciales: {
+      total: number
+      conInvitadoId: number
+      vencidas: number
+      porVencer: number
+      sinInvitadoId: number
+    }
+    usuariosConTokens: Array<{
+      email: string
+      tipo: 'admin' | 'pastor' | 'invitado'
+      tokensActivos: number
+      plataformas: string[]
+    }>
+    credencialesConUsuariosSinTokens: Array<{
+      credencialId: string
+      tipo: 'ministerial' | 'capellania'
+      documento: string
+      nombre: string
+      email: string
+      estado: string
+      diasRestantes: number
+    }>
+  }> => {
+    const response = await apiClient.get('/notifications/diagnostics')
+    return response.data
+  },
 }
