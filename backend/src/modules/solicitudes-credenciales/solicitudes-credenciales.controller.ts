@@ -40,13 +40,34 @@ export class SolicitudesCredencialesController {
     @Request() req: AuthenticatedInvitadoRequest,
     @Body() dto: CreateSolicitudCredencialDto
   ) {
-    const invitadoId = req.user?.id
-    if (!invitadoId) {
-      throw new Error('Usuario no autenticado')
-    }
+    try {
+      const invitadoId = req.user?.id
+      if (!invitadoId) {
+        this.logger.error('❌ Usuario no autenticado en create solicitud')
+        throw new BadRequestException('Usuario no autenticado')
+      }
 
-    this.logger.log(`Creando solicitud de credencial ${dto.tipo} para invitado ${invitadoId}`)
-    return this.solicitudesCredencialesService.create(invitadoId, dto)
+      this.logger.log(`📝 Creando solicitud de credencial ${dto.tipo} para invitado ${invitadoId}`)
+      this.logger.log(`📝 DTO recibido en controller:`, {
+        tipo: dto.tipo,
+        dni: dto.dni,
+        nombre: dto.nombre,
+        apellido: dto.apellido,
+      })
+
+      const solicitud = await this.solicitudesCredencialesService.create(invitadoId, dto)
+      this.logger.log(`✅ Solicitud creada exitosamente: ${solicitud.id}`)
+      return solicitud
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorStack = error instanceof Error ? error.stack : undefined
+      this.logger.error(`❌ Error en controller create solicitud: ${errorMessage}`)
+      if (errorStack) {
+        this.logger.error(`Stack trace: ${errorStack}`)
+      }
+      // Re-lanzar el error para que el GlobalExceptionFilter lo maneje
+      throw error
+    }
   }
 
   /**
