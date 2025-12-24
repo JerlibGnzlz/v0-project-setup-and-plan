@@ -46,6 +46,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { CredencialCard } from '@/components/admin/credenciales-ministeriales/credencial-card'
+import { CredencialFlipCardCompact } from '@/components/admin/credenciales-ministeriales/credencial-flip-card-compact'
 import { CredencialEditorDialog } from '@/components/admin/credenciales-ministeriales/credencial-editor-dialog'
 import { toast } from 'sonner'
 
@@ -421,6 +422,7 @@ export default function VisorCredencialesPage() {
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>
+                  <th className="p-3 text-left text-sm font-medium">Credencial</th>
                   <th className="p-3 text-left text-sm font-medium">Nombre</th>
                   <th className="p-3 text-left text-sm font-medium">Documento</th>
                   <th className="p-3 text-left text-sm font-medium">Nacionalidad</th>
@@ -433,7 +435,7 @@ export default function VisorCredencialesPage() {
               <tbody>
                 {credenciales.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                    <td colSpan={8} className="p-8 text-center text-muted-foreground">
                       No se encontraron credenciales
                     </td>
                   </tr>
@@ -459,6 +461,11 @@ export default function VisorCredencialesPage() {
 
                     return (
                       <tr key={credencial.id} className="border-b">
+                        <td className="p-3">
+                          <div className="relative" style={{ minHeight: '280px' }}>
+                            <CredencialFlipCardCompact credencial={credencial} />
+                          </div>
+                        </td>
                         <td className="p-3">
                           <div>
                             <p className="font-medium">
