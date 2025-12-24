@@ -75,9 +75,20 @@ export class SolicitudesCredencialesController {
         motivo: dto.motivo ? dto.motivo.substring(0, 50) + '...' : undefined,
       })
 
-      const solicitud = await this.solicitudesCredencialesService.create(invitadoId, dto)
-      this.logger.log(`✅ Solicitud creada exitosamente: ${solicitud.id}`)
-      return solicitud
+      try {
+        const solicitud = await this.solicitudesCredencialesService.create(invitadoId, dto)
+        this.logger.log(`✅ Solicitud creada exitosamente: ${solicitud.id}`)
+        return solicitud
+      } catch (createError: unknown) {
+        const createErrorMessage = createError instanceof Error ? createError.message : 'Error desconocido'
+        const createErrorStack = createError instanceof Error ? createError.stack : undefined
+        this.logger.error(`❌ Error en service.create: ${createErrorMessage}`)
+        if (createErrorStack) {
+          this.logger.error(`Stack trace: ${createErrorStack}`)
+        }
+        // Re-lanzar el error para que se maneje arriba
+        throw createError
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       const errorStack = error instanceof Error ? error.stack : undefined
