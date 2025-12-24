@@ -111,39 +111,48 @@ export class SolicitudesCredencialesService {
       )
 
       // Notificar a todos los admins (no bloquear si falla)
-      try {
-        const admins = await this.prisma.user.findMany()
-        const tipoLabel = dto.tipo === TipoCredencial.MINISTERIAL ? 'Ministerial' : 'de Capellanía'
-
-        // Enviar notificaciones en paralelo sin bloquear
-        const notificationPromises = admins.map(async (admin) => {
-          try {
-            await this.notificationsService.sendNotificationToAdmin(
-              admin.email,
-              'Nueva Solicitud de Credencial',
-              `${invitado.nombre} ${invitado.apellido} (${invitado.email}) ha solicitado una credencial ${tipoLabel}.\n\nDNI: ${dto.dni}\nMotivo: ${dto.motivo || 'No especificado'}`,
-              {
-                tipo: 'solicitud_credencial',
-                solicitudId: solicitud.id,
-                invitadoId,
-                tipoCredencial: dto.tipo,
-                dni: dto.dni,
-              }
-            )
-          } catch (notificationError: unknown) {
-            const errorMessage = notificationError instanceof Error ? notificationError.message : 'Error desconocido'
-            this.logger.warn(`No se pudo enviar notificación a admin ${admin.email}: ${errorMessage}`)
-            // No lanzar error, solo loggear
+      // Ejecutar en background sin esperar
+      setImmediate(async () => {
+        try {
+          const admins = await this.prisma.user.findMany()
+          if (!admins || admins.length === 0) {
+            this.logger.warn('No hay admins para notificar')
+            return
           }
-        })
 
-        // Esperar todas las notificaciones sin bloquear
-        await Promise.allSettled(notificationPromises)
-      } catch (notificationError: unknown) {
-        const errorMessage = notificationError instanceof Error ? notificationError.message : 'Error desconocido'
-        this.logger.warn(`Error enviando notificaciones a admins: ${errorMessage}`)
-        // No lanzar error, la solicitud ya fue creada exitosamente
-      }
+          const tipoLabel = dto.tipo === TipoCredencial.MINISTERIAL ? 'Ministerial' : 'de Capellanía'
+
+          // Enviar notificaciones en paralelo sin bloquear
+          const notificationPromises = admins.map(async (admin) => {
+            try {
+              await this.notificationsService.sendNotificationToAdmin(
+                admin.email,
+                'Nueva Solicitud de Credencial',
+                `${invitado.nombre} ${invitado.apellido} (${invitado.email}) ha solicitado una credencial ${tipoLabel}.\n\nDNI: ${dto.dni}\nMotivo: ${dto.motivo || 'No especificado'}`,
+                {
+                  tipo: 'solicitud_credencial',
+                  solicitudId: solicitud.id,
+                  invitadoId,
+                  tipoCredencial: dto.tipo,
+                  dni: dto.dni,
+                }
+              )
+              this.logger.log(`✅ Notificación enviada a admin ${admin.email}`)
+            } catch (notificationError: unknown) {
+              const errorMessage = notificationError instanceof Error ? notificationError.message : 'Error desconocido'
+              this.logger.warn(`No se pudo enviar notificación a admin ${admin.email}: ${errorMessage}`)
+              // No lanzar error, solo loggear
+            }
+          })
+
+          // Esperar todas las notificaciones sin bloquear
+          await Promise.allSettled(notificationPromises)
+        } catch (notificationError: unknown) {
+          const errorMessage = notificationError instanceof Error ? notificationError.message : 'Error desconocido'
+          this.logger.warn(`Error enviando notificaciones a admins: ${errorMessage}`)
+          // No lanzar error, la solicitud ya fue creada exitosamente
+        }
+      })
 
       return solicitud
     } catch (error: unknown) {

@@ -307,28 +307,49 @@ export class NotificationsService {
         // Para admins, buscar un pastor por defecto o crear una entrada sin pastorId
         // Por ahora, usaremos el email como referencia y crearemos una entrada especial
         // O mejor: buscar el primer pastor disponible para asociar la notificación
-        const firstPastor = await this.prisma.pastor.findFirst({
-          where: { activo: true },
-        })
+        try {
+          const firstPastor = await this.prisma.pastor.findFirst({
+            where: { activo: true },
+          })
 
-        if (!firstPastor) {
-          this.logger.warn(`No hay pastores disponibles para asociar notificación de admin: ${email}`)
-          return
+          if (!firstPastor) {
+            this.logger.warn(`No hay pastores disponibles para asociar notificación de admin: ${email}`)
+            // Intentar crear sin pastorId (si el schema lo permite) o simplemente loggear
+            this.logger.log(`📧 Notificación para admin ${email} no se guardará en NotificationHistory (no hay pastores)`)
+            // Enviar solo email si es posible
+            try {
+              await this.sendEmailToAdmin(email, title, body, data)
+            } catch (emailError: unknown) {
+              const emailErrorMessage = emailError instanceof Error ? emailError.message : 'Error desconocido'
+              this.logger.warn(`No se pudo enviar email a admin ${email}: ${emailErrorMessage}`)
+            }
+            return
+          }
+
+          // Crear notificación asociada al primer pastor (solo para estructura de BD)
+          await this.prisma.notificationHistory.create({
+            data: {
+              pastorId: firstPastor.id,
+              email,
+              title,
+              body,
+              type: (data?.type && typeof data.type === 'string' ? data.type : 'info') as string,
+              data: data ? JSON.parse(JSON.stringify(data)) : null,
+              read: false,
+            },
+          })
+          this.logger.log(`📧 Notificación guardada para admin: ${email}`)
+        } catch (dbError: unknown) {
+          const dbErrorMessage = dbError instanceof Error ? dbError.message : 'Error desconocido'
+          this.logger.error(`Error guardando notificación en BD para admin ${email}: ${dbErrorMessage}`)
+          // Intentar enviar solo email
+          try {
+            await this.sendEmailToAdmin(email, title, body, data)
+          } catch (emailError: unknown) {
+            const emailErrorMessage = emailError instanceof Error ? emailError.message : 'Error desconocido'
+            this.logger.warn(`No se pudo enviar email a admin ${email}: ${emailErrorMessage}`)
+          }
         }
-
-        // Crear notificación asociada al primer pastor (solo para estructura de BD)
-        await this.prisma.notificationHistory.create({
-          data: {
-            pastorId: firstPastor.id,
-            email,
-            title,
-            body,
-            type: (data?.type && typeof data.type === 'string' ? data.type : 'info') as string,
-            data: data ? JSON.parse(JSON.stringify(data)) : null,
-            read: false,
-          },
-        })
-        this.logger.log(`📧 Notificación guardada para admin: ${email}`)
       } else {
         // Si es pastor, crear notificación normalmente
         await this.prisma.notificationHistory.create({

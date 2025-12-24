@@ -134,7 +134,55 @@ export class CredencialesController {
         const invitadoId = req.user.id
         this.logger.log(`Obteniendo credenciales para invitado: ${invitadoId}`)
 
-        // Buscar inscripciones del invitado que tengan DNI
+        // PRIMERO: Buscar credenciales directamente relacionadas con el invitado (por invitadoId)
+        const credencialesDirectasMinisteriales = await this.prisma.credencialMinisterial.findMany({
+          where: {
+            invitadoId,
+            activa: true,
+          },
+        })
+
+        const credencialesDirectasCapellania = await this.prisma.credencialCapellania.findMany({
+          where: {
+            invitadoId,
+            activa: true,
+          },
+        })
+
+        // Agregar credenciales directas a la lista
+        for (const credencial of credencialesDirectasMinisteriales) {
+          const { estado, diasRestantes } = this.calcularEstado(credencial.fechaVencimiento)
+          credenciales.push({
+            id: credencial.id,
+            tipo: 'ministerial',
+            documento: credencial.documento,
+            nombre: credencial.nombre,
+            apellido: credencial.apellido,
+            fechaVencimiento: credencial.fechaVencimiento,
+            estado,
+            diasRestantes,
+            fotoUrl: credencial.fotoUrl,
+            activa: credencial.activa,
+          })
+        }
+
+        for (const credencial of credencialesDirectasCapellania) {
+          const { estado, diasRestantes } = this.calcularEstado(credencial.fechaVencimiento)
+          credenciales.push({
+            id: credencial.id,
+            tipo: 'capellania',
+            documento: credencial.documento,
+            nombre: credencial.nombre,
+            apellido: credencial.apellido,
+            fechaVencimiento: credencial.fechaVencimiento,
+            estado,
+            diasRestantes,
+            fotoUrl: credencial.fotoUrl,
+            activa: credencial.activa,
+          })
+        }
+
+        // SEGUNDO: Buscar credenciales por DNI de inscripciones (para compatibilidad con datos antiguos)
         const inscripciones = await this.prisma.inscripcion.findMany({
           where: {
             invitadoId,
@@ -145,16 +193,7 @@ export class CredencialesController {
           },
         })
 
-        if (!inscripciones || inscripciones.length === 0) {
-          this.logger.warn(`No se encontraron inscripciones con DNI para invitado ${invitadoId}`)
-          return {
-            tieneCredenciales: false,
-            credenciales: [],
-            mensaje: 'No se encontró DNI en tus inscripciones. Asegúrate de haber ingresado tu DNI al inscribirte a una convención.',
-          }
-        }
-
-        // Obtener DNIs únicos
+        // Obtener DNIs únicos de las inscripciones
         const dniUnicos = Array.from(
           new Set(
             inscripciones
@@ -163,15 +202,7 @@ export class CredencialesController {
           )
         )
 
-        this.logger.log(`DNIs únicos encontrados: ${dniUnicos.length} - ${dniUnicos.join(', ')}`)
-
-        if (dniUnicos.length === 0) {
-          return {
-            tieneCredenciales: false,
-            credenciales: [],
-            mensaje: 'No se encontró DNI válido en tus inscripciones',
-          }
-        }
+        this.logger.log(`DNIs únicos encontrados en inscripciones: ${dniUnicos.length} - ${dniUnicos.join(', ')}`)
 
         // Buscar credenciales ministeriales
         for (const dni of dniUnicos) {
