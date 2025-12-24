@@ -380,22 +380,31 @@ export class NotificationsService {
         })
         this.logger.log(`📧 Notificación guardada para admin: ${email}`)
         
-        // Emitir evento WebSocket para actualización en tiempo real
-        try {
-          await this.notificationsGateway.emitToUser(email, {
-            id: 'new',
-            title,
-            body,
-            type: (data?.type && typeof data.type === 'string' ? data.type : 'info') as string,
-            data: data || {},
-            read: false,
-            createdAt: new Date().toISOString(),
-          })
-          await this.notificationsGateway.emitUnreadCountUpdate(email)
-        } catch (wsError: unknown) {
-          const wsErrorMessage = wsError instanceof Error ? wsError.message : 'Error desconocido'
-          this.logger.warn(`Error emitiendo WebSocket para admin ${email}: ${wsErrorMessage}`)
-          // No lanzar error, solo loggear
+        // Emitir evento WebSocket para actualización en tiempo real (no bloquear si falla)
+        if (this.notificationsGateway) {
+          try {
+            await this.notificationsGateway.emitToUser(email, {
+              id: 'new',
+              title,
+              body,
+              type: (data?.type && typeof data.type === 'string' ? data.type : 'info') as string,
+              data: data || {},
+              read: false,
+              createdAt: new Date().toISOString(),
+            })
+            await this.notificationsGateway.emitUnreadCountUpdate(email)
+            this.logger.log(`📡 WebSocket emitido para admin ${email}`)
+          } catch (wsError: unknown) {
+            const wsErrorMessage = wsError instanceof Error ? wsError.message : 'Error desconocido'
+            const wsErrorStack = wsError instanceof Error ? wsError.stack : undefined
+            this.logger.warn(`⚠️ Error emitiendo WebSocket para admin ${email}: ${wsErrorMessage}`)
+            if (wsErrorStack) {
+              this.logger.warn(`Stack trace: ${wsErrorStack}`)
+            }
+            // No lanzar error, solo loggear - la notificación ya fue guardada
+          }
+        } else {
+          this.logger.warn(`⚠️ NotificationsGateway no disponible para admin ${email}`)
         }
       }
 
