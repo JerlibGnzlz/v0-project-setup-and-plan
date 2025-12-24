@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
 import { EmailService } from './email.service'
 import { getEmailTemplate } from './templates/email.templates'
+import { NotificationsGateway } from './notifications.gateway'
 import axios from 'axios'
 import type { Prisma } from '@prisma/client'
 import type { NotificationType } from './types/notification.types'
@@ -30,7 +31,9 @@ export class NotificationsService {
 
   constructor(
     private prisma: PrismaService,
-    private emailService: EmailService
+    private emailService: EmailService,
+    @Inject(forwardRef(() => NotificationsGateway))
+    private notificationsGateway: NotificationsGateway
   ) { }
 
   /**
@@ -376,6 +379,24 @@ export class NotificationsService {
           },
         })
         this.logger.log(`📧 Notificación guardada para admin: ${email}`)
+        
+        // Emitir evento WebSocket para actualización en tiempo real
+        try {
+          await this.notificationsGateway.emitToUser(email, {
+            id: 'new',
+            title,
+            body,
+            type: (data?.type && typeof data.type === 'string' ? data.type : 'info') as string,
+            data: data || {},
+            read: false,
+            createdAt: new Date().toISOString(),
+          })
+          await this.notificationsGateway.emitUnreadCountUpdate(email)
+        } catch (wsError: unknown) {
+          const wsErrorMessage = wsError instanceof Error ? wsError.message : 'Error desconocido'
+          this.logger.warn(`Error emitiendo WebSocket para admin ${email}: ${wsErrorMessage}`)
+          // No lanzar error, solo loggear
+        }
       }
 
       // Enviar push notification al admin si tiene tokens registrados

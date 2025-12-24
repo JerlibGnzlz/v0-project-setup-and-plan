@@ -109,6 +109,23 @@ export function NotificationsBell() {
         router.push('/admin/pastores')
         break
 
+      case 'solicitud_credencial':
+        // Navegar a la página de credenciales según el tipo
+        setOpen(false)
+        const tipoCredencial = data.tipoCredencial as string
+        if (tipoCredencial === 'ministerial') {
+          router.push('/admin/visor-credenciales')
+        } else if (tipoCredencial === 'capellania') {
+          router.push('/admin/visor-credenciales-capellania')
+        } else {
+          // Por defecto, ir a credenciales ministeriales
+          router.push('/admin/visor-credenciales')
+        }
+        toast.info('Nueva solicitud de credencial recibida', {
+          description: `DNI: ${data.dni || 'N/A'}`,
+        })
+        break
+
       default:
         // Para otros tipos, solo cerrar el popover
         setOpen(false)
@@ -134,6 +151,8 @@ export function NotificationsBell() {
         return 'Ver inscripción'
       case 'nuevo_pastor_registrado':
         return 'Ver pastores'
+      case 'solicitud_credencial':
+        return 'Ver solicitud'
       default:
         return 'Ver más'
     }
