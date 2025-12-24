@@ -55,12 +55,22 @@ export class SolicitudesCredencialesController {
   @Get('mis-solicitudes')
   @UseGuards(InvitadoJwtAuthGuard)
   async getMisSolicitudes(@Request() req: AuthenticatedInvitadoRequest) {
-    const invitadoId = req.user?.id
-    if (!invitadoId) {
-      throw new Error('Usuario no autenticado')
-    }
+    try {
+      const invitadoId = req.user?.id
+      if (!invitadoId) {
+        this.logger.error('Usuario no autenticado en getMisSolicitudes')
+        throw new BadRequestException('Usuario no autenticado')
+      }
 
-    return this.solicitudesCredencialesService.findByInvitadoId(invitadoId)
+      this.logger.log(`Obteniendo solicitudes para invitado ${invitadoId}`)
+      const solicitudes = await this.solicitudesCredencialesService.findByInvitadoId(invitadoId)
+      this.logger.log(`✅ Retornando ${solicitudes.length} solicitudes`)
+      return solicitudes
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error en getMisSolicitudes: ${errorMessage}`)
+      throw error
+    }
   }
 
   /**

@@ -157,32 +157,57 @@ export class SolicitudesCredencialesService {
    * Obtener todas las solicitudes de un invitado
    */
   async findByInvitadoId(invitadoId: string): Promise<SolicitudCredencial[]> {
-    return this.prisma.solicitudCredencial.findMany({
-      where: { invitadoId },
-      include: {
-        credencialMinisterial: {
-          select: {
-            id: true,
-            documento: true,
-            nombre: true,
-            apellido: true,
-            fechaVencimiento: true,
-            activa: true,
+    try {
+      this.logger.log(`Buscando solicitudes para invitado ${invitadoId}`)
+      
+      const solicitudes = await this.prisma.solicitudCredencial.findMany({
+        where: { invitadoId },
+        include: {
+          credencialMinisterial: {
+            select: {
+              id: true,
+              documento: true,
+              nombre: true,
+              apellido: true,
+              fechaVencimiento: true,
+              activa: true,
+            },
+          },
+          credencialCapellania: {
+            select: {
+              id: true,
+              documento: true,
+              nombre: true,
+              apellido: true,
+              fechaVencimiento: true,
+              activa: true,
+            },
           },
         },
-        credencialCapellania: {
-          select: {
-            id: true,
-            documento: true,
-            nombre: true,
-            apellido: true,
-            fechaVencimiento: true,
-            activa: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+        orderBy: { createdAt: 'desc' },
+      })
+
+      this.logger.log(`✅ Encontradas ${solicitudes.length} solicitudes para invitado ${invitadoId}`)
+      return solicitudes
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error obteniendo solicitudes para invitado ${invitadoId}: ${errorMessage}`)
+      
+      // Si hay un error con las relaciones, intentar sin includes
+      try {
+        this.logger.warn('Intentando obtener solicitudes sin relaciones...')
+        const solicitudesSimples = await this.prisma.solicitudCredencial.findMany({
+          where: { invitadoId },
+          orderBy: { createdAt: 'desc' },
+        })
+        this.logger.log(`✅ Obtenidas ${solicitudesSimples.length} solicitudes sin relaciones`)
+        return solicitudesSimples as SolicitudCredencial[]
+      } catch (fallbackError: unknown) {
+        const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : 'Error desconocido'
+        this.logger.error(`Error en fallback al obtener solicitudes: ${fallbackMessage}`)
+        throw new BadRequestException(`Error obteniendo solicitudes: ${errorMessage}`)
+      }
+    }
   }
 
   /**
