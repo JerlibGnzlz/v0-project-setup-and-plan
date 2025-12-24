@@ -168,8 +168,44 @@ apiClient.interceptors.request.use(
       // Para endpoints exclusivos de invitados, SOLO usar token de invitado
       if (isExclusiveInvitadoEndpoint) {
         console.log('🔍 Endpoint exclusivo de invitado detectado:', config.url)
-        const invitadoToken = await SecureStore.getItemAsync('invitado_token')
+        let invitadoToken = await SecureStore.getItemAsync('invitado_token')
         const invitadoRefreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
+
+        // Si no hay token pero hay refresh token, intentar refrescar primero
+        if (!invitadoToken && invitadoRefreshToken) {
+          console.log('🔄 No hay token de invitado, pero hay refresh token. Intentando refrescar...')
+          try {
+            const refreshAxios = axios.create({
+              baseURL: API_URL,
+              timeout: 10000,
+              headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+              },
+            })
+            
+            const refreshResponse = await refreshAxios.post('/auth/invitado/refresh', {
+              refreshToken: invitadoRefreshToken,
+            })
+            
+            const { access_token, refresh_token: newRefreshToken } = refreshResponse.data
+            
+            if (access_token) {
+              await SecureStore.setItemAsync('invitado_token', access_token)
+              if (newRefreshToken) {
+                await SecureStore.setItemAsync('invitado_refresh_token', newRefreshToken)
+              }
+              invitadoToken = access_token
+              console.log('✅ Token refrescado exitosamente')
+            }
+          } catch (refreshError: unknown) {
+            const refreshErrorMessage = refreshError instanceof Error ? refreshError.message : 'Error desconocido'
+            console.error('❌ Error al refrescar token:', refreshErrorMessage)
+            // Limpiar tokens inválidos
+            await SecureStore.deleteItemAsync('invitado_token').catch(() => {})
+            await SecureStore.deleteItemAsync('invitado_refresh_token').catch(() => {})
+          }
+        }
 
         if (invitadoToken) {
           config.headers.Authorization = `Bearer ${invitadoToken}`
@@ -182,46 +218,10 @@ apiClient.interceptors.request.use(
           console.error('❌ Endpoint exclusivo de invitado requiere token de invitado, pero no se encontró')
           console.error('❌ URL:', config.url)
           console.error('❌ Método:', config.method?.toUpperCase())
-          console.error('❌ Verificando si hay refresh token disponible...')
-          
-          // Si hay refresh token, intentar refrescar antes de fallar
-          if (invitadoRefreshToken) {
-            console.log('🔄 Refresh token encontrado, intentando refrescar...')
-            try {
-              const refreshAxios = axios.create({
-                baseURL: API_URL,
-                timeout: 8000,
-                headers: {
-                  'Content-Type': 'application/json',
-                  Accept: 'application/json',
-                },
-              })
-              
-              const refreshResponse = await refreshAxios.post('/auth/invitado/refresh', {
-                refreshToken: invitadoRefreshToken,
-              })
-              
-              const { access_token, refresh_token: newRefreshToken } = refreshResponse.data
-              
-              if (access_token) {
-                await SecureStore.setItemAsync('invitado_token', access_token)
-                if (newRefreshToken) {
-                  await SecureStore.setItemAsync('invitado_refresh_token', newRefreshToken)
-                }
-                config.headers.Authorization = `Bearer ${access_token}`
-                console.log('✅ Token refrescado y agregado a request')
-                return config
-              }
-            } catch (refreshError) {
-              console.error('❌ Error al refrescar token:', refreshError)
-              // Limpiar tokens inválidos
-              await SecureStore.deleteItemAsync('invitado_token').catch(() => {})
-              await SecureStore.deleteItemAsync('invitado_refresh_token').catch(() => {})
-            }
-          }
-          
+          console.error('❌ No hay token de invitado ni refresh token disponible')
           console.error('❌ NO se usará token de pastor como fallback para este endpoint')
           // No agregar token de pastor, dejar que el backend responda con 401
+          // El interceptor de respuesta manejará el 401 y mostrará un mensaje apropiado
           return config
         }
       }
