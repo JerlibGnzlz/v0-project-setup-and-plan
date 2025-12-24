@@ -34,6 +34,7 @@ import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useAuth } from '@hooks/useAuth'
 import { solicitudesCredencialesApi, type SolicitudCredencial, TipoCredencial, EstadoSolicitud } from '@api/solicitudes-credenciales'
 import type { CredencialUnificada } from '@api/credenciales'
+import { CredencialFlipCard } from '@components/CredencialFlipCard'
 
 export function CredentialsScreen() {
   const { invitado, isAuthenticated: isInvitadoAuthenticated } = useInvitadoAuth()
@@ -393,77 +394,9 @@ export function CredentialsScreen() {
   }
 
   const renderCredencialCard = (credencial: CredencialUnificada) => {
-    const estadoColor = getEstadoColor(credencial.estado)
-    const EstadoIcon = getEstadoIcon(credencial.estado)
-
     return (
-      <View key={credencial.id} style={styles.credentialCard}>
-        <LinearGradient
-          colors={[`${estadoColor}15`, 'rgba(15, 23, 42, 0.8)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardGradient}
-        >
-          <View style={styles.cardHeader}>
-            <View style={styles.cardTitleContainer}>
-              <CreditCard size={24} color={estadoColor} />
-              <Text style={styles.cardTitle}>{getCredencialTipoLegible(credencial.tipo)}</Text>
-            </View>
-            <View style={[styles.badgeContainer, { backgroundColor: `${estadoColor}20` }]}>
-              <EstadoIcon size={16} color={estadoColor} />
-              <Text style={[styles.badgeText, { color: estadoColor }]}>
-                {credencial.estado.toUpperCase()}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.cardContent}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Nombre:</Text>
-              <Text style={styles.infoValue}>
-                {credencial.nombre} {credencial.apellido}
-              </Text>
-            </View>
-
-            {(credencial.numero || credencial.documento) && (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>
-                  {credencial.tipo === 'pastoral' ? 'Número:' : 'Documento:'}
-                </Text>
-                <Text style={styles.infoValue}>
-                  {getCredencialIdentificador(credencial)}
-                </Text>
-              </View>
-            )}
-
-            {credencial.fechaEmision && (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Fecha de Emisión:</Text>
-                <Text style={styles.infoValue}>{formatDate(credencial.fechaEmision)}</Text>
-              </View>
-            )}
-
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Fecha de Vencimiento:</Text>
-              <Text style={[styles.infoValue, { color: estadoColor }]}>
-                {formatDate(credencial.fechaVencimiento)}
-              </Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Estado:</Text>
-              <Text style={[styles.infoValue, { color: estadoColor, fontWeight: 'bold' }]}>
-                {getEstadoMensaje(credencial.estado, credencial.diasRestantes)}
-              </Text>
-            </View>
-
-            {credencial.fotoUrl && (
-              <View style={styles.fotoContainer}>
-                <Image source={{ uri: credencial.fotoUrl }} style={styles.foto} />
-              </View>
-            )}
-          </View>
-        </LinearGradient>
+      <View key={credencial.id} style={styles.credentialCardWrapper}>
+        <CredencialFlipCard credencial={credencial} />
       </View>
     )
   }
