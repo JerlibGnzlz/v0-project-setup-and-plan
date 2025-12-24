@@ -41,11 +41,20 @@ export class SolicitudesCredencialesController {
     @Body() dto: CreateSolicitudCredencialDto
   ) {
     try {
+      // Logging detallado para debugging
+      this.logger.log('📝 ===== INICIO CREATE SOLICITUD =====')
+      this.logger.log(`📝 Request user: ${JSON.stringify(req.user)}`)
+      this.logger.log(`📝 Request headers: ${JSON.stringify(req.headers)}`)
+      this.logger.log(`📝 DTO recibido: ${JSON.stringify(dto)}`)
+      
       const invitadoId = req.user?.id
       if (!invitadoId) {
         this.logger.error('❌ Usuario no autenticado en create solicitud')
+        this.logger.error(`❌ req.user completo: ${JSON.stringify(req.user)}`)
         throw new BadRequestException('Usuario no autenticado')
       }
+      
+      this.logger.log(`✅ Invitado ID extraído: ${invitadoId}`)
 
       // Validar que el DTO tenga los campos requeridos
       if (!dto.tipo || !dto.dni || !dto.nombre || !dto.apellido) {
