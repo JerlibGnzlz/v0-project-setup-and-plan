@@ -886,10 +886,10 @@ export class NotificationsService {
         `🔍 Total credenciales ministeriales activas: ${totalCredencialesMinisteriales}, con invitadoId: ${credencialesConInvitado}`,
       )
 
-      const credencialesMinisteriales = await this.prisma.credencialMinisterial.findMany({
+      // Buscar credenciales que cumplan los criterios de fecha (con o sin invitadoId)
+      const credencialesMinisterialesSinFiltro = await this.prisma.credencialMinisterial.findMany({
         where: {
           activa: true,
-          invitadoId: { not: null },
           ...(tipo === 'vencidas'
             ? { fechaVencimiento: { lt: hoy } }
             : tipo === 'por_vencer'
@@ -909,6 +909,53 @@ export class NotificationsService {
           },
         },
       })
+
+      // Intentar asignar invitadoId a credenciales que no lo tienen
+      let credencialesActualizadas = 0
+      for (const credencial of credencialesMinisterialesSinFiltro) {
+        if (!credencial.invitadoId && credencial.documento) {
+          // Buscar invitado por documento en inscripciones
+          const inscripcion = await this.prisma.inscripcion.findFirst({
+            where: {
+              dni: credencial.documento,
+              invitadoId: { not: null },
+            },
+            include: {
+              invitado: {
+                select: {
+                  id: true,
+                  email: true,
+                  nombre: true,
+                  apellido: true,
+                },
+              },
+            },
+          })
+
+          if (inscripcion?.invitado) {
+            // Asignar invitadoId a la credencial
+            await this.prisma.credencialMinisterial.update({
+              where: { id: credencial.id },
+              data: { invitadoId: inscripcion.invitado.id },
+            })
+            credencial.invitadoId = inscripcion.invitado.id
+            credencial.invitado = inscripcion.invitado
+            credencialesActualizadas++
+            this.logger.log(
+              `✅ Asignado invitadoId ${inscripcion.invitado.id} a credencial ministerial ${credencial.id} (documento: ${credencial.documento})`,
+            )
+          }
+        }
+      }
+
+      if (credencialesActualizadas > 0) {
+        this.logger.log(`✅ Actualizadas ${credencialesActualizadas} credenciales ministeriales con invitadoId`)
+      }
+
+      // Filtrar solo las que tienen invitadoId
+      const credencialesMinisteriales = credencialesMinisterialesSinFiltro.filter(
+        (c) => c.invitadoId !== null,
+      )
 
       this.logger.log(
         `🔍 Credenciales ministeriales encontradas con filtros (${tipo}): ${credencialesMinisteriales.length}`,
@@ -947,10 +994,10 @@ export class NotificationsService {
         `🔍 Total credenciales capellanía activas: ${totalCredencialesCapellania}, con invitadoId: ${credencialesCapellaniaConInvitado}`,
       )
 
-      const credencialesCapellania = await this.prisma.credencialCapellania.findMany({
+      // Buscar credenciales que cumplan los criterios de fecha (con o sin invitadoId)
+      const credencialesCapellaniaSinFiltro = await this.prisma.credencialCapellania.findMany({
         where: {
           activa: true,
-          invitadoId: { not: null },
           ...(tipo === 'vencidas'
             ? { fechaVencimiento: { lt: hoy } }
             : tipo === 'por_vencer'
@@ -970,6 +1017,53 @@ export class NotificationsService {
           },
         },
       })
+
+      // Intentar asignar invitadoId a credenciales que no lo tienen
+      let credencialesCapellaniaActualizadas = 0
+      for (const credencial of credencialesCapellaniaSinFiltro) {
+        if (!credencial.invitadoId && credencial.documento) {
+          // Buscar invitado por documento en inscripciones
+          const inscripcion = await this.prisma.inscripcion.findFirst({
+            where: {
+              dni: credencial.documento,
+              invitadoId: { not: null },
+            },
+            include: {
+              invitado: {
+                select: {
+                  id: true,
+                  email: true,
+                  nombre: true,
+                  apellido: true,
+                },
+              },
+            },
+          })
+
+          if (inscripcion?.invitado) {
+            // Asignar invitadoId a la credencial
+            await this.prisma.credencialCapellania.update({
+              where: { id: credencial.id },
+              data: { invitadoId: inscripcion.invitado.id },
+            })
+            credencial.invitadoId = inscripcion.invitado.id
+            credencial.invitado = inscripcion.invitado
+            credencialesCapellaniaActualizadas++
+            this.logger.log(
+              `✅ Asignado invitadoId ${inscripcion.invitado.id} a credencial capellanía ${credencial.id} (documento: ${credencial.documento})`,
+            )
+          }
+        }
+      }
+
+      if (credencialesCapellaniaActualizadas > 0) {
+        this.logger.log(`✅ Actualizadas ${credencialesCapellaniaActualizadas} credenciales capellanía con invitadoId`)
+      }
+
+      // Filtrar solo las que tienen invitadoId
+      const credencialesCapellania = credencialesCapellaniaSinFiltro.filter(
+        (c) => c.invitadoId !== null,
+      )
 
       this.logger.log(
         `🔍 Credenciales capellanía encontradas con filtros (${tipo}): ${credencialesCapellania.length}`,
