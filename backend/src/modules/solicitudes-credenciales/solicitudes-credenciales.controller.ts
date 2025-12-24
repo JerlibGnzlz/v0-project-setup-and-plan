@@ -12,6 +12,7 @@ import {
   BadRequestException,
   HttpException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common'
 import { SolicitudesCredencialesService } from './solicitudes-credenciales.service'
 import {
@@ -104,19 +105,28 @@ export class SolicitudesCredencialesController {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       const errorStack = error instanceof Error ? error.stack : undefined
       
-      // Si es un error conocido de NestJS, re-lanzarlo tal cual
-      if (error instanceof BadRequestException || error instanceof NotFoundException) {
-        this.logger.error(`❌ Error conocido en controller: ${errorMessage}`)
+      this.logger.error(`❌ ===== ERROR EN CONTROLLER CREATE SOLICITUD =====`)
+      this.logger.error(`❌ Error message: ${errorMessage}`)
+      this.logger.error(`❌ Error type: ${error instanceof Error ? error.constructor.name : typeof error}`)
+      if (errorStack) {
+        this.logger.error(`❌ Stack trace: ${errorStack}`)
+      }
+      
+      // Si es un error de validación, proporcionar más detalles
+      if (error && typeof error === 'object' && 'response' in error) {
+        const errorResponse = (error as { response?: unknown }).response
+        this.logger.error(`❌ Error response: ${JSON.stringify(errorResponse)}`)
+      }
+      
+      // Si es un HttpException, re-lanzarlo tal cual
+      if (error instanceof BadRequestException || error instanceof NotFoundException || error instanceof HttpException) {
         throw error
       }
       
-      this.logger.error(`❌ Error en controller create solicitud: ${errorMessage}`)
-      if (errorStack) {
-        this.logger.error(`Stack trace: ${errorStack}`)
-      }
-      
-      // Si es un error desconocido, lanzar BadRequestException con el mensaje
-      throw new BadRequestException(`Error al crear solicitud: ${errorMessage}`)
+      // Para otros errores, lanzar como InternalServerError con más contexto
+      throw new InternalServerErrorException(
+        `Error interno al crear solicitud: ${errorMessage}`
+      )
     }
   }
 
