@@ -349,24 +349,38 @@ export class InvitadoAuthService {
    * Validar invitado desde JWT payload
    */
   async validateInvitado(invitadoId: string) {
-    const invitado = await this.prisma.invitado.findUnique({
-      where: { id: invitadoId },
-      select: {
-        id: true,
-        nombre: true,
-        apellido: true,
-        email: true,
-        telefono: true,
-        sede: true,
-        fotoUrl: true,
-      },
-    })
+    try {
+      this.logger.log(`🔐 validateInvitado: Buscando invitado con ID: ${invitadoId}`)
+      
+      const invitado = await this.prisma.invitado.findUnique({
+        where: { id: invitadoId },
+        select: {
+          id: true,
+          nombre: true,
+          apellido: true,
+          email: true,
+          telefono: true,
+          sede: true,
+          fotoUrl: true,
+        },
+      })
 
-    if (!invitado) {
-      return null
+      if (!invitado) {
+        this.logger.warn(`⚠️ Invitado no encontrado con ID: ${invitadoId}`)
+        return null
+      }
+
+      this.logger.log(`✅ Invitado encontrado: ${invitado.id} (${invitado.email})`)
+      return invitado
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const errorStack = error instanceof Error ? error.stack : undefined
+      this.logger.error(`❌ Error en validateInvitado: ${errorMessage}`)
+      if (errorStack) {
+        this.logger.error(`Stack trace: ${errorStack}`)
+      }
+      throw error
     }
-
-    return invitado
   }
 
   /**

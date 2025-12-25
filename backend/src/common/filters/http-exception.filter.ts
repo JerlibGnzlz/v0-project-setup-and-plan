@@ -34,6 +34,41 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let error = 'Internal Server Error'
     let details: unknown = undefined
 
+    // Logging detallado para errores 500
+    if (!(exception instanceof HttpException) || exception.getStatus() === HttpStatus.INTERNAL_SERVER_ERROR) {
+      this.logger.error(`❌ ===== ERROR NO MANEJADO =====`)
+      this.logger.error(`❌ Path: ${request.url}`)
+      this.logger.error(`❌ Method: ${request.method}`)
+      this.logger.error(`❌ Exception type: ${exception instanceof Error ? exception.constructor.name : typeof exception}`)
+      this.logger.error(`❌ Exception instanceof Error: ${exception instanceof Error}`)
+      this.logger.error(`❌ Exception instanceof HttpException: ${exception instanceof HttpException}`)
+      
+      if (exception instanceof Error) {
+        this.logger.error(`❌ Error message: ${exception.message}`)
+        this.logger.error(`❌ Error name: ${exception.name}`)
+        if (exception.stack) {
+          this.logger.error(`❌ Stack trace:\n${exception.stack}`)
+        }
+      }
+      
+      if (exception && typeof exception === 'object') {
+        this.logger.error(`❌ Exception keys: ${Object.keys(exception).join(', ')}`)
+        if ('response' in exception) {
+          this.logger.error(`❌ Exception.response: ${JSON.stringify((exception as { response?: unknown }).response)}`)
+        }
+        if ('status' in exception) {
+          this.logger.error(`❌ Exception.status: ${(exception as { status?: unknown }).status}`)
+        }
+        if ('code' in exception) {
+          this.logger.error(`❌ Exception.code: ${(exception as { code?: unknown }).code}`)
+        }
+      }
+      
+      this.logger.error(`❌ Request body: ${JSON.stringify(request.body)}`)
+      this.logger.error(`❌ Request headers: ${JSON.stringify(request.headers)}`)
+      this.logger.error(`❌ ===== FIN ERROR NO MANEJADO =====`)
+    }
+
     // Manejar ThrottlerException (Rate Limiting)
     if (exception instanceof ThrottlerException) {
       status = HttpStatus.TOO_MANY_REQUESTS
@@ -110,6 +145,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     // Solo loguear si no es un recurso ignorado y no es un 401 esperado
     if (!shouldIgnore && !isExpected401) {
+      this.logError(exception, request, status)
+    } else if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+      // Siempre loguear errores 500, incluso si son esperados
       this.logError(exception, request, status)
     }
 
