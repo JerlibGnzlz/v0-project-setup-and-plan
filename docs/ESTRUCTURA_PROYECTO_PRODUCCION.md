@@ -275,3 +275,4 @@ import Image from 'next/image' // Ya lo usas ✅
 
 
 
+
