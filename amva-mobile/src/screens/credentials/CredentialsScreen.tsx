@@ -508,7 +508,7 @@ export function CredentialsScreen() {
                       {isInvitadoAuthenticated
                         ? 'No tienes credenciales activas asociadas a tu cuenta.\n\nSolicita tu credencial digital completando el formulario a continuación.'
                         : 'No se encontraron credenciales registradas para tu cuenta.'}
-                    </Text>
+              </Text>
                   </View>
                 </LinearGradient>
               </View>

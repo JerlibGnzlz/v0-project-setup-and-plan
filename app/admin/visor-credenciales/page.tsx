@@ -282,10 +282,10 @@ export default function VisorCredencialesPage() {
             <Bell className="w-4 h-4 mr-2" />
             Enviar Notificaciones
           </Button>
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nueva Credencial
-          </Button>
+        <Button onClick={handleCreate}>
+          <Plus className="w-4 h-4 mr-2" />
+          Nueva Credencial
+        </Button>
         </div>
       </div>
 

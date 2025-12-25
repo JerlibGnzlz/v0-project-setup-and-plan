@@ -31,12 +31,12 @@ export class InvitadoJwtAuthGuard extends AuthGuard('invitado-jwt') {
       this.logger.log(`✅ InvitadoJwtAuthGuard: JWT validado correctamente`)
 
       // Luego verificar blacklist
-      if (token) {
-        const isBlacklisted = await this.tokenBlacklist.isBlacklisted(token)
-        if (isBlacklisted) {
+    if (token) {
+      const isBlacklisted = await this.tokenBlacklist.isBlacklisted(token)
+      if (isBlacklisted) {
           this.logger.warn(`❌ InvitadoJwtAuthGuard: Token está en blacklist`)
-          throw new UnauthorizedException('Token revocado')
-        }
+        throw new UnauthorizedException('Token revocado')
+      }
         this.logger.log(`✅ InvitadoJwtAuthGuard: Token no está en blacklist`)
       }
 
