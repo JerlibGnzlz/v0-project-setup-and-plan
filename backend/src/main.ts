@@ -265,6 +265,10 @@ async function bootstrap() {
   // Global Exception Filter
   app.useGlobalFilters(new GlobalExceptionFilter())
 
+  // Global Logging Interceptor
+  const { LoggingInterceptor } = await import('./common/interceptors/logging.interceptor')
+  app.useGlobalInterceptors(new LoggingInterceptor())
+
   // Validation
   app.useGlobalPipes(
     new ValidationPipe({
@@ -273,6 +277,11 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transformOptions: {
         enableImplicitConversion: true,
+      },
+      exceptionFactory: (errors) => {
+        logger.error('❌ ValidationPipe: Error de validación')
+        logger.error(`❌ Errors: ${JSON.stringify(errors, null, 2)}`)
+        return errors
       },
     })
   )
