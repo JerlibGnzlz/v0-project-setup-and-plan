@@ -294,6 +294,7 @@ export class NotificationsService {
   /**
    * Envía una notificación a un admin (guarda en NotificationHistory y envía email)
    * Busca el pastor por email para obtener el pastorId requerido
+   * Si es admin (User), usa el primer pastor disponible como "sistema" para NotificationHistory
    */
   async sendNotificationToAdmin(
     email: string,
@@ -302,74 +303,89 @@ export class NotificationsService {
     data?: Record<string, unknown>,
   ): Promise<void> {
     try {
-      // Buscar pastor por email para obtener pastorId
-      // Si no es pastor, buscar si es admin (User) y crear un pastor temporal o usar un pastorId por defecto
-      const pastor = await this.prisma.pastor.findUnique({
+      this.logger.log(`📧 Enviando notificación a admin: ${email}`)
+      
+      // 1. Verificar si es admin (User)
+      const user = await this.prisma.user.findUnique({
         where: { email },
+        select: {
+          id: true,
+          email: true,
+          nombre: true,
+        },
       })
 
-      // Si no es pastor, buscar si es admin (User)
-      if (!pastor) {
-        const user = await this.prisma.user.findUnique({
-          where: { email },
+      // 2. Verificar si es pastor
+      const pastor = await this.prisma.pastor.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+        },
+      })
+
+      // 3. Determinar pastorId para NotificationHistory
+      let pastorIdForNotification: string | null = null
+      
+      if (pastor) {
+        // Si es pastor, usar su propio ID
+        pastorIdForNotification = pastor.id
+        this.logger.log(`✅ Admin es pastor, usando pastorId: ${pastorIdForNotification}`)
+      } else if (user) {
+        // Si es admin pero no pastor, buscar un pastor "sistema" para asociar la notificación
+        const systemPastor = await this.prisma.pastor.findFirst({
+          where: { activo: true },
+          select: { id: true },
         })
 
-        if (!user) {
-          this.logger.warn(`No se encontró usuario (pastor o admin) con email: ${email}`)
-          return
-        }
-
-        // Para admins, buscar un pastor por defecto o crear una entrada sin pastorId
-        // Por ahora, usaremos el email como referencia y crearemos una entrada especial
-        // O mejor: buscar el primer pastor disponible para asociar la notificación
-        try {
-          const firstPastor = await this.prisma.pastor.findFirst({
-            where: { activo: true },
-          })
-
-          if (!firstPastor) {
-            this.logger.warn(`No hay pastores disponibles para asociar notificación de admin: ${email}`)
-            // Intentar crear sin pastorId (si el schema lo permite) o simplemente loggear
-            this.logger.log(`📧 Notificación para admin ${email} no se guardará en NotificationHistory (no hay pastores)`)
-            // Enviar solo email si es posible
-            try {
-              await this.sendEmailToAdmin(email, title, body, data)
-            } catch (emailError: unknown) {
-              const emailErrorMessage = emailError instanceof Error ? emailError.message : 'Error desconocido'
-              this.logger.warn(`No se pudo enviar email a admin ${email}: ${emailErrorMessage}`)
-            }
-            return
-          }
-
-          // Crear notificación asociada al primer pastor (solo para estructura de BD)
-          await this.prisma.notificationHistory.create({
-            data: {
-              pastorId: firstPastor.id,
-              email,
-              title,
-              body,
-              type: (data?.type && typeof data.type === 'string' ? data.type : 'info') as string,
-              data: data ? JSON.parse(JSON.stringify(data)) : null,
-              read: false,
-            },
-          })
-          this.logger.log(`📧 Notificación guardada para admin: ${email}`)
-        } catch (dbError: unknown) {
-          const dbErrorMessage = dbError instanceof Error ? dbError.message : 'Error desconocido'
-          this.logger.error(`Error guardando notificación en BD para admin ${email}: ${dbErrorMessage}`)
-          // Intentar enviar solo email
+        if (!systemPastor) {
+          this.logger.warn(`⚠️ No hay pastores disponibles para asociar notificación de admin: ${email}`)
+          this.logger.log(`📧 Notificación para admin ${email} no se guardará en NotificationHistory (no hay pastores)`)
+          
+          // Enviar solo email y WebSocket si es posible
           try {
             await this.sendEmailToAdmin(email, title, body, data)
           } catch (emailError: unknown) {
             const emailErrorMessage = emailError instanceof Error ? emailError.message : 'Error desconocido'
             this.logger.warn(`No se pudo enviar email a admin ${email}: ${emailErrorMessage}`)
           }
+          
+          // Intentar emitir WebSocket aunque no se guarde en BD
+          if (this.notificationsGateway) {
+            try {
+              await this.notificationsGateway.emitToUser(email, {
+                id: `temp-${Date.now()}`,
+                title,
+                body,
+                type: (data?.type && typeof data.type === 'string' ? data.type : 'info') as string,
+                data: data || {},
+                read: false,
+                createdAt: new Date().toISOString(),
+              })
+              this.logger.log(`📡 WebSocket emitido para admin ${email} (sin guardar en BD)`)
+            } catch (wsError: unknown) {
+              const wsErrorMessage = wsError instanceof Error ? wsError.message : 'Error desconocido'
+              this.logger.warn(`⚠️ Error emitiendo WebSocket para admin ${email}: ${wsErrorMessage}`)
+            }
+          }
+          
+          return
         }
+
+        pastorIdForNotification = systemPastor.id
+        this.logger.log(`✅ Admin no es pastor, usando pastorId sistema: ${pastorIdForNotification}`)
       } else {
-        // Si es pastor, crear notificación normalmente
-        await this.prisma.notificationHistory.create({
+        // No es ni admin ni pastor
+        this.logger.warn(`⚠️ No se encontró usuario (pastor o admin) con email: ${email}`)
+        return
+      }
+
+      // 4. Guardar notificación en NotificationHistory
+      let notificationId: string
+      try {
+        const notification = await this.prisma.notificationHistory.create({
           data: {
-            pastorId: pastor.id,
+            pastorId: pastorIdForNotification,
             email,
             title,
             body,
@@ -378,13 +394,29 @@ export class NotificationsService {
             read: false,
           },
         })
-        this.logger.log(`📧 Notificación guardada para admin: ${email}`)
+        notificationId = notification.id
+        this.logger.log(`✅ Notificación guardada en NotificationHistory: ${notificationId} para admin ${email}`)
+      } catch (dbError: unknown) {
+        const dbErrorMessage = dbError instanceof Error ? dbError.message : 'Error desconocido'
+        const dbErrorStack = dbError instanceof Error ? dbError.stack : undefined
+        this.logger.error(`❌ Error guardando notificación en BD para admin ${email}: ${dbErrorMessage}`)
+        if (dbErrorStack) {
+          this.logger.error(`Stack trace: ${dbErrorStack}`)
+        }
         
-        // Emitir evento WebSocket para actualización en tiempo real (no bloquear si falla)
+        // Intentar enviar solo email y WebSocket
+        try {
+          await this.sendEmailToAdmin(email, title, body, data)
+        } catch (emailError: unknown) {
+          const emailErrorMessage = emailError instanceof Error ? emailError.message : 'Error desconocido'
+          this.logger.warn(`No se pudo enviar email a admin ${email}: ${emailErrorMessage}`)
+        }
+        
+        // Intentar emitir WebSocket aunque no se guarde en BD
         if (this.notificationsGateway) {
           try {
             await this.notificationsGateway.emitToUser(email, {
-              id: 'new',
+              id: `temp-${Date.now()}`,
               title,
               body,
               type: (data?.type && typeof data.type === 'string' ? data.type : 'info') as string,
@@ -392,20 +424,41 @@ export class NotificationsService {
               read: false,
               createdAt: new Date().toISOString(),
             })
-            await this.notificationsGateway.emitUnreadCountUpdate(email)
-            this.logger.log(`📡 WebSocket emitido para admin ${email}`)
+            this.logger.log(`📡 WebSocket emitido para admin ${email} (sin guardar en BD)`)
           } catch (wsError: unknown) {
             const wsErrorMessage = wsError instanceof Error ? wsError.message : 'Error desconocido'
-            const wsErrorStack = wsError instanceof Error ? wsError.stack : undefined
             this.logger.warn(`⚠️ Error emitiendo WebSocket para admin ${email}: ${wsErrorMessage}`)
-            if (wsErrorStack) {
-              this.logger.warn(`Stack trace: ${wsErrorStack}`)
-            }
-            // No lanzar error, solo loggear - la notificación ya fue guardada
           }
-        } else {
-          this.logger.warn(`⚠️ NotificationsGateway no disponible para admin ${email}`)
         }
+        
+        return
+      }
+
+      // 5. Emitir evento WebSocket para actualización en tiempo real (no bloquear si falla)
+      if (this.notificationsGateway) {
+        try {
+          await this.notificationsGateway.emitToUser(email, {
+            id: notificationId,
+            title,
+            body,
+            type: (data?.type && typeof data.type === 'string' ? data.type : 'info') as string,
+            data: data || {},
+            read: false,
+            createdAt: new Date().toISOString(),
+          })
+          await this.notificationsGateway.emitUnreadCountUpdate(email)
+          this.logger.log(`📡 WebSocket emitido para admin ${email}`)
+        } catch (wsError: unknown) {
+          const wsErrorMessage = wsError instanceof Error ? wsError.message : 'Error desconocido'
+          const wsErrorStack = wsError instanceof Error ? wsError.stack : undefined
+          this.logger.warn(`⚠️ Error emitiendo WebSocket para admin ${email}: ${wsErrorMessage}`)
+          if (wsErrorStack) {
+            this.logger.warn(`Stack trace: ${wsErrorStack}`)
+          }
+          // No lanzar error, solo loggear - la notificación ya fue guardada
+        }
+      } else {
+        this.logger.warn(`⚠️ NotificationsGateway no disponible para admin ${email}`)
       }
 
       // Enviar push notification al admin si tiene tokens registrados
