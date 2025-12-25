@@ -280,8 +280,13 @@ async function bootstrap() {
       },
       exceptionFactory: (errors) => {
         logger.error('❌ ValidationPipe: Error de validación')
-        logger.error(`❌ Errors: ${JSON.stringify(errors, null, 2)}`)
-        return errors
+        logger.error(`❌ Validation errors: ${JSON.stringify(errors, null, 2)}`)
+        // Importar BadRequestException dinámicamente para evitar problemas de circular dependency
+        const { BadRequestException } = require('@nestjs/common')
+        return new BadRequestException({
+          message: 'Error de validación',
+          errors,
+        })
       },
     })
   )
