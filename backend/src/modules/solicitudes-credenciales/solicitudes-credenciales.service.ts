@@ -80,33 +80,6 @@ export class SolicitudesCredencialesService {
 
       this.logger.log(`✅ Invitado encontrado: ${invitado.email}`)
 
-      // Verificar que el invitado tenga al menos una inscripción activa en alguna convención
-      // Esto asegura que solo usuarios que han participado en convenciones puedan solicitar credenciales
-      this.logger.log(`🔍 Verificando inscripciones del invitado ${invitadoId}...`)
-      const inscripciones = await this.prisma.inscripcion.findMany({
-        where: {
-          invitadoId,
-          estado: {
-            in: ['pendiente', 'confirmada', 'activa'],
-          },
-        },
-        select: {
-          id: true,
-          convencionId: true,
-          estado: true,
-        },
-        take: 1, // Solo necesitamos saber si existe al menos una
-      })
-
-      if (inscripciones.length === 0) {
-        this.logger.warn(`⚠️ Invitado ${invitadoId} no tiene inscripciones activas`)
-        throw new BadRequestException(
-          'Debes estar inscrito en al menos una convención para solicitar una credencial'
-        )
-      }
-
-      this.logger.log(`✅ Invitado tiene ${inscripciones.length} inscripción(es) activa(s)`)
-
       // Normalizar tipo antes de verificar solicitud existente
       const tipoString = dto.tipo === TipoCredencial.MINISTERIAL ? 'ministerial' : 'capellania'
       
