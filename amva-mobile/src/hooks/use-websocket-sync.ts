@@ -25,7 +25,7 @@ const getApiUrl = () => {
 const SERVER_URL = getApiUrl()
 const WS_URL = `${SERVER_URL}/data-sync`
 
-export type DataSyncEventType = 'credencial_updated' | 'convencion_updated' | 'convencion_created' | 'convencion_deleted'
+export type DataSyncEventType = 'credencial_updated' | 'convencion_updated' | 'convencion_created' | 'convencion_deleted' | 'solicitud_updated'
 
 export interface DataSyncEvent {
   type: DataSyncEventType
@@ -113,6 +113,16 @@ export function useWebSocketSync() {
             // Refetch inmediato
             queryClient.refetchQueries({ queryKey: ['convenciones'] })
             queryClient.refetchQueries({ queryKey: ['convencion', 'active'] })
+            break
+
+          case 'solicitud_updated':
+            console.log('🔄 Invalidando queries de solicitudes y credenciales y refetch automático')
+            queryClient.invalidateQueries({ queryKey: ['solicitudes-credenciales'] })
+            queryClient.invalidateQueries({ queryKey: ['credenciales'] })
+            queryClient.invalidateQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
+            // Refetch inmediato
+            queryClient.refetchQueries({ queryKey: ['solicitudes-credenciales', 'mis-solicitudes'] })
+            queryClient.refetchQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
             break
 
           default:

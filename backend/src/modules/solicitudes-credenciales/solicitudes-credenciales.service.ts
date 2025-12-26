@@ -14,6 +14,7 @@ import {
 } from './dto/solicitud-credencial.dto'
 import { SolicitudCredencial } from '@prisma/client'
 import { NotificationsService } from '../notifications/notifications.service'
+import { DataSyncGateway } from '../data-sync/data-sync.gateway'
 
 export interface SolicitudCredencialWithRelations extends SolicitudCredencial {
   invitado: {
@@ -42,7 +43,8 @@ export class SolicitudesCredencialesService {
 
   constructor(
     private prisma: PrismaService,
-    private notificationsService: NotificationsService
+    private notificationsService: NotificationsService,
+    private dataSyncGateway: DataSyncGateway
   ) {}
 
   /**
@@ -612,12 +614,117 @@ export class SolicitudesCredencialesService {
       },
     })
 
-    // Si se completó la solicitud, notificar al invitado
-    if (dto.estado === EstadoSolicitud.COMPLETADA) {
-      await this.notificarCredencialCompletada(updated)
+    // Emitir evento WebSocket para sincronización en tiempo real (no bloquear si falla)
+    if (dto.estado && dto.estado !== solicitud.estado) {
+      try {
+        this.dataSyncGateway.emitSolicitudUpdated(updated.id, updated.invitadoId, dto.estado)
+        this.logger.log(`📡 Evento WebSocket emitido: solicitud_updated para ${updated.id}`)
+      } catch (wsError: unknown) {
+        const wsErrorMessage = wsError instanceof Error ? wsError.message : 'Error desconocido'
+        this.logger.warn(`⚠️ Error emitiendo WebSocket: ${wsErrorMessage}`)
+        // No bloquear, solo loggear
+      }
     }
 
+    // Notificar al invitado cuando cambia el estado (en background, no bloquear)
+    setTimeout(async () => {
+      try {
+        if (dto.estado) {
+          await this.notificarCambioEstadoSolicitud(updated, dto.estado, solicitud.estado)
+        }
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+        this.logger.error(`Error notificando cambio de estado: ${errorMessage}`)
+        // No lanzar error, solo loggear
+      }
+    }, 0)
+
     return updated
+  }
+
+  /**
+   * Notificar al invitado cuando cambia el estado de su solicitud
+   */
+  private async notificarCambioEstadoSolicitud(
+    solicitud: SolicitudCredencialWithRelations,
+    nuevoEstado: EstadoSolicitud,
+    estadoAnterior: string
+  ): Promise<void> {
+    try {
+      // Solo notificar si el estado cambió
+      if (nuevoEstado === estadoAnterior) {
+        return
+      }
+
+      const tipoLabel = solicitud.tipo === TipoCredencial.MINISTERIAL ? 'Ministerial' : 'de Capellanía'
+      let titulo = ''
+      let mensaje = ''
+      let tipoNotificacion = ''
+
+      switch (nuevoEstado) {
+        case EstadoSolicitud.APROBADA:
+          titulo = `✅ Solicitud de Credencial ${tipoLabel} Aprobada`
+          mensaje = `Tu solicitud de credencial ${tipoLabel} ha sido aprobada. Pronto recibirás más información.`
+          tipoNotificacion = 'solicitud_aprobada'
+          break
+
+        case EstadoSolicitud.RECHAZADA:
+          titulo = `❌ Solicitud de Credencial ${tipoLabel} Rechazada`
+          const motivoRechazo = solicitud.observaciones || 'No se especificó motivo'
+          mensaje = `Tu solicitud de credencial ${tipoLabel} ha sido rechazada.\n\nMotivo: ${motivoRechazo}`
+          tipoNotificacion = 'solicitud_rechazada'
+          break
+
+        case EstadoSolicitud.COMPLETADA:
+          titulo = `🎉 Credencial ${tipoLabel} Lista`
+          mensaje = `Tu credencial ${tipoLabel} ha sido creada y está disponible en la app.`
+          tipoNotificacion = 'solicitud_completada'
+          break
+
+        default:
+          // No notificar para otros estados
+          return
+      }
+
+      this.logger.log(`📧 Notificando cambio de estado a invitado ${solicitud.invitado.email}`)
+
+      // Enviar notificación push
+      await this.notificationsService.sendPushNotificationToInvitado(
+        solicitud.invitado.id,
+        titulo,
+        mensaje,
+        {
+          type: tipoNotificacion,
+          solicitudId: solicitud.id,
+          tipoCredencial: solicitud.tipo,
+          estado: nuevoEstado,
+          dni: solicitud.dni,
+        }
+      )
+
+      // Enviar email de notificación
+      await this.notificationsService.sendEmailToInvitado(
+        solicitud.invitado.email,
+        titulo,
+        mensaje,
+        {
+          type: tipoNotificacion,
+          solicitudId: solicitud.id,
+          tipoCredencial: solicitud.tipo,
+          estado: nuevoEstado,
+          nombre: solicitud.invitado.nombre,
+          apellido: solicitud.invitado.apellido,
+          dni: solicitud.dni,
+          observaciones: solicitud.observaciones || null,
+        }
+      )
+
+      this.logger.log(`✅ Notificación enviada a invitado ${solicitud.invitado.email} sobre cambio de estado`)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`Error notificando cambio de estado: ${errorMessage}`)
+      // No lanzar error, solo loggear
+    }
   }
 
   /**

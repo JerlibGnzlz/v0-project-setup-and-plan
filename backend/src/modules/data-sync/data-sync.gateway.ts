@@ -14,7 +14,7 @@ interface AuthenticatedSocket extends Socket {
   tipo?: 'admin' | 'pastor' | 'invitado'
 }
 
-export type DataSyncEventType = 'credencial_updated' | 'convencion_updated' | 'convencion_created' | 'convencion_deleted'
+export type DataSyncEventType = 'credencial_updated' | 'convencion_updated' | 'convencion_created' | 'convencion_deleted' | 'solicitud_updated'
 
 export interface DataSyncEvent {
   type: DataSyncEventType

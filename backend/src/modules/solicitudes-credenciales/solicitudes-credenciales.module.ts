@@ -4,9 +4,10 @@ import { SolicitudesCredencialesService } from './solicitudes-credenciales.servi
 import { PrismaModule } from '../../prisma/prisma.module'
 import { NotificationsModule } from '../notifications/notifications.module'
 import { AuthModule } from '../auth/auth.module'
+import { DataSyncModule } from '../data-sync/data-sync.module'
 
 @Module({
-  imports: [PrismaModule, NotificationsModule, AuthModule],
+  imports: [PrismaModule, NotificationsModule, AuthModule, DataSyncModule],
   controllers: [SolicitudesCredencialesController],
   providers: [SolicitudesCredencialesService],
   exports: [SolicitudesCredencialesService],
