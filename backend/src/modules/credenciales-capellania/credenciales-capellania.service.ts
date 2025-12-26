@@ -157,6 +157,11 @@ export class CredencialesCapellaniaService extends BaseService<
       this.logger.log(
         `✅ Credencial de capellanía creada: ${dto.documento} - ${dto.nombre} ${dto.apellido}`
       )
+      if (invitadoId) {
+        this.logger.log(`✅ Credencial de capellanía asociada a invitado: ${invitadoId}`)
+      } else {
+        this.logger.warn(`⚠️ Credencial de capellanía creada sin invitadoId - no aparecerá en la app`)
+      }
 
       // Emitir evento de sincronización
       this.dataSyncGateway.emitCredencialUpdated(credencial.id, 'capellania')

@@ -218,9 +218,16 @@ export function CredencialCapellaniaEditorDialog({
           } else {
             console.warn('[CredencialEditorDialog] onCredencialCreated no está definido')
           }
-        } catch (error) {
-          console.error('[CredencialEditorDialog] Error al crear credencial:', error)
-          // El error ya se maneja en el hook con toast
+        } catch (error: unknown) {
+          console.error('[CredencialCapellaniaEditorDialog] Error al crear credencial:', error)
+          const errorMessage =
+            (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+            (error as { message?: string })?.message ||
+            'Error desconocido al crear la credencial'
+          toast.error('Error al crear la credencial de capellanía', {
+            description: errorMessage,
+          })
+          // No cerrar el dialog si hay error para que el usuario pueda corregir
         }
       }
     } catch (error) {
