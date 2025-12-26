@@ -101,11 +101,11 @@ export class CredencialesMinisterialesService extends BaseService<
         }
 
         this.logger.warn(
-          `⚠️ Intento de crear credencial duplicada: ${dto.documento} - ${dto.nombre} ${dto.apellido}`
+          `⚠️ Intento de crear credencial ministerial duplicada: ${dto.documento} - ${dto.nombre} ${dto.apellido}`
         )
 
         throw new ConflictException(
-          `Ya existe una credencial con el documento ${dto.documento}`
+          `Ya existe una credencial MINISTERIAL con el documento ${dto.documento}. Nota: Una persona puede tener credenciales ministeriales y de capellanía con el mismo DNI, pero no puede tener dos credenciales del mismo tipo.`
         )
       }
 

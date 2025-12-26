@@ -238,8 +238,12 @@ export default function SolicitudesCredencialesPage() {
 
       setShowCrearCredencialDialog(false)
       setCredencialFromSolicitud(null)
-      toast.success('Credencial creada y asociada', {
-        description: 'La credencial ha sido creada y la solicitud completada',
+      const tipoLabel =
+        credencialFromSolicitud.tipo === TipoCredencial.MINISTERIAL
+          ? 'Ministerial'
+          : 'de Capellanía'
+      toast.success(`Credencial ${tipoLabel} creada y asociada`, {
+        description: `La credencial ${tipoLabel} ha sido creada y la solicitud completada. Nota: Una persona puede tener ambas credenciales (ministerial y de capellanía) con el mismo DNI.`,
       })
     } catch (error: unknown) {
       const errorMessage =

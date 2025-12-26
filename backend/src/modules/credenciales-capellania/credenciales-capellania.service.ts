@@ -105,7 +105,7 @@ export class CredencialesCapellaniaService extends BaseService<
         )
 
         throw new ConflictException(
-          `Ya existe una credencial con el documento ${dto.documento}`
+          `Ya existe una credencial DE CAPELLANÍA con el documento ${dto.documento}. Nota: Una persona puede tener credenciales ministeriales y de capellanía con el mismo DNI, pero no puede tener dos credenciales del mismo tipo.`
         )
       }
 
