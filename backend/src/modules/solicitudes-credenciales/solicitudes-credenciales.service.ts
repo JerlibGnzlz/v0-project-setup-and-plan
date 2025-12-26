@@ -689,7 +689,7 @@ export class SolicitudesCredencialesService {
 
         case EstadoSolicitud.COMPLETADA:
           titulo = `🎉 Credencial ${tipoLabel} Lista`
-          mensaje = `Tu credencial ${tipoLabel} ha sido creada y está disponible en la app.`
+          mensaje = `Tu credencial ${tipoLabel} ha sido creada y está disponible en la app. Ábrela para verla.`
           tipoNotificacion = 'solicitud_completada'
           break
 
