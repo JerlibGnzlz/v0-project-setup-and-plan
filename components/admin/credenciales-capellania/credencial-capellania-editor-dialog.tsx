@@ -45,10 +45,20 @@ const credencialSchema = z.object({
 
 type CredencialFormData = z.infer<typeof credencialSchema>
 
+interface SolicitudCredencialData {
+  nombre: string
+  apellido: string
+  dni: string
+  nacionalidad?: string
+  fechaNacimiento?: string
+  invitadoId?: string
+}
+
 interface CredencialCapellaniaEditorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   credencial?: CredencialCapellania | null
+  solicitud?: SolicitudCredencialData | null // Datos de solicitud para pre-llenar
   editMode?: 'frente' | 'dorso' // 'frente' permite editar todo, 'dorso' solo fechaVencimiento
   onCredencialCreated?: (credencial: CredencialCapellania) => void
 }
@@ -57,9 +67,10 @@ export function CredencialCapellaniaEditorDialog({
   open,
   onOpenChange,
   credencial,
+  solicitud,
   editMode = 'frente',
   onCredencialCreated,
-}: CredencialEditorDialogProps) {
+}: CredencialCapellaniaEditorDialogProps) {
   const createMutation = useCreateCredencialCapellania()
   const updateMutation = useUpdateCredencialCapellania()
 
@@ -164,7 +175,15 @@ export function CredencialCapellaniaEditorDialog({
       } else {
         // Crear nueva credencial
         try {
-          const nuevaCredencial = await createMutation.mutateAsync(data)
+          // Si hay solicitud, incluir invitadoId
+          const createData = solicitud?.invitadoId
+            ? {
+                ...data,
+                invitadoId: solicitud.invitadoId,
+              }
+            : data
+
+          const nuevaCredencial = await createMutation.mutateAsync(createData)
 
           // Verificar que la credencial se creó correctamente
           if (!nuevaCredencial || !nuevaCredencial.id) {

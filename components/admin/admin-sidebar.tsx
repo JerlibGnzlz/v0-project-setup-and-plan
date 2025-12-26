@@ -59,22 +59,22 @@ const navigation = [
     description: 'Gestionar pagos',
   },
   {
-    name: 'Credencial de Pastores',
-    href: '/admin/visor-credenciales',
+    name: 'Credenciales Pastorales',
+    href: '/admin/credenciales-pastorales',
     icon: Shield,
-    description: 'Gestionar credenciales',
+    description: 'Gestionar credenciales pastorales',
+  },
+  {
+    name: 'Credenciales Ministeriales',
+    href: '/admin/credenciales-ministeriales',
+    icon: Shield,
+    description: 'Solicitudes y credenciales ministeriales',
   },
   {
     name: 'Credenciales de Capellanía',
-    href: '/admin/visor-credenciales-capellania',
+    href: '/admin/credenciales-capellania',
     icon: Shield,
-    description: 'Gestionar credenciales de capellanía',
-  },
-  {
-    name: 'Solicitudes de Credenciales',
-    href: '/admin/solicitudes-credenciales',
-    icon: FileText,
-    description: 'Gestionar solicitudes de credenciales',
+    description: 'Solicitudes y credenciales de capellanía',
   },
   {
     name: 'Sedes',
