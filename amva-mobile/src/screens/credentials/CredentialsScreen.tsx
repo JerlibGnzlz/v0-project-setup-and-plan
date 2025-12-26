@@ -36,6 +36,7 @@ import { useMisCredenciales, getEstadoColor, getEstadoMensaje, getCredencialTipo
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useAuth } from '@hooks/useAuth'
 import { solicitudesCredencialesApi, type SolicitudCredencial, TipoCredencial, EstadoSolicitud } from '@api/solicitudes-credenciales'
+import { useMisSolicitudes } from '@hooks/use-solicitudes-credenciales'
 import type { CredencialUnificada } from '@api/credenciales'
 import { CredencialFlipCard } from '@components/CredencialFlipCard'
 
@@ -63,8 +64,9 @@ export function CredentialsScreen() {
   const [currentStep, setCurrentStep] = useState(1)
   const [currentCredencialIndex, setCurrentCredencialIndex] = useState(0)
   const fadeAnim = React.useRef(new Animated.Value(1)).current
-  const [solicitudes, setSolicitudes] = useState<SolicitudCredencial[]>([])
-  const [loadingSolicitudes, setLoadingSolicitudes] = useState(false)
+  
+  // Usar React Query para obtener solicitudes (se actualiza automáticamente con WebSocket)
+  const { data: solicitudes = [], isLoading: loadingSolicitudes, refetch: refetchSolicitudes } = useMisSolicitudes()
   const [showSolicitarModal, setShowSolicitarModal] = useState(false)
   const [solicitandoCredencial, setSolicitandoCredencial] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -81,19 +83,16 @@ export function CredentialsScreen() {
 
   const isAuthenticated = isInvitadoAuthenticated || isPastorAuthenticated
 
-  // Cargar solicitudes si es invitado
+  // Refetch automático cuando la app vuelve a estar activa (para solicitudes también)
   useEffect(() => {
-    if (isInvitadoAuthenticated && invitado) {
-      setLoadingSolicitudes(true)
-      solicitudesCredencialesApi
-        .getMisSolicitudes()
-        .then(setSolicitudes)
-        .catch(error => {
-          console.error('Error cargando solicitudes:', error)
-        })
-        .finally(() => setLoadingSolicitudes(false))
-    }
-  }, [isInvitadoAuthenticated, invitado?.id])
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active' && isInvitadoAuthenticated) {
+        console.log('🔄 App activa, refetch de solicitudes...')
+        refetchSolicitudes()
+      }
+    })
+    return () => subscription.remove()
+  }, [isInvitadoAuthenticated, refetchSolicitudes])
 
   // Pre-llenar formulario de solicitud con datos del invitado
   useEffect(() => {
@@ -255,7 +254,7 @@ export function CredentialsScreen() {
             onPress: () => {
               setShowSolicitarModal(false)
               // Recargar solicitudes y credenciales
-              solicitudesCredencialesApi.getMisSolicitudes().then(setSolicitudes).catch(console.error)
+              refetchSolicitudes()
               refetch()
             },
           },
