@@ -213,11 +213,19 @@ export class SolicitudesCredencialesService {
         `✅ Solicitud de credencial ${dto.tipo} creada para invitado ${invitado.email} (DNI: ${dto.dni})`
       )
 
-      // Notificar a todos los admins (no bloquear si falla)
+      // Notificar a todos los admins (igual que con inscripciones)
+      // Usar setTimeout para no bloquear la respuesta
       setTimeout(async () => {
         try {
           this.logger.log('📧 Iniciando proceso de notificaciones a admins...')
-          const admins = await this.prisma.user.findMany()
+          const admins = await this.prisma.user.findMany({
+            select: {
+              id: true,
+              email: true,
+              nombre: true,
+            },
+          })
+
           if (!admins || admins.length === 0) {
             this.logger.warn('⚠️ No hay admins para notificar')
             return
@@ -226,20 +234,27 @@ export class SolicitudesCredencialesService {
           this.logger.log(`📧 Encontrados ${admins.length} admin(s) para notificar`)
 
           const tipoLabel = dto.tipo === TipoCredencial.MINISTERIAL ? 'Ministerial' : 'de Capellanía'
+          const titulo = 'Nueva Solicitud de Credencial'
+          const mensaje = `${invitado.nombre} ${invitado.apellido} (${invitado.email}) ha solicitado una credencial ${tipoLabel}.\n\nDNI: ${dto.dni}\nMotivo: ${dto.motivo || 'No especificado'}`
 
+          // Enviar notificaciones a todos los admins en paralelo
           const notificationPromises = admins.map(async (admin) => {
             try {
               this.logger.log(`📧 Enviando notificación a admin ${admin.email}...`)
               await this.notificationsService.sendNotificationToAdmin(
                 admin.email,
-                'Nueva Solicitud de Credencial',
-                `${invitado.nombre} ${invitado.apellido} (${invitado.email}) ha solicitado una credencial ${tipoLabel}.\n\nDNI: ${dto.dni}\nMotivo: ${dto.motivo || 'No especificado'}`,
+                titulo,
+                mensaje,
                 {
-                  tipo: 'solicitud_credencial',
+                  type: 'solicitud_credencial',
                   solicitudId: solicitud.id,
                   invitadoId,
+                  invitadoEmail: invitado.email,
+                  invitadoNombre: invitado.nombre,
+                  invitadoApellido: invitado.apellido,
                   tipoCredencial: dto.tipo,
                   dni: dto.dni,
+                  motivo: dto.motivo || null,
                 }
               )
               this.logger.log(`✅ Notificación enviada a admin ${admin.email}`)
@@ -250,11 +265,12 @@ export class SolicitudesCredencialesService {
               if (errorStack) {
                 this.logger.warn(`Stack trace: ${errorStack}`)
               }
+              // No lanzar error, solo loggear - la solicitud ya fue creada exitosamente
             }
           })
 
           await Promise.allSettled(notificationPromises)
-          this.logger.log('✅ Proceso de notificaciones completado')
+          this.logger.log(`✅ Proceso de notificaciones completado para ${admins.length} admin(s)`)
         } catch (notificationError: unknown) {
           const errorMessage = notificationError instanceof Error ? notificationError.message : 'Error desconocido'
           const errorStack = notificationError instanceof Error ? notificationError.stack : undefined
@@ -262,6 +278,7 @@ export class SolicitudesCredencialesService {
           if (errorStack) {
             this.logger.error(`Stack trace: ${errorStack}`)
           }
+          // No lanzar error, la solicitud ya fue creada exitosamente
         }
       }, 0)
 
@@ -316,55 +333,83 @@ export class SolicitudesCredencialesService {
    */
   async findByInvitadoId(invitadoId: string): Promise<SolicitudCredencial[]> {
     try {
-      this.logger.log(`Buscando solicitudes para invitado ${invitadoId}`)
+      this.logger.log(`🔍 Buscando solicitudes para invitado ${invitadoId}`)
       
-      const solicitudes = await this.prisma.solicitudCredencial.findMany({
+      // Primero intentar sin includes para evitar problemas con relaciones
+      const solicitudesSimples = await this.prisma.solicitudCredencial.findMany({
         where: { invitadoId },
-        include: {
-          credencialMinisterial: {
-            select: {
-              id: true,
-              documento: true,
-              nombre: true,
-              apellido: true,
-              fechaVencimiento: true,
-              activa: true,
-            },
-          },
-          credencialCapellania: {
-            select: {
-              id: true,
-              documento: true,
-              nombre: true,
-              apellido: true,
-              fechaVencimiento: true,
-              activa: true,
-            },
-          },
-        },
         orderBy: { createdAt: 'desc' },
       })
 
-      this.logger.log(`✅ Encontradas ${solicitudes.length} solicitudes para invitado ${invitadoId}`)
-      return solicitudes
+      this.logger.log(`✅ Encontradas ${solicitudesSimples.length} solicitudes para invitado ${invitadoId}`)
+      
+      // Si hay solicitudes, intentar obtener las relaciones de forma segura
+      if (solicitudesSimples.length > 0) {
+        try {
+          const solicitudesConRelaciones = await Promise.all(
+            solicitudesSimples.map(async (solicitud) => {
+              const credencialMinisterial = solicitud.credencialMinisterialId
+                ? await this.prisma.credencialMinisterial.findUnique({
+                    where: { id: solicitud.credencialMinisterialId },
+                    select: {
+                      id: true,
+                      documento: true,
+                      nombre: true,
+                      apellido: true,
+                      fechaVencimiento: true,
+                      activa: true,
+                    },
+                  }).catch(() => null)
+                : null
+
+              const credencialCapellania = solicitud.credencialCapellaniaId
+                ? await this.prisma.credencialCapellania.findUnique({
+                    where: { id: solicitud.credencialCapellaniaId },
+                    select: {
+                      id: true,
+                      documento: true,
+                      nombre: true,
+                      apellido: true,
+                      fechaVencimiento: true,
+                      activa: true,
+                    },
+                  }).catch(() => null)
+                : null
+
+              return {
+                ...solicitud,
+                credencialMinisterial,
+                credencialCapellania,
+              }
+            })
+          )
+
+          return solicitudesConRelaciones as SolicitudCredencial[]
+        } catch (relationError: unknown) {
+          const relationErrorMessage = relationError instanceof Error ? relationError.message : 'Error desconocido'
+          this.logger.warn(`⚠️ Error obteniendo relaciones, retornando solicitudes simples: ${relationErrorMessage}`)
+          return solicitudesSimples as SolicitudCredencial[]
+        }
+      }
+
+      return solicitudesSimples as SolicitudCredencial[]
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-      this.logger.error(`Error obteniendo solicitudes para invitado ${invitadoId}: ${errorMessage}`)
+      const errorStack = error instanceof Error ? error.stack : undefined
       
-      // Si hay un error con las relaciones, intentar sin includes
-      try {
-        this.logger.warn('Intentando obtener solicitudes sin relaciones...')
-        const solicitudesSimples = await this.prisma.solicitudCredencial.findMany({
-          where: { invitadoId },
-          orderBy: { createdAt: 'desc' },
-        })
-        this.logger.log(`✅ Obtenidas ${solicitudesSimples.length} solicitudes sin relaciones`)
-        return solicitudesSimples as SolicitudCredencial[]
-      } catch (fallbackError: unknown) {
-        const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : 'Error desconocido'
-        this.logger.error(`Error en fallback al obtener solicitudes: ${fallbackMessage}`)
-        throw new BadRequestException(`Error obteniendo solicitudes: ${errorMessage}`)
+      this.logger.error(`❌ Error obteniendo solicitudes para invitado ${invitadoId}: ${errorMessage}`)
+      if (errorStack) {
+        this.logger.error(`Stack trace: ${errorStack}`)
       }
+      
+      // Si es un error de Prisma, proporcionar más detalles
+      if (error && typeof error === 'object' && 'code' in error) {
+        const prismaError = error as { code?: string; meta?: unknown }
+        this.logger.error(`Prisma error code: ${prismaError.code}`)
+        this.logger.error(`Prisma error meta: ${JSON.stringify(prismaError.meta)}`)
+      }
+      
+      throw new BadRequestException(`Error obteniendo solicitudes: ${errorMessage}`)
     }
   }
 
