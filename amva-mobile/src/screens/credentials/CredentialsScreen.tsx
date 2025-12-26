@@ -551,12 +551,38 @@ export function CredentialsScreen() {
         {/* Credenciales encontradas */}
         {!isLoading && !error && data?.tieneCredenciales && credencialesList.length > 0 && (
           <>
+            {/* Información de credenciales disponibles */}
+            <View style={styles.credencialesInfoContainer}>
+              <Text style={styles.credencialesInfoTitle}>
+                {credencialesList.length === 1
+                  ? '1 Credencial Disponible'
+                  : `${credencialesList.length} Credenciales Disponibles`}
+              </Text>
+              <View style={styles.credencialesTypesContainer}>
+                {credencialesList.some(c => c.tipo === 'ministerial') && (
+                  <View style={styles.credencialTypeBadge}>
+                    <Text style={styles.credencialTypeText}>
+                      {credencialesList.filter(c => c.tipo === 'ministerial').length}x Ministerial
+                    </Text>
+                  </View>
+                )}
+                {credencialesList.some(c => c.tipo === 'capellania') && (
+                  <View style={[styles.credencialTypeBadge, styles.credencialTypeBadgeCapellania]}>
+                    <Text style={styles.credencialTypeText}>
+                      {credencialesList.filter(c => c.tipo === 'capellania').length}x Capellanía
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
             {/* Progress Steps */}
             <View style={styles.stepsContainer}>
               {Array.from({ length: totalSteps }).map((_, index) => {
                 const stepNumber = index + 1
                 const isCompleted = stepNumber < currentStep
                 const isActive = stepNumber === currentStep
+                const credencialActual = credencialesList[stepNumber - 2]
 
                 return (
                   <View key={stepNumber} style={styles.stepRow}>
@@ -566,6 +592,7 @@ export function CredentialsScreen() {
                           styles.stepCircle,
                           isCompleted && styles.stepCircleCompleted,
                           isActive && styles.stepCircleActive,
+                          credencialActual?.tipo === 'capellania' && styles.stepCircleCapellania,
                         ]}
                       >
                         <Text
@@ -587,7 +614,7 @@ export function CredentialsScreen() {
                         <Text style={styles.stepDescription}>
                           {stepNumber === 1
                             ? 'Resumen de credenciales'
-                            : getCredencialTipoLegible(credencialesList[stepNumber - 2]?.tipo)}
+                            : getCredencialTipoLegible(credencialActual?.tipo || 'ministerial')}
                         </Text>
                       </View>
                     </View>
@@ -1299,6 +1326,48 @@ const styles = StyleSheet.create({
   },
   stepLineCompleted: {
     backgroundColor: '#22c55e',
+  },
+  credencialesInfoContainer: {
+    marginBottom: 20,
+    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  credencialesInfoTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  credencialesTypesContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
+  credencialTypeBadge: {
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.4)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  credencialTypeBadgeCapellania: {
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+    borderColor: 'rgba(34, 197, 94, 0.4)',
+  },
+  credencialTypeText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  stepCircleCapellania: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
   },
   solicitarButton: {
     flexDirection: 'row',
