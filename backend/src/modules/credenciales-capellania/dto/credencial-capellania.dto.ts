@@ -48,6 +48,10 @@ export class CreateCredencialCapellaniaDto {
   @IsBoolean()
   @IsOptional()
   activa?: boolean
+
+  @IsString()
+  @IsOptional()
+  invitadoId?: string
 }
 
 export class UpdateCredencialCapellaniaDto {

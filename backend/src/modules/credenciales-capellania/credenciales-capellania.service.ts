@@ -114,6 +114,31 @@ export class CredencialesCapellaniaService extends BaseService<
       const fechaNacimiento = this.parseDateString(dto.fechaNacimiento)
       const fechaVencimiento = this.parseDateString(dto.fechaVencimiento)
 
+      // Buscar si hay una solicitud pendiente para este DNI
+      let solicitudCredencial = null
+      let invitadoId = dto.invitadoId
+
+      if (!invitadoId && dto.documento) {
+        // Buscar solicitud por DNI y tipo capellanía
+        solicitudCredencial = await this.prisma.solicitudCredencial.findFirst({
+          where: {
+            dni: dto.documento,
+            tipo: 'capellania',
+            estado: 'pendiente',
+          },
+          include: {
+            invitado: true,
+          },
+        })
+
+        if (solicitudCredencial) {
+          invitadoId = solicitudCredencial.invitadoId
+          this.logger.log(
+            `📋 Solicitud de capellanía encontrada para DNI ${dto.documento}, vinculando con credencial`
+          )
+        }
+      }
+
       const credencial = await this.prisma.credencialCapellania.create({
         data: {
           apellido: dto.apellido,
@@ -125,6 +150,7 @@ export class CredencialesCapellaniaService extends BaseService<
           fechaVencimiento,
           fotoUrl: dto.fotoUrl,
           activa: dto.activa ?? true,
+          invitadoId: invitadoId || dto.invitadoId,
         },
       })
 
