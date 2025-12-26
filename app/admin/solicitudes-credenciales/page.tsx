@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
@@ -56,8 +56,13 @@ import {
   MessageSquare,
   User,
   CreditCard,
+  Plus,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { CredencialEditorDialog } from '@/components/admin/credenciales-ministeriales/credencial-editor-dialog'
+import { CredencialCapellaniaEditorDialog } from '@/components/admin/credenciales-capellania/credencial-capellania-editor-dialog'
+import { CredencialMinisterial } from '@/lib/api/credenciales-ministeriales'
+import { CredencialCapellania } from '@/lib/api/credenciales-capellania'
 
 const ESTADO_COLORS = {
   pendiente: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
@@ -88,6 +93,9 @@ export default function SolicitudesCredencialesPage() {
   const [showDetailDialog, setShowDetailDialog] = useState(false)
   const [showAprobarDialog, setShowAprobarDialog] = useState(false)
   const [showRechazarDialog, setShowRechazarDialog] = useState(false)
+  const [showCrearCredencialDialog, setShowCrearCredencialDialog] = useState(false)
+  const [credencialFromSolicitud, setCredencialFromSolicitud] =
+    useState<SolicitudCredencial | null>(null)
   const [observaciones, setObservaciones] = useState('')
 
   const { data, isLoading, error } = useSolicitudesCredenciales(
@@ -199,6 +207,48 @@ export default function SolicitudesCredencialesPage() {
     setSelectedSolicitud(solicitud)
     setObservaciones('')
     setShowRechazarDialog(true)
+  }
+
+  const handleCrearCredencialDesdeSolicitud = (solicitud: SolicitudCredencial) => {
+    setCredencialFromSolicitud(solicitud)
+    setShowCrearCredencialDialog(true)
+  }
+
+  const handleCredencialCreated = async (
+    credencial: CredencialMinisterial | CredencialCapellania
+  ) => {
+    if (!credencialFromSolicitud) return
+
+    try {
+      // Asociar credencial a la solicitud y completarla
+      const credencialId =
+        credencialFromSolicitud.tipo === TipoCredencial.MINISTERIAL
+          ? (credencial as CredencialMinisterial).id
+          : (credencial as CredencialCapellania).id
+
+      await updateMutation.mutateAsync({
+        id: credencialFromSolicitud.id,
+        dto: {
+          estado: EstadoSolicitud.COMPLETADA,
+          ...(credencialFromSolicitud.tipo === TipoCredencial.MINISTERIAL
+            ? { credencialMinisterialId: credencialId }
+            : { credencialCapellaniaId: credencialId }),
+        },
+      })
+
+      setShowCrearCredencialDialog(false)
+      setCredencialFromSolicitud(null)
+      toast.success('Credencial creada y asociada', {
+        description: 'La credencial ha sido creada y la solicitud completada',
+      })
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Error al asociar la credencial'
+      toast.error('Error al asociar la credencial', {
+        description: errorMessage,
+      })
+    }
   }
 
   const getEstadoIcon = (estado: EstadoSolicitud) => {
@@ -436,7 +486,27 @@ export default function SolicitudesCredencialesPage() {
                                 <XCircle className="mr-2 h-4 w-4" />
                                 Rechazar
                               </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCrearCredencialDesdeSolicitud(solicitud)}
+                                className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Crear Credencial
+                              </Button>
                             </>
+                          )}
+                          {solicitud.estado === EstadoSolicitud.APROBADA && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCrearCredencialDesdeSolicitud(solicitud)}
+                              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                            >
+                              <Plus className="mr-2 h-4 w-4" />
+                              Crear Credencial
+                            </Button>
                           )}
                         </div>
                       </div>
@@ -642,6 +712,66 @@ export default function SolicitudesCredencialesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Crear Credencial Dialog - Ministerial */}
+      {credencialFromSolicitud?.tipo === TipoCredencial.MINISTERIAL && (
+        <CredencialEditorDialog
+          open={showCrearCredencialDialog}
+          onOpenChange={(open) => {
+            setShowCrearCredencialDialog(open)
+            if (!open) {
+              setCredencialFromSolicitud(null)
+            }
+          }}
+          credencial={null}
+          solicitud={
+            credencialFromSolicitud
+              ? {
+                  nombre: credencialFromSolicitud.nombre,
+                  apellido: credencialFromSolicitud.apellido,
+                  dni: credencialFromSolicitud.dni,
+                  nacionalidad: credencialFromSolicitud.nacionalidad || undefined,
+                  fechaNacimiento: credencialFromSolicitud.fechaNacimiento || undefined,
+                  invitadoId: credencialFromSolicitud.invitadoId,
+                }
+              : null
+          }
+          editMode="frente"
+          onCredencialCreated={async (credencial) => {
+            await handleCredencialCreated(credencial)
+          }}
+        />
+      )}
+
+      {/* Crear Credencial Dialog - Capellanía */}
+      {credencialFromSolicitud?.tipo === TipoCredencial.CAPELLANIA && (
+        <CredencialCapellaniaEditorDialog
+          open={showCrearCredencialDialog}
+          onOpenChange={(open) => {
+            setShowCrearCredencialDialog(open)
+            if (!open) {
+              setCredencialFromSolicitud(null)
+            }
+          }}
+          credencial={null}
+          solicitud={
+            credencialFromSolicitud
+              ? {
+                  nombre: credencialFromSolicitud.nombre,
+                  apellido: credencialFromSolicitud.apellido,
+                  dni: credencialFromSolicitud.dni,
+                  nacionalidad: credencialFromSolicitud.nacionalidad || undefined,
+                  fechaNacimiento: credencialFromSolicitud.fechaNacimiento || undefined,
+                  invitadoId: credencialFromSolicitud.invitadoId,
+                }
+              : null
+          }
+          editMode="frente"
+          onCredencialCreated={async (credencial) => {
+            await handleCredencialCreated(credencial)
+          }}
+        />
+      )}
     </div>
   )
 }
