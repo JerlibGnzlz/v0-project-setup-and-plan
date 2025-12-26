@@ -45,10 +45,20 @@ const credencialSchema = z.object({
 
 type CredencialFormData = z.infer<typeof credencialSchema>
 
+interface SolicitudCredencialData {
+  nombre: string
+  apellido: string
+  dni: string
+  nacionalidad?: string
+  fechaNacimiento?: string
+  invitadoId?: string
+}
+
 interface CredencialEditorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   credencial?: CredencialMinisterial | null
+  solicitud?: SolicitudCredencialData | null // Datos de solicitud para pre-llenar
   editMode?: 'frente' | 'dorso' // 'frente' permite editar todo, 'dorso' solo fechaVencimiento
   onCredencialCreated?: (credencial: CredencialMinisterial) => void
 }
@@ -57,6 +67,7 @@ export function CredencialEditorDialog({
   open,
   onOpenChange,
   credencial,
+  solicitud,
   editMode = 'frente',
   onCredencialCreated,
 }: CredencialEditorDialogProps) {
@@ -90,24 +101,24 @@ export function CredencialEditorDialog({
   const fechaVencimiento = watch('fechaVencimiento')
 
   useEffect(() => {
-    if (credencial && open) {
-      // Función helper para convertir fecha a string yyyy-MM-dd
-      const formatDateToString = (date: string | Date | undefined): string => {
-        if (!date) return ''
-        if (typeof date === 'string') {
-          // Si es string ISO, extraer solo la parte de fecha
-          return date.split('T')[0]
-        }
-        if (date instanceof Date) {
-          // Si es Date, convertir a string yyyy-MM-dd
-          const year = date.getFullYear()
-          const month = String(date.getMonth() + 1).padStart(2, '0')
-          const day = String(date.getDate()).padStart(2, '0')
-          return `${year}-${month}-${day}`
-        }
-        return ''
+    // Función helper para convertir fecha a string yyyy-MM-dd
+    const formatDateToString = (date: string | Date | undefined): string => {
+      if (!date) return ''
+      if (typeof date === 'string') {
+        // Si es string ISO, extraer solo la parte de fecha
+        return date.split('T')[0]
       }
+      if (date instanceof Date) {
+        // Si es Date, convertir a string yyyy-MM-dd
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
+      }
+      return ''
+    }
 
+    if (credencial && open) {
       reset({
         apellido: credencial.apellido,
         nombre: credencial.nombre,
@@ -118,10 +129,22 @@ export function CredencialEditorDialog({
         fechaVencimiento: formatDateToString(credencial.fechaVencimiento as string | Date | undefined),
         fotoUrl: credencial.fotoUrl || '',
       })
+    } else if (solicitud && open) {
+      // Pre-llenar desde solicitud
+      reset({
+        apellido: solicitud.apellido,
+        nombre: solicitud.nombre,
+        documento: solicitud.dni,
+        nacionalidad: solicitud.nacionalidad || '',
+        fechaNacimiento: solicitud.fechaNacimiento || '',
+        tipoPastor: 'PASTOR',
+        fechaVencimiento: '',
+        fotoUrl: '',
+      })
     } else if (!open) {
       reset()
     }
-  }, [credencial, open, reset])
+  }, [credencial, solicitud, open, reset])
 
   const onSubmit = async (data: CredencialFormData) => {
     try {
@@ -164,7 +187,16 @@ export function CredencialEditorDialog({
       } else {
         // Crear nueva credencial
         try {
-          const nuevaCredencial = await createMutation.mutateAsync(data)
+          // Si hay solicitud, incluir invitadoId y solicitudCredencialId
+          const createData = solicitud
+            ? {
+                ...data,
+                invitadoId: solicitud.invitadoId,
+                solicitudCredencialId: undefined, // Se asociará después
+              }
+            : data
+
+          const nuevaCredencial = await createMutation.mutateAsync(createData)
 
           // Verificar que la credencial se creó correctamente
           if (!nuevaCredencial || !nuevaCredencial.id) {
