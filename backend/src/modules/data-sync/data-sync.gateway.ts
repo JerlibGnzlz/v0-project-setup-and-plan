@@ -171,5 +171,20 @@ export class DataSyncGateway implements OnGatewayConnection, OnGatewayDisconnect
       timestamp: Date.now(),
     })
   }
+
+  /**
+   * Emite evento de actualización de solicitud de credencial
+   */
+  emitSolicitudUpdated(solicitudId: string, invitadoId: string, estado: string) {
+    this.emitDataSyncEvent({
+      type: 'solicitud_updated',
+      data: {
+        solicitudId,
+        invitadoId,
+        estado,
+      },
+      timestamp: Date.now(),
+    })
+  }
 }
 
