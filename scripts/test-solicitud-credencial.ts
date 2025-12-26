@@ -17,18 +17,7 @@ import axios from 'axios'
 
 const API_BASE_URL = process.env.API_BASE_URL || 'https://ministerio-backend-wdbj.onrender.com/api'
 const INVITADO_EMAIL = process.env.TEST_INVITADO_EMAIL || 'jerlibgv@gmail.com'
-const INVITADO_PASSWORD = process.env.TEST_INVITADO_PASSWORD || ''
-
-// Verificar que se proporcionen credenciales
-if (!INVITADO_PASSWORD) {
-  console.error('\n❌ ERROR: No se proporcionó TEST_INVITADO_PASSWORD')
-  console.error('\n📝 Uso:')
-  console.error('  TEST_INVITADO_EMAIL=tu_email@example.com \\')
-  console.error('  TEST_INVITADO_PASSWORD=tu_password \\')
-  console.error('  npm run test:solicitud-credencial')
-  console.error('\n💡 O configura las variables de entorno antes de ejecutar')
-  process.exit(1)
-}
+const INVITADO_PASSWORD = process.env.TEST_INVITADO_PASSWORD || 'test123'
 
 interface TestResult {
   step: string
