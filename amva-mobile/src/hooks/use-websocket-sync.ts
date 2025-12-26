@@ -117,11 +117,12 @@ export function useWebSocketSync() {
 
           case 'solicitud_updated':
             console.log('🔄 Invalidando queries de solicitudes y credenciales y refetch automático')
+            // Invalidar todas las queries relacionadas con solicitudes y credenciales
             queryClient.invalidateQueries({ queryKey: ['solicitudes-credenciales'] })
             queryClient.invalidateQueries({ queryKey: ['credenciales'] })
             queryClient.invalidateQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
-            // Refetch inmediato
-            queryClient.refetchQueries({ queryKey: ['solicitudes-credenciales', 'mis-solicitudes'] })
+            // Refetch inmediato para actualizar la UI
+            queryClient.refetchQueries({ queryKey: ['solicitudes-credenciales'] })
             queryClient.refetchQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
             break
 
