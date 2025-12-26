@@ -614,6 +614,30 @@ export class SolicitudesCredencialesService {
       },
     })
 
+    // Si se completó la solicitud y tiene credencial asociada, actualizar el invitadoId en la credencial
+    if (dto.estado === EstadoSolicitud.COMPLETADA) {
+      try {
+        if (updated.credencialMinisterialId && updated.invitadoId) {
+          await this.prisma.credencialMinisterial.update({
+            where: { id: updated.credencialMinisterialId },
+            data: { invitadoId: updated.invitadoId },
+          })
+          this.logger.log(`✅ Credencial ministerial ${updated.credencialMinisterialId} asociada a invitado ${updated.invitadoId}`)
+        }
+        if (updated.credencialCapellaniaId && updated.invitadoId) {
+          await this.prisma.credencialCapellania.update({
+            where: { id: updated.credencialCapellaniaId },
+            data: { invitadoId: updated.invitadoId },
+          })
+          this.logger.log(`✅ Credencial de capellanía ${updated.credencialCapellaniaId} asociada a invitado ${updated.invitadoId}`)
+        }
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+        this.logger.error(`Error asociando credencial a invitado: ${errorMessage}`)
+        // No lanzar error, solo loggear - la solicitud ya se actualizó
+      }
+    }
+
     // Emitir evento WebSocket para sincronización en tiempo real (no bloquear si falla)
     if (dto.estado && dto.estado !== solicitud.estado) {
       try {
