@@ -30,14 +30,26 @@ export class InvitadoJwtAuthGuard extends AuthGuard('invitado-jwt') {
 
       this.logger.log(`✅ InvitadoJwtAuthGuard: JWT validado correctamente`)
 
-      // Luego verificar blacklist
-    if (token) {
-      const isBlacklisted = await this.tokenBlacklist.isBlacklisted(token)
-      if (isBlacklisted) {
-          this.logger.warn(`❌ InvitadoJwtAuthGuard: Token está en blacklist`)
-        throw new UnauthorizedException('Token revocado')
-      }
-        this.logger.log(`✅ InvitadoJwtAuthGuard: Token no está en blacklist`)
+      // Luego verificar blacklist (solo si el servicio está disponible)
+      if (token && this.tokenBlacklist) {
+        try {
+          const isBlacklisted = await this.tokenBlacklist.isBlacklisted(token)
+          if (isBlacklisted) {
+            this.logger.warn(`❌ InvitadoJwtAuthGuard: Token está en blacklist`)
+            throw new UnauthorizedException('Token revocado')
+          }
+          this.logger.log(`✅ InvitadoJwtAuthGuard: Token no está en blacklist`)
+        } catch (blacklistError: unknown) {
+          // Si hay un error al verificar blacklist (ej: Redis no disponible), permitir el acceso
+          // pero loguear el error para debugging
+          const errorMessage = blacklistError instanceof Error ? blacklistError.message : 'Error desconocido'
+          if (blacklistError instanceof UnauthorizedException) {
+            // Re-lanzar si es UnauthorizedException (token en blacklist)
+            throw blacklistError
+          }
+          this.logger.warn(`⚠️ Error al verificar blacklist: ${errorMessage}`)
+          // Continuar con la autenticación si el error no es de blacklist
+        }
       }
 
       this.logger.log(`✅ InvitadoJwtAuthGuard: Autenticación exitosa`)
