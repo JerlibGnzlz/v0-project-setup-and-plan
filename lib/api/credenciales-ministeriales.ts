@@ -27,6 +27,8 @@ export interface CreateCredencialMinisterialDto {
   fechaVencimiento: string
   fotoUrl?: string
   activa?: boolean
+  invitadoId?: string
+  solicitudCredencialId?: string
 }
 
 export interface UpdateCredencialMinisterialDto {

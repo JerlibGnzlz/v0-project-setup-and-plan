@@ -668,8 +668,25 @@ export default function CredencialesMinisterialesPage() {
       {/* Crear Credencial Dialog */}
       <CredencialEditorDialog
         open={showCrearCredencialDialog}
-        onOpenChange={setShowCrearCredencialDialog}
+        onOpenChange={(open) => {
+          setShowCrearCredencialDialog(open)
+          if (!open) {
+            setCredencialFromSolicitud(null)
+          }
+        }}
         credencial={null}
+        solicitud={
+          credencialFromSolicitud
+            ? {
+                nombre: credencialFromSolicitud.nombre,
+                apellido: credencialFromSolicitud.apellido,
+                dni: credencialFromSolicitud.dni,
+                nacionalidad: credencialFromSolicitud.nacionalidad || undefined,
+                fechaNacimiento: credencialFromSolicitud.fechaNacimiento || undefined,
+                invitadoId: credencialFromSolicitud.invitadoId,
+              }
+            : null
+        }
         editMode="frente"
         onCredencialCreated={async (credencial) => {
           if (credencialFromSolicitud) {
