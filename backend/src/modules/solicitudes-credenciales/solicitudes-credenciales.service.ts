@@ -619,6 +619,18 @@ export class SolicitudesCredencialesService {
       try {
         this.dataSyncGateway.emitSolicitudUpdated(updated.id, updated.invitadoId, dto.estado)
         this.logger.log(`📡 Evento WebSocket emitido: solicitud_updated para ${updated.id}`)
+        
+        // Si la solicitud se completó y tiene una credencial asociada, emitir también evento de credencial actualizada
+        if (dto.estado === EstadoSolicitud.COMPLETADA) {
+          if (updated.credencialMinisterialId) {
+            this.dataSyncGateway.emitCredencialUpdated(updated.credencialMinisterialId, 'ministerial')
+            this.logger.log(`📡 Evento WebSocket emitido: credencial_updated (ministerial) para ${updated.credencialMinisterialId}`)
+          }
+          if (updated.credencialCapellaniaId) {
+            this.dataSyncGateway.emitCredencialUpdated(updated.credencialCapellaniaId, 'capellania')
+            this.logger.log(`📡 Evento WebSocket emitido: credencial_updated (capellania) para ${updated.credencialCapellaniaId}`)
+          }
+        }
       } catch (wsError: unknown) {
         const wsErrorMessage = wsError instanceof Error ? wsError.message : 'Error desconocido'
         this.logger.warn(`⚠️ Error emitiendo WebSocket: ${wsErrorMessage}`)
