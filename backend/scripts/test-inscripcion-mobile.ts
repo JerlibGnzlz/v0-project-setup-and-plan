@@ -45,7 +45,9 @@ async function main() {
         console.log('🔧 Inicializando servicios...')
         const prismaService = new PrismaService()
         const emailService = new EmailService()
-        const notificationsService = new NotificationsService(prismaService, emailService)
+        // NotificationsService requiere NotificationsGateway, pero en scripts podemos pasar null
+        // ya que no necesitamos WebSocket para pruebas
+        const notificationsService = new NotificationsService(prismaService, emailService, null as any)
         const eventEmitter = new EventEmitter2()
         const auditService = new AuditService(prismaService)
 

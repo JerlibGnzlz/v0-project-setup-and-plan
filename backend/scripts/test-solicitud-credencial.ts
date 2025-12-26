@@ -63,17 +63,22 @@ async function testLoginInvitado(): Promise<{ token: string; refreshToken: strin
       password: INVITADO_PASSWORD,
     })
 
-    if (response.data && response.data.token && response.data.invitado) {
+    // La API puede devolver 'token' o 'access_token'
+    const token = response.data.token || response.data.access_token
+    const refreshToken = response.data.refreshToken || response.data.refresh_token || ''
+    const invitado = response.data.invitado || response.data.user
+
+    if (token && invitado) {
       logResult(
         'Login de invitado',
         true,
         `Login exitoso para ${INVITADO_EMAIL}`,
-        { invitadoId: response.data.invitado.id }
+        { invitadoId: invitado.id }
       )
       return {
-        token: response.data.token,
-        refreshToken: response.data.refreshToken || '',
-        invitadoId: response.data.invitado.id,
+        token,
+        refreshToken,
+        invitadoId: invitado.id,
       }
     }
 

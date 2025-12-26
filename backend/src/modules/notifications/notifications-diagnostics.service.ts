@@ -207,7 +207,7 @@ export class NotificationsDiagnosticsService {
         diasRestantes: number
       }> = []
 
-      const credencialesMinisterialesConInvitado = await this.prisma.credencialMinisterial.findMany({
+      const credencialesMinisterialesConInvitadoList = await this.prisma.credencialMinisterial.findMany({
         where: {
           activa: true,
           invitadoId: { not: null },
@@ -231,7 +231,7 @@ export class NotificationsDiagnosticsService {
         },
       })
 
-      for (const credencial of credencialesMinisterialesConInvitado) {
+      for (const credencial of credencialesMinisterialesConInvitadoList) {
         if (credencial.invitado) {
           const diasRestantes = Math.ceil(
             (credencial.fechaVencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24),
@@ -256,7 +256,7 @@ export class NotificationsDiagnosticsService {
         }
       }
 
-      const credencialesCapellaniaConInvitado = await this.prisma.credencialCapellania.findMany({
+      const credencialesCapellaniaConInvitadoList = await this.prisma.credencialCapellania.findMany({
         where: {
           activa: true,
           invitadoId: { not: null },
@@ -280,7 +280,7 @@ export class NotificationsDiagnosticsService {
         },
       })
 
-      for (const credencial of credencialesCapellaniaConInvitado) {
+      for (const credencial of credencialesCapellaniaConInvitadoList) {
         if (credencial.invitado) {
           const diasRestantes = Math.ceil(
             (credencial.fechaVencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24),

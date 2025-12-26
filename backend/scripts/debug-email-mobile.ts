@@ -38,7 +38,9 @@ async function main() {
 
     // 3. Verificar NotificationsService
     console.log('3️⃣ Verificando NotificationsService...')
-    const notificationsService = new NotificationsService(prismaService, emailService)
+    // NotificationsService requiere NotificationsGateway, pero en scripts podemos pasar null
+    // ya que no necesitamos WebSocket para pruebas
+    const notificationsService = new NotificationsService(prismaService, emailService, null as any)
     console.log('   ✅ NotificationsService inicializado\n')
 
     // 4. Verificar InscripcionesService con NotificationsService
