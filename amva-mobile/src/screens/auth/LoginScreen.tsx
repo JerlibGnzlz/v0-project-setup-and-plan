@@ -165,7 +165,7 @@ export function LoginScreen() {
       if (error instanceof Error) {
         // Manejar DEVELOPER_ERROR específicamente
         if (error.message.includes('DEVELOPER_ERROR')) {
-          errorMessage = 'Error de configuración: El SHA-1 del keystore no está configurado en Google Cloud Console.\n\nConsulta docs/FIX_GOOGLE_SIGNIN_EMULADOR.md para resolverlo.'
+          errorMessage = 'Error de configuración: El SHA-1 del keystore no está configurado en Google Cloud Console.\n\nSHA-1 requerido: BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3\n\nConsulta docs/SHA1_CORRECTO_GOOGLE_OAUTH.md para más detalles.'
         } else {
           errorMessage = error.message
         }

@@ -212,12 +212,12 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
             errorMessage = 'Se requiere iniciar sesión'
             break
           case '10': // DEVELOPER_ERROR
-            errorMessage = 'DEVELOPER_ERROR: Verifica que el SHA-1 esté configurado en Google Cloud Console. Consulta la documentación para más detalles.'
+            errorMessage = 'DEVELOPER_ERROR: El SHA-1 del keystore no está configurado en Google Cloud Console.\n\nSHA-1 requerido: BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3\n\nConsulta docs/SHA1_CORRECTO_GOOGLE_OAUTH.md para más detalles.'
             break
           default:
             // Si el mensaje contiene DEVELOPER_ERROR, proporcionar ayuda específica
             if (googleError.message?.includes('DEVELOPER_ERROR') || googleError.code === '10') {
-              errorMessage = 'DEVELOPER_ERROR: El SHA-1 del keystore no está configurado en Google Cloud Console. Consulta docs/FIX_GOOGLE_SIGNIN_EMULADOR.md para resolverlo.'
+              errorMessage = 'DEVELOPER_ERROR: El SHA-1 del keystore no está configurado en Google Cloud Console.\n\nSHA-1 requerido: BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3\n\nConsulta docs/SHA1_CORRECTO_GOOGLE_OAUTH.md para más detalles.'
             } else {
               errorMessage = googleError.message || `Error desconocido: ${googleError.code}`
             }
@@ -225,7 +225,7 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
       } else if (err instanceof Error) {
         // Verificar si el mensaje contiene DEVELOPER_ERROR
         if (err.message.includes('DEVELOPER_ERROR')) {
-          errorMessage = 'DEVELOPER_ERROR: El SHA-1 del keystore no está configurado en Google Cloud Console. Consulta docs/FIX_GOOGLE_SIGNIN_EMULADOR.md para resolverlo.'
+          errorMessage = 'DEVELOPER_ERROR: El SHA-1 del keystore no está configurado en Google Cloud Console.\n\nSHA-1 requerido: BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3\n\nConsulta docs/SHA1_CORRECTO_GOOGLE_OAUTH.md para más detalles.'
         } else {
           errorMessage = err.message
         }
