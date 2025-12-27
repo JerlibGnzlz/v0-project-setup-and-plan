@@ -110,7 +110,7 @@ export default function CredencialesMinisterialesPage() {
     TipoCredencial.MINISTERIAL
   )
 
-  // Credenciales ministeriales
+  // Credenciales pastorales
   const { data: credencialesData, isLoading: loadingCredenciales } = useCredencialesMinisteriales(
     1,
     50
@@ -260,9 +260,9 @@ export default function CredencialesMinisterialesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Credenciales Ministeriales</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Credenciales Pastorales</h1>
           <p className="text-muted-foreground">
-            Gestiona solicitudes y credenciales ministeriales en un solo lugar
+            Gestiona solicitudes y credenciales pastorales en un solo lugar
           </p>
         </div>
         <div className="flex gap-2">
@@ -479,7 +479,7 @@ export default function CredencialesMinisterialesPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Credenciales Creadas</h1>
           <p className="text-muted-foreground">
-            Visualiza y gestiona todas las credenciales ministeriales creadas
+            Visualiza y gestiona todas las credenciales pastorales creadas
           </p>
         </div>
         <div className="flex gap-2">

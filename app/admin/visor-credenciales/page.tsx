@@ -274,7 +274,7 @@ export default function VisorCredencialesPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Credencial de Pastores</h1>
           <p className="text-muted-foreground">
-            Gestiona las credenciales ministeriales físicas para impresión
+            Gestiona las credenciales pastorales físicas para impresión
           </p>
         </div>
         <div className="flex gap-2">
@@ -411,7 +411,7 @@ export default function VisorCredencialesPage() {
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">
-                No hay credenciales ministeriales
+                No hay credenciales pastorales
               </h3>
               <p className="text-sm text-muted-foreground mb-6">
                 {total === 0

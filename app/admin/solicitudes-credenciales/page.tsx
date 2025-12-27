@@ -277,7 +277,7 @@ export default function SolicitudesCredencialesPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Solicitudes de Credenciales</h1>
           <p className="text-muted-foreground">
-            Gestiona las solicitudes de credenciales ministeriales y de capellanía
+            Gestiona las solicitudes de credenciales pastorales y de capellanía
           </p>
         </div>
       </div>
