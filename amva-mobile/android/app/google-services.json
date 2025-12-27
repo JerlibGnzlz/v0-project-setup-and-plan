@@ -12,7 +12,23 @@
           "package_name": "org.vidaabundante.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "378853205278-c2e1gcjn06mg857rcvprns01fu8pduat.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.vidaabundante.app",
+            "certificate_hash": [
+              "4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40",
+              "BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3"
+            ]
+          }
+        },
+        {
+          "client_id": "378853205278-slllh10l32onum338rg1776g8itekvco.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBZOCA28SltY5zCO38AgBEWWraPGN-DSQM"
