@@ -72,14 +72,22 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
         }
 
         // Configurar Google Sign-In
-        // Para Android, usar el webClientId (que debe ser el Client ID de Android con SHA-1 configurado)
-        // Para iOS, usar iosClientId si está disponible
+        // IMPORTANTE: Para Android, usar el Android Client ID específico
+        // El webClientId debe ser el Client ID de Android (no el Web Client ID)
+        const androidClientId = Platform.OS === 'android' 
+          ? (Constants?.expoConfig?.extra?.googleAndroidClientId ||
+             Constants?.manifest?.extra?.googleAndroidClientId ||
+             googleClientId)
+          : googleClientId
+        
         GoogleSignin.configure({
-          webClientId: googleClientId, // Para Android: debe ser el Client ID de Android con SHA-1. Para iOS: Client ID de iOS
+          webClientId: androidClientId, // Para Android: usar Android Client ID específico
           offlineAccess: true, // Permite obtener refresh token
           forceCodeForRefreshToken: true, // Fuerza código para refresh token
           iosClientId: Platform.OS === 'ios' ? googleClientId : undefined, // iOS Client ID si es diferente
         })
+        
+        console.log('🔍 Configurando con Android Client ID:', androidClientId.substring(0, 30) + '...')
         
         console.log('🔍 Google Sign-In configurado con:', {
           platform: Platform.OS,
