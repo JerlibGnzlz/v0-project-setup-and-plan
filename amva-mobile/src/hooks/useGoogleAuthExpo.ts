@@ -64,14 +64,15 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
       console.log('🔍 Client ID:', clientId)
 
       // Configurar la solicitud de autenticación
-      // Usar ResponseType.Code con PKCE (compatible con Google OAuth)
+      // Cuando usamos proxy de Expo, podemos usar ResponseType.IdToken directamente
+      // El proxy maneja el intercambio automáticamente
       const request = new AuthSession.AuthRequest({
         clientId,
         scopes: ['openid', 'profile', 'email'],
-        responseType: AuthSession.ResponseType.Code,
+        responseType: AuthSession.ResponseType.IdToken,
         redirectUri,
-        // PKCE es requerido y se maneja automáticamente por expo-auth-session
-        usePKCE: true,
+        // Con proxy de Expo, no necesitamos PKCE para IdToken
+        usePKCE: false,
       })
 
       // Configurar discovery para Google
@@ -81,61 +82,46 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
       }
 
-      console.log('🔍 Iniciando flujo OAuth con PKCE...')
+      console.log('🔍 Iniciando flujo OAuth con proxy de Expo...')
 
       // Iniciar el flujo de autenticación
-      // Usar proxy de Expo para compatibilidad con Google Cloud Console
+      // Usar proxy de Expo - maneja el intercambio automáticamente
       const result = await request.promptAsync(discovery, {
         useProxy: true,
       })
 
       if (result.type === 'success') {
-        const { code } = result.params
+        // Con proxy de Expo y ResponseType.IdToken, obtenemos el id_token directamente
+        const { id_token } = result.params
 
-        if (!code || typeof code !== 'string') {
-          throw new Error('No se recibió código de autorización en la respuesta')
+        if (id_token && typeof id_token === 'string') {
+          console.log('✅ Login con Google exitoso (expo-auth-session)')
+          console.log('🔍 Token recibido (primeros 50 caracteres):', id_token.substring(0, 50) + '...')
+          return id_token
         }
 
-        console.log('✅ Código de autorización recibido, intercambiando por id_token...')
-
-        // Intercambiar el código por un id_token
-        const tokenResponse = await fetch(discovery.tokenEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            client_id: clientId,
-            code,
-            grant_type: 'authorization_code',
-            redirect_uri: redirectUri,
-            code_verifier: request.codeVerifier || '',
-          }).toString(),
-        })
-
-        if (!tokenResponse.ok) {
-          const errorText = await tokenResponse.text()
-          console.error('❌ Error al intercambiar código:', errorText)
-          throw new Error(`Error al intercambiar código por token: ${tokenResponse.status}`)
+        // Si no hay id_token, intentar obtener access_token y luego id_token
+        const { access_token } = result.params
+        if (access_token && typeof access_token === 'string') {
+          console.log('✅ Access token recibido, obteniendo información del usuario...')
+          // Con access_token podemos obtener información del usuario
+          // Pero necesitamos id_token para el backend, así que intentamos obtenerlo
+          const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+            },
+          })
+          
+          if (userInfoResponse.ok) {
+            const userInfo = await userInfoResponse.json()
+            console.log('✅ Información del usuario obtenida:', userInfo.email)
+            // Nota: El backend necesita id_token, no access_token
+            // En este caso, podríamos necesitar usar el método alternativo
+            throw new Error('Se recibió access_token pero no id_token. El backend requiere id_token.')
+          }
         }
 
-        const tokenData = (await tokenResponse.json()) as {
-          id_token?: string
-          access_token?: string
-          error?: string
-        }
-
-        if (tokenData.error) {
-          throw new Error(`Error de Google OAuth: ${tokenData.error}`)
-        }
-
-        if (!tokenData.id_token || typeof tokenData.id_token !== 'string') {
-          throw new Error('No se recibió id_token en la respuesta del intercambio')
-        }
-
-        console.log('✅ Login con Google exitoso (expo-auth-session)')
-        console.log('🔍 Token recibido (primeros 50 caracteres):', tokenData.id_token.substring(0, 50) + '...')
-        return tokenData.id_token
+        throw new Error('No se recibió id_token en la respuesta del proxy de Expo')
       }
 
       if (result.type === 'cancel' || result.type === 'dismiss') {
