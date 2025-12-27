@@ -59,12 +59,6 @@ const navigation = [
     description: 'Gestionar pagos',
   },
   {
-    name: 'Credenciales Pastorales',
-    href: '/admin/credenciales-pastorales',
-    icon: Shield,
-    description: 'Gestionar credenciales pastorales',
-  },
-  {
     name: 'Credenciales Ministeriales',
     href: '/admin/credenciales-ministeriales',
     icon: Shield,
