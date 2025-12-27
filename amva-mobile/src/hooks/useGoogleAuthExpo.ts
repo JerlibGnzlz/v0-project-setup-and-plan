@@ -51,14 +51,21 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         throw new Error('Google Client ID no está configurado correctamente')
       }
 
+      // Generar redirect URI (usar scheme de la app para mejor compatibilidad)
+      const redirectUri = AuthSession.makeRedirectUri({
+        scheme: 'amva-app', // Debe coincidir con el scheme en app.json
+        useProxy: true, // Usar proxy de Expo para desarrollo
+      })
+
+      console.log('🔍 Redirect URI generado:', redirectUri)
+      console.log('🔍 Client ID:', clientId)
+
       // Configurar la solicitud de autenticación
       const request = new AuthSession.AuthRequest({
         clientId,
         scopes: ['openid', 'profile', 'email'],
         responseType: AuthSession.ResponseType.IdToken,
-        redirectUri: AuthSession.makeRedirectUri({
-          useProxy: true,
-        }),
+        redirectUri,
       })
 
       // Configurar discovery para Google
@@ -92,6 +99,31 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         throw cancelError
       }
 
+      // Manejar errores específicos de OAuth
+      if (result.type === 'error') {
+        const errorParams = result.params as { error?: string; error_description?: string }
+        const errorCode = errorParams.error || 'unknown_error'
+        const errorDescription = errorParams.error_description || 'Error desconocido'
+
+        console.error('❌ Error en OAuth:', errorCode, errorDescription)
+
+        // Mensaje más descriptivo para errores comunes
+        let userFriendlyMessage = errorDescription
+
+        if (errorCode === 'access_denied') {
+          userFriendlyMessage = 'Acceso denegado. Verifica que el OAuth Consent Screen esté publicado en Google Cloud Console.'
+        } else if (errorCode === 'redirect_uri_mismatch') {
+          const redirectUri = AuthSession.makeRedirectUri({ scheme: 'amva-app', useProxy: true })
+          userFriendlyMessage = `Redirect URI no autorizado.\n\nAgrega este URI en Google Cloud Console:\n${redirectUri}\n\nConsulta docs/SOLUCION_ACCESS_BLOCKED_OAUTH.md`
+        } else if (errorCode === 'invalid_client') {
+          userFriendlyMessage = 'Client ID inválido. Verifica que el Google Client ID esté configurado correctamente.'
+        }
+
+        const oauthError = new Error(`OAUTH_ERROR: ${errorCode} - ${userFriendlyMessage}`)
+        oauthError.name = 'GoogleOAuthError'
+        throw oauthError
+      }
+
       throw new Error(`Error en autenticación: ${result.type}`)
     } catch (err: unknown) {
       // Verificar si es cancelación
@@ -104,8 +136,25 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         throw cancelError
       }
 
+      // Manejar errores de OAuth específicamente
+      if (err instanceof Error && err.name === 'GoogleOAuthError') {
+        const errorMessage = err.message
+        console.error('❌ Error OAuth:', errorMessage)
+        setError(errorMessage)
+        throw err
+      }
+
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
       console.error('❌ Error en signIn con Google (expo-auth-session):', errorMessage)
+      
+      // Si el error contiene "Access blocked" o "Authorization Error", proporcionar ayuda
+      if (errorMessage.toLowerCase().includes('access blocked') || errorMessage.toLowerCase().includes('authorization error')) {
+        const redirectUri = AuthSession.makeRedirectUri({ scheme: 'amva-app', useProxy: true })
+        const helpfulMessage = `Error de autorización bloqueado.\n\nPosibles causas:\n1. Redirect URI no autorizado\n2. OAuth Consent Screen no publicado\n3. App no verificada\n\nRedirect URI requerido:\n${redirectUri}\n\nConsulta docs/SOLUCION_ACCESS_BLOCKED_OAUTH.md`
+        setError(helpfulMessage)
+        throw new Error(helpfulMessage)
+      }
+
       setError(errorMessage)
       throw err
     } finally {
