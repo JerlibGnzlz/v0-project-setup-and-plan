@@ -53,9 +53,12 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
 
       // Generar redirect URI (usar proxy de Expo para compatibilidad con Google Cloud Console)
       // Google Cloud Console solo acepta URIs con dominio (https://), no schemes personalizados
-      const redirectUri = AuthSession.makeRedirectUri({
-        useProxy: true, // Usar proxy de Expo (https://auth.expo.io) - válido para Google Cloud Console
-      })
+      // Forzar el uso del proxy de Expo explícitamente
+      const owner = Constants?.expoConfig?.owner || 'jerlibgnzlz'
+      const slug = Constants?.expoConfig?.slug || 'amva-movil'
+      const redirectUri = `https://auth.expo.io/@${owner}/${slug}`
+      
+      console.log('🔍 Redirect URI forzado (proxy de Expo):', redirectUri)
 
       console.log('🔍 Redirect URI generado:', redirectUri)
       console.log('🔍 Client ID:', clientId)
@@ -135,8 +138,8 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         return tokenData.id_token
       }
 
-      if (result.type === 'cancel') {
-        console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+      if (result.type === 'cancel' || result.type === 'dismiss') {
+        console.log('ℹ️ Usuario canceló o cerró el inicio de sesión con Google')
         const cancelError = new Error('SIGN_IN_CANCELLED')
         cancelError.name = 'GoogleSignInCancelled'
         throw cancelError
@@ -165,6 +168,14 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         const oauthError = new Error(`OAUTH_ERROR: ${errorCode} - ${userFriendlyMessage}`)
         oauthError.name = 'GoogleOAuthError'
         throw oauthError
+      }
+
+      // Manejar tipo "dismiss" (usuario cerró el navegador)
+      if (result.type === 'dismiss') {
+        console.log('ℹ️ Usuario cerró el navegador durante la autenticación')
+        const cancelError = new Error('SIGN_IN_CANCELLED')
+        cancelError.name = 'GoogleSignInCancelled'
+        throw cancelError
       }
 
       throw new Error(`Error en autenticación: ${result.type}`)
