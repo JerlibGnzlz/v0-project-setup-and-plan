@@ -19,7 +19,9 @@ Según la documentación previa, estos SHA-1 también fueron mencionados:
    4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40
    ```
    - ⚠️ Este keystore ya no existe en EAS
-   - ✅ Si tienes un APK compilado con este keystore, mantén este SHA-1 configurado
+   - ✅ **Si tienes un APK compilado con este keystore, DEBES tener este SHA-1 configurado**
+   - 📱 **Este es el SHA-1 que usa tu APK actual funcionando**
+   - 📖 Consulta `docs/APK_FUNCIONANDO_SHA1_4B24.md` para instrucciones específicas
 
 2. **Keystore nuevo** (`Z1yAtGGy9c`):
    ```
@@ -84,11 +86,31 @@ Después de agregar el SHA-1:
 
 ## 🎯 Respuesta Directa
 
-**El SHA-1 que DEBES tener configurado es:**
+### Si Tienes un APK Funcionando con SHA-1 4B:24:0F...
+
+**Si tu APK actual fue compilado con el keystore anterior, el SHA-1 que DEBES tener configurado es:**
+
+```
+4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40
+```
+
+📖 **Consulta `docs/APK_FUNCIONANDO_SHA1_4B24.md` para instrucciones paso a paso.**
+
+### Si Vas a Compilar un Nuevo APK
+
+**El SHA-1 que DEBES tener configurado para builds futuros es:**
 
 ```
 BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3
 ```
 
 Este es el SHA-1 del keystore default actual (`AXSye1dRA5`) que EAS está usando para compilar tu app.
+
+### Recomendación: Agregar Ambos
+
+**Lo ideal es tener AMBOS SHA-1 configurados** en Google Cloud Console:
+- `4B:24:0F...` para tu APK actual funcionando
+- `BC:0C:2C...` para builds futuros
+
+Puedes tener múltiples SHA-1 configurados simultáneamente.
 
