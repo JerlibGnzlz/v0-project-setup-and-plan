@@ -10,83 +10,70 @@ import {
   ImageIcon,
   CreditCard,
   UserCheck,
-  LogOut,
   ChevronRight,
   Shield,
   Globe,
-  FileText,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useAuth } from '@/lib/hooks/use-auth'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 
 const navigation = [
   {
-    name: 'Dashboard',
+    name: 'Panel de Control',
     href: '/admin',
     icon: LayoutDashboard,
-    description: 'Vista general del sistema',
+    description: 'Vista general y estadísticas',
   },
   {
     name: 'Estructura Organizacional',
     href: '/admin/pastores',
     icon: Users,
-    description: 'Gestionar pastores',
+    description: 'Gestión de líderes y pastores',
   },
   {
-    name: 'Noticias',
+    name: 'Gestión de Noticias',
     href: '/admin/noticias',
     icon: Newspaper,
-    description: 'Gestionar noticias',
+    description: 'Publicaciones y contenido',
   },
   {
-    name: 'Multimedia',
+    name: 'Galería Multimedia',
     href: '/admin/galeria',
     icon: ImageIcon,
-    description: 'Gestionar multimedia',
+    description: 'Archivos y recursos visuales',
   },
   {
-    name: 'Inscripciones',
+    name: 'Registro de Inscripciones',
     href: '/admin/inscripciones',
     icon: UserCheck,
-    description: 'Ver inscripciones',
+    description: 'Participantes y registros',
   },
   {
-    name: 'Pagos',
+    name: 'Administración de Pagos',
     href: '/admin/pagos',
     icon: CreditCard,
-    description: 'Gestionar pagos',
+    description: 'Transacciones y cuotas',
   },
   {
     name: 'Credenciales Ministeriales',
     href: '/admin/credenciales-ministeriales',
     icon: Shield,
-    description: 'Solicitudes y credenciales ministeriales',
+    description: 'Solicitudes y emisión ministerial',
   },
   {
     name: 'Credenciales de Capellanía',
     href: '/admin/credenciales-capellania',
     icon: Shield,
-    description: 'Solicitudes y credenciales de capellanía',
+    description: 'Solicitudes y emisión de capellanía',
   },
   {
-    name: 'Sedes',
+    name: 'Gestión de Sedes',
     href: '/admin/sedes',
     icon: Globe,
-    description: 'Gestionar sedes y ubicaciones',
+    description: 'Ubicaciones y oficinas',
   },
 ]
 
 export function AdminSidebar() {
   const pathname = usePathname()
-  const { logout, user } = useAuth()
-  const router = useRouter()
-
-  const handleLogout = () => {
-    logout()
-    router.push('/admin/login')
-  }
 
   return (
     <div className="hidden lg:flex lg:flex-col lg:w-72 lg:fixed lg:inset-y-0 lg:z-50 lg:pt-16">
@@ -159,31 +146,6 @@ export function AdminSidebar() {
             )
           })}
         </nav>
-
-        {/* User Section */}
-        <div className="px-4 py-4 border-t border-sky-200/50 dark:border-sky-500/20 bg-gradient-to-r from-sky-50/30 to-emerald-50/30 dark:from-sky-950/20 dark:to-emerald-950/20">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/50 dark:bg-background/50 backdrop-blur-sm border border-sky-200/30 dark:border-sky-500/20">
-            {/* Avatar con icono de Lucide */}
-            <div className="size-10 rounded-full bg-gradient-to-br from-sky-500 via-emerald-500 to-amber-500 flex items-center justify-center ring-2 ring-emerald-500/30 hover:ring-emerald-500/50 transition-all">
-              <Shield className="size-5 text-white drop-shadow-sm" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
-                {user?.nombre || 'Admin'}
-              </p>
-              <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="w-full mt-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Cerrar Sesión
-          </Button>
-        </div>
       </div>
     </div>
   )
