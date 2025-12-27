@@ -62,11 +62,15 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
       console.log('🔍 Client ID:', clientId)
 
       // Configurar la solicitud de autenticación
+      // IMPORTANTE: Para ResponseType.IdToken, NO usar PKCE (code_challenge_method)
       const request = new AuthSession.AuthRequest({
         clientId,
         scopes: ['openid', 'profile', 'email'],
         responseType: AuthSession.ResponseType.IdToken,
         redirectUri,
+        // Deshabilitar PKCE explícitamente para evitar error "code_challenge_method"
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
       })
 
       // Configurar discovery para Google
