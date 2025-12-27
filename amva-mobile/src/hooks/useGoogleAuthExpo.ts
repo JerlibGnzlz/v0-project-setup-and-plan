@@ -81,8 +81,9 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
       }
 
       // Iniciar el flujo de autenticación
+      // NO usar proxy en producción (más confiable para Play Store)
       const result = await request.promptAsync(discovery, {
-        useProxy: true,
+        useProxy: false,
       })
 
       if (result.type === 'success') {
