@@ -62,15 +62,14 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
       console.log('🔍 Client ID:', clientId)
 
       // Configurar la solicitud de autenticación
-      // IMPORTANTE: Para ResponseType.IdToken, NO usar PKCE (code_challenge_method)
+      // Usar ResponseType.Code con PKCE (compatible con Google OAuth)
       const request = new AuthSession.AuthRequest({
         clientId,
         scopes: ['openid', 'profile', 'email'],
-        responseType: AuthSession.ResponseType.IdToken,
+        responseType: AuthSession.ResponseType.Code,
         redirectUri,
-        // Deshabilitar PKCE explícitamente para evitar error "code_challenge_method"
-        codeChallenge: undefined,
-        codeChallengeMethod: undefined,
+        // PKCE es requerido y se maneja automáticamente por expo-auth-session
+        usePKCE: true,
       })
 
       // Configurar discovery para Google
@@ -80,6 +79,8 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
       }
 
+      console.log('🔍 Iniciando flujo OAuth con PKCE...')
+
       // Iniciar el flujo de autenticación
       // NO usar proxy en producción (más confiable para Play Store)
       const result = await request.promptAsync(discovery, {
@@ -87,15 +88,52 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
       })
 
       if (result.type === 'success') {
-        const { id_token } = result.params
+        const { code } = result.params
 
-        if (id_token && typeof id_token === 'string') {
-          console.log('✅ Login con Google exitoso (expo-auth-session)')
-          console.log('🔍 Token recibido (primeros 50 caracteres):', id_token.substring(0, 50) + '...')
-          return id_token
+        if (!code || typeof code !== 'string') {
+          throw new Error('No se recibió código de autorización en la respuesta')
         }
 
-        throw new Error('No se recibió id_token en la respuesta')
+        console.log('✅ Código de autorización recibido, intercambiando por id_token...')
+
+        // Intercambiar el código por un id_token
+        const tokenResponse = await fetch(discovery.tokenEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_id: clientId,
+            code,
+            grant_type: 'authorization_code',
+            redirect_uri: redirectUri,
+            code_verifier: request.codeVerifier || '',
+          }).toString(),
+        })
+
+        if (!tokenResponse.ok) {
+          const errorText = await tokenResponse.text()
+          console.error('❌ Error al intercambiar código:', errorText)
+          throw new Error(`Error al intercambiar código por token: ${tokenResponse.status}`)
+        }
+
+        const tokenData = (await tokenResponse.json()) as {
+          id_token?: string
+          access_token?: string
+          error?: string
+        }
+
+        if (tokenData.error) {
+          throw new Error(`Error de Google OAuth: ${tokenData.error}`)
+        }
+
+        if (!tokenData.id_token || typeof tokenData.id_token !== 'string') {
+          throw new Error('No se recibió id_token en la respuesta del intercambio')
+        }
+
+        console.log('✅ Login con Google exitoso (expo-auth-session)')
+        console.log('🔍 Token recibido (primeros 50 caracteres):', tokenData.id_token.substring(0, 50) + '...')
+        return tokenData.id_token
       }
 
       if (result.type === 'cancel') {
