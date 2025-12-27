@@ -96,6 +96,8 @@ export default function CredencialesMinisterialesPage() {
   const [showAprobarDialog, setShowAprobarDialog] = useState(false)
   const [showRechazarDialog, setShowRechazarDialog] = useState(false)
   const [showCrearCredencialDialog, setShowCrearCredencialDialog] = useState(false)
+  const [showEditarCredencialDialog, setShowEditarCredencialDialog] = useState(false)
+  const [credencialToEdit, setCredencialToEdit] = useState<CredencialMinisterial | null>(null)
   const [observaciones, setObservaciones] = useState('')
   const [credencialFromSolicitud, setCredencialFromSolicitud] =
     useState<SolicitudCredencial | null>(null)
@@ -509,7 +511,14 @@ export default function CredencialesMinisterialesPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {credenciales.map((credencial) => (
-            <CredencialCard key={credencial.id} credencial={credencial} />
+            <CredencialCard
+              key={credencial.id}
+              credencial={credencial}
+              onEdit={() => {
+                setCredencialToEdit(credencial)
+                setShowEditarCredencialDialog(true)
+              }}
+            />
           ))}
         </div>
       )}
@@ -695,6 +704,24 @@ export default function CredencialesMinisterialesPage() {
             setShowCrearCredencialDialog(false)
             toast.success('Credencial creada exitosamente')
           }
+        }}
+      />
+
+      {/* Dialog para editar credencial existente */}
+      <CredencialEditorDialog
+        open={showEditarCredencialDialog}
+        onOpenChange={(open) => {
+          setShowEditarCredencialDialog(open)
+          if (!open) {
+            setCredencialToEdit(null)
+          }
+        }}
+        credencial={credencialToEdit || undefined}
+        editMode="frente"
+        onCredencialCreated={async () => {
+          setShowEditarCredencialDialog(false)
+          setCredencialToEdit(null)
+          toast.success('Credencial actualizada exitosamente')
         }}
       />
     </div>

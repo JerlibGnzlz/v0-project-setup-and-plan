@@ -151,6 +151,7 @@ export function CredencialEditorDialog({
       if (credencial) {
         // Si es modo dorso, solo actualizar fechaVencimiento
         if (editMode === 'dorso') {
+          // Modo dorso: solo actualizar fecha de vencimiento
           const updated = await updateMutation.mutateAsync({
             id: credencial.id,
             dto: {
@@ -164,7 +165,7 @@ export function CredencialEditorDialog({
             onCredencialCreated(updated)
           }
         } else {
-          // Modo frente: actualizar todos los campos editables
+          // Modo frente: actualizar todos los campos editables incluyendo fecha de vencimiento (dorso)
           const updated = await updateMutation.mutateAsync({
             id: credencial.id,
             dto: {
@@ -175,6 +176,7 @@ export function CredencialEditorDialog({
               fechaNacimiento: data.fechaNacimiento,
               tipoPastor: data.tipoPastor,
               fotoUrl: data.fotoUrl,
+              fechaVencimiento: data.fechaVencimiento, // Incluir fecha de vencimiento del dorso
             },
           })
           onOpenChange(false)
@@ -244,14 +246,14 @@ export function CredencialEditorDialog({
             {credencial
               ? editMode === 'dorso'
                 ? 'Editar Dorso de Credencial'
-                : 'Editar Frente de Credencial'
+                : 'Editar Credencial (Frente y Dorso)'
               : 'Nueva Credencial Ministerial'}
           </DialogTitle>
           <DialogDescription>
             {credencial
               ? editMode === 'dorso'
                 ? 'Actualiza la fecha de vencimiento de la credencial'
-                : 'Actualiza la información del frente de la credencial'
+                : 'Actualiza la información del frente y la fecha de vencimiento del dorso'
               : 'Crea una nueva credencial ministerial física'}
           </DialogDescription>
         </DialogHeader>
@@ -393,7 +395,7 @@ export function CredencialEditorDialog({
             <p className="text-xs text-muted-foreground">
               {editMode === 'dorso'
                 ? 'Esta es la única información editable en el dorso de la credencial'
-                : 'Fecha de vencimiento de la credencial (visible en el dorso)'}
+                : 'Fecha de vencimiento de la credencial (visible en el dorso). Puedes editar tanto el frente como esta fecha de vencimiento.'}
             </p>
           </div>
 
