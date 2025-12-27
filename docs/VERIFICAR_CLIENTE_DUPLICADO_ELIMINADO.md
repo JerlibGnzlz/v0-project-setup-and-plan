@@ -8,8 +8,8 @@ Verificar que el cliente OAuth duplicado fue eliminado correctamente y que todo 
 
 ### Paso 1: Abrir el Proyecto Correcto
 
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
-2. O selecciona el proyecto `amva-digital` desde el selector
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
+2. O selecciona el proyecto `amva-auth` desde el selector
 
 ### Paso 2: Verificar el Cliente Android
 
@@ -33,7 +33,7 @@ El cliente debe tener:
 
 ### Paso 1: Revisar Otros Proyectos
 
-Para cada proyecto en tu lista (excepto `amva-digital`):
+Para cada proyecto en tu lista (excepto `amva-auth`):
 
 1. Selecciona el proyecto desde el selector
 2. Ve a: **APIs & Services** → **Credentials**
@@ -48,7 +48,7 @@ Para cada proyecto en tu lista (excepto `amva-digital`):
 
 ### Paso 1: Abrir Firebase
 
-1. Ve a: https://console.firebase.google.com/project/amva-digital/settings/general
+1. Ve a: https://console.firebase.google.com/project/amva-auth/settings/general
 2. Ve a **"Your apps"** → Selecciona la app Android
 
 ### Paso 2: Intentar Agregar SHA-1
@@ -96,7 +96,7 @@ El archivo `amva-mobile/android/app/google-services.json` debe tener:
 
 ### Google Cloud Console
 
-- [ ] Proyecto `amva-digital` tiene el cliente Android configurado
+- [ ] Proyecto `amva-auth` tiene el cliente Android configurado
 - [ ] Cliente tiene package name: `org.vidaabundante.app`
 - [ ] Cliente tiene SHA-1: `4B:24:0F...`
 - [ ] Otros proyectos NO tienen cliente con esa combinación
@@ -117,7 +117,7 @@ El archivo `amva-mobile/android/app/google-services.json` debe tener:
 Si todas las verificaciones pasan:
 
 - ✅ El cliente duplicado fue eliminado
-- ✅ Solo `amva-digital` tiene esa combinación SHA-1 + package name
+- ✅ Solo `amva-auth` tiene esa combinación SHA-1 + package name
 - ✅ Firebase acepta el SHA-1 sin errores
 - ✅ Google OAuth debería funcionar correctamente
 

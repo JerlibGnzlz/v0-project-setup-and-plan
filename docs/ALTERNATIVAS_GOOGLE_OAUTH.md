@@ -26,7 +26,7 @@ Estás usando `@react-native-google-signin/google-signin` que requiere:
 
 #### Paso 1: Obtener Web Client ID
 
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. Busca el cliente OAuth de tipo **"Web application"**
 3. Si no existe, créalo:
    - Haz clic en "+ CREATE CREDENTIALS" → "OAuth client ID"
@@ -191,7 +191,7 @@ const handleGoogleLogin = async () => {
    ```
 
 2. **Verificar en Google Cloud Console**:
-   - Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+   - Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
    - Busca el cliente Android
    - Verifica que tenga el SHA-1 correcto
 

@@ -6,7 +6,7 @@ Configurar Google OAuth para que funcione correctamente en tu app Android, empez
 
 ## 📋 Requisitos Previos
 
-- ✅ Proyecto Firebase creado (`amva-digital`)
+- ✅ Proyecto Firebase creado (`amva-auth`)
 - ✅ App Android registrada en Firebase
 - ✅ Package name: `org.vidaabundante.app`
 - ✅ SHA-1 del keystore: `4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40`
@@ -17,7 +17,7 @@ Configurar Google OAuth para que funcione correctamente en tu app Android, empez
 
 1. **Firebase Console**:
    - Ve a: https://console.firebase.google.com/
-   - Verifica que tengas el proyecto `amva-digital`
+   - Verifica que tengas el proyecto `amva-auth`
    - Anota el **Project ID** y **Project Number**
 
 2. **Google Cloud Console**:
@@ -34,13 +34,13 @@ Configurar Google OAuth para que funcione correctamente en tu app Android, empez
    - Elimina cualquier cliente que tenga:
      - Package name: `org.vidaabundante.app`
      - SHA-1: `4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40`
-   - **EXCEPTO** el del proyecto correcto (`amva-digital`)
+   - **EXCEPTO** el del proyecto correcto (`amva-auth`)
 
 ## 🔧 Paso 2: Configurar OAuth Consent Screen
 
 ### 2.1. Abrir OAuth Consent Screen
 
-1. Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-auth
 2. O desde Google Cloud Console: **APIs & Services** → **OAuth consent screen**
 
 ### 2.2. Configurar Información Básica
@@ -78,7 +78,7 @@ Configurar Google OAuth para que funcione correctamente en tu app Android, empez
 
 ### 3.1. Abrir API Library
 
-1. Ve a: https://console.cloud.google.com/apis/library?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/library?project=amva-auth
 2. O desde Google Cloud Console: **APIs & Services** → **Library**
 
 ### 3.2. Buscar y Habilitar Google Sign-In API
@@ -92,7 +92,7 @@ Configurar Google OAuth para que funcione correctamente en tu app Android, empez
 
 ### 4.1. Abrir Credentials
 
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. O desde Google Cloud Console: **APIs & Services** → **Credentials**
 
 ### 4.2. Crear Cliente OAuth Android
@@ -117,7 +117,7 @@ Configurar Google OAuth para que funcione correctamente en tu app Android, empez
 
 ### 5.1. Abrir Firebase Console
 
-1. Ve a: https://console.firebase.google.com/project/amva-digital/settings/general
+1. Ve a: https://console.firebase.google.com/project/amva-auth/settings/general
 2. Ve a **"Your apps"** → Selecciona la app Android
 
 ### 5.2. Agregar SHA-1 Fingerprint
@@ -140,7 +140,7 @@ Configurar Google OAuth para que funcione correctamente en tu app Android, empez
 
 ### 6.1. Verificar en Google Cloud Console
 
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. Busca el cliente Android que creaste
 3. Verifica que tenga:
    - ✅ Package name: `org.vidaabundante.app`
@@ -148,7 +148,7 @@ Configurar Google OAuth para que funcione correctamente en tu app Android, empez
 
 ### 6.2. Verificar en Firebase Console
 
-1. Ve a: https://console.firebase.google.com/project/amva-digital/settings/general
+1. Ve a: https://console.firebase.google.com/project/amva-auth/settings/general
 2. Ve a **"Your apps"** → Selecciona app Android
 3. Verifica que el SHA-1 aparezca en la lista de fingerprints
 
@@ -230,7 +230,7 @@ O usa el build existente:
 
 ### Configuración Inicial
 
-- [ ] Proyecto Firebase creado (`amva-digital`)
+- [ ] Proyecto Firebase creado (`amva-auth`)
 - [ ] App Android registrada en Firebase
 - [ ] Clientes OAuth duplicados eliminados
 
@@ -275,11 +275,11 @@ O usa el build existente:
 
 ## 🎯 Resumen de URLs Importantes
 
-- **Firebase Console**: https://console.firebase.google.com/project/amva-digital
-- **Google Cloud Console**: https://console.cloud.google.com/?project=amva-digital
-- **OAuth Consent Screen**: https://console.cloud.google.com/apis/credentials/consent?project=amva-digital
-- **Credentials**: https://console.cloud.google.com/apis/credentials?project=amva-digital
-- **API Library**: https://console.cloud.google.com/apis/library?project=amva-digital
+- **Firebase Console**: https://console.firebase.google.com/project/amva-auth
+- **Google Cloud Console**: https://console.cloud.google.com/?project=amva-auth
+- **OAuth Consent Screen**: https://console.cloud.google.com/apis/credentials/consent?project=amva-auth
+- **Credentials**: https://console.cloud.google.com/apis/credentials?project=amva-auth
+- **API Library**: https://console.cloud.google.com/apis/library?project=amva-auth
 
 ## ⚠️ Problemas Comunes y Soluciones
 

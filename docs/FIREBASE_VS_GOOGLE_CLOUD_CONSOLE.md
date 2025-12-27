@@ -60,7 +60,7 @@ Resultado: ✅ Google OAuth funciona correctamente
 
 ### Paso 1: Verificar SHA-1 en Firebase
 
-1. Ve a: https://console.firebase.google.com/project/amva-digital/settings/general
+1. Ve a: https://console.firebase.google.com/project/amva-auth/settings/general
 2. Ve a la sección **"Tus aplicaciones"**
 3. Selecciona la app Android
 4. Busca **"Huellas digitales del certificado SHA"**
@@ -125,7 +125,7 @@ Compara los SHA-1 de ambos lugares:
 
 ### Método 1: Agregar SHA-1 en Firebase (Recomendado)
 
-1. Ve a: https://console.firebase.google.com/project/amva-digital/settings/general
+1. Ve a: https://console.firebase.google.com/project/amva-auth/settings/general
 2. Ve a **"Tus aplicaciones"** → Selecciona app Android
 3. Haz clic en **"Agregar huella digital"**
 4. Agrega el SHA-1: `4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40`
@@ -144,9 +144,9 @@ Compara los SHA-1 de ambos lugares:
 
 ### Método 3: Verificar Vinculación de Proyectos
 
-1. Ve a: https://console.firebase.google.com/project/amva-digital/settings/general
+1. Ve a: https://console.firebase.google.com/project/amva-auth/settings/general
 2. Busca la sección **"Configuración del proyecto"**
-3. Verifica que el **"ID del proyecto de Google Cloud"** sea: `amva-digital`
+3. Verifica que el **"ID del proyecto de Google Cloud"** sea: `amva-auth`
 4. Si no coincide, los proyectos pueden no estar vinculados
 
 ## 🔍 Verificación de Tu Configuración Actual

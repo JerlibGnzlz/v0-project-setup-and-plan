@@ -69,7 +69,7 @@ El archivo `google-services.json` debe tener esta estructura básica:
 {
   "project_info": {
     "project_number": "378853205278",
-    "project_id": "amva-digital",
+    "project_id": "amva-auth",
     "storage_bucket": "..."
   },
   "client": [

@@ -4,14 +4,14 @@
 
 La URL que te dieron tenía el proyecto incorrecto:
 - ❌ `project=amva-auth` (incorrecto)
-- ✅ `project=amva-digital` (correcto)
+- ✅ `project=amva-auth` (correcto)
 
 ## ✅ URL Correcta
 
 ### URL Directa al Cliente Android:
 
 ```
-https://console.cloud.google.com/auth/clients/378853205278-c2e1gcjn06mg857rcvprns01fu8pduat.apps.googleusercontent.com?project=amva-digital
+https://console.cloud.google.com/auth/clients/378853205278-c2e1gcjn06mg857rcvprns01fu8pduat.apps.googleusercontent.com?project=amva-auth
 ```
 
 **Nota**: Debes estar logueado en Google Cloud Console para que funcione.
@@ -20,7 +20,7 @@ https://console.cloud.google.com/auth/clients/378853205278-c2e1gcjn06mg857rcvprn
 
 ### Opción 1: Desde Google Auth Platform
 
-1. Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-auth
 2. En el menú lateral izquierdo, haz clic en **"Clientes"** (Clients)
 3. Busca **"AMVA Android Client"** en la lista
 4. Haz clic en el nombre del cliente
@@ -28,7 +28,7 @@ https://console.cloud.google.com/auth/clients/378853205278-c2e1gcjn06mg857rcvprn
 
 ### Opción 2: Desde APIs & Services (Interfaz Antigua)
 
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. Busca en "OAuth 2.0 Client IDs"
 3. Busca **"AMVA Android Client"** (tipo: Android)
 4. Haz clic en el nombre del cliente
@@ -36,9 +36,9 @@ https://console.cloud.google.com/auth/clients/378853205278-c2e1gcjn06mg857rcvprn
 
 ## 🔍 Verificación del Proyecto Correcto
 
-Asegúrate de que el proyecto sea **`amva-digital`**, no `amva-auth`:
+Asegúrate de que el proyecto sea **`amva-auth`**, no `amva-auth`:
 
-- ✅ Correcto: `project=amva-digital`
+- ✅ Correcto: `project=amva-auth`
 - ❌ Incorrecto: `project=amva-auth`
 
 ## 📝 Lo Que Deberías Ver
@@ -61,8 +61,8 @@ En la página de edición del cliente Android deberías ver:
 
 ## 🎯 Resumen
 
-- ✅ **URL correcta**: `https://console.cloud.google.com/auth/clients/378853205278-c2e1gcjn06mg857rcvprns01fu8pduat.apps.googleusercontent.com?project=amva-digital`
-- ✅ **Proyecto correcto**: `amva-digital` (no `amva-auth`)
+- ✅ **URL correcta**: `https://console.cloud.google.com/auth/clients/378853205278-c2e1gcjn06mg857rcvprns01fu8pduat.apps.googleusercontent.com?project=amva-auth`
+- ✅ **Proyecto correcto**: `amva-auth` (no `amva-auth`)
 - ✅ **Debes estar logueado** en Google Cloud Console
 
 ¡Con esta URL corregida deberías poder acceder directamente al cliente Android! 🚀

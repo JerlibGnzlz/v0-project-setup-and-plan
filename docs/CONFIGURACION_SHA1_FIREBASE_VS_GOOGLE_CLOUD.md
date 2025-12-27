@@ -64,7 +64,7 @@ Veo que tienes:
 - ✅ App Android: `AMVA Móvil`
 - ✅ Package name: `org.vidaabundante.app`
 - ✅ SHA-1: `4b:24:0f:1b:6a:e6:3d:71:38:77:d1:e7:69:40:d2:1d:5d:30:7c:40` (mismo, en minúsculas)
-- ✅ Proyecto: `amva-digital` (Firebase)
+- ✅ Proyecto: `amva-auth` (Firebase)
 
 **Estado**: ✅ Correcto
 
@@ -73,7 +73,7 @@ Veo que tienes:
 **Veo que hay una diferencia importante:**
 
 - **Google Cloud Console**: Proyecto `amva-auth`
-- **Firebase Console**: Proyecto `amva-digital`
+- **Firebase Console**: Proyecto `amva-auth`
 
 **Esto puede causar el error de cliente duplicado** si ambos proyectos tienen clientes OAuth con el mismo SHA-1 y package name.
 
@@ -84,7 +84,7 @@ Veo que tienes:
 1. **En Firebase Console**:
    - Ve a: Project Settings → General
    - Busca "Project ID" o "Google Cloud project"
-   - Verifica que sea `amva-digital` o `amva-auth`
+   - Verifica que sea `amva-auth` o `amva-auth`
 
 2. **En Google Cloud Console**:
    - Verifica qué proyecto estás usando
@@ -92,9 +92,9 @@ Veo que tienes:
 
 ### Paso 2: Usar el Mismo Proyecto en Ambos
 
-**Opción A: Usar `amva-digital` (Firebase)**
+**Opción A: Usar `amva-auth` (Firebase)**
 
-1. En Google Cloud Console, cambia al proyecto `amva-digital`
+1. En Google Cloud Console, cambia al proyecto `amva-auth`
 2. Verifica que el cliente OAuth Android esté ahí
 3. Si no está, créalo o sincroniza desde Firebase
 
@@ -110,7 +110,7 @@ Veo que tienes:
 - ✅ **Un solo cliente OAuth Android** con:
   - Package name: `org.vidaabundante.app`
   - SHA-1: `4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40`
-  - En el proyecto correcto (`amva-digital` o `amva-auth`, pero el mismo en ambos)
+  - En el proyecto correcto (`amva-auth` o `amva-auth`, pero el mismo en ambos)
 
 ### Lo que Debe Estar en Firebase Console
 
@@ -124,13 +124,13 @@ Veo que tienes:
 ### Paso 1: Identificar el Proyecto Correcto
 
 1. ¿Cuál es tu proyecto principal?
-   - `amva-digital` (Firebase)
+   - `amva-auth` (Firebase)
    - `amva-auth` (Google Cloud)
 
 ### Paso 2: Eliminar Duplicados
 
 1. **En Google Cloud Console**, revisa ambos proyectos:
-   - `amva-digital`
+   - `amva-auth`
    - `amva-auth`
 2. **Identifica** qué proyecto tiene el cliente duplicado
 3. **Elimina** el cliente del proyecto incorrecto

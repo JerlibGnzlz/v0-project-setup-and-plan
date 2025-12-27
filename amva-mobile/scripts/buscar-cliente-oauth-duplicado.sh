@@ -8,7 +8,7 @@ echo ""
 
 SHA1_DUPLICADO="4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40"
 PACKAGE_NAME="org.vidaabundante.app"
-PROYECTO_CORRECTO="amva-digital"
+PROYECTO_CORRECTO="amva-auth"
 
 echo "📋 Información del Cliente Duplicado:"
 echo "  SHA-1: $SHA1_DUPLICADO"

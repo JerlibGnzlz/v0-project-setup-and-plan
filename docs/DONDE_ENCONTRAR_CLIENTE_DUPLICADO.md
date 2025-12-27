@@ -19,9 +19,9 @@ El cliente OAuth duplicado está en **Google Cloud Console**, no en Firebase Con
 3. Se abrirá una lista con **todos tus proyectos** de Google Cloud
 4. **Anota los nombres** de todos los proyectos que veas
 
-### Paso 3: Revisar Cada Proyecto (Excepto `amva-digital`)
+### Paso 3: Revisar Cada Proyecto (Excepto `amva-auth`)
 
-Para **cada proyecto** en tu lista (excepto `amva-digital`):
+Para **cada proyecto** en tu lista (excepto `amva-auth`):
 
 #### 3.1. Seleccionar el Proyecto
 
@@ -56,7 +56,7 @@ Busca estos datos en el cliente:
 **Si encuentras un cliente con**:
 - ✅ Package name: `org.vidaabundante.app`
 - ✅ SHA-1: `4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40`
-- ✅ Y **NO es** el proyecto `amva-digital`
+- ✅ Y **NO es** el proyecto `amva-auth`
 
 **Este es el cliente duplicado que debes eliminar.**
 
@@ -96,12 +96,12 @@ SHA-1 certificate fingerprint:
 
 1. **Proyectos antiguos** relacionados con tu app
 2. **Proyectos de prueba** o desarrollo
-3. **Proyectos con nombres similares** a `amva-digital`
-4. **Proyectos que creaste** antes de `amva-digital`
+3. **Proyectos con nombres similares** a `amva-auth`
+4. **Proyectos que creaste** antes de `amva-auth`
 
 ### Proyecto que NO Debes Tocar
 
-- ❌ **`amva-digital`** - Este es tu proyecto correcto, NO elimines nada aquí
+- ❌ **`amva-auth`** - Este es tu proyecto correcto, NO elimines nada aquí
 
 ## 🔍 Método Rápido: Buscar por Package Name
 
@@ -123,14 +123,14 @@ Si conoces el Client ID del cliente duplicado:
 
 - [ ] Abrir Google Cloud Console
 - [ ] Ver lista de todos los proyectos
-- [ ] Para cada proyecto (excepto `amva-digital`):
+- [ ] Para cada proyecto (excepto `amva-auth`):
   - [ ] Seleccionar el proyecto
   - [ ] Ir a APIs & Services → Credentials
   - [ ] Buscar sección "OAuth 2.0 Client IDs"
   - [ ] Buscar clientes de tipo "Android"
   - [ ] Verificar package name y SHA-1
 - [ ] Identificar el cliente duplicado
-- [ ] Verificar que NO sea del proyecto `amva-digital`
+- [ ] Verificar que NO sea del proyecto `amva-auth`
 
 ## 🎯 Una Vez Encontrado el Cliente Duplicado
 
@@ -151,7 +151,7 @@ Si conoces el Client ID del cliente duplicado:
 ### Antes de Eliminar
 
 1. **Verifica el nombre del proyecto** donde está el cliente
-2. **Si es `amva-digital`**: ❌ **NO ELIMINES**
+2. **Si es `amva-auth`**: ❌ **NO ELIMINES**
 3. **Si es otro proyecto**: ✅ Puedes eliminar
 
 ### Después de Eliminar
@@ -164,7 +164,7 @@ Si conoces el Client ID del cliente duplicado:
 
 **Dónde buscar**:
 - ✅ Google Cloud Console (NO Firebase Console)
-- ✅ Cada proyecto en tu lista (excepto `amva-digital`)
+- ✅ Cada proyecto en tu lista (excepto `amva-auth`)
 - ✅ APIs & Services → Credentials
 - ✅ Sección "OAuth 2.0 Client IDs"
 - ✅ Clientes de tipo "Android"
@@ -174,8 +174,8 @@ Si conoces el Client ID del cliente duplicado:
 - ✅ SHA-1: `4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40`
 
 **Qué NO tocar**:
-- ❌ Proyecto `amva-digital`
-- ❌ Cliente en `amva-digital`
+- ❌ Proyecto `amva-auth`
+- ❌ Cliente en `amva-auth`
 
 ## 🎉 Siguiente Paso
 

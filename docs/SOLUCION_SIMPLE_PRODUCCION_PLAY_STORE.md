@@ -25,7 +25,7 @@ amva-app://
 ```
 
 **Pasos:**
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. Busca el cliente OAuth Web: `378853205278-slllh10l32onum338rg1776g8itekvco`
 3. Haz clic en el nombre del cliente
 4. En **"URIs de redireccionamiento autorizados"**, haz clic en "+ ADD URI"
@@ -34,7 +34,7 @@ amva-app://
 
 ### 2. Verificar OAuth Consent Screen
 
-1. Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-auth
 2. Verifica que "Publishing status" sea **"Published"**
 3. Si está en "Testing", haz clic en "PUBLISH APP"
 
@@ -190,12 +190,12 @@ Tu `app.json` ya tiene los intent filters correctos:
 ## 🎯 Pasos Inmediatos
 
 1. **Agregar redirect URI en Google Cloud Console:**
-   - Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+   - Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
    - Agrega: `amva-app://`
    - Guarda
 
 2. **Verificar OAuth Consent Screen:**
-   - Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-digital
+   - Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-auth
    - Publica si está en Testing
 
 3. **Esperar 5-10 minutos** para propagación

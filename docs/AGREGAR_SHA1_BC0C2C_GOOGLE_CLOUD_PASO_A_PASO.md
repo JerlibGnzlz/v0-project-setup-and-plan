@@ -10,11 +10,11 @@ BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3
 
 ### Paso 1: Abrir Google Cloud Console
 
-**URL directa**: https://console.cloud.google.com/apis/credentials?project=amva-digital
+**URL directa**: https://console.cloud.google.com/apis/credentials?project=amva-auth
 
 1. Haz clic en el enlace arriba o cópialo en tu navegador
 2. Asegúrate de estar logueado con la cuenta correcta de Google
-3. Verifica que el proyecto seleccionado sea `amva-digital`
+3. Verifica que el proyecto seleccionado sea `amva-auth`
 
 ### Paso 2: Encontrar el Cliente OAuth de Android
 
@@ -117,8 +117,8 @@ Si no ves "AMVA Android Client" en la lista:
 
 ## 🔗 URLs Útiles
 
-- **Credentials**: https://console.cloud.google.com/apis/credentials?project=amva-digital
-- **OAuth Consent Screen**: https://console.cloud.google.com/apis/credentials/consent?project=amva-digital
+- **Credentials**: https://console.cloud.google.com/apis/credentials?project=amva-auth
+- **OAuth Consent Screen**: https://console.cloud.google.com/apis/credentials/consent?project=amva-auth
 
 ¡Sigue estos pasos exactos y el SHA-1 será agregado correctamente! 🚀
 

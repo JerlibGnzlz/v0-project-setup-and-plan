@@ -35,7 +35,7 @@ Este URI:
 
 ### Paso 1: Agregar Redirect URI en Google Cloud Console
 
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. Busca **"AMVA Web Client"** (tipo: Aplicación web)
 3. Haz clic en **"Edit"** (lápiz)
 4. En **"URIs de redireccionamiento autorizados"**, haz clic en **"+ ADD URI"**
@@ -47,7 +47,7 @@ Este URI:
 
 ### Paso 2: Verificar OAuth Consent Screen
 
-1. Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-auth
 2. Verifica que **"Publishing status"** sea **"Published"**
 3. Si está en "Testing", haz clic en **"PUBLISH APP"**
 

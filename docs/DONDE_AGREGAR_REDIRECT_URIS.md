@@ -41,7 +41,7 @@ exp://192.168.*.*:8081
 
 ### Paso 1: Abrir el Cliente OAuth Web
 
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. Busca el cliente OAuth de tipo **"Web application"**
 3. Haz clic en el **nombre** del cliente (no en el Client ID)
 

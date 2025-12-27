@@ -16,7 +16,7 @@ SHA1_DEFAULT="4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40"
 SHA1_NUEVO="BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3"
 PACKAGE_NAME="org.vidaabundante.app"
 CLIENT_ID="378853205278-c2e1gcjn06mg857rcvprns01fu8pduat"
-PROYECTO_CORRECTO="amva-digital"
+PROYECTO_CORRECTO="amva-auth"
 
 echo "✅ Verificación 1: Archivo google-services.json Local"
 echo ""

@@ -39,7 +39,7 @@ Este error ocurre cuando:
 
 #### Opción A: Eliminar el Cliente del Proyecto Incorrecto (Recomendado)
 
-Si encuentras el cliente en un proyecto que **NO es** `amva-digital`:
+Si encuentras el cliente en un proyecto que **NO es** `amva-auth`:
 
 1. **Abre ese proyecto** en Google Cloud Console
 2. **Ve a**: APIs & Services → Credentials
@@ -54,12 +54,12 @@ Si el cliente está en un proyecto que **SÍ necesitas** pero es diferente:
 
 1. **Anota el Client ID** del cliente duplicado
 2. **Elimina el cliente** del proyecto incorrecto
-3. **Agrega el SHA-1** en el proyecto correcto (`amva-digital`)
+3. **Agrega el SHA-1** en el proyecto correcto (`amva-auth`)
 
 ### Paso 3: Verificar en el Proyecto Correcto
 
-1. **Ve al proyecto correcto**: `amva-digital`
-2. **Ve a**: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. **Ve al proyecto correcto**: `amva-auth`
+2. **Ve a**: https://console.cloud.google.com/apis/credentials?project=amva-auth
 3. **Busca el cliente Android**: `378853205278-c2e1gcjn06mg857rcvprns01fu8pduat`
 4. **Verifica que tenga**:
    - Package name: `org.vidaabundante.app`
@@ -91,7 +91,7 @@ Si el cliente está en un proyecto que **SÍ necesitas** pero es diferente:
 ### Antes de Eliminar
 
 1. **Verifica que el proyecto** donde está el cliente duplicado **NO esté en uso**
-2. **Asegúrate de que** el proyecto correcto (`amva-digital`) tenga el cliente configurado
+2. **Asegúrate de que** el proyecto correcto (`amva-auth`) tenga el cliente configurado
 3. **No elimines** si no estás seguro de qué proyecto es el correcto
 
 ### Si No Estás Seguro
@@ -107,7 +107,7 @@ Si el cliente está en un proyecto que **SÍ necesitas** pero es diferente:
 
 ```bash
 # Ve a Google Cloud Console y revisa estos proyectos comunes:
-- amva-digital (tu proyecto actual)
+- amva-auth (tu proyecto actual)
 - Cualquier proyecto anterior relacionado
 - Proyectos de prueba o desarrollo
 ```
@@ -124,7 +124,7 @@ Si el cliente está en un proyecto que **SÍ necesitas** pero es diferente:
 
 ### 3. Verificar en Firebase
 
-1. **Ve a**: https://console.firebase.google.com/project/amva-digital/settings/general
+1. **Ve a**: https://console.firebase.google.com/project/amva-auth/settings/general
 2. **Ve a**: "Your apps" → Selecciona app Android
 3. **Intenta agregar el SHA-1** nuevamente
 4. **Si aún aparece el error**, espera unos minutos y vuelve a intentar
@@ -140,7 +140,7 @@ Si el cliente está en un proyecto que **SÍ necesitas** pero es diferente:
 
 ### Si No Encuentras el Cliente Duplicado
 
-1. **Verifica que** el SHA-1 esté en el proyecto correcto (`amva-digital`)
+1. **Verifica que** el SHA-1 esté en el proyecto correcto (`amva-auth`)
 2. **Espera 30 minutos** y vuelve a intentar
 3. **Si persiste**, puede ser un problema de caché de Google
 4. **Contacta soporte de Firebase** si el problema continúa
@@ -148,7 +148,7 @@ Si el cliente está en un proyecto que **SÍ necesitas** pero es diferente:
 ## 📋 Checklist de Resolución
 
 - [ ] Identificar qué proyecto tiene el cliente duplicado
-- [ ] Verificar que el proyecto correcto (`amva-digital`) tenga el cliente
+- [ ] Verificar que el proyecto correcto (`amva-auth`) tenga el cliente
 - [ ] Eliminar el cliente del proyecto incorrecto
 - [ ] Esperar 5-10 minutos para sincronización
 - [ ] Intentar agregar el SHA-1 en Firebase nuevamente
@@ -165,7 +165,7 @@ Después de eliminar el cliente duplicado:
 
 ## ⚠️ Nota Importante
 
-**NO elimines el cliente** del proyecto `amva-digital` (tu proyecto actual).  
+**NO elimines el cliente** del proyecto `amva-auth` (tu proyecto actual).  
 Solo elimina el cliente del proyecto **incorrecto** o **duplicado**.
 
 ## 📝 Próximos Pasos

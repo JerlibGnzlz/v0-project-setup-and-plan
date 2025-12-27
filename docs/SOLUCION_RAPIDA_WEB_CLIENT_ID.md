@@ -90,7 +90,7 @@ const getGoogleClientId = (): string => {
 
 ## 🔧 Paso 3: Verificar Web Client ID en Google Cloud Console
 
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. Busca el cliente OAuth de tipo **"Web application"**
 3. Verifica que el Client ID sea: `378853205278-slllh10l32onum338rg1776g8itekvco`
 4. Si no existe, créalo (ver guía completa)

@@ -2,7 +2,7 @@
 
 ## 📋 Información Necesaria
 
-**Proyecto**: `amva-digital`  
+**Proyecto**: `amva-auth`  
 **Client ID Web**: `378853205278-slllh10l32onum338rg1776g8itekvco.apps.googleusercontent.com`  
 **Redirect URIs a agregar**:
 - `https://auth.expo.io/@jerlibgnzlz/amva-movil`
@@ -14,11 +14,11 @@
 
 ### Paso 1: Abrir Google Cloud Console
 
-**URL directa**: https://console.cloud.google.com/apis/credentials?project=amva-digital
+**URL directa**: https://console.cloud.google.com/apis/credentials?project=amva-auth
 
 1. Haz clic en el enlace arriba o cópialo en tu navegador
 2. Asegúrate de estar logueado con la cuenta correcta de Google
-3. Verifica que el proyecto seleccionado sea `amva-digital`
+3. Verifica que el proyecto seleccionado sea `amva-auth`
 
 ### Paso 2: Encontrar el Cliente OAuth Web
 
@@ -67,7 +67,7 @@
 
 ### Paso 5: Verificar OAuth Consent Screen
 
-**URL directa**: https://console.cloud.google.com/apis/credentials/consent?project=amva-digital
+**URL directa**: https://console.cloud.google.com/apis/credentials/consent?project=amva-auth
 
 1. Haz clic en el enlace arriba
 2. Busca la sección **"Publishing status"**
@@ -112,7 +112,7 @@ En la misma página de OAuth Consent Screen:
 
 ### Verificar Redirect URIs Agregados
 
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. Haz clic en tu cliente OAuth Web
 3. Verifica que en "Authorized redirect URIs" aparezcan:
    - ✅ `https://auth.expo.io/@jerlibgnzlz/amva-movil`

@@ -2,20 +2,20 @@
 
 ## 🚨 Problema
 
-La URL `https://console.cloud.google.com/apis/credentials?project=amva-digital` te lleva a la **interfaz antigua** donde no ves los clientes OAuth.
+La URL `https://console.cloud.google.com/apis/credentials?project=amva-auth` te lleva a la **interfaz antigua** donde no ves los clientes OAuth.
 
 ## ✅ Solución: Usar Google Auth Platform
 
 Google tiene **DOS interfaces** diferentes:
 
 ### 1. Interfaz Antigua (APIs & Services)
-- URL: `https://console.cloud.google.com/apis/credentials?project=amva-digital`
+- URL: `https://console.cloud.google.com/apis/credentials?project=amva-auth`
 - ❌ No muestra los clientes OAuth correctamente
 - ❌ Interfaz antigua
 
 ### 2. Interfaz Nueva (Google Auth Platform) ✅
-- URL: `https://console.cloud.google.com/apis/credentials/consent?project=amva-digital`
-- O mejor: `https://console.cloud.google.com/apis/credentials/consent?project=amva-digital&authuser=0`
+- URL: `https://console.cloud.google.com/apis/credentials/consent?project=amva-auth`
+- O mejor: `https://console.cloud.google.com/apis/credentials/consent?project=amva-auth&authuser=0`
 - ✅ Muestra los clientes OAuth correctamente
 - ✅ Interfaz moderna
 
@@ -25,7 +25,7 @@ Google tiene **DOS interfaces** diferentes:
 
 **URL directa al cliente Android:**
 ```
-https://console.cloud.google.com/apis/credentials/consent?project=amva-digital
+https://console.cloud.google.com/apis/credentials/consent?project=amva-auth
 ```
 
 **Pasos:**
@@ -40,14 +40,14 @@ https://console.cloud.google.com/apis/credentials/consent?project=amva-digital
 Si conoces el Client ID, puedes ir directamente:
 
 ```
-https://console.cloud.google.com/apis/credentials/consent/edit-client/378853205278-c2e1gcjn06mg857rcvprns01fu8pduat?project=amva-digital
+https://console.cloud.google.com/apis/credentials/consent/edit-client/378853205278-c2e1gcjn06mg857rcvprns01fu8pduat?project=amva-auth
 ```
 
 ## 📋 Pasos Exactos en Google Auth Platform
 
 ### Paso 1: Abrir Google Auth Platform
 
-1. Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-auth
 2. Verás la página de "Pantalla de consentimiento de OAuth"
 
 ### Paso 2: Ir a Clientes
@@ -88,8 +88,8 @@ Después de guardar, deberías ver **AMBOS** SHA-1s:
 
 ## 🎯 Resumen
 
-- ❌ **NO uses**: `https://console.cloud.google.com/apis/credentials?project=amva-digital` (interfaz antigua)
-- ✅ **USA**: `https://console.cloud.google.com/apis/credentials/consent?project=amva-digital` (Google Auth Platform)
+- ❌ **NO uses**: `https://console.cloud.google.com/apis/credentials?project=amva-auth` (interfaz antigua)
+- ✅ **USA**: `https://console.cloud.google.com/apis/credentials/consent?project=amva-auth` (Google Auth Platform)
 - ✅ **O directamente**: Ve a "Clientes" en el menú lateral y busca "AMVA Android Client"
 
 ¡Con esta URL correcta podrás agregar el SHA-1 sin problemas! 🚀

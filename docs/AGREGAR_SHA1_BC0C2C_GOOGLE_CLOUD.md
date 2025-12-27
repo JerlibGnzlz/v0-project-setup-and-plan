@@ -10,7 +10,7 @@ Este SHA-1 **NO está configurado** en Google Cloud Console, por eso falla inclu
 
 ### Paso 1: Abrir Google Cloud Console
 
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. O si usas otro proyecto, ve a ese proyecto
 
 ### Paso 2: Buscar el Cliente Android OAuth
@@ -52,7 +52,7 @@ SHA-1 certificate fingerprint:
 
 ### En Firebase Console
 
-1. Ve a: https://console.firebase.google.com/project/amva-digital/settings/general
+1. Ve a: https://console.firebase.google.com/project/amva-auth/settings/general
 2. Ve a "Your apps" → Selecciona app Android
 3. Verifica que ambos SHA-1 aparezcan en "SHA certificate fingerprints"
 

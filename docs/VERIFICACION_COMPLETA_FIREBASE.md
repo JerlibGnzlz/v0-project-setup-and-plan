@@ -7,8 +7,8 @@
 ```json
 "project_info": {
   "project_number": "804089781668",
-  "project_id": "amva-digital",
-  "storage_bucket": "amva-digital.firebasestorage.app"
+  "project_id": "amva-auth",
+  "storage_bucket": "amva-auth.firebasestorage.app"
 }
 ```
 

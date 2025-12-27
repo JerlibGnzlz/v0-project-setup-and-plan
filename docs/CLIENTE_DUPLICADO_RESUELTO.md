@@ -9,7 +9,7 @@ El error de cliente duplicado ha sido resuelto. Ya no aparece en Firebase Consol
 - ✅ Cliente duplicado eliminado
 - ✅ Firebase ya no muestra el error
 - ✅ Configuración local correcta (`google-services.json`)
-- ✅ Solo el proyecto `amva-digital` tiene esa combinación SHA-1 + package name
+- ✅ Solo el proyecto `amva-auth` tiene esa combinación SHA-1 + package name
 
 ## 📋 Configuración Actual
 
@@ -88,16 +88,16 @@ Opciones:
 ### Verificación Rápida
 
 1. **SHA-1 en Google Cloud Console**:
-   - Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+   - Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
    - Busca el cliente Android: `378853205278-c2e1gcjn06mg857rcvprns01fu8pduat`
    - Verifica que tenga el SHA-1: `4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40`
 
 2. **OAuth Consent Screen publicado**:
-   - Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-digital
+   - Ve a: https://console.cloud.google.com/apis/credentials/consent?project=amva-auth
    - Verifica que esté publicado (no en modo testing)
 
 3. **Google Sign-In API habilitada**:
-   - Ve a: https://console.cloud.google.com/apis/library?project=amva-digital
+   - Ve a: https://console.cloud.google.com/apis/library?project=amva-auth
    - Busca "Google Sign-In API"
    - Verifica que esté habilitada
 

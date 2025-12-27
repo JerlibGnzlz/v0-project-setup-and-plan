@@ -48,7 +48,7 @@ npm run android
 
 Asegúrate de que `amva-app://` esté agregado en Google Cloud Console:
 
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. Busca "AMVA Web Client"
 3. Haz clic en "Edit" (lápiz)
 4. En "URIs de redireccionamiento autorizados", verifica que esté:

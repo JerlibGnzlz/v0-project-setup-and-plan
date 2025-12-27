@@ -14,7 +14,7 @@ BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3
 ```
 
 **Pasos:**
-1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. Busca **"AMVA Android Client"** (tipo: Android)
 3. Haz clic en "Edit"
 4. Verifica que el SHA-1 esté en la lista de "SHA-1 certificate fingerprints"
@@ -128,7 +128,7 @@ GoogleSignin.configure({
 
 1. El SHA-1 debe ser exactamente: `BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3`
 2. Debe estar en el cliente **Android**, no en el Web
-3. Debe estar en el proyecto **amva-digital**
+3. Debe estar en el proyecto **amva-auth**
 
 ### Verificar que el Cliente Android Esté Correcto
 

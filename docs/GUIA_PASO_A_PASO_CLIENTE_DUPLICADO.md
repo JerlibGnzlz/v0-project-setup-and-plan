@@ -32,14 +32,14 @@ Verás una lista de todos tus proyectos de Google Cloud. Anota los nombres de to
 ### 2.3. Proyectos Comunes a Revisar
 
 Busca proyectos con nombres como:
-- `amva-digital` (tu proyecto actual) ✅ **NO eliminar este**
+- `amva-auth` (tu proyecto actual) ✅ **NO eliminar este**
 - Proyectos anteriores relacionados
 - Proyectos de prueba o desarrollo
 - Proyectos con nombres similares
 
 ## 📋 Paso 3: Revisar Cada Proyecto
 
-Para **cada proyecto** en tu lista (excepto `amva-digital`):
+Para **cada proyecto** en tu lista (excepto `amva-auth`):
 
 ### 3.1. Seleccionar el Proyecto
 
@@ -69,7 +69,7 @@ Para cada cliente Android, verifica:
 Si encuentras un cliente con:
 - ✅ Package name: `org.vidaabundante.app`
 - ✅ SHA-1: `4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40`
-- ✅ Y **NO es** el proyecto `amva-digital`
+- ✅ Y **NO es** el proyecto `amva-auth`
 
 **Este es el cliente duplicado que debes eliminar.**
 
@@ -108,7 +108,7 @@ Si encuentras un cliente con:
 
 ### 5.1. Seleccionar el Proyecto Correcto
 
-1. Ve al proyecto **`amva-digital`** (tu proyecto actual)
+1. Ve al proyecto **`amva-auth`** (tu proyecto actual)
 2. Ve a: **APIs & Services** → **Credentials**
 
 ### 5.2. Verificar que el Cliente Esté Configurado
@@ -121,7 +121,7 @@ Si encuentras un cliente con:
 
 ### 5.3. Si Falta el SHA-1
 
-Si el cliente en `amva-digital` **NO tiene** el SHA-1:
+Si el cliente en `amva-auth` **NO tiene** el SHA-1:
 
 1. Haz clic en **"Edit"** (Editar)
 2. En **"SHA-1 certificate fingerprint"**, haz clic en **"+ Add fingerprint"**
@@ -137,7 +137,7 @@ Si el cliente en `amva-digital` **NO tiene** el SHA-1:
 
 ### 6.2. Verificar en Firebase
 
-1. Ve a: https://console.firebase.google.com/project/amva-digital/settings/general
+1. Ve a: https://console.firebase.google.com/project/amva-auth/settings/general
 2. Ve a **"Your apps"** → Selecciona la app Android
 3. Busca **"SHA certificate fingerprints"**
 4. Intenta agregar el SHA-1: `4B:24:0F:1B:6A:E6:3D:71:38:77:D1:E7:69:40:D2:1D:5D:30:7C:40`
@@ -148,10 +148,10 @@ Si el cliente en `amva-digital` **NO tiene** el SHA-1:
 - [ ] Abrir Google Cloud Console
 - [ ] Revisar todos los proyectos
 - [ ] Identificar el proyecto con el cliente duplicado
-- [ ] Verificar que NO sea `amva-digital`
+- [ ] Verificar que NO sea `amva-auth`
 - [ ] Eliminar el cliente duplicado o solo el SHA-1
-- [ ] Verificar que `amva-digital` tenga el cliente correcto
-- [ ] Agregar SHA-1 en `amva-digital` si falta
+- [ ] Verificar que `amva-auth` tenga el cliente correcto
+- [ ] Agregar SHA-1 en `amva-auth` si falta
 - [ ] Esperar 5-10 minutos
 - [ ] Verificar en Firebase que el error desapareció
 
@@ -159,7 +159,7 @@ Si el cliente en `amva-digital` **NO tiene** el SHA-1:
 
 ### NO Eliminar
 
-- ❌ **NO elimines** el cliente del proyecto `amva-digital`
+- ❌ **NO elimines** el cliente del proyecto `amva-auth`
 - ❌ **NO elimines** si no estás seguro de qué proyecto es
 
 ### SÍ Eliminar
@@ -173,7 +173,7 @@ Si el cliente en `amva-digital` **NO tiene** el SHA-1:
 Después de seguir estos pasos:
 
 - ✅ El cliente duplicado estará eliminado
-- ✅ Solo `amva-digital` tendrá esa combinación SHA-1 + package name
+- ✅ Solo `amva-auth` tendrá esa combinación SHA-1 + package name
 - ✅ El error en Firebase desaparecerá
 - ✅ Podrás agregar el SHA-1 en Firebase sin problemas
 - ✅ Google OAuth funcionará correctamente

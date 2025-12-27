@@ -151,8 +151,8 @@ sudo apt install -y postgresql-client
 ```bash
 # Clonar repositorio
 cd /var/www
-sudo git clone https://github.com/tu-usuario/tu-repo.git amva-digital
-cd amva-digital
+sudo git clone https://github.com/tu-usuario/tu-repo.git amva-auth
+cd amva-auth
 
 # Configurar backend
 cd backend
@@ -180,7 +180,7 @@ module.exports = {
     {
       name: 'backend',
       script: './backend/dist/src/main.js',
-      cwd: '/var/www/amva-digital',
+      cwd: '/var/www/amva-auth',
       env: {
         NODE_ENV: 'production',
         PORT: 4000
@@ -194,7 +194,7 @@ module.exports = {
       name: 'frontend',
       script: 'npm',
       args: 'start',
-      cwd: '/var/www/amva-digital',
+      cwd: '/var/www/amva-auth',
       env: {
         NODE_ENV: 'production',
         PORT: 3000
@@ -220,11 +220,11 @@ pm2 startup
 
 ```bash
 # Crear configuración de Nginx
-sudo nano /etc/nginx/sites-available/amva-digital
+sudo nano /etc/nginx/sites-available/amva-auth
 ```
 
 ```nginx
-# /etc/nginx/sites-available/amva-digital
+# /etc/nginx/sites-available/amva-auth
 server {
     listen 80;
     server_name tudominio.com www.tudominio.com;
@@ -259,7 +259,7 @@ server {
 
 ```bash
 # Habilitar sitio
-sudo ln -s /etc/nginx/sites-available/amva-digital /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/amva-auth /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```

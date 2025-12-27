@@ -19,7 +19,7 @@ Has intentado varios métodos y ninguno está funcionando completamente. Aquí e
 
 #### Paso 1: Verificar SHA-1 en Google Cloud Console
 
-1. **Abre**: https://console.cloud.google.com/apis/credentials?project=amva-digital
+1. **Abre**: https://console.cloud.google.com/apis/credentials?project=amva-auth
 2. **Busca**: "AMVA Android Client" (tipo: Android)
 3. **Haz clic**: En "Edit" (lápiz)
 4. **Verifica**: Que este SHA-1 esté en la lista:
@@ -153,7 +153,7 @@ https://auth.expo.io/@jerlibgnzlz/amva-movil
 ### Verificación Final:
 
 1. **SHA-1 en Google Cloud Console:**
-   - Ve a: https://console.cloud.google.com/apis/credentials?project=amva-digital
+   - Ve a: https://console.cloud.google.com/apis/credentials?project=amva-auth
    - Busca "AMVA Android Client"
    - Verifica que el SHA-1 esté en la lista
 

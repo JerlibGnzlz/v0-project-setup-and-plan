@@ -3,7 +3,7 @@
 # Script para abrir Google Cloud Console con los parámetros correctos
 # Facilita el acceso a las páginas necesarias para configurar OAuth
 
-PROJECT_ID="amva-digital"
+PROJECT_ID="amva-auth"
 CLIENT_ID="378853205278-slllh10l32onum338rg1776g8itekvco.apps.googleusercontent.com"
 
 echo "🔗 URLs de Google Cloud Console para configurar OAuth"

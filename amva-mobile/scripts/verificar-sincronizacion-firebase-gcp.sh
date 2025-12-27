@@ -55,7 +55,7 @@ echo ""
 
 echo "⚠️  Verificación Manual Requerida en Firebase Console:"
 echo ""
-echo "  1. Ve a: https://console.firebase.google.com/project/amva-digital/settings/general"
+echo "  1. Ve a: https://console.firebase.google.com/project/amva-auth/settings/general"
 echo "  2. Ve a 'Tus aplicaciones' → Selecciona app Android"
 echo "  3. Busca 'Huellas digitales del certificado SHA'"
 echo "  4. Verifica que aparezcan estos SHA-1:"
