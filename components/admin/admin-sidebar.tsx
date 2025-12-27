@@ -53,10 +53,10 @@ const navigation = [
     description: 'Transacciones y cuotas',
   },
   {
-    name: 'Credenciales Ministeriales',
+    name: 'Credenciales Pastorales',
     href: '/admin/credenciales-ministeriales',
     icon: Shield,
-    description: 'Solicitudes y emisión ministerial',
+    description: 'Solicitudes y emisión pastoral',
   },
   {
     name: 'Credenciales de Capellanía',
