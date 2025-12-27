@@ -259,14 +259,12 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.vidaabundante.app";
-				PRODUCT_NAME = "AMVAMvil";
+				PRODUCT_BUNDLE_IDENTIFIER = org.name.AMVAMvil;
+				PRODUCT_NAME = AMVAMvil;
 				SWIFT_OBJC_BRIDGING_HEADER = "AMVAMvil/AMVAMvil-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
-				TARGETED_DEVICE_FAMILY = "1,2";
-				CODE_SIGN_ENTITLEMENTS = AMVAMvil/AMVAMvil.entitlements;
 			};
 			name = Debug;
 		};
@@ -288,13 +286,11 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.vidaabundante.app";
-				PRODUCT_NAME = "AMVAMvil";
+				PRODUCT_BUNDLE_IDENTIFIER = org.name.AMVAMvil;
+				PRODUCT_NAME = AMVAMvil;
 				SWIFT_OBJC_BRIDGING_HEADER = "AMVAMvil/AMVAMvil-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
-				TARGETED_DEVICE_FAMILY = "1,2";
-				CODE_SIGN_ENTITLEMENTS = AMVAMvil/AMVAMvil.entitlements;
 			};
 			name = Release;
 		};
