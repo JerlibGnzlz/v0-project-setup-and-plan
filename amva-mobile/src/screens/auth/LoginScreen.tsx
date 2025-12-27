@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Mail, Lock, Eye, EyeOff, UserPlus } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useGoogleAuth } from '@hooks/useGoogleAuth'
+import { useGoogleAuthExpo } from '@hooks/useGoogleAuthExpo'
 import { invitadoAuthApi } from '@api/invitado-auth'
 import { testBackendConnection } from '../../utils/testConnection'
 import { RegisterScreen } from './RegisterScreen'
@@ -39,7 +40,15 @@ function GoogleLogo() {
 
 export function LoginScreen() {
   const { login, loginWithGoogle, loading } = useInvitadoAuth()
-  const { signIn: googleSignIn, loading: googleAuthLoading, error: googleAuthError } = useGoogleAuth()
+  // Usar expo-auth-session como alternativa (no requiere SHA-1)
+  const { signIn: googleSignInExpo, loading: googleAuthLoadingExpo, error: googleAuthErrorExpo } = useGoogleAuthExpo()
+  // Mantener el hook nativo por si se quiere usar en el futuro
+  const { signIn: googleSignInNative, loading: googleAuthLoadingNative, error: googleAuthErrorNative } = useGoogleAuth()
+  
+  // Usar expo-auth-session por defecto (más simple, no requiere SHA-1)
+  const googleSignIn = googleSignInExpo
+  const googleAuthLoading = googleAuthLoadingExpo
+  const googleAuthError = googleAuthErrorExpo
   const scrollViewRef = useRef<ScrollView>(null)
   const emailInputRef = useRef<TextInput>(null)
   const passwordInputRef = useRef<TextInput>(null)
@@ -65,10 +74,10 @@ export function LoginScreen() {
     }
   }, [googleAuthError])
 
-  // Función para manejar login con Google (nativo)
+  // Función para manejar login con Google (expo-auth-session)
   const handleGoogleLogin = async () => {
     try {
-      console.log('🔐 Iniciando login con Google (nativo)...')
+      console.log('🔐 Iniciando login con Google (expo-auth-session)...')
 
       // Obtener idToken usando el hook nativo
       let idToken: string | null = null
