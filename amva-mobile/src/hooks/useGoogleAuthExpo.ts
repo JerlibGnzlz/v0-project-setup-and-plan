@@ -51,11 +51,10 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         throw new Error('Google Client ID no está configurado correctamente')
       }
 
-      // Generar redirect URI (usar scheme personalizado para producción)
-      // En producción, NO usar proxy para evitar problemas con Play Store
+      // Generar redirect URI (usar proxy de Expo para compatibilidad con Google Cloud Console)
+      // Google Cloud Console solo acepta URIs con dominio (https://), no schemes personalizados
       const redirectUri = AuthSession.makeRedirectUri({
-        scheme: 'amva-app', // Debe coincidir con el scheme en app.json
-        useProxy: false, // NO usar proxy en producción (más confiable para Play Store)
+        useProxy: true, // Usar proxy de Expo (https://auth.expo.io) - válido para Google Cloud Console
       })
 
       console.log('🔍 Redirect URI generado:', redirectUri)
@@ -82,9 +81,9 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
       console.log('🔍 Iniciando flujo OAuth con PKCE...')
 
       // Iniciar el flujo de autenticación
-      // NO usar proxy en producción (más confiable para Play Store)
+      // Usar proxy de Expo para compatibilidad con Google Cloud Console
       const result = await request.promptAsync(discovery, {
-        useProxy: false,
+        useProxy: true,
       })
 
       if (result.type === 'success') {
