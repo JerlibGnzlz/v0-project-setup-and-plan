@@ -129,9 +129,52 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
         }
       }
 
-      // Iniciar sesión directamente
-      // Google Sign-In manejará internamente la verificación de Play Services si es necesario
-      const userInfo = await GoogleSignin.signIn()
+      // Intentar iniciar sesión
+      let userInfo
+      try {
+        userInfo = await GoogleSignin.signIn()
+      } catch (signInError: unknown) {
+        // Si falla con DEVELOPER_ERROR, intentar con Web Client ID como fallback
+        if (signInError && typeof signInError === 'object' && 'code' in signInError) {
+          const googleError = signInError as { code: string; message?: string }
+          if (googleError.code === '10' || googleError.message?.includes('DEVELOPER_ERROR')) {
+            console.log('⚠️ DEVELOPER_ERROR detectado, intentando con Web Client ID como fallback...')
+            
+            // Obtener Web Client ID
+            const webClientId =
+              Constants?.expoConfig?.extra?.googleClientId ||
+              Constants?.manifest?.extra?.googleClientId ||
+              ''
+            
+            if (webClientId && webClientId.includes('.apps.googleusercontent.com')) {
+              // Reconfigurar con Web Client ID
+              GoogleSignin.configure({
+                webClientId: webClientId,
+                offlineAccess: true,
+                forceCodeForRefreshToken: true,
+                iosClientId: Platform.OS === 'ios' ? webClientId : undefined,
+              })
+              
+              console.log('✅ Reconfigurado con Web Client ID, reintentando...')
+              
+              // Esperar un momento para que la configuración se aplique
+              await new Promise(resolve => setTimeout(resolve, 200))
+              
+              // Reintentar con Web Client ID
+              userInfo = await GoogleSignin.signIn()
+            } else {
+              // Si no hay Web Client ID, lanzar el error original
+              throw signInError
+            }
+          } else {
+            // Si no es DEVELOPER_ERROR, lanzar el error original
+            throw signInError
+          }
+        } else {
+          // Si no es un error de Google, lanzar el error original
+          throw signInError
+        }
+      }
 
       // Verificar si el usuario canceló (userInfo puede ser null o no tener data)
       if (!userInfo || !userInfo.data) {
