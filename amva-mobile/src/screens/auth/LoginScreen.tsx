@@ -40,15 +40,15 @@ function GoogleLogo() {
 
 export function LoginScreen() {
   const { login, loginWithGoogle, loading } = useInvitadoAuth()
-  // Usar expo-auth-session como alternativa (no requiere SHA-1)
-  const { signIn: googleSignInExpo, loading: googleAuthLoadingExpo, error: googleAuthErrorExpo } = useGoogleAuthExpo()
-  // Mantener el hook nativo por si se quiere usar en el futuro
+  // Usar método nativo de Google Sign-In (más confiable para Android)
   const { signIn: googleSignInNative, loading: googleAuthLoadingNative, error: googleAuthErrorNative } = useGoogleAuth()
+  // Mantener expo-auth-session como alternativa
+  const { signIn: googleSignInExpo, loading: googleAuthLoadingExpo, error: googleAuthErrorExpo } = useGoogleAuthExpo()
   
-  // Usar expo-auth-session por defecto (más simple, no requiere SHA-1)
-  const googleSignIn = googleSignInExpo
-  const googleAuthLoading = googleAuthLoadingExpo
-  const googleAuthError = googleAuthErrorExpo
+  // Usar método nativo por defecto (más confiable y mejor UX)
+  const googleSignIn = googleSignInNative
+  const googleAuthLoading = googleAuthLoadingNative
+  const googleAuthError = googleAuthErrorNative
   const scrollViewRef = useRef<ScrollView>(null)
   const emailInputRef = useRef<TextInput>(null)
   const passwordInputRef = useRef<TextInput>(null)
