@@ -24,14 +24,28 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
 
   // Obtener Google Client ID desde diferentes fuentes
   const getGoogleClientId = (): string => {
-    // Para Android, usar el Client ID específico de Android si está disponible
+    // Para Android, intentar usar el Client ID específico de Android primero
     if (Platform.OS === 'android') {
       const androidClientId =
         Constants?.expoConfig?.extra?.googleAndroidClientId ||
         Constants?.manifest?.extra?.googleAndroidClientId ||
         ''
+      
+      // Si Android Client ID está configurado y es válido, usarlo
       if (androidClientId && androidClientId.includes('.apps.googleusercontent.com')) {
         return androidClientId
+      }
+      
+      // Si Android Client ID no funciona o no está configurado, usar Web Client ID como fallback
+      // El Web Client ID funciona sin SHA-1 y es útil para desarrollo/testing
+      const webClientId =
+        Constants?.expoConfig?.extra?.googleClientId ||
+        Constants?.manifest?.extra?.googleClientId ||
+        ''
+      
+      if (webClientId && webClientId.includes('.apps.googleusercontent.com')) {
+        console.log('⚠️ Usando Web Client ID como fallback (no requiere SHA-1)')
+        return webClientId
       }
     }
     
