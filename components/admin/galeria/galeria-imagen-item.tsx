@@ -62,3 +62,4 @@ export function GaleriaImagenItem({ imagen, onDelete }: GaleriaImagenItemProps) 
 
 
 
+

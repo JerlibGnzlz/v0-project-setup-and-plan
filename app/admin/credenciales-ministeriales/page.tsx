@@ -493,9 +493,9 @@ export default function CredencialesMinisterialesPage() {
       </div>
 
       {loadingCredenciales ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-64 w-full" />
+        <div className="grid gap-6 md:grid-cols-2">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-[400px] w-full" />
           ))}
         </div>
       ) : credenciales.length === 0 ? (
@@ -507,7 +507,7 @@ export default function CredencialesMinisterialesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           {credenciales.map((credencial) => (
             <CredencialCard key={credencial.id} credencial={credencial} />
           ))}
