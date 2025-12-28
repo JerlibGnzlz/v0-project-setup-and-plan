@@ -18,7 +18,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Mail, Lock, Eye, EyeOff, UserPlus } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useGoogleAuth } from '@hooks/useGoogleAuth'
-import { useGoogleAuthExpo } from '@hooks/useGoogleAuthExpo'
 import { invitadoAuthApi } from '@api/invitado-auth'
 import { testBackendConnection } from '../../utils/testConnection'
 import { RegisterScreen } from './RegisterScreen'
@@ -40,16 +39,10 @@ function GoogleLogo() {
 
 export function LoginScreen() {
   const { login, loginWithGoogle, loading } = useInvitadoAuth()
-  // Usar método nativo de Google Sign-In (más confiable para Android)
-  const { signIn: googleSignInNative, loading: googleAuthLoadingNative, error: googleAuthErrorNative } = useGoogleAuth()
-  // Mantener expo-auth-session como alternativa
-  const { signIn: googleSignInExpo, loading: googleAuthLoadingExpo, error: googleAuthErrorExpo } = useGoogleAuthExpo()
   
-  // Usar expo-auth-session (no requiere SHA-1, funciona inmediatamente)
-  // Si quieres usar el método nativo, cambia a googleSignInNative después de agregar SHA-1
-  const googleSignIn = googleSignInExpo
-  const googleAuthLoading = googleAuthLoadingExpo
-  const googleAuthError = googleAuthErrorExpo
+  // Usar método nativo de Google Sign-In (más confiable y estable)
+  // Este método funciona mejor que expo-auth-session y no depende del proxy
+  const { signIn: googleSignIn, loading: googleAuthLoading, error: googleAuthError } = useGoogleAuth()
   const scrollViewRef = useRef<ScrollView>(null)
   const emailInputRef = useRef<TextInput>(null)
   const passwordInputRef = useRef<TextInput>(null)
@@ -75,10 +68,10 @@ export function LoginScreen() {
     }
   }, [googleAuthError])
 
-  // Función para manejar login con Google (expo-auth-session)
+  // Función para manejar login con Google (método nativo)
   const handleGoogleLogin = async () => {
     try {
-      console.log('🔐 Iniciando login con Google (expo-auth-session)...')
+      console.log('🔐 Iniciando login con Google (método nativo)...')
 
       // Obtener idToken usando el hook nativo
       let idToken: string | null = null
