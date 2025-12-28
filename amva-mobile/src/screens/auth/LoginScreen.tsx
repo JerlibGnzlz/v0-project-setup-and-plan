@@ -73,55 +73,12 @@ export function LoginScreen() {
     try {
       console.log('🔐 Iniciando login con Google (método nativo)...')
 
-      // Obtener idToken usando el hook nativo
-      let idToken: string | null = null
-      try {
-        idToken = await googleSignIn()
-      } catch (signInError: unknown) {
-        // Verificar si el error es por cancelación del usuario
-        if (signInError instanceof Error) {
-          // Verificar por nombre del error
-          if (
-            signInError.name === 'GoogleSignInCancelled' ||
-            signInError.message === 'SIGN_IN_CANCELLED'
-          ) {
-            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
-            return // Salir silenciosamente sin mostrar error
-          }
-          
-          // Verificar por mensaje de error
-          const errorMessage = signInError.message.toLowerCase()
-          if (
-            errorMessage.includes('cancel') ||
-            errorMessage.includes('cancelled') ||
-            errorMessage.includes('cancelado') ||
-            errorMessage.includes('user_cancelled')
-          ) {
-            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
-            return // Salir silenciosamente sin mostrar error
-          }
-        }
-        
-        // Verificar si el error tiene código de cancelación
-        if (signInError && typeof signInError === 'object' && 'code' in signInError) {
-          const googleError = signInError as { code: string; message?: string }
-          if (
-            googleError.code === 'SIGN_IN_CANCELLED' ||
-            googleError.code === '12500' || // Código de cancelación en Android
-            googleError.message?.toLowerCase().includes('cancel')
-          ) {
-            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
-            return // Salir silenciosamente sin mostrar error
-          }
-        }
-        
-        // Si no es cancelación, relanzar el error
-        throw signInError
-      }
-
-      // Si no se recibió token (usuario canceló), salir silenciosamente
+      // Obtener idToken usando el método nativo de Google Sign-In
+      console.log('🔍 Obteniendo token de Google...')
+      const idToken = await googleSignIn()
+      
       if (!idToken) {
-        console.log('ℹ️ Usuario canceló el inicio de sesión con Google (token null)')
+        console.log('ℹ️ No se recibió token de Google')
         return
       }
 
