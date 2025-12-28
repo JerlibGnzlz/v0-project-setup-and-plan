@@ -1257,6 +1257,7 @@ export class NotificationsService {
         estado: 'vencida' | 'por_vencer'
         tipoCredencial: 'ministerial' | 'capellania'
         diasRestantes: number
+        tokens: string[] // Tokens activos del invitado
       }> = []
 
       // Buscar credenciales ministeriales
@@ -1286,11 +1287,14 @@ export class NotificationsService {
         },
         include: {
           invitado: {
-            select: {
-              id: true,
-              email: true,
-              nombre: true,
-              apellido: true,
+            include: {
+              auth: {
+                include: {
+                  deviceTokens: {
+                    where: { active: true },
+                  },
+                },
+              },
             },
           },
         },
@@ -1308,11 +1312,14 @@ export class NotificationsService {
             },
             include: {
               invitado: {
-                select: {
-                  id: true,
-                  email: true,
-                  nombre: true,
-                  apellido: true,
+                include: {
+                  auth: {
+                    include: {
+                      deviceTokens: {
+                        where: { active: true },
+                      },
+                    },
+                  },
                 },
               },
             },
@@ -1355,6 +1362,7 @@ export class NotificationsService {
           const estado = diasRestantes < 0 ? 'vencida' : 'por_vencer'
 
           if (tipo === 'ambas' || (tipo === 'vencidas' && estado === 'vencida') || (tipo === 'por_vencer' && estado === 'por_vencer')) {
+            const tokens = credencial.invitado.auth?.deviceTokens?.map((dt) => dt.token) || []
             usuarios.push({
               email: credencial.invitado.email,
               nombre: credencial.invitado.nombre,
@@ -1363,6 +1371,7 @@ export class NotificationsService {
               estado,
               tipoCredencial: 'ministerial',
               diasRestantes: Math.abs(diasRestantes),
+              tokens,
             })
           }
         }
@@ -1394,11 +1403,14 @@ export class NotificationsService {
         },
         include: {
           invitado: {
-            select: {
-              id: true,
-              email: true,
-              nombre: true,
-              apellido: true,
+            include: {
+              auth: {
+                include: {
+                  deviceTokens: {
+                    where: { active: true },
+                  },
+                },
+              },
             },
           },
         },
@@ -1416,11 +1428,14 @@ export class NotificationsService {
             },
             include: {
               invitado: {
-                select: {
-                  id: true,
-                  email: true,
-                  nombre: true,
-                  apellido: true,
+                include: {
+                  auth: {
+                    include: {
+                      deviceTokens: {
+                        where: { active: true },
+                      },
+                    },
+                  },
                 },
               },
             },
@@ -1466,6 +1481,7 @@ export class NotificationsService {
             // Evitar duplicados si ya está en la lista
             const existe = usuarios.find(u => u.email === credencial.invitado?.email && u.tipoCredencial === 'capellania')
             if (!existe) {
+              const tokens = credencial.invitado.auth?.deviceTokens?.map((dt) => dt.token) || []
               usuarios.push({
                 email: credencial.invitado.email,
                 nombre: credencial.invitado.nombre,
@@ -1474,6 +1490,7 @@ export class NotificationsService {
                 estado,
                 tipoCredencial: 'capellania',
                 diasRestantes: Math.abs(diasRestantes),
+                tokens,
               })
             }
           }
@@ -1505,7 +1522,7 @@ export class NotificationsService {
       let enviadas = 0
       let errores = 0
 
-      // Enviar notificaciones a cada usuario
+      // Enviar notificaciones a cada usuario usando los tokens ya cargados
       for (const usuario of usuariosUnicos) {
         try {
           const estadoTexto = usuario.estado === 'vencida' ? 'vencida' : 'por vencer'
@@ -1516,17 +1533,72 @@ export class NotificationsService {
           const titulo = `Credencial ${estadoTexto.charAt(0).toUpperCase() + estadoTexto.slice(1)}`
           const mensaje = `Tu credencial ${usuario.tipoCredencial === 'ministerial' ? 'ministerial' : 'de capellanía'} está ${estadoTexto} (vence ${diasTexto}). Por favor, renueva tu credencial.`
 
-          const exito = await this.sendPushNotificationToInvitado(
-            usuario.email,
-            titulo,
-            mensaje,
-            {
+          // Usar los tokens ya cargados en lugar de hacer otra consulta
+          const tokens = usuario.tokens || []
+          let exito = false
+
+          if (tokens.length === 0) {
+            this.logger.warn(`No se encontraron tokens activos para ${usuario.email}`)
+            errores++
+            detalles.push({
+              email: usuario.email,
+              nombre: `${usuario.nombre} ${usuario.apellido}`,
+              estado: estadoTexto,
+              exito: false,
+              error: 'No se encontraron tokens de dispositivo activos. El usuario debe abrir la app móvil e iniciar sesión.',
+            })
+            continue
+          }
+
+          // Preparar mensajes para Expo
+          const messages: ExpoPushMessage[] = tokens.map((token) => ({
+            to: token,
+            sound: 'default',
+            title,
+            body: mensaje,
+            data: {
               type: 'credencial_vencida',
               estado: usuario.estado,
               tipoCredencial: usuario.tipoCredencial,
               diasRestantes: usuario.diasRestantes,
             },
-          )
+            badge: 1,
+          }))
+
+          // Enviar notificaciones a través de Expo
+          const response = await axios.post(this.expoPushUrl, messages, {
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'Accept-Encoding': 'gzip, deflate',
+            },
+          })
+
+          if (response.data && 'data' in response.data && Array.isArray(response.data.data)) {
+            const results = response.data.data as Array<{ status: 'ok' | 'error'; id?: string; message?: string }>
+            const successCount = results.filter((r) => r.status === 'ok').length
+            const errorCount = results.filter((r) => r.status === 'error').length
+
+            this.logger.log(
+              `📱 Notificación enviada a ${usuario.email}: ${successCount} exitosas, ${errorCount} errores`,
+            )
+
+            // Desactivar tokens que fallaron
+            for (let i = 0; i < results.length; i++) {
+              if (results[i].status === 'error') {
+                const error = results[i].message
+                if (error?.includes('Invalid') || error?.includes('DeviceNotRegistered')) {
+                  await this.prisma.invitadoDeviceToken.updateMany({
+                    where: { token: tokens[i] },
+                    data: { active: false },
+                  })
+                  this.logger.warn(`Token de invitado desactivado: ${tokens[i]}`)
+                }
+              }
+            }
+
+            exito = successCount > 0
+          }
 
           if (exito) {
             enviadas++
@@ -1543,7 +1615,7 @@ export class NotificationsService {
               nombre: `${usuario.nombre} ${usuario.apellido}`,
               estado: estadoTexto,
               exito: false,
-              error: 'No se encontraron tokens de dispositivo activos',
+              error: 'Error al enviar notificación push',
             })
           }
         } catch (error: unknown) {
