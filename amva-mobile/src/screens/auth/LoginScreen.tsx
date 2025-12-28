@@ -144,10 +144,13 @@ export function LoginScreen() {
         
         // Manejar errores 400 específicamente
         if (axiosError.response?.status === 400) {
+          const errorData = axiosError.response?.data?.error
           const backendMessage = axiosError.response?.data?.message || 
-            (typeof axiosError.response?.data?.error === 'string' 
-              ? axiosError.response.data.error 
-              : axiosError.response?.data?.error?.message)
+            (typeof errorData === 'string' 
+              ? errorData 
+              : errorData && typeof errorData === 'object' && 'message' in errorData
+                ? errorData.message
+                : undefined)
           if (backendMessage) {
             errorMessage = Array.isArray(backendMessage) 
               ? backendMessage.join(', ') 
@@ -168,10 +171,18 @@ export function LoginScreen() {
         } else if (axiosError.response?.data?.message) {
           const msg = axiosError.response.data.message
           errorMessage = Array.isArray(msg) ? msg.join('\n') : msg
-        } else if (axiosError.response?.data?.error?.message) {
-          errorMessage = axiosError.response.data.error.message
-        } else if (axiosError.message) {
-          errorMessage = axiosError.message
+        } else {
+          // Manejar error que puede ser string o objeto
+          const errorData = axiosError.response?.data?.error
+          if (errorData) {
+            if (typeof errorData === 'string') {
+              errorMessage = errorData
+            } else if (typeof errorData === 'object' && 'message' in errorData && errorData.message) {
+              errorMessage = errorData.message
+            }
+          } else if (axiosError.message) {
+            errorMessage = axiosError.message
+          }
         }
       }
 
