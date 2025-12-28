@@ -1069,21 +1069,21 @@ export class InvitadoAuthService {
     const state = Buffer.from(`${Date.now()}-${Math.random()}`).toString('base64url')
 
     // Construir callback URL del backend
+    // IMPORTANTE: El redirect_uri debe ser exacto, sin query parameters
+    // Google Cloud Console requiere que coincida exactamente con el configurado
     const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
-    // Incluir mobileRedirectUri en el callback para que el backend sepa dónde redirigir
-    const mobileRedirectUri = 'amva-app://google-oauth-callback'
-    const baseCallbackUrl = redirectUri || `${backendUrl}/api/auth/invitado/google/callback-proxy`
-    const callbackUrl = `${baseCallbackUrl}${baseCallbackUrl.includes('?') ? '&' : '?'}mobileRedirectUri=${encodeURIComponent(mobileRedirectUri)}`
+    const callbackUrl = redirectUri || `${backendUrl}/api/auth/invitado/google/callback-proxy`
 
     // Construir URL de autorización de Google
+    // El mobileRedirectUri se pasará en el state y se manejará en el callback
     const params = new URLSearchParams({
       client_id: googleClientId,
-      redirect_uri: callbackUrl,
+      redirect_uri: callbackUrl, // URL exacta sin query parameters
       response_type: 'code',
       scope: 'openid profile email',
       access_type: 'offline',
       prompt: 'consent',
-      state,
+      state, // El state puede incluir información adicional si es necesario
     })
 
     const authorizationUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
