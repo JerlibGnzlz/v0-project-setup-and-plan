@@ -103,7 +103,98 @@ export class InvitadoAuthController {
   }
 
   /**
-   * Iniciar autenticación con Google
+   * Backend Proxy: Generar URL de autorización de Google OAuth
+   * El móvil solicita esta URL y luego abre el navegador con ella
+   * IMPORTANTE: Esta ruta debe ir ANTES de @Get('google') para que funcione
+   */
+  @Get('google/authorize')
+  async googleOAuthAuthorize(@Request() req: ExpressRequest) {
+    try {
+      this.logger.log('🔗 Generando URL de autorización Google OAuth (Backend Proxy)...')
+
+      // Obtener redirectUri de query params si está presente
+      const redirectUri = (req.query.redirectUri as string) || undefined
+
+      const result = await this.invitadoAuthService.generateGoogleOAuthUrl(redirectUri)
+
+      this.logger.log('✅ URL de autorización generada exitosamente')
+
+      return result
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error al generar URL de autorización: ${errorMessage}`)
+      throw error
+    }
+  }
+
+  /**
+   * Backend Proxy: Callback de Google OAuth
+   * Google redirige aquí después de la autorización con el código
+   * El backend intercambia el código por id_token y lo retorna
+   * IMPORTANTE: Esta ruta debe ir ANTES de @Get('google/callback') para que funcione
+   */
+  @Get('google/callback-proxy')
+  async googleOAuthCallbackProxy(
+    @Request() req: ExpressRequest & { query: { code?: string; state?: string; error?: string; mobileRedirectUri?: string } },
+    @Res() res: Response
+  ) {
+    try {
+      const { code, state, error: oauthError, mobileRedirectUri } = req.query
+      const defaultMobileRedirectUri = 'amva-app://google-oauth-callback'
+      const finalMobileRedirectUri = (mobileRedirectUri as string) || defaultMobileRedirectUri
+
+      // Manejar errores de Google OAuth
+      if (oauthError) {
+        this.logger.error('❌ Error de Google OAuth:', { error: oauthError })
+        const errorUrl = `${finalMobileRedirectUri}?error=${encodeURIComponent(oauthError as string)}&success=false`
+        return res.redirect(errorUrl)
+      }
+
+      if (!code) {
+        this.logger.error('❌ No se recibió código de autorización')
+        const errorUrl = `${finalMobileRedirectUri}?error=missing_code&success=false`
+        return res.redirect(errorUrl)
+      }
+
+      this.logger.log('🔄 Procesando callback de Google OAuth (Backend Proxy)...', {
+        hasCode: !!code,
+        hasState: !!state,
+        mobileRedirectUri: finalMobileRedirectUri,
+      })
+
+      // Construir redirectUri para el intercambio (debe ser el callback del backend)
+      const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
+      const callbackUrl = `${backendUrl}/api/auth/invitado/google/callback-proxy?mobileRedirectUri=${encodeURIComponent(finalMobileRedirectUri)}`
+
+      // Intercambiar código por id_token
+      const tokenResult = await this.invitadoAuthService.exchangeCodeForIdToken(
+        code as string,
+        callbackUrl
+      )
+
+      this.logger.log('✅ id_token obtenido exitosamente desde callback')
+
+      // Redirigir al móvil con el id_token en la URL
+      const redirectUrl = `${finalMobileRedirectUri}?id_token=${encodeURIComponent(tokenResult.id_token)}&success=true`
+
+      this.logger.log('🔗 Redirigiendo al móvil con id_token...', {
+        redirectUrl: redirectUrl.replace(/id_token=[^&]+/, 'id_token=***'),
+      })
+
+      return res.redirect(redirectUrl)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error en callback proxy: ${errorMessage}`)
+
+      // Redirigir al móvil con error
+      const finalMobileRedirectUri = (req.query.mobileRedirectUri as string) || 'amva-app://google-oauth-callback'
+      const errorUrl = `${finalMobileRedirectUri}?error=${encodeURIComponent(errorMessage)}&success=false`
+      return res.redirect(errorUrl)
+    }
+  }
+
+  /**
+   * Iniciar autenticación con Google (método Passport - para web)
    */
   @Get('google')
   @UseGuards(AuthGuard('google'))
@@ -112,7 +203,7 @@ export class InvitadoAuthController {
   }
 
   /**
-   * Callback de Google OAuth
+   * Callback de Google OAuth (método Passport - para web)
    */
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
