@@ -19,6 +19,10 @@ import {
   InvitadoCompleteRegisterDto,
   GoogleIdTokenDto,
 } from './dto/invitado-auth.dto'
+import {
+  GoogleOAuthAuthorizeDto,
+  GoogleOAuthCallbackDto,
+} from './dto/google-oauth-proxy.dto'
 import { RefreshTokenDto } from './dto/auth.dto'
 import { InvitadoJwtAuthGuard } from './guards/invitado-jwt-auth.guard'
 import { ThrottleAuth, ThrottleRegister } from '../../common/decorators/throttle-auth.decorator'
@@ -252,6 +256,95 @@ export class InvitadoAuthController {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       this.logger.error(`❌ Error en googleAuthMobile: ${errorMessage}`)
       throw error
+    }
+  }
+
+  /**
+   * Backend Proxy: Generar URL de autorización de Google OAuth
+   * El móvil solicita esta URL y luego abre el navegador con ella
+   */
+  @Get('google/authorize')
+  async googleOAuthAuthorize(@Request() req: ExpressRequest) {
+    try {
+      this.logger.log('🔗 Generando URL de autorización Google OAuth (Backend Proxy)...')
+
+      // Obtener redirectUri de query params si está presente
+      const redirectUri = (req.query.redirectUri as string) || undefined
+
+      const result = await this.invitadoAuthService.generateGoogleOAuthUrl(redirectUri)
+
+      this.logger.log('✅ URL de autorización generada exitosamente')
+
+      return result
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error al generar URL de autorización: ${errorMessage}`)
+      throw error
+    }
+  }
+
+  /**
+   * Backend Proxy: Callback de Google OAuth
+   * Google redirige aquí después de la autorización con el código
+   * El backend intercambia el código por id_token y lo retorna
+   */
+  @Get('google/callback-proxy')
+  async googleOAuthCallbackProxy(
+    @Request() req: ExpressRequest & { query: { code?: string; state?: string; error?: string } },
+    @Res() res: Response
+  ) {
+    try {
+      const { code, state, error: oauthError } = req.query
+
+      // Manejar errores de Google OAuth
+      if (oauthError) {
+        this.logger.error('❌ Error de Google OAuth:', { error: oauthError })
+        return res.status(400).json({
+          error: 'google_oauth_error',
+          message: `Error de Google OAuth: ${oauthError}`,
+        })
+      }
+
+      if (!code) {
+        this.logger.error('❌ No se recibió código de autorización')
+        return res.status(400).json({
+          error: 'missing_code',
+          message: 'No se recibió código de autorización de Google',
+        })
+      }
+
+      this.logger.log('🔄 Procesando callback de Google OAuth (Backend Proxy)...', {
+        hasCode: !!code,
+        hasState: !!state,
+      })
+
+      // Obtener redirectUri de query params si está presente
+      const redirectUri = (req.query.redirectUri as string) || undefined
+
+      // Intercambiar código por id_token
+      const tokenResult = await this.invitadoAuthService.exchangeCodeForIdToken(
+        code as string,
+        redirectUri
+      )
+
+      this.logger.log('✅ id_token obtenido exitosamente desde callback')
+
+      // Retornar id_token al cliente (móvil)
+      // El móvil usará este id_token para autenticarse con /auth/invitado/google/mobile
+      return res.json({
+        success: true,
+        id_token: tokenResult.id_token,
+        access_token: tokenResult.access_token,
+        expires_in: tokenResult.expires_in,
+      })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error en callback proxy: ${errorMessage}`)
+
+      return res.status(400).json({
+        error: 'callback_error',
+        message: errorMessage,
+      })
     }
   }
 }

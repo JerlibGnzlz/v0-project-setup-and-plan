@@ -16,6 +16,10 @@ import {
   InvitadoLoginDto,
   InvitadoCompleteRegisterDto,
 } from './dto/invitado-auth.dto'
+import {
+  GoogleOAuthAuthorizeResponse,
+  GoogleOAuthTokenResponse,
+} from './dto/google-oauth-proxy.dto'
 import { NotificationsService } from '../notifications/notifications.service'
 import { TokenBlacklistService } from './services/token-blacklist.service'
 
@@ -1046,6 +1050,148 @@ export class InvitadoAuthService {
 
       // Re-lanzar otros errores
       throw new BadRequestException(`Error al autenticar con Google: ${errorMessage}`)
+    }
+  }
+
+  /**
+   * Generar URL de autorización de Google OAuth para backend proxy
+   * El móvil abrirá esta URL y Google redirigirá al callback del backend
+   */
+  async generateGoogleOAuthUrl(redirectUri?: string): Promise<GoogleOAuthAuthorizeResponse> {
+    const googleClientId = process.env.GOOGLE_CLIENT_ID
+    const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET
+
+    if (!googleClientId || !googleClientSecret) {
+      throw new BadRequestException('Google OAuth no está configurado en el backend')
+    }
+
+    // Generar state aleatorio para seguridad
+    const state = Buffer.from(`${Date.now()}-${Math.random()}`).toString('base64url')
+
+    // Construir callback URL del backend
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
+    const callbackUrl = redirectUri || `${backendUrl}/api/auth/invitado/google/callback-proxy`
+
+    // Construir URL de autorización de Google
+    const params = new URLSearchParams({
+      client_id: googleClientId,
+      redirect_uri: callbackUrl,
+      response_type: 'code',
+      scope: 'openid profile email',
+      access_type: 'offline',
+      prompt: 'consent',
+      state,
+    })
+
+    const authorizationUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
+
+    this.logger.log('🔗 URL de autorización Google generada', {
+      callbackUrl,
+      hasState: !!state,
+    })
+
+    return {
+      authorizationUrl,
+      state,
+    }
+  }
+
+  /**
+   * Intercambiar código de autorización por id_token de Google
+   * Este método se llama desde el callback del backend después de que Google redirige
+   */
+  async exchangeCodeForIdToken(
+    code: string,
+    redirectUri?: string
+  ): Promise<GoogleOAuthTokenResponse> {
+    const googleClientId = process.env.GOOGLE_CLIENT_ID
+    const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET
+
+    if (!googleClientId || !googleClientSecret) {
+      throw new BadRequestException('Google OAuth no está configurado en el backend')
+    }
+
+    if (!code) {
+      throw new BadRequestException('Código de autorización requerido')
+    }
+
+    // Construir callback URL del backend
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
+    const callbackUrl = redirectUri || `${backendUrl}/api/auth/invitado/google/callback-proxy`
+
+    this.logger.log('🔄 Intercambiando código por id_token...', {
+      codeLength: code.length,
+      callbackUrl,
+    })
+
+    try {
+      // Intercambiar código por tokens usando Google OAuth2 API
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          code,
+          client_id: googleClientId,
+          client_secret: googleClientSecret,
+          redirect_uri: callbackUrl,
+          grant_type: 'authorization_code',
+        }).toString(),
+      })
+
+      if (!tokenResponse.ok) {
+        const errorText = await tokenResponse.text()
+        this.logger.error('❌ Error al intercambiar código:', {
+          status: tokenResponse.status,
+          error: errorText,
+        })
+        throw new BadRequestException(`Error al intercambiar código: ${tokenResponse.status}`)
+      }
+
+      const tokenData = (await tokenResponse.json()) as {
+        id_token?: string
+        access_token?: string
+        expires_in?: number
+        error?: string
+        error_description?: string
+      }
+
+      if (tokenData.error) {
+        this.logger.error('❌ Error de Google OAuth:', {
+          error: tokenData.error,
+          description: tokenData.error_description,
+        })
+        throw new BadRequestException(
+          `Error de Google OAuth: ${tokenData.error} - ${tokenData.error_description || ''}`
+        )
+      }
+
+      if (!tokenData.id_token) {
+        this.logger.error('❌ No se recibió id_token en la respuesta')
+        throw new BadRequestException('No se recibió id_token en la respuesta de Google')
+      }
+
+      this.logger.log('✅ id_token obtenido exitosamente', {
+        hasIdToken: !!tokenData.id_token,
+        hasAccessToken: !!tokenData.access_token,
+        expiresIn: tokenData.expires_in,
+      })
+
+      return {
+        id_token: tokenData.id_token,
+        access_token: tokenData.access_token,
+        expires_in: tokenData.expires_in,
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error al intercambiar código por token: ${errorMessage}`)
+
+      if (error instanceof BadRequestException) {
+        throw error
+      }
+
+      throw new BadRequestException(`Error al intercambiar código por token: ${errorMessage}`)
     }
   }
 }
