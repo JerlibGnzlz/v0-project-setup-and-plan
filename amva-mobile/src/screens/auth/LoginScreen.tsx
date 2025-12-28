@@ -39,7 +39,7 @@ function GoogleLogo() {
 
 export function LoginScreen() {
   const { login, loginWithGoogle, loading } = useInvitadoAuth()
-  
+
   // Usar método nativo de Google Sign-In (más confiable y estable)
   // Este método funciona mejor que expo-auth-session y no depende del proxy
   const { signIn: googleSignIn, loading: googleAuthLoading, error: googleAuthError } = useGoogleAuth()
@@ -76,7 +76,7 @@ export function LoginScreen() {
       // Obtener idToken usando el método nativo de Google Sign-In
       console.log('🔍 Obteniendo token de Google...')
       const idToken = await googleSignIn()
-      
+
       if (!idToken) {
         console.log('ℹ️ No se recibió token de Google')
         return
@@ -105,7 +105,7 @@ export function LoginScreen() {
           return // Salir silenciosamente sin mostrar error
         }
       }
-      
+
       // Verificar si el error tiene código de cancelación
       if (error && typeof error === 'object' && 'code' in error) {
         const googleError = error as { code: string; message?: string }
@@ -118,8 +118,14 @@ export function LoginScreen() {
           return // Salir silenciosamente sin mostrar error
         }
       }
+
+      // Log del error de forma segura
+      if (error instanceof Error) {
+        console.error('❌ Error en login con Google:', error.message, error)
+      } else {
+        console.error('❌ Error en login con Google:', error)
+      }
       
-      console.error('❌ Error en login con Google:', error)
       let errorMessage = 'No se pudo iniciar sesión con Google.'
 
       if (error instanceof Error) {
@@ -141,19 +147,19 @@ export function LoginScreen() {
           }
           message?: string
         }
-        
+
         // Manejar errores 400 específicamente
         if (axiosError.response?.status === 400) {
           const errorData = axiosError.response?.data?.error
-          const backendMessage = axiosError.response?.data?.message || 
-            (typeof errorData === 'string' 
-              ? errorData 
+          const backendMessage = axiosError.response?.data?.message ||
+            (typeof errorData === 'string'
+              ? errorData
               : errorData && typeof errorData === 'object' && 'message' in errorData
                 ? errorData.message
                 : undefined)
           if (backendMessage) {
-            errorMessage = Array.isArray(backendMessage) 
-              ? backendMessage.join(', ') 
+            errorMessage = Array.isArray(backendMessage)
+              ? backendMessage.join(', ')
               : backendMessage
           } else {
             errorMessage = 'Error de validación: Por favor verifica que el token de Google sea válido.'
