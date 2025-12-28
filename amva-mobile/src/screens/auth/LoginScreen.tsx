@@ -125,7 +125,7 @@ export function LoginScreen() {
       } else {
         console.error('❌ Error en login con Google:', error)
       }
-      
+
       let errorMessage = 'No se pudo iniciar sesión con Google.'
 
       if (error instanceof Error) {
