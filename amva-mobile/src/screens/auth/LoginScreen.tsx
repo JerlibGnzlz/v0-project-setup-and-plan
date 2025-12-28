@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Mail, Lock, Eye, EyeOff, UserPlus } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useGoogleAuth } from '@hooks/useGoogleAuth'
+import { useGoogleAuthProxy } from '@hooks/useGoogleAuthProxy'
 import { invitadoAuthApi } from '@api/invitado-auth'
 import { testBackendConnection } from '../../utils/testConnection'
 import { RegisterScreen } from './RegisterScreen'
@@ -40,9 +41,12 @@ function GoogleLogo() {
 export function LoginScreen() {
   const { login, loginWithGoogle, loading } = useInvitadoAuth()
 
-  // Usar método nativo de Google Sign-In (más confiable y estable)
-  // Este método funciona mejor que expo-auth-session y no depende del proxy
-  const { signIn: googleSignIn, loading: googleAuthLoading, error: googleAuthError } = useGoogleAuth()
+  // Usar Backend Proxy para Google Sign-In (máxima seguridad, no requiere SHA-1)
+  // El backend maneja todo el flujo OAuth, el móvil solo recibe el id_token final
+  const { signIn: googleSignIn, loading: googleAuthLoading, error: googleAuthError } = useGoogleAuthProxy()
+  
+  // Alternativa: método nativo (requiere SHA-1 configurado)
+  // const { signIn: googleSignIn, loading: googleAuthLoading, error: googleAuthError } = useGoogleAuth()
   const scrollViewRef = useRef<ScrollView>(null)
   const emailInputRef = useRef<TextInput>(null)
   const passwordInputRef = useRef<TextInput>(null)
@@ -68,10 +72,10 @@ export function LoginScreen() {
     }
   }, [googleAuthError])
 
-  // Función para manejar login con Google (método nativo)
+  // Función para manejar login con Google (Backend Proxy)
   const handleGoogleLogin = async () => {
     try {
-      console.log('🔐 Iniciando login con Google (método nativo)...')
+      console.log('🔐 Iniciando login con Google (Backend Proxy)...')
 
       // Obtener idToken usando el método nativo de Google Sign-In
       console.log('🔍 Obteniendo token de Google...')
