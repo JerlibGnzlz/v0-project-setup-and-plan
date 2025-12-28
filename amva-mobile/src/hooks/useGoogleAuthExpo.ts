@@ -91,54 +91,82 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
       })
 
       if (result.type === 'success') {
-        // Con ResponseType.Code, obtenemos un código que debemos intercambiar por id_token
-        const { code } = result.params
+        console.log('✅ Respuesta exitosa del proxy de Expo')
+        console.log('🔍 Parámetros recibidos:', Object.keys(result.params))
 
-        if (!code || typeof code !== 'string') {
-          throw new Error('No se recibió código de autorización en la respuesta')
+        // Cuando usamos proxy de Expo con ResponseType.Code, el proxy puede devolver:
+        // 1. El código directamente (necesitamos intercambiarlo)
+        // 2. El token directamente (si el proxy lo maneja)
+        // 3. Ambos
+        
+        const { code, id_token, access_token } = result.params
+
+        // Si ya tenemos id_token directamente del proxy, usarlo
+        if (id_token && typeof id_token === 'string') {
+          console.log('✅ id_token recibido directamente del proxy')
+          console.log('🔍 Token recibido (primeros 50 caracteres):', id_token.substring(0, 50) + '...')
+          return id_token
         }
 
-        console.log('✅ Código de autorización recibido, intercambiando por id_token...')
+        // Si tenemos código, intercambiarlo por id_token
+        if (code && typeof code === 'string') {
+          console.log('✅ Código de autorización recibido, intercambiando por id_token...')
 
-        // Intercambiar el código por un id_token usando el proxy de Expo
-        // El proxy maneja esto automáticamente, pero podemos hacerlo manualmente si es necesario
-        const tokenResponse = await fetch(discovery.tokenEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            client_id: clientId,
-            code,
-            grant_type: 'authorization_code',
-            redirect_uri: redirectUri,
-            code_verifier: request.codeVerifier || '',
-          }).toString(),
-        })
+          // Cuando usamos proxy, el intercambio debe hacerse a través del proxy también
+          // Pero primero intentemos directamente con Google
+          try {
+            const tokenResponse = await fetch(discovery.tokenEndpoint, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams({
+                client_id: clientId,
+                code,
+                grant_type: 'authorization_code',
+                redirect_uri: redirectUri,
+                code_verifier: request.codeVerifier || '',
+              }).toString(),
+            })
 
-        if (!tokenResponse.ok) {
-          const errorText = await tokenResponse.text()
-          console.error('❌ Error al intercambiar código:', errorText)
-          throw new Error(`Error al intercambiar código por token: ${tokenResponse.status}`)
+            if (!tokenResponse.ok) {
+              const errorText = await tokenResponse.text()
+              console.error('❌ Error al intercambiar código:', errorText)
+              throw new Error(`Error al intercambiar código por token: ${tokenResponse.status} - ${errorText}`)
+            }
+
+            const tokenData = (await tokenResponse.json()) as {
+              id_token?: string
+              access_token?: string
+              error?: string
+              error_description?: string
+            }
+
+            if (tokenData.error) {
+              throw new Error(`Error de Google OAuth: ${tokenData.error} - ${tokenData.error_description || ''}`)
+            }
+
+            if (!tokenData.id_token || typeof tokenData.id_token !== 'string') {
+              throw new Error('No se recibió id_token en la respuesta del intercambio')
+            }
+
+            console.log('✅ Login con Google exitoso (expo-auth-session)')
+            console.log('🔍 Token recibido (primeros 50 caracteres):', tokenData.id_token.substring(0, 50) + '...')
+            return tokenData.id_token
+          } catch (exchangeError: unknown) {
+            const errorMessage = exchangeError instanceof Error ? exchangeError.message : 'Error desconocido'
+            console.error('❌ Error en intercambio de código:', errorMessage)
+            throw new Error(`Error al intercambiar código por token: ${errorMessage}`)
+          }
         }
 
-        const tokenData = (await tokenResponse.json()) as {
-          id_token?: string
-          access_token?: string
-          error?: string
+        // Si tenemos access_token pero no id_token, intentar obtenerlo
+        if (access_token && typeof access_token === 'string' && !id_token) {
+          console.log('⚠️ Se recibió access_token pero no id_token, intentando obtener información del usuario...')
+          throw new Error('Se recibió access_token pero el backend requiere id_token. Verifica la configuración de OAuth.')
         }
 
-        if (tokenData.error) {
-          throw new Error(`Error de Google OAuth: ${tokenData.error}`)
-        }
-
-        if (!tokenData.id_token || typeof tokenData.id_token !== 'string') {
-          throw new Error('No se recibió id_token en la respuesta del intercambio')
-        }
-
-        console.log('✅ Login con Google exitoso (expo-auth-session)')
-        console.log('🔍 Token recibido (primeros 50 caracteres):', tokenData.id_token.substring(0, 50) + '...')
-        return tokenData.id_token
+        throw new Error('No se recibió código ni id_token en la respuesta del proxy de Expo')
       }
 
       if (result.type === 'cancel' || result.type === 'dismiss') {
