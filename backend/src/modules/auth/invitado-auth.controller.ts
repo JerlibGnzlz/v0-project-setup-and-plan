@@ -299,52 +299,53 @@ export class InvitadoAuthController {
       // Manejar errores de Google OAuth
       if (oauthError) {
         this.logger.error('❌ Error de Google OAuth:', { error: oauthError })
-        return res.status(400).json({
-          error: 'google_oauth_error',
-          message: `Error de Google OAuth: ${oauthError}`,
-        })
+        const errorRedirectUri = (mobileRedirectUri as string) || 'amva-app://google-oauth-callback'
+        const errorUrl = `${errorRedirectUri}?error=${encodeURIComponent(oauthError as string)}&success=false`
+        return res.redirect(errorUrl)
       }
 
       if (!code) {
         this.logger.error('❌ No se recibió código de autorización')
-        return res.status(400).json({
-          error: 'missing_code',
-          message: 'No se recibió código de autorización de Google',
-        })
+        const errorRedirectUri = (mobileRedirectUri as string) || 'amva-app://google-oauth-callback'
+        const errorUrl = `${errorRedirectUri}?error=missing_code&success=false`
+        return res.redirect(errorUrl)
       }
 
       this.logger.log('🔄 Procesando callback de Google OAuth (Backend Proxy)...', {
         hasCode: !!code,
         hasState: !!state,
+        mobileRedirectUri: mobileRedirectUri || 'default',
       })
 
-      // Obtener redirectUri de query params si está presente
-      const redirectUri = (req.query.redirectUri as string) || undefined
+      // Construir redirectUri para el intercambio (debe ser el callback del backend)
+      const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
+      const callbackUrl = `${backendUrl}/api/auth/invitado/google/callback-proxy${mobileRedirectUri ? `?mobileRedirectUri=${encodeURIComponent(mobileRedirectUri as string)}` : ''}`
 
       // Intercambiar código por id_token
       const tokenResult = await this.invitadoAuthService.exchangeCodeForIdToken(
         code as string,
-        redirectUri
+        callbackUrl
       )
 
       this.logger.log('✅ id_token obtenido exitosamente desde callback')
 
-      // Retornar id_token al cliente (móvil)
-      // El móvil usará este id_token para autenticarse con /auth/invitado/google/mobile
-      return res.json({
-        success: true,
-        id_token: tokenResult.id_token,
-        access_token: tokenResult.access_token,
-        expires_in: tokenResult.expires_in,
+      // Redirigir al móvil con el id_token en la URL
+      const finalRedirectUri = (mobileRedirectUri as string) || 'amva-app://google-oauth-callback'
+      const redirectUrl = `${finalRedirectUri}?id_token=${encodeURIComponent(tokenResult.id_token)}&success=true`
+
+      this.logger.log('🔗 Redirigiendo al móvil con id_token...', {
+        redirectUrl: redirectUrl.replace(/id_token=[^&]+/, 'id_token=***'),
       })
+
+      return res.redirect(redirectUrl)
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       this.logger.error(`❌ Error en callback proxy: ${errorMessage}`)
 
-      return res.status(400).json({
-        error: 'callback_error',
-        message: errorMessage,
-      })
+      // Redirigir al móvil con error
+      const errorRedirectUri = (req.query.mobileRedirectUri as string) || 'amva-app://google-oauth-callback'
+      const errorUrl = `${errorRedirectUri}?error=${encodeURIComponent(errorMessage)}&success=false`
+      return res.redirect(errorUrl)
     }
   }
 }

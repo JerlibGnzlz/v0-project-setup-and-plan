@@ -78,10 +78,14 @@ export function useGoogleAuthProxy(): UseGoogleAuthProxyReturn {
       console.log('🔗 Abriendo navegador para autorización...')
 
       // Paso 2: Abrir URL de autorización en navegador
-      // El backend manejará el callback y retornará el id_token
+      // Usar esquema personalizado para capturar el callback del backend
+      const redirectScheme = 'amva-app'
+      const redirectUri = `${redirectScheme}://google-oauth-callback`
+
+      console.log('🔗 Abriendo navegador con URL de autorización...')
       const result = await WebBrowser.openAuthSessionAsync(
         authorizeData.authorizationUrl,
-        `${backendUrl}/auth/invitado/google/callback-proxy`
+        redirectUri
       )
 
       console.log('🔍 Resultado del navegador:', result.type)
@@ -94,45 +98,40 @@ export function useGoogleAuthProxy(): UseGoogleAuthProxyReturn {
       }
 
       if (result.type === 'success' && result.url) {
-        // El backend debería haber retornado el id_token en la URL o en el response
-        // Pero como usamos WebBrowser, necesitamos extraerlo de la URL de callback
-        const url = new URL(result.url)
-        const code = url.searchParams.get('code')
+        console.log('✅ URL de callback recibida:', result.url.substring(0, 100) + '...')
+        
+        // El backend redirige a: amva-app://google-oauth-callback?id_token=...&success=true
+        try {
+          // Parsear URL del esquema personalizado
+          const urlString = result.url.replace(`${redirectScheme}://`, 'https://')
+          const url = new URL(urlString)
+          const idToken = url.searchParams.get('id_token')
+          const success = url.searchParams.get('success')
 
-        if (code) {
-          console.log('✅ Código recibido, el backend debería haber intercambiado por id_token')
-          // El backend ya intercambió el código, pero necesitamos obtener el id_token
-          // Hacemos una segunda llamada para obtener el token del callback
-          const callbackResponse = await fetch(result.url, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          })
-
-          if (!callbackResponse.ok) {
-            const errorText = await callbackResponse.text()
-            throw new Error(`Error en callback: ${callbackResponse.status} - ${errorText}`)
+          if (success === 'true' && idToken) {
+            console.log('✅ id_token obtenido del backend proxy')
+            return idToken
           }
 
-          const tokenData = (await callbackResponse.json()) as GoogleOAuthTokenResponse
-
-          if (!tokenData.success || !tokenData.id_token) {
-            throw new Error('No se recibió id_token del backend')
+          // Si hay error en la URL
+          const error = url.searchParams.get('error')
+          if (error) {
+            throw new Error(`Error de Google OAuth: ${error}`)
           }
 
-          console.log('✅ id_token obtenido del backend proxy')
-          return tokenData.id_token
+          throw new Error('No se recibió id_token en la respuesta del callback')
+        } catch (urlError: unknown) {
+          if (urlError instanceof Error && urlError.message.includes('Invalid URL')) {
+            // Intentar parsear como URL relativa
+            const idTokenMatch = result.url.match(/id_token=([^&]+)/)
+            if (idTokenMatch && idTokenMatch[1]) {
+              const decodedToken = decodeURIComponent(idTokenMatch[1])
+              console.log('✅ id_token obtenido del backend proxy (parsing alternativo)')
+              return decodedToken
+            }
+          }
+          throw urlError
         }
-
-        // Si no hay código, verificar si hay id_token directamente en la URL
-        const idToken = url.searchParams.get('id_token')
-        if (idToken) {
-          console.log('✅ id_token obtenido directamente de la URL')
-          return idToken
-        }
-
-        throw new Error('No se recibió código ni id_token en la respuesta')
       }
 
       throw new Error(`Respuesta inesperada del navegador: ${result.type}`)
