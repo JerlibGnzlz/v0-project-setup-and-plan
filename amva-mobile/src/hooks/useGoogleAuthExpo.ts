@@ -52,14 +52,14 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         throw new Error('Google Client ID no está configurado correctamente')
       }
 
-      // Generar redirect URI (usar proxy de Expo para compatibilidad con Google Cloud Console)
-      // Google Cloud Console solo acepta URIs con dominio (https://), no schemes personalizados
-      // Forzar el uso del proxy de Expo explícitamente
-      const owner = Constants?.expoConfig?.owner || 'jerlibgnzlz'
-      const slug = Constants?.expoConfig?.slug || 'amva-movil'
-      const redirectUri = `https://auth.expo.io/@${owner}/${slug}`
+      // Generar redirect URI usando esquema personalizado (más confiable que proxy)
+      // El esquema personalizado está configurado en app.json como "amva-app"
+      const redirectUri = AuthSession.makeRedirectUri({
+        scheme: 'amva-app',
+        useProxy: false, // No usar proxy (más confiable)
+      })
       
-      console.log('🔍 Redirect URI forzado (proxy de Expo):', redirectUri)
+      console.log('🔍 Redirect URI generado (esquema personalizado):', redirectUri)
 
       console.log('🔍 Redirect URI generado:', redirectUri)
       console.log('🔍 Client ID:', clientId)
@@ -98,12 +98,12 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
       }
 
-      console.log('🔍 Iniciando flujo OAuth con IdToken + nonce manual...')
+      console.log('🔍 Iniciando flujo OAuth con IdToken + nonce manual (sin proxy)...')
 
       // Iniciar el flujo de autenticación
-      // Usar proxy de Expo - maneja el nonce automáticamente para IdToken
+      // NO usar proxy de Expo (más confiable y recomendado para producción)
       const result = await request.promptAsync(discovery, {
-        useProxy: true,
+        useProxy: false, // Usar esquema personalizado en lugar de proxy
       })
 
       if (result.type === 'success') {
