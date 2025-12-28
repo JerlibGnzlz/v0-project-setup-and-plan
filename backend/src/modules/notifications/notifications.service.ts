@@ -1141,7 +1141,7 @@ export class NotificationsService {
         const messages: ExpoPushMessage[] = tokens.map((token) => ({
           to: token,
           sound: 'default',
-          title,
+          title: titulo,
           body: mensaje,
           data: {
             type: 'credencial_vencida',
@@ -1554,7 +1554,7 @@ export class NotificationsService {
           const messages: ExpoPushMessage[] = tokens.map((token) => ({
             to: token,
             sound: 'default',
-            title,
+            title: titulo,
             body: mensaje,
             data: {
               type: 'credencial_vencida',
