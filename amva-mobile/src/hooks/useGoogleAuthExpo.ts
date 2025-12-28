@@ -170,6 +170,13 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
       }
 
       if (result.type === 'cancel' || result.type === 'dismiss') {
+        // Verificar si hay un error en los parámetros que indique un problema real
+        const errorParams = result.params as { error?: string; error_description?: string }
+        if (errorParams.error) {
+          console.error('❌ Error en respuesta OAuth:', errorParams.error, errorParams.error_description)
+          throw new Error(`Error OAuth: ${errorParams.error} - ${errorParams.error_description || ''}`)
+        }
+        
         console.log('ℹ️ Usuario canceló o cerró el inicio de sesión con Google')
         const cancelError = new Error('SIGN_IN_CANCELLED')
         cancelError.name = 'GoogleSignInCancelled'
@@ -183,6 +190,7 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         const errorDescription = errorParams.error_description || 'Error desconocido'
 
         console.error('❌ Error en OAuth:', errorCode, errorDescription)
+        console.error('❌ Parámetros completos:', result.params)
 
         // Mensaje más descriptivo para errores comunes
         let userFriendlyMessage = errorDescription
@@ -190,10 +198,11 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         if (errorCode === 'access_denied') {
           userFriendlyMessage = 'Acceso denegado. Verifica que el OAuth Consent Screen esté publicado en Google Cloud Console.'
         } else if (errorCode === 'redirect_uri_mismatch') {
-          const redirectUri = AuthSession.makeRedirectUri({ scheme: 'amva-app', useProxy: true })
           userFriendlyMessage = `Redirect URI no autorizado.\n\nAgrega este URI en Google Cloud Console:\n${redirectUri}\n\nConsulta docs/SOLUCION_ACCESS_BLOCKED_OAUTH.md`
         } else if (errorCode === 'invalid_client') {
           userFriendlyMessage = 'Client ID inválido. Verifica que el Google Client ID esté configurado correctamente.'
+        } else if (errorCode === 'invalid_request') {
+          userFriendlyMessage = `Solicitud inválida: ${errorDescription}\n\nVerifica que:\n1. El redirect URI esté agregado en Google Cloud Console\n2. El OAuth Consent Screen esté publicado\n3. Los scopes sean correctos`
         }
 
         const oauthError = new Error(`OAUTH_ERROR: ${errorCode} - ${userFriendlyMessage}`)
