@@ -52,14 +52,14 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         throw new Error('Google Client ID no está configurado correctamente')
       }
 
-      // Generar redirect URI usando esquema personalizado (más confiable que proxy)
-      // El esquema personalizado está configurado en app.json como "amva-app"
-      const redirectUri = AuthSession.makeRedirectUri({
-        scheme: 'amva-app',
-        useProxy: false, // No usar proxy (más confiable)
-      })
+      // Generar redirect URI usando proxy de Expo (requerido para cliente Web)
+      // Google Cloud Console cliente Web solo acepta URIs con dominio (https://)
+      // El esquema personalizado no funciona con cliente Web
+      const owner = Constants?.expoConfig?.owner || 'jerlibgnzlz'
+      const slug = Constants?.expoConfig?.slug || 'amva-movil'
+      const redirectUri = `https://auth.expo.io/@${owner}/${slug}`
       
-      console.log('🔍 Redirect URI generado (esquema personalizado):', redirectUri)
+      console.log('🔍 Redirect URI generado (proxy de Expo):', redirectUri)
 
       console.log('🔍 Redirect URI generado:', redirectUri)
       console.log('🔍 Client ID:', clientId)
@@ -98,12 +98,13 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
       }
 
-      console.log('🔍 Iniciando flujo OAuth con IdToken + nonce manual (sin proxy)...')
+      console.log('🔍 Iniciando flujo OAuth con IdToken + nonce manual (con proxy)...')
 
       // Iniciar el flujo de autenticación
-      // NO usar proxy de Expo (más confiable y recomendado para producción)
+      // Usar proxy de Expo (requerido para cliente Web de Google)
+      // El cliente Web solo acepta URIs con dominio, no schemes personalizados
       const result = await request.promptAsync(discovery, {
-        useProxy: false, // Usar esquema personalizado en lugar de proxy
+        useProxy: true, // Usar proxy porque cliente Web requiere dominio
       })
 
       if (result.type === 'success') {
@@ -139,10 +140,12 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
 
       if (result.type === 'cancel' || result.type === 'dismiss') {
         // Verificar si hay un error en los parámetros que indique un problema real
-        const errorParams = result.params as { error?: string; error_description?: string }
-        if (errorParams.error) {
-          console.error('❌ Error en respuesta OAuth:', errorParams.error, errorParams.error_description)
-          throw new Error(`Error OAuth: ${errorParams.error} - ${errorParams.error_description || ''}`)
+        if (result.params) {
+          const errorParams = result.params as { error?: string; error_description?: string }
+          if (errorParams && errorParams.error) {
+            console.error('❌ Error en respuesta OAuth:', errorParams.error, errorParams.error_description)
+            throw new Error(`Error OAuth: ${errorParams.error} - ${errorParams.error_description || ''}`)
+          }
         }
         
         console.log('ℹ️ Usuario canceló o cerró el inicio de sesión con Google')
@@ -153,7 +156,7 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
 
       // Manejar errores específicos de OAuth
       if (result.type === 'error') {
-        const errorParams = result.params as { error?: string; error_description?: string }
+        const errorParams = result.params ? (result.params as { error?: string; error_description?: string }) : {}
         const errorCode = errorParams.error || 'unknown_error'
         const errorDescription = errorParams.error_description || 'Error desconocido'
 
