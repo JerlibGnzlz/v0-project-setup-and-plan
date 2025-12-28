@@ -8,6 +8,7 @@ import { useState, useCallback } from 'react'
 import * as AuthSession from 'expo-auth-session'
 import * as WebBrowser from 'expo-web-browser'
 import Constants from 'expo-constants'
+import * as Crypto from 'expo-crypto'
 
 // Completar la sesión de autenticación en el navegador
 WebBrowser.maybeCompleteAuthSession()
@@ -63,16 +64,28 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
       console.log('🔍 Redirect URI generado:', redirectUri)
       console.log('🔍 Client ID:', clientId)
 
+      // Generar nonce aleatorio (requerido por Google para ResponseType.IdToken)
+      // El nonce es un valor aleatorio que se usa para prevenir ataques de replay
+      const nonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        `${Date.now()}-${Math.random()}`,
+        { encoding: Crypto.CryptoEncoding.BASE64URL }
+      )
+
+      console.log('🔍 Nonce generado para IdToken')
+
       // Configurar la solicitud de autenticación
-      // Usar ResponseType.IdToken con proxy de Expo (el proxy maneja el nonce automáticamente)
-      // Esto evita problemas con el intercambio de código
+      // Usar ResponseType.IdToken con nonce manual (Google lo requiere)
       const request = new AuthSession.AuthRequest({
         clientId,
         scopes: ['openid', 'profile', 'email'],
         responseType: AuthSession.ResponseType.IdToken,
         redirectUri,
-        // El proxy de Expo maneja el nonce automáticamente cuando useProxy: true
         usePKCE: false,
+        // Agregar nonce manualmente (Google lo requiere para IdToken)
+        extraParams: {
+          nonce: nonce,
+        },
       })
 
       // Configurar discovery para Google
@@ -82,7 +95,7 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
         revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
       }
 
-      console.log('🔍 Iniciando flujo OAuth con IdToken (proxy maneja nonce)...')
+      console.log('🔍 Iniciando flujo OAuth con IdToken + nonce manual...')
 
       // Iniciar el flujo de autenticación
       // Usar proxy de Expo - maneja el nonce automáticamente para IdToken
