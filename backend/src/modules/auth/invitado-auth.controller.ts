@@ -162,11 +162,14 @@ export class InvitadoAuthController {
         mobileRedirectUri: finalMobileRedirectUri,
       })
 
-      // Construir redirectUri para el intercambio (debe ser el callback del backend)
+      // Construir redirectUri para el intercambio
+      // IMPORTANTE: Debe ser EXACTAMENTE el mismo que se usó en la autorización (sin query parameters)
+      // Google requiere que coincidan exactamente
       const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
-      const callbackUrl = `${backendUrl}/api/auth/invitado/google/callback-proxy?mobileRedirectUri=${encodeURIComponent(finalMobileRedirectUri)}`
+      const callbackUrl = `${backendUrl}/api/auth/invitado/google/callback-proxy`
 
       // Intercambiar código por id_token
+      // El redirect_uri debe ser exactamente igual al usado en generateGoogleOAuthUrl
       const tokenResult = await this.invitadoAuthService.exchangeCodeForIdToken(
         code as string,
         callbackUrl

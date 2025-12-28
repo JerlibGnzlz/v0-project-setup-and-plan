@@ -1148,8 +1148,20 @@ export class InvitadoAuthService {
         this.logger.error('❌ Error al intercambiar código:', {
           status: tokenResponse.status,
           error: errorText,
+          redirectUri: callbackUrl,
+          codeLength: code.length,
         })
-        throw new BadRequestException(`Error al intercambiar código: ${tokenResponse.status}`)
+        
+        // Intentar parsear el error para más detalles
+        try {
+          const errorData = JSON.parse(errorText)
+          this.logger.error('❌ Detalles del error de Google:', errorData)
+          throw new BadRequestException(
+            `Error al intercambiar código: ${errorData.error || tokenResponse.status} - ${errorData.error_description || errorText}`
+          )
+        } catch {
+          throw new BadRequestException(`Error al intercambiar código: ${tokenResponse.status} - ${errorText}`)
+        }
       }
 
       const tokenData = (await tokenResponse.json()) as {
