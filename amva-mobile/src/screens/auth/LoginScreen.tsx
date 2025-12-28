@@ -45,10 +45,11 @@ export function LoginScreen() {
   // Mantener expo-auth-session como alternativa
   const { signIn: googleSignInExpo, loading: googleAuthLoadingExpo, error: googleAuthErrorExpo } = useGoogleAuthExpo()
   
-  // Usar método nativo por defecto (más confiable y mejor UX)
-  const googleSignIn = googleSignInNative
-  const googleAuthLoading = googleAuthLoadingNative
-  const googleAuthError = googleAuthErrorNative
+  // Usar expo-auth-session (no requiere SHA-1, funciona inmediatamente)
+  // Si quieres usar el método nativo, cambia a googleSignInNative después de agregar SHA-1
+  const googleSignIn = googleSignInExpo
+  const googleAuthLoading = googleAuthLoadingExpo
+  const googleAuthError = googleAuthErrorExpo
   const scrollViewRef = useRef<ScrollView>(null)
   const emailInputRef = useRef<TextInput>(null)
   const passwordInputRef = useRef<TextInput>(null)
