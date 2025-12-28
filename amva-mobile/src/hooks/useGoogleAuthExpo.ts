@@ -66,11 +66,14 @@ export function useGoogleAuthExpo(): UseGoogleAuthExpoReturn {
 
       // Generar nonce aleatorio (requerido por Google para ResponseType.IdToken)
       // El nonce es un valor aleatorio que se usa para prevenir ataques de replay
-      const nonce = await Crypto.digestStringAsync(
+      // Usar BASE64 y luego convertir a base64url (reemplazar + con -, / con _, y quitar =)
+      const nonceBase64 = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
         `${Date.now()}-${Math.random()}`,
-        { encoding: Crypto.CryptoEncoding.BASE64URL }
+        { encoding: Crypto.CryptoEncoding.BASE64 }
       )
+      // Convertir BASE64 a BASE64URL (formato requerido por OAuth 2.0)
+      const nonce = nonceBase64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
 
       console.log('🔍 Nonce generado para IdToken')
 
