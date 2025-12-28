@@ -1070,7 +1070,10 @@ export class InvitadoAuthService {
 
     // Construir callback URL del backend
     const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
-    const callbackUrl = redirectUri || `${backendUrl}/api/auth/invitado/google/callback-proxy`
+    // Incluir mobileRedirectUri en el callback para que el backend sepa dónde redirigir
+    const mobileRedirectUri = 'amva-app://google-oauth-callback'
+    const baseCallbackUrl = redirectUri || `${backendUrl}/api/auth/invitado/google/callback-proxy`
+    const callbackUrl = `${baseCallbackUrl}${baseCallbackUrl.includes('?') ? '&' : '?'}mobileRedirectUri=${encodeURIComponent(mobileRedirectUri)}`
 
     // Construir URL de autorización de Google
     const params = new URLSearchParams({
