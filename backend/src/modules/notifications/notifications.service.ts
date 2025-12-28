@@ -1128,21 +1128,71 @@ export class NotificationsService {
         }
       }
 
-      // Enviar notificación de prueba
+      // Enviar notificación de prueba usando los tokens ya cargados
       const titulo = '🔔 Notificación de Prueba - Credencial Vencida'
       const mensaje = `Hola ${invitado.nombre}, esta es una notificación de prueba. Tu credencial ${tipoCredencial === 'ministerial' ? 'ministerial' : 'de capellanía'} está vencida.`
 
-      const exito = await this.sendPushNotificationToInvitado(
-        invitado.email,
-        titulo,
-        mensaje,
-        {
-          type: 'credencial_vencida',
-          credencialId: credencial.id,
-          tipoCredencial,
-          test: true,
-        },
-      )
+      // Usar los tokens ya cargados en lugar de hacer otra consulta
+      const tokens = tokensActivos.map((dt) => dt.token)
+      let exito = false
+
+      if (tokens.length > 0) {
+        // Preparar mensajes para Expo
+        const messages: ExpoPushMessage[] = tokens.map((token) => ({
+          to: token,
+          sound: 'default',
+          title,
+          body: mensaje,
+          data: {
+            type: 'credencial_vencida',
+            credencialId: credencial.id,
+            tipoCredencial,
+            test: true,
+          },
+          badge: 1,
+        }))
+
+        try {
+          // Enviar notificaciones a través de Expo
+          const response = await axios.post(this.expoPushUrl, messages, {
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'Accept-Encoding': 'gzip, deflate',
+            },
+          })
+
+          if (response.data && 'data' in response.data && Array.isArray(response.data.data)) {
+            const results = response.data.data as Array<{ status: 'ok' | 'error'; id?: string; message?: string }>
+            const successCount = results.filter((r) => r.status === 'ok').length
+            const errorCount = results.filter((r) => r.status === 'error').length
+
+            this.logger.log(
+              `📱 Notificación de prueba enviada a invitado ${invitado.email}: ${successCount} exitosas, ${errorCount} errores`,
+            )
+
+            // Desactivar tokens que fallaron
+            for (let i = 0; i < results.length; i++) {
+              if (results[i].status === 'error') {
+                const error = results[i].message
+                if (error?.includes('Invalid') || error?.includes('DeviceNotRegistered')) {
+                  await this.prisma.invitadoDeviceToken.updateMany({
+                    where: { token: tokens[i] },
+                    data: { active: false },
+                  })
+                  this.logger.warn(`Token de invitado desactivado: ${tokens[i]}`)
+                }
+              }
+            }
+
+            exito = successCount > 0
+          }
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+          this.logger.error(`Error enviando notificación push de prueba a invitado ${invitado.email}:`, errorMessage)
+          exito = false
+        }
+      }
 
       return {
         encontrado: true,
