@@ -2664,66 +2664,58 @@ export class InscripcionesService {
                         `💰 Inscripción ${inscripcion.email}: ${cuotasPendientes} cuota(s) pendiente(s), monto: $${montoPendiente}`
                     )
 
-                    // Emitir evento de recordatorio de pago
-                    // Si el eventEmitter está disponible, usarlo (con cola)
-                    // Si no, enviar directamente por email (fallback)
+                    // CRÍTICO: Enviar email directamente usando sendEmailToUser
+                    // Esto asegura que el email se envíe usando Nodemailer (SMTP) correctamente configurado
+                    // No depender de eventos o colas para garantizar el envío
+                    this.logger.log(`📧 [${i + 1}/${inscripciones.length}] Enviando email de recordatorio directamente a ${inscripcion.email}...`)
+                    
                     let emailEnviado = false
-
-                    if (this.eventEmitter) {
-                        try {
-                            const event = new PagoRecordatorioEvent({
-                                email: inscripcion.email,
-                                inscripcionId: inscripcion.id,
-                                cuotasPendientes,
-                                montoPendiente,
-                                convencionTitulo: convencion?.titulo || 'Convención',
-                                nombre: inscripcion.nombre,
-                                apellido: inscripcion.apellido || '',
-                            })
-
-                            // Usar emitAsync para esperar a que el listener procese el evento
-                            // Esto asegura que cada evento se procese antes de continuar
-                            await this.eventEmitter.emitAsync(NotificationEventType.PAGO_RECORDATORIO, event)
-                            this.logger.log(
-                                `📬 Evento PAGO_RECORDATORIO emitido para ${inscripcion.email}`
-                            )
-
-                            // IMPORTANTE: Enviar email directamente usando sendEmailToUser
-                            // Esto asegura que el email se envíe usando el EmailService correctamente configurado
-                            this.logger.log(`📧 Enviando email directamente a ${inscripcion.email}...`)
+                    
+                    try {
+                        // Verificar que NotificationsService esté disponible
+                        if (!this.notificationsService) {
+                            this.logger.error(`❌ [${i + 1}/${inscripciones.length}] NotificationsService no está disponible para ${inscripcion.email}`)
+                            this.logger.error(`   ⚠️ Verifica que NotificationsModule esté correctamente importado en InscripcionesModule`)
+                            emailEnviado = false
+                        } else {
+                            // Enviar email directamente usando el método mejorado
                             emailEnviado = await this.enviarEmailRecordatorioDirecto(
                                 inscripcion,
                                 cuotasPendientes,
                                 montoPendiente,
                                 convencion
                             )
-
-                            // Pequeño delay para evitar saturar la cola de emails
-                            await new Promise(resolve => setTimeout(resolve, 100))
-                        } catch (eventError) {
-                            this.logger.error(`❌ Error emitiendo evento para ${inscripcion.email}:`, eventError)
-                            // Fallback a envío directo
-                            this.logger.warn(
-                                `⚠️ Intentando envío directo como fallback para ${inscripcion.email}`
-                            )
-                            emailEnviado = await this.enviarEmailRecordatorioDirecto(
-                                inscripcion,
-                                cuotasPendientes,
-                                montoPendiente,
-                                convencion
-                            )
+                            
+                            // Si el email se envió exitosamente, también emitir evento (opcional, para notificaciones push)
+                            if (emailEnviado && this.eventEmitter) {
+                                try {
+                                    const event = new PagoRecordatorioEvent({
+                                        email: inscripcion.email,
+                                        inscripcionId: inscripcion.id,
+                                        cuotasPendientes,
+                                        montoPendiente,
+                                        convencionTitulo: convencion?.titulo || 'Convención',
+                                        nombre: inscripcion.nombre,
+                                        apellido: inscripcion.apellido || '',
+                                    })
+                                    // Emitir evento de forma asíncrona (no bloquea)
+                                    this.eventEmitter.emit(NotificationEventType.PAGO_RECORDATORIO, event)
+                                    this.logger.log(`📬 Evento PAGO_RECORDATORIO emitido (opcional) para ${inscripcion.email}`)
+                                } catch (eventError) {
+                                    // No fallar si el evento falla, el email ya se envió
+                                    this.logger.warn(`⚠️ Error emitiendo evento (no crítico) para ${inscripcion.email}:`, eventError)
+                                }
+                            }
                         }
-                    } else {
-                        // Fallback: enviar directamente por email si no hay eventEmitter
-                        this.logger.warn(
-                            `⚠️ EventEmitter no disponible, enviando email directamente a ${inscripcion.email}`
-                        )
-                        emailEnviado = await this.enviarEmailRecordatorioDirecto(
-                            inscripcion,
-                            cuotasPendientes,
-                            montoPendiente,
-                            convencion
-                        )
+                        
+                        // Pequeño delay entre emails para evitar saturar el servidor SMTP
+                        if (i < inscripciones.length - 1) {
+                            await new Promise(resolve => setTimeout(resolve, 500)) // 500ms entre emails
+                        }
+                    } catch (emailError) {
+                        const errorMessage = emailError instanceof Error ? emailError.message : 'Error desconocido'
+                        this.logger.error(`❌ [${i + 1}/${inscripciones.length}] Error crítico enviando email a ${inscripcion.email}:`, errorMessage)
+                        emailEnviado = false
                     }
 
                     if (emailEnviado) {
@@ -2776,6 +2768,9 @@ export class InscripcionesService {
     /**
      * Envía email de recordatorio directamente usando NotificationsService.sendEmailToUser
      * Esto asegura que se use el EmailService correctamente configurado (Nodemailer/SMTP)
+     * 
+     * IMPORTANTE: Este método es el único responsable de enviar el email de recordatorio.
+     * No depende de eventos o colas para garantizar el envío.
      */
     private async enviarEmailRecordatorioDirecto(
         inscripcion: InscripcionWithRelations,
@@ -2784,21 +2779,30 @@ export class InscripcionesService {
         convencion: Convencion
     ): Promise<boolean> {
         try {
-            this.logger.log(`📧 [Recordatorio] Enviando email directo a ${inscripcion.email}...`)
-            this.logger.log(`   📋 Inscripción: ${inscripcion.nombre} ${inscripcion.apellido || ''}`)
-            this.logger.log(`   💰 Cuotas pendientes: ${cuotasPendientes}`)
-            this.logger.log(`   💵 Monto pendiente: $${montoPendiente}`)
-            this.logger.log(`   🎯 Convención: ${convencion?.titulo || 'N/A'}`)
+            this.logger.log(`📧 [Recordatorio] ========================================`)
+            this.logger.log(`📧 [Recordatorio] Iniciando envío de email de recordatorio`)
+            this.logger.log(`📧 [Recordatorio] Email destino: ${inscripcion.email}`)
+            this.logger.log(`📧 [Recordatorio] Nombre: ${inscripcion.nombre} ${inscripcion.apellido || ''}`)
+            this.logger.log(`📧 [Recordatorio] Cuotas pendientes: ${cuotasPendientes}`)
+            this.logger.log(`📧 [Recordatorio] Monto pendiente: $${montoPendiente}`)
+            this.logger.log(`📧 [Recordatorio] Convención: ${convencion?.titulo || 'N/A'}`)
+            this.logger.log(`📧 [Recordatorio] Inscripción ID: ${inscripcion.id}`)
 
             // Verificar que notificationsService esté disponible
             if (!this.notificationsService) {
-                this.logger.error('❌ [Recordatorio] NotificationsService no está disponible')
+                this.logger.error('❌ [Recordatorio] CRÍTICO: NotificationsService no está disponible')
+                this.logger.error('   ⚠️ Verifica que NotificationsModule esté correctamente importado en InscripcionesModule')
+                this.logger.error('   ⚠️ Verifica que forwardRef(() => NotificationsModule) esté en los imports')
                 return false
             }
 
+            this.logger.log(`✅ [Recordatorio] NotificationsService disponible`)
+
             // Obtener template de email
+            this.logger.log(`📧 [Recordatorio] Obteniendo template de email...`)
             const { getEmailTemplate } = await import('../notifications/templates/email.templates')
-            const template = getEmailTemplate('pago_recordatorio', {
+            
+            const templateData = {
                 inscripcionId: inscripcion.id,
                 cuotasPendientes,
                 montoPendiente,
@@ -2806,13 +2810,27 @@ export class InscripcionesService {
                 nombre: inscripcion.nombre,
                 apellido: inscripcion.apellido || '',
                 inscripcionNombre: `${inscripcion.nombre} ${inscripcion.apellido || ''}`.trim(),
+            }
+            
+            this.logger.log(`📧 [Recordatorio] Datos del template:`, {
+                cuotasPendientes,
+                montoPendiente,
+                convencionTitulo: templateData.convencionTitulo,
+                nombre: templateData.nombre,
             })
 
-            this.logger.log(`📧 [Recordatorio] Template obtenido: ${template.title}`)
+            const template = getEmailTemplate('pago_recordatorio', templateData)
+
+            this.logger.log(`✅ [Recordatorio] Template obtenido exitosamente`)
+            this.logger.log(`   📧 Título: ${template.title}`)
+            this.logger.log(`   📧 Body length: ${template.body.length} caracteres`)
             this.logger.log(`   📧 Email Provider configurado: ${process.env.EMAIL_PROVIDER || 'gmail'}`)
+            this.logger.log(`   📧 SMTP_USER configurado: ${process.env.SMTP_USER ? 'Sí' : 'No'}`)
+            this.logger.log(`   📧 SMTP_PASSWORD configurado: ${process.env.SMTP_PASSWORD ? 'Sí' : 'No'}`)
 
             // Enviar email usando sendEmailToUser (usa EmailService correctamente configurado)
             // Si EMAIL_PROVIDER=gmail o EMAIL_PROVIDER=smtp, usará Nodemailer automáticamente
+            this.logger.log(`📧 [Recordatorio] Llamando a sendEmailToUser...`)
             const resultado = await this.notificationsService.sendEmailToUser(
                 inscripcion.email,
                 template.title,
@@ -2830,23 +2848,37 @@ export class InscripcionesService {
             )
 
             if (resultado) {
-                this.logger.log(`✅ [Recordatorio] Email enviado exitosamente a ${inscripcion.email}`)
-                this.logger.log(`   📧 Usando: ${process.env.EMAIL_PROVIDER || 'gmail'} (Nodemailer/SMTP)`)
+                this.logger.log(`✅ [Recordatorio] ========================================`)
+                this.logger.log(`✅ [Recordatorio] Email enviado EXITOSAMENTE a ${inscripcion.email}`)
+                this.logger.log(`✅ [Recordatorio] Usando: ${process.env.EMAIL_PROVIDER || 'gmail'} (Nodemailer/SMTP)`)
+                this.logger.log(`✅ [Recordatorio] ========================================`)
             } else {
-                this.logger.error(`❌ [Recordatorio] EmailService retornó false para ${inscripcion.email}`)
+                this.logger.error(`❌ [Recordatorio] ========================================`)
+                this.logger.error(`❌ [Recordatorio] EmailService retornó FALSE para ${inscripcion.email}`)
+                this.logger.error(`❌ [Recordatorio] El email NO se pudo enviar`)
                 this.logger.error(`   ⚠️ Verifica la configuración de EMAIL_PROVIDER y SMTP_* en las variables de entorno`)
+                this.logger.error(`   ⚠️ EMAIL_PROVIDER debe ser: gmail o smtp`)
+                this.logger.error(`   ⚠️ SMTP_USER debe ser tu email`)
+                this.logger.error(`   ⚠️ SMTP_PASSWORD debe ser tu App Password de Gmail`)
+                this.logger.error(`❌ [Recordatorio] ========================================`)
             }
 
             return resultado
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
             const errorStack = error instanceof Error ? error.stack : undefined
-            this.logger.error(`❌ [Recordatorio] Error enviando email de recordatorio a ${inscripcion.email}:`, {
+            this.logger.error(`❌ [Recordatorio] ========================================`)
+            this.logger.error(`❌ [Recordatorio] ERROR CRÍTICO enviando email de recordatorio`)
+            this.logger.error(`❌ [Recordatorio] Email destino: ${inscripcion.email}`)
+            this.logger.error(`❌ [Recordatorio] Error:`, {
                 message: errorMessage,
                 stack: errorStack,
             })
             this.logger.error(`   ⚠️ Verifica que EMAIL_PROVIDER=gmail o EMAIL_PROVIDER=smtp esté configurado`)
             this.logger.error(`   ⚠️ Verifica que SMTP_USER y SMTP_PASSWORD estén configurados correctamente`)
+            this.logger.error(`   ⚠️ Verifica que SMTP_HOST y SMTP_PORT sean correctos`)
+            this.logger.error(`   ⚠️ Para Gmail, necesitas una App Password: https://myaccount.google.com/apppasswords`)
+            this.logger.error(`❌ [Recordatorio] ========================================`)
             return false
         }
     }
