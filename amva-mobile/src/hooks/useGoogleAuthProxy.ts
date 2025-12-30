@@ -95,6 +95,14 @@ export function useGoogleAuthProxy(): UseGoogleAuthProxyReturn {
           const url = new URL(urlString)
           const idToken = url.searchParams.get('id_token')
           const success = url.searchParams.get('success')
+          const cancelled = url.searchParams.get('cancelled')
+
+          // Si el usuario canceló, lanzar error especial de cancelación
+          if (cancelled === 'true') {
+            const cancelError = new Error('SIGN_IN_CANCELLED')
+            cancelError.name = 'GoogleSignInCancelled'
+            throw cancelError
+          }
 
           if (success === 'true' && idToken) {
             return idToken

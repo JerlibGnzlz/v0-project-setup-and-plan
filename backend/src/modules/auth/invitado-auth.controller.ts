@@ -145,6 +145,13 @@ export class InvitadoAuthController {
 
       // Manejar errores de Google OAuth
       if (oauthError) {
+        // Si el usuario canceló, tratarlo como cancelación, no como error
+        if (oauthError === 'access_denied') {
+          this.logger.log('ℹ️ Usuario canceló la autorización de Google OAuth')
+          const cancelUrl = `${finalMobileRedirectUri}?cancelled=true&success=false`
+          return res.redirect(cancelUrl)
+        }
+        
         this.logger.error('❌ Error de Google OAuth:', { error: oauthError })
         const errorUrl = `${finalMobileRedirectUri}?error=${encodeURIComponent(oauthError as string)}&success=false`
         return res.redirect(errorUrl)
