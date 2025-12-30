@@ -1,37 +1,25 @@
-import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert as RNAlert } from 'react-native'
+import React, { useState } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { User, LogOut, MapPin, UserCircle, Mail, Phone, Building2 } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
+import { ConfirmDialog } from '@components/ui/ConfirmDialog'
 
 export function ProfileScreen() {
   const { invitado, logout } = useInvitadoAuth()
   const insets = useSafeAreaInsets()
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
 
-  const handleLogout = () => {
-    RNAlert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro de que deseas cerrar sesión?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Cerrar Sesión',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout()
-              // La navegación se actualizará automáticamente cuando invitado sea null
-            } catch (error: unknown) {
-              const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-              RNAlert.alert('Error', `No se pudo cerrar sesión: ${errorMessage}`)
-            }
-          },
-        },
-      ],
-    )
+  const handleLogout = async () => {
+    try {
+      await logout()
+      setShowLogoutDialog(false)
+      // La navegación se actualizará automáticamente cuando invitado sea null
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      setShowLogoutDialog(false)
+      // Mostrar error si es necesario (puedes usar otro diálogo aquí)
+    }
   }
 
   if (!invitado) {
@@ -139,11 +127,27 @@ export function ProfileScreen() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={() => setShowLogoutDialog(true)}
+          activeOpacity={0.7}
+        >
           <LogOut size={18} color="#ef4444" />
           <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Logout Confirmation Dialog */}
+      <ConfirmDialog
+        visible={showLogoutDialog}
+        title="Cerrar Sesión"
+        message="¿Estás seguro de que deseas cerrar sesión? Tendrás que iniciar sesión nuevamente para acceder a tu cuenta."
+        confirmText="Cerrar Sesión"
+        cancelText="Cancelar"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutDialog(false)}
+        type="logout"
+      />
     </SafeAreaView>
   )
 }
