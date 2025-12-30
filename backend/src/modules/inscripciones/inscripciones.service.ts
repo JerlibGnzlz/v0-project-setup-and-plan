@@ -2483,12 +2483,28 @@ export class InscripcionesService {
         detalles: { email: string; nombre: string; cuotasPendientes: number; exito: boolean }[]
     }> {
         try {
-            this.logger.log('📧 Iniciando envío de recordatorios de pago...', { convencionId })
+            this.logger.log('📧 ========================================')
+            this.logger.log('📧 INICIANDO ENVÍO DE RECORDATORIOS DE PAGO')
+            this.logger.log('📧 ========================================')
+            this.logger.log(`📧 Convención ID: ${convencionId || 'Todas las convenciones'}`)
+            this.logger.log(`📧 Email Provider: ${process.env.EMAIL_PROVIDER || 'gmail'}`)
+            this.logger.log(`📧 SMTP_USER configurado: ${process.env.SMTP_USER ? 'Sí' : 'No'}`)
+            this.logger.log(`📧 SMTP_PASSWORD configurado: ${process.env.SMTP_PASSWORD ? 'Sí' : 'No'}`)
 
-            // Verificar que el eventEmitter esté disponible
+            // Verificar que NotificationsService esté disponible (CRÍTICO)
+            if (!this.notificationsService) {
+                this.logger.error('❌ CRÍTICO: NotificationsService no está disponible')
+                this.logger.error('   ⚠️ Verifica que NotificationsModule esté correctamente importado')
+                this.logger.error('   ⚠️ Verifica que forwardRef(() => NotificationsModule) esté en InscripcionesModule')
+                throw new Error('NotificationsService no está disponible. Verifica la configuración del módulo.')
+            }
+            this.logger.log('✅ NotificationsService disponible')
+
+            // Verificar que el eventEmitter esté disponible (opcional, solo para eventos)
             if (!this.eventEmitter) {
-                this.logger.error('❌ EventEmitter2 no está disponible')
-                throw new Error('EventEmitter2 no está disponible. Verifica la configuración del módulo.')
+                this.logger.warn('⚠️ EventEmitter2 no está disponible (opcional para eventos)')
+            } else {
+                this.logger.log('✅ EventEmitter2 disponible')
             }
 
             const whereConvencion = convencionId ? { convencionId } : {}
