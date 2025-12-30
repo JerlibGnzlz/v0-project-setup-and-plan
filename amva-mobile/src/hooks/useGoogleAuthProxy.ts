@@ -99,7 +99,7 @@ export function useGoogleAuthProxy(): UseGoogleAuthProxyReturn {
 
       if (result.type === 'success' && result.url) {
         // TODO: remove - console.log('✅ URL de callback recibida:', result.url.substring(0, 100) + '...')
-        
+
         // El backend redirige a: amva-app://google-oauth-callback?id_token=...&success=true
         try {
           // Parsear URL del esquema personalizado
