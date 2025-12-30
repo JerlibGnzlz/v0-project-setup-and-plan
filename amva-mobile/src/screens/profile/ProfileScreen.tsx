@@ -1,16 +1,15 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert as RNAlert } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { User, LogOut, MapPin, UserCircle, Mail, Phone, Building2 } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
-import { Alert } from '@utils/alert'
 
 export function ProfileScreen() {
   const { invitado, logout } = useInvitadoAuth()
   const insets = useSafeAreaInsets()
 
   const handleLogout = () => {
-    Alert.alert(
+    RNAlert.alert(
       'Cerrar Sesión',
       '¿Estás seguro de que deseas cerrar sesión?',
       [
@@ -23,18 +22,15 @@ export function ProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              console.log('🚪 Iniciando proceso de cierre de sesión...')
               await logout()
-              console.log('✅ Sesión cerrada exitosamente')
               // La navegación se actualizará automáticamente cuando invitado sea null
-            } catch (error) {
-              console.error('❌ Error al cerrar sesión:', error)
-              Alert.alert('Error', 'No se pudo cerrar sesión. Intenta nuevamente.', undefined, 'error')
+            } catch (error: unknown) {
+              const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+              RNAlert.alert('Error', `No se pudo cerrar sesión: ${errorMessage}`)
             }
           },
         },
       ],
-      'confirm',
     )
   }
 
