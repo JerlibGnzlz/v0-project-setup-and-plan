@@ -19,7 +19,7 @@ import { CreditCard, AlertCircle, RefreshCw, Info, Plus } from 'lucide-react-nat
 import { useMisCredenciales } from '@hooks/use-credenciales'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useAuth } from '@hooks/useAuth'
-import { solicitudesCredencialesApi, EstadoSolicitud } from '@api/solicitudes-credenciales'
+import { solicitudesCredencialesApi, EstadoSolicitud, TipoCredencial } from '@api/solicitudes-credenciales'
 import { useMisSolicitudes } from '@hooks/use-solicitudes-credenciales'
 import { CredentialsWizard } from '@components/credentials/CredentialsWizard'
 import { SolicitudesList } from '@components/credentials/SolicitudesList'
@@ -141,7 +141,7 @@ export function CredentialsScreen() {
   }, [credencialesList.length])
 
   const handleSolicitarCredencial = async (formData: {
-    tipo: import('@api/solicitudes-credenciales').TipoCredencial
+    tipo: TipoCredencial
     dni: string
     nombre: string
     apellido: string
