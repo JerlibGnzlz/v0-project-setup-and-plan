@@ -29,7 +29,7 @@ import { LoadingButton } from '@components/ui/LoadingButton'
 export function LoginScreen() {
   const { login, loginWithGoogle, loading } = useInvitadoAuth()
   const { signIn: googleSignIn, loading: googleAuthLoading, error: googleAuthError } = useGoogleAuthProxy()
-  
+
   const scrollViewRef = useRef<ScrollView>(null)
   const emailInputRef = useRef<TextInput>(null)
   const passwordInputRef = useRef<TextInput>(null)
@@ -128,7 +128,7 @@ export function LoginScreen() {
               animated: true,
             })
           },
-          () => {},
+          () => { },
         )
       }
     }, 100)
