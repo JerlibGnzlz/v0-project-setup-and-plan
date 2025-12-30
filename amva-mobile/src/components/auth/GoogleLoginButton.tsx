@@ -7,7 +7,7 @@ interface GoogleLoginButtonProps {
   loading?: boolean
   disabled?: boolean
   isSmallScreen?: boolean
-  error?: string
+  error?: string | null
 }
 
 function GoogleLogo() {

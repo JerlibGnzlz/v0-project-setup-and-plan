@@ -14,8 +14,8 @@ interface EmailPasswordFormProps {
   emailError?: string
   passwordError?: string
   isSmallScreen?: boolean
-  emailInputRef?: React.RefObject<TextInput>
-  passwordInputRef?: React.RefObject<TextInput>
+  emailInputRef?: React.RefObject<TextInput | null>
+  passwordInputRef?: React.RefObject<TextInput | null>
   onEmailFocus?: () => void
   onPasswordFocus?: () => void
   onEmailSubmit?: () => void

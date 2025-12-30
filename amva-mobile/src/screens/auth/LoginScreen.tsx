@@ -11,6 +11,7 @@ import {
   Animated,
   Dimensions,
   TouchableOpacity,
+  Image,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { UserPlus } from 'lucide-react-native'
@@ -403,4 +404,3 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 })
-
