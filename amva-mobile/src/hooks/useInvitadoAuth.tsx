@@ -200,11 +200,6 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
           // Los errores de Firebase no son críticos para el login
         }
       }
-        idTokenLength: idToken.length,
-        hasDeviceToken: !!deviceToken,
-        platform,
-        deviceId,
-      })
 
       const result = await invitadoAuthApi.loginWithGoogle(idToken, deviceToken, platform, deviceId)
 
