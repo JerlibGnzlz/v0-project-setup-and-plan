@@ -77,25 +77,19 @@ export function LoginScreen() {
   // Función para manejar login con Google (Backend Proxy)
   const handleGoogleLogin = async () => {
     try {
-      // TODO: remove - console.log('🔐 Iniciando login con Google (Backend Proxy)...')
       const idToken = await googleSignIn()
 
       if (!idToken) {
-        // TODO: remove - console.log('ℹ️ No se recibió token de Google')
         return
       }
 
-      // TODO: remove - console.log('✅ Token de Google obtenido, enviando al backend...')
       await loginWithGoogle(idToken)
-      // TODO: remove - console.log('✅ Login con Google exitoso')
     } catch (error: unknown) {
       // Si el usuario canceló, salir silenciosamente
       if (isUserCancellation(error)) {
-        // TODO: remove - console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
         return
       }
 
-      // TODO: remove - console.error('❌ Error en login con Google:', error)
       const errorMessage = handleAuthError(error)
       Alert.alert('Error de autenticación', errorMessage, undefined, 'error')
     }

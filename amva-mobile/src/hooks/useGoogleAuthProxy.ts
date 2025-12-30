@@ -51,11 +51,8 @@ export function useGoogleAuthProxy(): UseGoogleAuthProxyReturn {
 
     try {
       const backendUrl = getBackendUrl()
-      // TODO: remove - console.log('🔐 Iniciando login con Google (Backend Proxy)...')
-      // TODO: remove - console.log('🔍 Backend URL:', backendUrl)
 
       // Paso 1: Solicitar URL de autorización al backend
-      // TODO: remove - console.log('📡 Solicitando URL de autorización al backend...')
       const authorizeResponse = await fetch(`${backendUrl}/auth/invitado/google/authorize`, {
         method: 'GET',
         headers: {
@@ -74,32 +71,23 @@ export function useGoogleAuthProxy(): UseGoogleAuthProxyReturn {
         throw new Error('No se recibió URL de autorización del backend')
       }
 
-      // TODO: remove - console.log('✅ URL de autorización obtenida')
-      // TODO: remove - console.log('🔗 Abriendo navegador para autorización...')
-
       // Paso 2: Abrir URL de autorización en navegador
       // Usar esquema personalizado para capturar el callback del backend
       const redirectScheme = 'amva-app'
       const redirectUri = `${redirectScheme}://google-oauth-callback`
 
-      // TODO: remove - console.log('🔗 Abriendo navegador con URL de autorización...')
       const result = await WebBrowser.openAuthSessionAsync(
         authorizeData.authorizationUrl,
         redirectUri
       )
 
-      // TODO: remove - console.log('🔍 Resultado del navegador:', result.type)
-
       if (result.type === 'cancel' || result.type === 'dismiss') {
-        // TODO: remove - console.log('ℹ️ Usuario canceló la autorización')
         const cancelError = new Error('SIGN_IN_CANCELLED')
         cancelError.name = 'GoogleSignInCancelled'
         throw cancelError
       }
 
       if (result.type === 'success' && result.url) {
-        // TODO: remove - console.log('✅ URL de callback recibida:', result.url.substring(0, 100) + '...')
-
         // El backend redirige a: amva-app://google-oauth-callback?id_token=...&success=true
         try {
           // Parsear URL del esquema personalizado
@@ -109,7 +97,6 @@ export function useGoogleAuthProxy(): UseGoogleAuthProxyReturn {
           const success = url.searchParams.get('success')
 
           if (success === 'true' && idToken) {
-            // TODO: remove - console.log('✅ id_token obtenido del backend proxy')
             return idToken
           }
 
@@ -126,7 +113,6 @@ export function useGoogleAuthProxy(): UseGoogleAuthProxyReturn {
             const idTokenMatch = result.url.match(/id_token=([^&]+)/)
             if (idTokenMatch && idTokenMatch[1]) {
               const decodedToken = decodeURIComponent(idTokenMatch[1])
-              // TODO: remove - console.log('✅ id_token obtenido del backend proxy (parsing alternativo)')
               return decodedToken
             }
           }
@@ -138,14 +124,12 @@ export function useGoogleAuthProxy(): UseGoogleAuthProxyReturn {
     } catch (err: unknown) {
       // Manejar cancelación
       if (err instanceof Error && (err.name === 'GoogleSignInCancelled' || err.message === 'SIGN_IN_CANCELLED')) {
-        // TODO: remove - console.log('ℹ️ Usuario canceló el inicio de sesión')
         setError(null)
         setLoading(false)
         throw err
       }
 
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
-      // TODO: remove - console.error('❌ Error en signIn con Google (Backend Proxy):', errorMessage)
       setError(errorMessage)
       setLoading(false)
       throw err

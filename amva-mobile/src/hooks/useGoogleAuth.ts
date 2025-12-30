@@ -44,7 +44,6 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
         ''
       
       if (webClientId && webClientId.includes('.apps.googleusercontent.com')) {
-        // TODO: remove - console.log('⚠️ Usando Web Client ID como fallback (no requiere SHA-1)')
         return webClientId
       }
     }
@@ -66,7 +65,6 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
         const googleClientId = getGoogleClientId()
 
         if (!googleClientId || !googleClientId.includes('.apps.googleusercontent.com')) {
-          // TODO: remove - console.warn('⚠️ Google Client ID no está configurado correctamente')
           setError('Google Client ID no configurado')
           return
         }
@@ -87,19 +85,10 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
           iosClientId: Platform.OS === 'ios' ? googleClientId : undefined, // iOS Client ID si es diferente
         })
         
-        // TODO: remove - console.log('🔍 Configurando con Android Client ID:', androidClientId.substring(0, 30) + '...')
-        
-        // TODO: remove - console.log('🔍 Google Sign-In configurado con:', {
-        // TODO: remove -   platform: Platform.OS,
-        // TODO: remove -   clientId: googleClientId.substring(0, 30) + '...',
-        // TODO: remove - })
-
-        // TODO: remove - console.log('✅ Google Sign-In configurado correctamente')
         setError(null) // Limpiar cualquier error previo
         setIsConfigured(true)
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
-        // TODO: remove - console.error('❌ Error configurando Google Sign-In:', errorMessage)
         setError(errorMessage)
       }
     }
@@ -115,8 +104,6 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
     try {
       setLoading(true)
       setError(null)
-
-      // TODO: remove - console.log('🔐 Iniciando sesión con Google (nativo)...')
 
       // Verificar que Google Sign-In esté configurado
       if (!isConfigured) {
@@ -146,8 +133,6 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
         if (signInError && typeof signInError === 'object' && 'code' in signInError) {
           const googleError = signInError as { code: string; message?: string }
           if (googleError.code === '10' || googleError.message?.includes('DEVELOPER_ERROR')) {
-            // TODO: remove - console.log('⚠️ DEVELOPER_ERROR detectado, intentando con Web Client ID como fallback...')
-            
             // Obtener Web Client ID
             const webClientId =
               Constants?.expoConfig?.extra?.googleClientId ||
@@ -162,8 +147,6 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
                 forceCodeForRefreshToken: true,
                 iosClientId: Platform.OS === 'ios' ? webClientId : undefined,
               })
-              
-              // TODO: remove - console.log('✅ Reconfigurado con Web Client ID, reintentando...')
               
               // Esperar un momento para que la configuración se aplique
               await new Promise(resolve => setTimeout(resolve, 200))
@@ -186,7 +169,6 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
 
       // Verificar si el usuario canceló (userInfo puede ser null o no tener data)
       if (!userInfo || !userInfo.data) {
-        // TODO: remove - console.log('ℹ️ Usuario canceló el inicio de sesión con Google (sin datos)')
         setError(null)
         setLoading(false)
         const cancelError = new Error('SIGN_IN_CANCELLED')
@@ -197,17 +179,12 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
       // Verificar si hay token
       if (!userInfo.data.idToken) {
         // Si no hay token, probablemente fue cancelación
-        // TODO: remove - console.log('ℹ️ Usuario canceló el inicio de sesión con Google (sin token)')
         setError(null)
         setLoading(false)
         const cancelError = new Error('SIGN_IN_CANCELLED')
         cancelError.name = 'GoogleSignInCancelled'
         throw cancelError
       }
-
-      // TODO: remove - console.log('✅ Login con Google exitoso')
-      // TODO: remove - console.log('🔍 Usuario:', userInfo.data.user.email)
-      // TODO: remove - console.log('🔍 Token recibido (primeros 50 caracteres):', userInfo.data.idToken.substring(0, 50) + '...')
 
       return userInfo.data.idToken
     } catch (err: unknown) {
@@ -235,7 +212,6 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
       if (err instanceof Error) {
         // Verificar por nombre
         if (err.name === 'GoogleSignInCancelled' || err.message === 'SIGN_IN_CANCELLED') {
-          // TODO: remove - console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
           setError(null)
           setLoading(false)
           const cancelError = new Error('SIGN_IN_CANCELLED')
@@ -252,7 +228,6 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
           errorMessage.includes('user_cancelled') ||
           (errorMessage.includes('no se recibió el token') && errorMessage.includes('cancel'))
         ) {
-          console.log('ℹ️ Usuario canceló el inicio de sesión con Google (mensaje:', err.message, ')')
           setError(null)
           setLoading(false)
           const cancelError = new Error('SIGN_IN_CANCELLED')
@@ -296,7 +271,6 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
         }
       }
 
-      // TODO: remove - console.error('❌ Error en signIn con Google:', errorMessage)
       setError(errorMessage)
       throw new Error(errorMessage)
     } finally {
@@ -311,10 +285,8 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
     try {
       setLoading(true)
       await GoogleSignin.signOut()
-      // TODO: remove - console.log('✅ Sesión de Google cerrada')
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
-      // TODO: remove - console.error('❌ Error al cerrar sesión de Google:', errorMessage)
       setError(errorMessage)
       throw err
     } finally {
@@ -330,7 +302,6 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
       const userInfo = await GoogleSignin.getCurrentUser()
       return userInfo
     } catch (err: unknown) {
-      // TODO: remove - console.error('❌ Error obteniendo usuario actual:', err)
       return null
     }
   }, [])
@@ -342,7 +313,6 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
     try {
       return await GoogleSignin.isSignedIn()
     } catch (err: unknown) {
-      // TODO: remove - console.error('❌ Error verificando estado de sesión:', err)
       return false
     }
   }, [])
