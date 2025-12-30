@@ -138,15 +138,6 @@ export function AppNavigator() {
   // Mostrar loading solo mientras se verifica autenticación
   const isAuthenticated = !!invitado
 
-  // Logging para debugging de navegación
-  useEffect(() => {
-    console.log('🔍 [AppNavigator] Estado de autenticación:', {
-      isAuthenticated,
-      hasInvitado: !!invitado,
-      invitadoEmail: invitado?.email || 'N/A',
-      loading,
-    })
-  }, [isAuthenticated, invitado, loading])
 
   if (loading) {
     return (
