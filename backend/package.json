@@ -22,7 +22,8 @@
     "test:email-todos-usuarios": "ts-node scripts/test-email-todos-usuarios.ts",
     "test:inscripcion-mobile": "ts-node scripts/test-inscripcion-mobile.ts",
     "debug:email-mobile": "ts-node scripts/debug-email-mobile.ts",
-    "test:solicitud-credencial": "ts-node scripts/test-solicitud-credencial.ts"
+    "test:solicitud-credencial": "ts-node scripts/test-solicitud-credencial.ts",
+    "test:recordatorios": "ts-node scripts/test-recordatorios-pagos.ts"
   },
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",
