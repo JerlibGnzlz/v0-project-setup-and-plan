@@ -168,11 +168,17 @@ export function handleNetworkError(error: unknown): string {
  */
 export function isUserCancellation(error: unknown): boolean {
   if (error instanceof Error) {
+    // Verificar por nombre del error (para GoogleSignInCancelled)
+    if (error.name === 'GoogleSignInCancelled' || error.message === 'SIGN_IN_CANCELLED') {
+      return true
+    }
+    
     const errorMessage = error.message.toLowerCase()
     return (
       errorMessage.includes('cancel') ||
       errorMessage.includes('cancelled') ||
-      errorMessage.includes('user cancelled')
+      errorMessage.includes('user cancelled') ||
+      errorMessage.includes('sign_in_cancelled')
     )
   }
   return false
