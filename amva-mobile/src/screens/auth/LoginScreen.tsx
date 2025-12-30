@@ -101,11 +101,8 @@ export function LoginScreen() {
       return
     }
     try {
-      // TODO: remove - console.log('🔐 Intentando login como invitado:', email.trim())
       await login(email.trim(), password)
-      // TODO: remove - console.log('✅ Login exitoso')
     } catch (error: unknown) {
-      // TODO: remove - console.error('❌ Error en login:', error)
       const errorMessage = handleAuthError(error)
       Alert.alert('Error de inicio de sesión', errorMessage, undefined, 'error')
     }

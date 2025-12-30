@@ -130,7 +130,6 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
   const login = async (email: string, password: string) => {
     setLoading(true)
     try {
-      // TODO: remove - console.log('🔐 Iniciando login de invitado...')
 
       // Obtener token de push si está disponible
       let deviceToken: string | undefined
@@ -208,33 +207,13 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
       })
 
       const result = await invitadoAuthApi.loginWithGoogle(idToken, deviceToken, platform, deviceId)
-      // TODO: remove - console.log('✅ Login con Google exitoso, guardando tokens...')
-      // TODO: remove - console.log('🔍 Verificando tokens recibidos:', {
-      // TODO: remove -   hasAccessToken: !!result.access_token,
-        hasRefreshToken: !!result.refresh_token,
-        accessTokenLength: result.access_token?.length || 0,
-        refreshTokenLength: result.refresh_token?.length || 0,
-        invitadoEmail: result.invitado?.email,
-      })
 
       // Guardar tokens de forma segura
       await SecureStore.setItemAsync('invitado_token', result.access_token)
       await SecureStore.setItemAsync('invitado_refresh_token', result.refresh_token)
 
-      // Verificar que se guardaron correctamente
-      const savedToken = await SecureStore.getItemAsync('invitado_token')
-      const savedRefreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
-      console.log('🔍 Tokens guardados verificados:', {
-        tokenGuardado: !!savedToken,
-        refreshTokenGuardado: !!savedRefreshToken,
-        tokenLength: savedToken?.length || 0,
-        refreshTokenLength: savedRefreshToken?.length || 0,
-      })
-
       // Establecer el invitado ANTES de setLoading(false) para que la navegación se actualice
       setInvitado(result.invitado)
-      // TODO: remove - console.log('✅ Invitado establecido:', result.invitado.email)
-      // TODO: remove - console.log('✅ Estado de autenticación actualizado, navegación debería actualizarse automáticamente')
 
       // Pequeño delay para asegurar que el estado se propague antes de continuar
       await new Promise(resolve => setTimeout(resolve, 100))

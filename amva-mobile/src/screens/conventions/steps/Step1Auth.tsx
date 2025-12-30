@@ -109,21 +109,16 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
 
   const handleGoogleLogin = async () => {
     try {
-      // TODO: remove - console.log('🔐 Iniciando login con Google (nativo)...')
       const idToken = await googleSignIn()
 
       if (!idToken) {
-        // TODO: remove - console.log('ℹ️ Usuario canceló el inicio de sesión con Google (token null)')
         return
       }
 
-      // TODO: remove - console.log('✅ Token de Google obtenido, enviando al backend...')
       await loginWithGoogle(idToken)
-      // TODO: remove - console.log('✅ Login con Google exitoso')
       await onComplete(invitado)
     } catch (error: unknown) {
       if (isUserCancellation(error)) {
-        // TODO: remove - console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
         return
       }
 

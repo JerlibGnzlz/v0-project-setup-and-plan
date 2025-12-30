@@ -35,7 +35,6 @@ export function CredentialsScreen() {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
       if (nextAppState === 'active') {
-        // TODO: remove - console.log('🔄 App activa, refetch de credenciales...')
         refetch()
       }
     })
@@ -60,7 +59,6 @@ export function CredentialsScreen() {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (nextAppState === 'active' && isInvitadoAuthenticated) {
-        // TODO: remove - console.log('🔄 App activa, refetch de solicitudes...')
         refetchSolicitudes()
       }
     })
@@ -162,9 +160,6 @@ export function CredentialsScreen() {
 
     setSolicitandoCredencial(true)
     try {
-      // TODO: remove - console.log('📤 Enviando solicitud de credencial...')
-      // TODO: remove - console.log('🔍 Usuario autenticado:', isInvitadoAuthenticated)
-      // TODO: remove - console.log('🔍 Invitado:', invitado?.email)
 
       await solicitudesCredencialesApi.create({
         tipo: formData.tipo,
@@ -192,7 +187,6 @@ export function CredentialsScreen() {
         ]
       )
     } catch (error: unknown) {
-      // TODO: remove - console.error('❌ Error solicitando credencial:', error)
       const errorMessage = handleNetworkError(error)
       Alert.alert('Error', errorMessage)
     } finally {
