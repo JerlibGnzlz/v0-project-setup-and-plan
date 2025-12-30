@@ -37,7 +37,9 @@ export function handleAuthError(error: unknown): string {
     if (
       errorMessage.includes('cancel') ||
       errorMessage.includes('cancelled') ||
-      errorMessage.includes('user cancelled')
+      errorMessage.includes('user cancelled') ||
+      errorMessage.includes('sign_in_cancelled') ||
+      errorMessage.includes('access_denied')
     ) {
       return 'Inicio de sesión cancelado.'
     }

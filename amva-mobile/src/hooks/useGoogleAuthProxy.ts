@@ -111,6 +111,12 @@ export function useGoogleAuthProxy(): UseGoogleAuthProxyReturn {
           // Si hay error en la URL
           const error = url.searchParams.get('error')
           if (error) {
+            // Si el error es access_denied, tratarlo como cancelación del usuario
+            if (error === 'access_denied') {
+              const cancelError = new Error('SIGN_IN_CANCELLED')
+              cancelError.name = 'GoogleSignInCancelled'
+              throw cancelError
+            }
             throw new Error(`Error de Google OAuth: ${error}`)
           }
 
