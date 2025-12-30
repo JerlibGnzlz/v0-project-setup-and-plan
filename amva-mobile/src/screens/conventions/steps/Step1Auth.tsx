@@ -3,34 +3,39 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
   Image,
   Animated,
+  TouchableOpacity,
+  Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
-import { Mail, Lock, User, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useGoogleAuth } from '@hooks/useGoogleAuth'
 import { invitadoAuthApi } from '@api/invitado-auth'
-import { Alert } from '@utils/alert'
-import { useNavigation } from '@react-navigation/native'
+import { Alert as CustomAlert } from '@utils/alert'
+import { isUserCancellation, handleAuthError } from '@utils/errorHandler'
+import { AuthTabs } from '@components/auth/AuthTabs'
+import { LoginForm } from '@components/auth/LoginForm'
+import { RegisterForm } from '@components/auth/RegisterForm'
+import { WelcomeView } from '@components/auth/WelcomeView'
+import { GoogleLoginButton } from '@components/auth/GoogleLoginButton'
+import { useAuthValidation } from '@hooks/use-auth-validation'
+import type { TextInput } from 'react-native'
 
 interface Step1AuthProps {
-  onComplete: (userData?: any) => void | Promise<void>
+  onComplete: (userData?: unknown) => void | Promise<void>
   onBack: () => void
 }
 
 export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
-  const navigation = useNavigation()
   const { login, loginWithGoogle, invitado, isAuthenticated } = useInvitadoAuth()
   const { signIn: googleSignIn, loading: googleAuthLoading } = useGoogleAuth()
+  const { validateLogin, validateRegister } = useAuthValidation()
+  
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -56,16 +61,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
   const [loading, setLoading] = useState(false)
   const [keyboardVisible, setKeyboardVisible] = useState(false)
   const logoScaleAnim = useRef(new Animated.Value(1)).current
-
-  // Animaciones de focus para inputs
-  const focusAnims = {
-    email: useRef(new Animated.Value(0)).current,
-    password: useRef(new Animated.Value(0)).current,
-    nombre: useRef(new Animated.Value(0)).current,
-    apellido: useRef(new Animated.Value(0)).current,
-    sede: useRef(new Animated.Value(0)).current,
-    telefono: useRef(new Animated.Value(0)).current,
-  }
+  const scrollViewRef = useRef<ScrollView>(null)
 
   // Manejar teclado
   useEffect(() => {
@@ -113,150 +109,37 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
 
   const handleGoogleLogin = async () => {
     try {
-      console.log('🔐 Iniciando login con Google (nativo)...')
-      
-      // Obtener idToken usando el hook nativo
-      let idToken: string | null = null
-      try {
-        idToken = await googleSignIn()
-      } catch (signInError: unknown) {
-        // Verificar si el error es por cancelación del usuario
-        if (signInError instanceof Error) {
-          // Verificar por nombre del error
-          if (
-            signInError.name === 'GoogleSignInCancelled' ||
-            signInError.message === 'SIGN_IN_CANCELLED'
-          ) {
-            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
-            return // Salir silenciosamente sin mostrar error
-          }
-          
-          // Verificar por mensaje de error
-          const errorMessage = signInError.message.toLowerCase()
-          if (
-            errorMessage.includes('cancel') ||
-            errorMessage.includes('cancelled') ||
-            errorMessage.includes('cancelado') ||
-            errorMessage.includes('user_cancelled')
-          ) {
-            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
-            return // Salir silenciosamente sin mostrar error
-          }
-        }
-        
-        // Verificar si el error tiene código de cancelación
-        if (signInError && typeof signInError === 'object' && 'code' in signInError) {
-          const googleError = signInError as { code: string; message?: string }
-          if (
-            googleError.code === 'SIGN_IN_CANCELLED' ||
-            googleError.code === '12500' || // Código de cancelación en Android
-            googleError.message?.toLowerCase().includes('cancel')
-          ) {
-            console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
-            return // Salir silenciosamente sin mostrar error
-          }
-        }
-        
-        // Si no es cancelación, relanzar el error
-        throw signInError
-      }
-      
-      // Si no se recibió token (usuario canceló), salir silenciosamente
+      // TODO: remove - console.log('🔐 Iniciando login con Google (nativo)...')
+      const idToken = await googleSignIn()
+
       if (!idToken) {
-        console.log('ℹ️ Usuario canceló el inicio de sesión con Google (token null)')
+        // TODO: remove - console.log('ℹ️ Usuario canceló el inicio de sesión con Google (token null)')
         return
       }
 
-      console.log('✅ Token de Google obtenido, enviando al backend...')
-      
-      // Enviar token al backend
+      // TODO: remove - console.log('✅ Token de Google obtenido, enviando al backend...')
       await loginWithGoogle(idToken)
-      
-      console.log('✅ Login con Google exitoso')
+      // TODO: remove - console.log('✅ Login con Google exitoso')
       await onComplete(invitado)
     } catch (error: unknown) {
-      // Verificar primero si es cancelación antes de mostrar cualquier error
-      if (error instanceof Error) {
-        const errorMessage = error.message.toLowerCase()
-        if (
-          error.name === 'GoogleSignInCancelled' ||
-          error.message === 'SIGN_IN_CANCELLED' ||
-          errorMessage.includes('cancel') ||
-          errorMessage.includes('cancelled') ||
-          errorMessage.includes('cancelado') ||
-          errorMessage.includes('user_cancelled')
-        ) {
-          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
-          return // Salir silenciosamente sin mostrar error
-        }
+      if (isUserCancellation(error)) {
+        // TODO: remove - console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+        return
       }
-      
-      // Verificar si el error tiene código de cancelación
-      if (error && typeof error === 'object' && 'code' in error) {
-        const googleError = error as { code: string; message?: string }
-        if (
-          googleError.code === 'SIGN_IN_CANCELLED' ||
-          googleError.code === '12500' ||
-          googleError.message?.toLowerCase().includes('cancel')
-        ) {
-          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
-          return // Salir silenciosamente sin mostrar error
-        }
-      }
-      
-      const errorMessage =
-        error instanceof Error ? (error.message || 'Error desconocido') : 'Error desconocido'
-      Alert.alert('Error', errorMessage, undefined, 'error')
-    }
-  }
 
-  const validateLogin = () => {
-    const newErrors: Record<string, string> = {}
-    if (!loginData.email.trim()) {
-      newErrors.email = 'El correo electrónico es requerido'
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(loginData.email)) {
-        newErrors.email = 'Correo electrónico inválido'
-      }
+      const errorMessage = handleAuthError(error)
+      CustomAlert.alert('Error', errorMessage, undefined, 'error')
     }
-    if (!loginData.password || loginData.password.length < 8) {
-      newErrors.password = 'La contraseña debe tener al menos 8 caracteres'
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const validateRegister = () => {
-    const newErrors: Record<string, string> = {}
-    if (!registerData.nombre || registerData.nombre.trim().length < 2) {
-      newErrors.nombre = 'El nombre debe tener al menos 2 caracteres'
-    }
-    if (!registerData.apellido || registerData.apellido.trim().length < 2) {
-      newErrors.apellido = 'El apellido debe tener al menos 2 caracteres'
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!registerData.email || !emailRegex.test(registerData.email)) {
-      newErrors.email = 'Correo electrónico inválido'
-    }
-    if (!registerData.password || registerData.password.length < 8) {
-      newErrors.password = 'La contraseña debe tener al menos 8 caracteres'
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(registerData.password)) {
-      newErrors.password = 'Debe contener mayúscula, minúscula y número'
-    }
-    if (registerData.password !== registerData.confirmPassword) {
-      newErrors.confirmPassword = 'Las contraseñas no coinciden'
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
   }
 
   const handleLogin = async () => {
     Keyboard.dismiss()
-    if (!validateLogin()) {
-      const firstError = Object.keys(errors)[0]
+    const validationErrors = validateLogin(loginData)
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      const firstError = Object.keys(validationErrors)[0]
       if (firstError) {
-        Alert.alert('Campos inválidos', errors[firstError], undefined, 'warning')
+        Alert.alert('Campos inválidos', validationErrors[firstError], undefined, 'warning')
       }
       return
     }
@@ -266,9 +149,8 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
       await login(loginData.email, loginData.password)
       await onComplete(invitado)
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? (error.message || 'Error desconocido') : 'Error desconocido'
-      Alert.alert('Error de autenticación', errorMessage, undefined, 'error')
+      const errorMessage = handleAuthError(error)
+      CustomAlert.alert('Error de autenticación', errorMessage, undefined, 'error')
     } finally {
       setLoading(false)
     }
@@ -276,10 +158,12 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
 
   const handleRegister = async () => {
     Keyboard.dismiss()
-    if (!validateRegister()) {
-      const firstError = Object.keys(errors)[0]
+    const validationErrors = validateRegister(registerData)
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      const firstError = Object.keys(validationErrors)[0]
       if (firstError) {
-        Alert.alert('Campos inválidos', errors[firstError], undefined, 'warning')
+        Alert.alert('Campos inválidos', validationErrors[firstError], undefined, 'warning')
       }
       return
     }
@@ -309,17 +193,14 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
       await login(registerData.email, registerData.password)
       await onComplete(invitado)
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? (error.message || 'Error desconocido') : 'Error desconocido'
-      Alert.alert('Error de registro', errorMessage, undefined, 'error')
+      const errorMessage = handleAuthError(error)
+      CustomAlert.alert('Error de registro', errorMessage, undefined, 'error')
     } finally {
       setLoading(false)
     }
   }
 
-  const scrollViewRef = useRef<ScrollView>(null)
-
-  const scrollToInput = (inputRef: React.RefObject<TextInput | null>, offset: number = 0) => {
+  const scrollToInput = (inputRef: React.RefObject<TextInput>, offset: number = 0) => {
     setTimeout(() => {
       if (inputRef.current && scrollViewRef.current) {
         inputRef.current.measureLayout(
@@ -336,29 +217,19 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
     }, 100)
   }
 
+  const clearError = (field: string) => {
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[field]
+        return newErrors
+      })
+    }
+  }
+
   // Si ya está autenticado, mostrar vista de bienvenida
   if (isAuthenticated && invitado) {
-    return (
-      <View style={styles.welcomeContainer}>
-        <View style={styles.welcomeCard}>
-          <View style={styles.avatarContainer}>
-            {invitado.fotoUrl ? (
-              <Image source={{ uri: invitado.fotoUrl }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <User size={32} color="#22c55e" />
-              </View>
-            )}
-            <View style={styles.checkBadge}>
-              <CheckCircle size={14} color="#fff" />
-            </View>
-          </View>
-          <Text style={styles.welcomeTitle}>{invitado.nombre}</Text>
-          <Text style={styles.welcomeSubtitle}>Bienvenido</Text>
-          <Text style={styles.welcomeMessage}>Redirigiendo al formulario...</Text>
-        </View>
-      </View>
-    )
+    return <WelcomeView invitado={invitado} />
   }
 
   return (
@@ -405,18 +276,13 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
             <Text style={styles.cardSubtitle}>Paso 1: Autenticación</Text>
 
             {/* Google Button */}
-            <TouchableOpacity
-              style={[styles.googleButton, googleAuthLoading && styles.buttonDisabled]}
-              onPress={handleGoogleLogin}
-              disabled={googleAuthLoading}
-              activeOpacity={0.85}
-            >
-              {googleAuthLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.googleButtonText}>🔵 Continuar con Google</Text>
-              )}
-            </TouchableOpacity>
+            <View style={styles.googleButtonWrapper}>
+              <GoogleLoginButton
+                onPress={handleGoogleLogin}
+                loading={googleAuthLoading}
+                error={undefined}
+              />
+            </View>
 
             {/* Divider */}
             <View style={styles.divider}>
@@ -426,627 +292,71 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
             </View>
 
             {/* Tabs */}
-            <View style={styles.tabs}>
-              <TouchableOpacity
-                style={[styles.tab, activeTab === 'login' && styles.tabActive]}
-                onPress={() => setActiveTab('login')}
-              >
-                <Text
-                  style={[styles.tabText, activeTab === 'login' && styles.tabTextActive]}
-                >
-                  Iniciar Sesión
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.tab, activeTab === 'register' && styles.tabActive]}
-                onPress={() => setActiveTab('register')}
-              >
-                <Text
-                  style={[styles.tabText, activeTab === 'register' && styles.tabTextActive]}
-                >
-                  Crear Cuenta
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <AuthTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
             {/* Login Form */}
             {activeTab === 'login' && (
-              <View style={styles.form}>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    <Mail size={12} color="rgba(255, 255, 255, 0.6)" /> Correo electrónico{' '}
-                    <Text style={styles.required}>*</Text>
-                  </Text>
-                  <Animated.View
-                    style={[
-                      styles.inputContainer,
-                      {
-                        borderColor: focusAnims.email.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [
-                            errors.email ? 'rgba(239, 68, 68, 0.6)' : 'rgba(255, 255, 255, 0.2)',
-                            'rgba(34, 197, 94, 0.6)',
-                          ],
-                        }),
-                        shadowOpacity: focusAnims.email.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0, 0.2],
-                        }),
-                        shadowColor: errors.email ? '#ef4444' : '#22c55e',
-                      },
-                      errors.email && styles.inputErrorContainer,
-                    ]}
-                  >
-                    <TextInput
-                      style={styles.input}
-                      value={loginData.email}
-                      onChangeText={value => {
-                        setLoginData(prev => ({ ...prev, email: value }))
-                        if (errors.email) {
-                          setErrors(prev => {
-                            const newErrors = { ...prev }
-                            delete newErrors.email
-                            return newErrors
-                          })
-                        }
-                      }}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      placeholder="tu@email.com"
-                      placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                      onFocus={() => {
-                        Animated.spring(focusAnims.email, {
-                          toValue: 1,
-                          useNativeDriver: false,
-                        }).start()
-                        scrollToInput({ current: null }, 0)
-                      }}
-                      onBlur={() => {
-                        Animated.spring(focusAnims.email, {
-                          toValue: 0,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                    />
-                  </Animated.View>
-                  {errors.email && (
-                    <View style={styles.errorContainer}>
-                      <AlertCircle size={12} color="#ef4444" />
-                      <Text style={styles.errorText}>{errors.email}</Text>
-                    </View>
-                  )}
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    <Lock size={12} color="rgba(255, 255, 255, 0.6)" /> Contraseña{' '}
-                    <Text style={styles.required}>*</Text>
-                  </Text>
-                  <Animated.View
-                    style={[
-                      styles.inputContainer,
-                      {
-                        borderColor: focusAnims.password.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [
-                            errors.password ? 'rgba(239, 68, 68, 0.6)' : 'rgba(255, 255, 255, 0.2)',
-                            'rgba(34, 197, 94, 0.6)',
-                          ],
-                        }),
-                        shadowOpacity: focusAnims.password.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0, 0.2],
-                        }),
-                        shadowColor: errors.password ? '#ef4444' : '#22c55e',
-                      },
-                      errors.password && styles.inputErrorContainer,
-                    ]}
-                  >
-                    <TextInput
-                      style={styles.input}
-                      value={loginData.password}
-                      onChangeText={value => {
-                        setLoginData(prev => ({ ...prev, password: value }))
-                        if (errors.password) {
-                          setErrors(prev => {
-                            const newErrors = { ...prev }
-                            delete newErrors.password
-                            return newErrors
-                          })
-                        }
-                      }}
-                      secureTextEntry={!showPassword}
-                      placeholder="••••••••"
-                      placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                      onFocus={() => {
-                        Animated.spring(focusAnims.password, {
-                          toValue: 1,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                      onBlur={() => {
-                        Animated.spring(focusAnims.password, {
-                          toValue: 0,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                    />
-                    <TouchableOpacity
-                      style={styles.eyeButton}
-                      onPress={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff size={18} color="rgba(255, 255, 255, 0.6)" />
-                      ) : (
-                        <Eye size={18} color="rgba(255, 255, 255, 0.6)" />
-                      )}
-                    </TouchableOpacity>
-                  </Animated.View>
-                  {errors.password && (
-                    <View style={styles.errorContainer}>
-                      <AlertCircle size={12} color="#ef4444" />
-                      <Text style={styles.errorText}>{errors.password}</Text>
-                    </View>
-                  )}
-                </View>
-
-                <TouchableOpacity
-                  style={[styles.button, loading && styles.buttonDisabled]}
-                  onPress={handleLogin}
-                  disabled={loading}
-                  activeOpacity={0.8}
-                >
-                  <LinearGradient
-                    colors={['#22c55e', '#16a34a']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.buttonGradient}
-                  >
-                    {loading ? (
-                      <ActivityIndicator color="#fff" />
-                    ) : (
-                      <>
-                        <CheckCircle size={18} color="#fff" />
-                        <Text style={styles.buttonText}>Iniciar Sesión</Text>
-                      </>
-                    )}
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
+              <LoginForm
+                email={loginData.email}
+                password={loginData.password}
+                showPassword={showPassword}
+                errors={errors}
+                loading={loading}
+                onEmailChange={value => {
+                  setLoginData(prev => ({ ...prev, email: value }))
+                  clearError('email')
+                }}
+                onPasswordChange={value => {
+                  setLoginData(prev => ({ ...prev, password: value }))
+                  clearError('password')
+                }}
+                onTogglePassword={() => setShowPassword(!showPassword)}
+                onSubmit={handleLogin}
+                onScrollToInput={scrollToInput}
+              />
             )}
 
             {/* Register Form */}
             {activeTab === 'register' && (
-              <View style={styles.form}>
-                <View style={styles.row}>
-                  <View style={styles.halfInput}>
-                    <Text style={styles.label}>
-                      <User size={12} color="rgba(255, 255, 255, 0.6)" /> Nombre{' '}
-                      <Text style={styles.required}>*</Text>
-                    </Text>
-                    <Animated.View
-                      style={[
-                        styles.inputContainer,
-                        {
-                          borderColor: focusAnims.nombre.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [
-                              errors.nombre ? 'rgba(239, 68, 68, 0.6)' : 'rgba(255, 255, 255, 0.2)',
-                              'rgba(34, 197, 94, 0.6)',
-                            ],
-                          }),
-                        },
-                        errors.nombre && styles.inputErrorContainer,
-                      ]}
-                    >
-                      <TextInput
-                        style={styles.input}
-                        value={registerData.nombre}
-                        onChangeText={value => {
-                          setRegisterData(prev => ({ ...prev, nombre: value }))
-                          if (errors.nombre) {
-                            setErrors(prev => {
-                              const newErrors = { ...prev }
-                              delete newErrors.nombre
-                              return newErrors
-                            })
-                          }
-                        }}
-                        placeholder="Tu nombre"
-                        placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                        autoCapitalize="words"
-                        onFocus={() => {
-                          Animated.spring(focusAnims.nombre, {
-                            toValue: 1,
-                            useNativeDriver: false,
-                          }).start()
-                        }}
-                        onBlur={() => {
-                          Animated.spring(focusAnims.nombre, {
-                            toValue: 0,
-                            useNativeDriver: false,
-                          }).start()
-                        }}
-                      />
-                    </Animated.View>
-                    {errors.nombre && (
-                      <View style={styles.errorContainer}>
-                        <AlertCircle size={12} color="#ef4444" />
-                        <Text style={styles.errorText}>{errors.nombre}</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.halfInput}>
-                    <Text style={styles.label}>
-                      <User size={12} color="rgba(255, 255, 255, 0.6)" /> Apellido{' '}
-                      <Text style={styles.required}>*</Text>
-                    </Text>
-                    <Animated.View
-                      style={[
-                        styles.inputContainer,
-                        {
-                          borderColor: focusAnims.apellido.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [
-                              errors.apellido ? 'rgba(239, 68, 68, 0.6)' : 'rgba(255, 255, 255, 0.2)',
-                              'rgba(34, 197, 94, 0.6)',
-                            ],
-                          }),
-                        },
-                        errors.apellido && styles.inputErrorContainer,
-                      ]}
-                    >
-                      <TextInput
-                        style={styles.input}
-                        value={registerData.apellido}
-                        onChangeText={value => {
-                          setRegisterData(prev => ({ ...prev, apellido: value }))
-                          if (errors.apellido) {
-                            setErrors(prev => {
-                              const newErrors = { ...prev }
-                              delete newErrors.apellido
-                              return newErrors
-                            })
-                          }
-                        }}
-                        placeholder="Tu apellido"
-                        placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                        autoCapitalize="words"
-                        onFocus={() => {
-                          Animated.spring(focusAnims.apellido, {
-                            toValue: 1,
-                            useNativeDriver: false,
-                          }).start()
-                        }}
-                        onBlur={() => {
-                          Animated.spring(focusAnims.apellido, {
-                            toValue: 0,
-                            useNativeDriver: false,
-                          }).start()
-                        }}
-                      />
-                    </Animated.View>
-                    {errors.apellido && (
-                      <View style={styles.errorContainer}>
-                        <AlertCircle size={12} color="#ef4444" />
-                        <Text style={styles.errorText}>{errors.apellido}</Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    <Mail size={12} color="rgba(255, 255, 255, 0.6)" /> Correo electrónico{' '}
-                    <Text style={styles.required}>*</Text>
-                  </Text>
-                  <Animated.View
-                    style={[
-                      styles.inputContainer,
-                      {
-                        borderColor: focusAnims.email.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [
-                            errors.email ? 'rgba(239, 68, 68, 0.6)' : 'rgba(255, 255, 255, 0.2)',
-                            'rgba(34, 197, 94, 0.6)',
-                          ],
-                        }),
-                      },
-                      errors.email && styles.inputErrorContainer,
-                    ]}
-                  >
-                    <TextInput
-                      style={styles.input}
-                      value={registerData.email}
-                      onChangeText={value => {
-                        setRegisterData(prev => ({ ...prev, email: value }))
-                        if (errors.email) {
-                          setErrors(prev => {
-                            const newErrors = { ...prev }
-                            delete newErrors.email
-                            return newErrors
-                          })
-                        }
-                      }}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      placeholder="tu@email.com"
-                      placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                      onFocus={() => {
-                        Animated.spring(focusAnims.email, {
-                          toValue: 1,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                      onBlur={() => {
-                        Animated.spring(focusAnims.email, {
-                          toValue: 0,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                    />
-                  </Animated.View>
-                  {errors.email && (
-                    <View style={styles.errorContainer}>
-                      <AlertCircle size={12} color="#ef4444" />
-                      <Text style={styles.errorText}>{errors.email}</Text>
-                    </View>
-                  )}
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    <Lock size={12} color="rgba(255, 255, 255, 0.6)" /> Contraseña{' '}
-                    <Text style={styles.required}>*</Text>
-                  </Text>
-                  <Animated.View
-                    style={[
-                      styles.inputContainer,
-                      {
-                        borderColor: focusAnims.password.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [
-                            errors.password ? 'rgba(239, 68, 68, 0.6)' : 'rgba(255, 255, 255, 0.2)',
-                            'rgba(34, 197, 94, 0.6)',
-                          ],
-                        }),
-                      },
-                      errors.password && styles.inputErrorContainer,
-                    ]}
-                  >
-                    <TextInput
-                      style={styles.input}
-                      value={registerData.password}
-                      onChangeText={value => {
-                        setRegisterData(prev => ({ ...prev, password: value }))
-                        if (errors.password) {
-                          setErrors(prev => {
-                            const newErrors = { ...prev }
-                            delete newErrors.password
-                            return newErrors
-                          })
-                        }
-                      }}
-                      secureTextEntry={!showPassword}
-                      placeholder="Mínimo 8 caracteres"
-                      placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                      onFocus={() => {
-                        Animated.spring(focusAnims.password, {
-                          toValue: 1,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                      onBlur={() => {
-                        Animated.spring(focusAnims.password, {
-                          toValue: 0,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                    />
-                    <TouchableOpacity
-                      style={styles.eyeButton}
-                      onPress={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff size={18} color="rgba(255, 255, 255, 0.6)" />
-                      ) : (
-                        <Eye size={18} color="rgba(255, 255, 255, 0.6)" />
-                      )}
-                    </TouchableOpacity>
-                  </Animated.View>
-                  {errors.password && (
-                    <View style={styles.errorContainer}>
-                      <AlertCircle size={12} color="#ef4444" />
-                      <Text style={styles.errorText}>{errors.password}</Text>
-                    </View>
-                  )}
-                  <Text style={styles.helperText}>
-                    Debe contener mayúscula, minúscula y número
-                  </Text>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    <Lock size={12} color="rgba(255, 255, 255, 0.6)" /> Confirmar Contraseña{' '}
-                    <Text style={styles.required}>*</Text>
-                  </Text>
-                  <Animated.View
-                    style={[
-                      styles.inputContainer,
-                      {
-                        borderColor: focusAnims.password.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [
-                            errors.confirmPassword
-                              ? 'rgba(239, 68, 68, 0.6)'
-                              : 'rgba(255, 255, 255, 0.2)',
-                            'rgba(34, 197, 94, 0.6)',
-                          ],
-                        }),
-                      },
-                      errors.confirmPassword && styles.inputErrorContainer,
-                    ]}
-                  >
-                    <TextInput
-                      style={styles.input}
-                      value={registerData.confirmPassword}
-                      onChangeText={value => {
-                        setRegisterData(prev => ({ ...prev, confirmPassword: value }))
-                        if (errors.confirmPassword) {
-                          setErrors(prev => {
-                            const newErrors = { ...prev }
-                            delete newErrors.confirmPassword
-                            return newErrors
-                          })
-                        }
-                      }}
-                      secureTextEntry={!showConfirmPassword}
-                      placeholder="Repite tu contraseña"
-                      placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                      onFocus={() => {
-                        Animated.spring(focusAnims.password, {
-                          toValue: 1,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                      onBlur={() => {
-                        Animated.spring(focusAnims.password, {
-                          toValue: 0,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                    />
-                    <TouchableOpacity
-                      style={styles.eyeButton}
-                      onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff size={18} color="rgba(255, 255, 255, 0.6)" />
-                      ) : (
-                        <Eye size={18} color="rgba(255, 255, 255, 0.6)" />
-                      )}
-                    </TouchableOpacity>
-                  </Animated.View>
-                  {errors.confirmPassword && (
-                    <View style={styles.errorContainer}>
-                      <AlertCircle size={12} color="#ef4444" />
-                      <Text style={styles.errorText}>{errors.confirmPassword}</Text>
-                    </View>
-                  )}
-                  {!errors.confirmPassword &&
-                    registerData.confirmPassword.length > 0 &&
-                    registerData.password === registerData.confirmPassword && (
-                      <View style={styles.helperContainer}>
-                        <CheckCircle size={12} color="#22c55e" />
-                        <Text style={[styles.helperText, { color: '#22c55e' }]}>
-                          Las contraseñas coinciden
-                        </Text>
-                      </View>
-                    )}
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    <User size={12} color="rgba(255, 255, 255, 0.6)" /> Iglesia / Sede
-                  </Text>
-                  <Animated.View
-                    style={[
-                      styles.inputContainer,
-                      {
-                        borderColor: focusAnims.sede.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: ['rgba(255, 255, 255, 0.2)', 'rgba(34, 197, 94, 0.6)'],
-                        }),
-                      },
-                    ]}
-                  >
-                    <TextInput
-                      style={styles.input}
-                      value={registerData.sede}
-                      onChangeText={value => setRegisterData(prev => ({ ...prev, sede: value }))}
-                      placeholder="Nombre de tu iglesia o sede"
-                      placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                      autoCapitalize="words"
-                      onFocus={() => {
-                        Animated.spring(focusAnims.sede, {
-                          toValue: 1,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                      onBlur={() => {
-                        Animated.spring(focusAnims.sede, {
-                          toValue: 0,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                    />
-                  </Animated.View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    <Mail size={12} color="rgba(255, 255, 255, 0.6)" /> Teléfono
-                  </Text>
-                  <Animated.View
-                    style={[
-                      styles.inputContainer,
-                      {
-                        borderColor: focusAnims.telefono.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: ['rgba(255, 255, 255, 0.2)', 'rgba(34, 197, 94, 0.6)'],
-                        }),
-                      },
-                    ]}
-                  >
-                    <TextInput
-                      style={styles.input}
-                      value={registerData.telefono}
-                      onChangeText={value => setRegisterData(prev => ({ ...prev, telefono: value }))}
-                      keyboardType="phone-pad"
-                      placeholder="+54 11 1234-5678"
-                      placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                      onFocus={() => {
-                        Animated.spring(focusAnims.telefono, {
-                          toValue: 1,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                      onBlur={() => {
-                        Animated.spring(focusAnims.telefono, {
-                          toValue: 0,
-                          useNativeDriver: false,
-                        }).start()
-                      }}
-                    />
-                  </Animated.View>
-                </View>
-
-                <TouchableOpacity
-                  style={[styles.button, loading && styles.buttonDisabled]}
-                  onPress={handleRegister}
-                  disabled={loading}
-                  activeOpacity={0.8}
-                >
-                  <LinearGradient
-                    colors={['#22c55e', '#16a34a']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.buttonGradient}
-                  >
-                    {loading ? (
-                      <ActivityIndicator color="#fff" />
-                    ) : (
-                      <>
-                        <CheckCircle size={18} color="#fff" />
-                        <Text style={styles.buttonText}>Crear Cuenta</Text>
-                      </>
-                    )}
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
+              <RegisterForm
+                nombre={registerData.nombre}
+                apellido={registerData.apellido}
+                email={registerData.email}
+                password={registerData.password}
+                confirmPassword={registerData.confirmPassword}
+                sede={registerData.sede}
+                telefono={registerData.telefono}
+                showPassword={showPassword}
+                showConfirmPassword={showConfirmPassword}
+                errors={errors}
+                loading={loading}
+                onNombreChange={value => {
+                  setRegisterData(prev => ({ ...prev, nombre: value }))
+                  clearError('nombre')
+                }}
+                onApellidoChange={value => {
+                  setRegisterData(prev => ({ ...prev, apellido: value }))
+                  clearError('apellido')
+                }}
+                onEmailChange={value => {
+                  setRegisterData(prev => ({ ...prev, email: value }))
+                  clearError('email')
+                }}
+                onPasswordChange={value => {
+                  setRegisterData(prev => ({ ...prev, password: value }))
+                  clearError('password')
+                }}
+                onConfirmPasswordChange={value => {
+                  setRegisterData(prev => ({ ...prev, confirmPassword: value }))
+                  clearError('confirmPassword')
+                }}
+                onSedeChange={value => setRegisterData(prev => ({ ...prev, sede: value }))}
+                onTelefonoChange={value => setRegisterData(prev => ({ ...prev, telefono: value }))}
+                onTogglePassword={() => setShowPassword(!showPassword)}
+                onToggleConfirmPassword={() => setShowConfirmPassword(!showConfirmPassword)}
+                onSubmit={handleRegister}
+                onScrollToInput={scrollToInput}
+              />
             )}
 
             {/* Back Button */}
@@ -1102,173 +412,30 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: 'rgba(255, 255, 255, 0.6)',
     textAlign: 'center',
-    letterSpacing: 0.3,
+    fontWeight: '500',
   },
   card: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: 20,
-    padding: 18,
+    padding: 20,
     borderWidth: 0.5,
     borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   cardTitle: {
-    fontSize: 19,
+    fontSize: 22,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 2,
+    marginBottom: 4,
     textAlign: 'center',
-    letterSpacing: -0.3,
   },
   cardSubtitle: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.5)',
-    marginBottom: 18,
-    textAlign: 'center',
-  },
-  tabs: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    padding: 2,
-    marginBottom: 16,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: 10,
-  },
-  tabActive: {
-    backgroundColor: '#22c55e',
-  },
-  tabText: {
     fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  tabTextActive: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  form: {
-    gap: 14,
-  },
-  inputGroup: {
-    marginBottom: 14,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 14,
-  },
-  halfInput: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.65)',
-    marginBottom: 7,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  required: {
-    color: '#ef4444',
-  },
-  inputContainer: {
-    borderWidth: 1.5,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
-    elevation: 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  inputErrorContainer: {
-    backgroundColor: 'rgba(239, 68, 68, 0.03)',
-  },
-  input: {
-    flex: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    color: '#fff',
-    fontSize: 15,
-    backgroundColor: 'transparent',
-  },
-  eyeButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-  },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 5,
-  },
-  errorText: {
-    fontSize: 11,
-    color: '#f87171',
-    flex: 1,
-  },
-  helperContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 5,
-  },
-  helperText: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.45)',
-    flex: 1,
-  },
-  button: {
-    marginTop: 6,
-    borderRadius: 14,
-    overflow: 'hidden',
-    shadowColor: '#22c55e',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-    paddingVertical: 13,
-    paddingHorizontal: 20,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
-    letterSpacing: 0.2,
-  },
-  googleButton: {
-    marginTop: 10,
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    borderWidth: 0.5,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
-    paddingVertical: 12,
-    borderRadius: 14,
-    alignItems: 'center',
-    overflow: 'hidden', // Evitar que se vea contenido fuera del botón al presionar
-  },
-  googleButtonText: {
-    color: '#60a5fa',
-    fontSize: 14,
-    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   divider: {
     flexDirection: 'row',
@@ -1295,74 +462,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
   },
-  welcomeContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  welcomeCard: {
-    backgroundColor: 'transparent',
-    borderRadius: 0,
-    padding: 0,
-    borderWidth: 0,
-    alignItems: 'center',
-    width: '100%',
-    maxWidth: 400,
-  },
-  avatarContainer: {
-    position: 'relative',
-    marginBottom: 20,
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2,
-    borderColor: 'rgba(34, 197, 94, 0.3)',
-  },
-  avatarPlaceholder: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(34, 197, 94, 0.08)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(34, 197, 94, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkBadge: {
-    position: 'absolute',
-    bottom: -1,
-    right: -1,
-    backgroundColor: '#22c55e',
-    borderRadius: 10,
-    padding: 3,
-    borderWidth: 2,
-    borderColor: '#0a1628',
-  },
-  welcomeTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 4,
-    textAlign: 'center',
-    letterSpacing: -0.5,
-  },
-  welcomeSubtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.5)',
-    marginBottom: 20,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  welcomeMessage: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.4)',
-    textAlign: 'center',
-    fontWeight: '400',
+  googleButtonWrapper: {
+    marginTop: 10,
   },
 })
 
