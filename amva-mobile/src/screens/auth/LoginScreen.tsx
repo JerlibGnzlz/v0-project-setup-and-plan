@@ -4,49 +4,31 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Image,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
   Animated,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Mail, Lock, Eye, EyeOff, UserPlus } from 'lucide-react-native'
+import { UserPlus } from 'lucide-react-native'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
-import { useGoogleAuth } from '@hooks/useGoogleAuth'
 import { useGoogleAuthProxy } from '@hooks/useGoogleAuthProxy'
-import { invitadoAuthApi } from '@api/invitado-auth'
 import { testBackendConnection } from '../../utils/testConnection'
 import { RegisterScreen } from './RegisterScreen'
 import { Alert } from '@utils/alert'
-
-// Componente del logo de Google usando imagen
-function GoogleLogo() {
-  return (
-    <View style={styles.googleLogoContainer}>
-      <Image
-        source={require('../../../assets/images/google.png')}
-        style={styles.googleLogoImage}
-        resizeMode="contain"
-        resizeMethod="resize"
-      />
-    </View>
-  )
-}
+import { handleAuthError, isUserCancellation } from '@utils/errorHandler'
+import { EmailPasswordForm } from '@components/auth/EmailPasswordForm'
+import { GoogleLoginButton } from '@components/auth/GoogleLoginButton'
+import { ConnectionTest } from '@components/auth/ConnectionTest'
+import { LoadingButton } from '@components/ui/LoadingButton'
 
 export function LoginScreen() {
   const { login, loginWithGoogle, loading } = useInvitadoAuth()
-
-  // Usar Backend Proxy para Google Sign-In (máxima seguridad, no requiere SHA-1)
-  // El backend maneja todo el flujo OAuth, el móvil solo recibe el id_token final
   const { signIn: googleSignIn, loading: googleAuthLoading, error: googleAuthError } = useGoogleAuthProxy()
   
-  // Alternativa: método nativo (requiere SHA-1 configurado)
-  // const { signIn: googleSignIn, loading: googleAuthLoading, error: googleAuthError } = useGoogleAuth()
   const scrollViewRef = useRef<ScrollView>(null)
   const emailInputRef = useRef<TextInput>(null)
   const passwordInputRef = useRef<TextInput>(null)
@@ -55,150 +37,18 @@ export function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false)
   const [testingConnection, setTestingConnection] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
-  const [emailFocused, setEmailFocused] = useState(false)
-  const [passwordFocused, setPasswordFocused] = useState(false)
   const [keyboardVisible, setKeyboardVisible] = useState(false)
-  const emailFocusAnim = useRef(new Animated.Value(0)).current
-  const passwordFocusAnim = useRef(new Animated.Value(0)).current
   const logoScaleAnim = useRef(new Animated.Value(1)).current
 
-  // Manejar errores de Google Auth
+  // Manejar visibilidad del teclado
   useEffect(() => {
-    if (googleAuthError) {
-      // Solo mostrar warning si no es DEVELOPER_ERROR (ese se maneja mejor en el botón)
-      if (!googleAuthError.includes('DEVELOPER_ERROR')) {
-        console.warn('⚠️ Error en configuración de Google Auth:', googleAuthError)
-      }
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true))
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false))
+    return () => {
+      showSubscription.remove()
+      hideSubscription.remove()
     }
-  }, [googleAuthError])
-
-  // Función para manejar login con Google (Backend Proxy)
-  const handleGoogleLogin = async () => {
-    try {
-      console.log('🔐 Iniciando login con Google (Backend Proxy)...')
-
-      // Obtener idToken usando el método nativo de Google Sign-In
-      console.log('🔍 Obteniendo token de Google...')
-      const idToken = await googleSignIn()
-
-      if (!idToken) {
-        console.log('ℹ️ No se recibió token de Google')
-        return
-      }
-
-      console.log('✅ Token de Google obtenido, enviando al backend...')
-
-      // Enviar token al backend usando el hook existente
-      await loginWithGoogle(idToken)
-
-      console.log('✅ Login con Google exitoso')
-      // La navegación se actualizará automáticamente cuando el estado cambie
-    } catch (error: unknown) {
-      // Verificar primero si es cancelación antes de mostrar cualquier error
-      if (error instanceof Error) {
-        const errorMessage = error.message.toLowerCase()
-        if (
-          error.name === 'GoogleSignInCancelled' ||
-          error.message === 'SIGN_IN_CANCELLED' ||
-          errorMessage.includes('cancel') ||
-          errorMessage.includes('cancelled') ||
-          errorMessage.includes('cancelado') ||
-          errorMessage.includes('user_cancelled')
-        ) {
-          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
-          return // Salir silenciosamente sin mostrar error
-        }
-      }
-
-      // Verificar si el error tiene código de cancelación
-      if (error && typeof error === 'object' && 'code' in error) {
-        const googleError = error as { code: string; message?: string }
-        if (
-          googleError.code === 'SIGN_IN_CANCELLED' ||
-          googleError.code === '12500' ||
-          googleError.message?.toLowerCase().includes('cancel')
-        ) {
-          console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
-          return // Salir silenciosamente sin mostrar error
-        }
-      }
-
-      // Log del error de forma segura
-      if (error instanceof Error) {
-        console.error('❌ Error en login con Google:', error.message, error)
-      } else {
-        console.error('❌ Error en login con Google:', error)
-      }
-
-      let errorMessage = 'No se pudo iniciar sesión con Google.'
-
-      if (error instanceof Error) {
-        // Manejar DEVELOPER_ERROR específicamente
-        if (error.message.includes('DEVELOPER_ERROR')) {
-          errorMessage = 'Error de configuración: El SHA-1 del keystore no está configurado en Google Cloud Console.\n\nSHA-1 requerido: BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3\n\nConsulta docs/SHA1_CORRECTO_GOOGLE_OAUTH.md para más detalles.'
-        } else {
-          errorMessage = error.message
-        }
-      } else if (error && typeof error === 'object') {
-        const axiosError = error as {
-          response?: {
-            status?: number
-            statusText?: string
-            data?: {
-              message?: string | string[]
-              error?: string | { message?: string }
-            }
-          }
-          message?: string
-        }
-
-        // Manejar errores 400 específicamente
-        if (axiosError.response?.status === 400) {
-          const errorData = axiosError.response?.data?.error
-          const backendMessage = axiosError.response?.data?.message ||
-            (typeof errorData === 'string'
-              ? errorData
-              : errorData && typeof errorData === 'object' && 'message' in errorData
-                ? errorData.message
-                : undefined)
-          if (backendMessage) {
-            errorMessage = Array.isArray(backendMessage)
-              ? backendMessage.join(', ')
-              : backendMessage
-          } else {
-            errorMessage = 'Error de validación: Por favor verifica que el token de Google sea válido.'
-          }
-          console.error('❌ Error 400 del backend:', errorMessage)
-        }
-
-        // Manejar diferentes tipos de errores del backend
-        if (axiosError.response?.status === 400) {
-          errorMessage = 'Error de validación. Verifica que el token de Google sea válido.'
-        } else if (axiosError.response?.status === 401) {
-          errorMessage = 'Token de Google inválido o expirado. Por favor, intenta nuevamente.'
-        } else if (axiosError.response?.status === 500) {
-          errorMessage = 'Error del servidor. Por favor, intenta más tarde.'
-        } else if (axiosError.response?.data?.message) {
-          const msg = axiosError.response.data.message
-          errorMessage = Array.isArray(msg) ? msg.join('\n') : msg
-        } else {
-          // Manejar error que puede ser string o objeto
-          const errorData = axiosError.response?.data?.error
-          if (errorData) {
-            if (typeof errorData === 'string') {
-              errorMessage = errorData
-            } else if (typeof errorData === 'object' && 'message' in errorData && errorData.message) {
-              errorMessage = errorData.message
-            }
-          } else if (axiosError.message) {
-            errorMessage = axiosError.message
-          }
-        }
-      }
-
-      Alert.alert('Error de autenticación', errorMessage, undefined, 'error')
-    }
-  }
+  }, [])
 
   // Probar conexión al montar el componente (solo en desarrollo)
   useEffect(() => {
@@ -223,102 +73,50 @@ export function LoginScreen() {
     }
   }, [])
 
+  // Función para manejar login con Google (Backend Proxy)
+  const handleGoogleLogin = async () => {
+    try {
+      // TODO: remove - console.log('🔐 Iniciando login con Google (Backend Proxy)...')
+      const idToken = await googleSignIn()
+
+      if (!idToken) {
+        // TODO: remove - console.log('ℹ️ No se recibió token de Google')
+        return
+      }
+
+      // TODO: remove - console.log('✅ Token de Google obtenido, enviando al backend...')
+      await loginWithGoogle(idToken)
+      // TODO: remove - console.log('✅ Login con Google exitoso')
+    } catch (error: unknown) {
+      // Si el usuario canceló, salir silenciosamente
+      if (isUserCancellation(error)) {
+        // TODO: remove - console.log('ℹ️ Usuario canceló el inicio de sesión con Google')
+        return
+      }
+
+      // TODO: remove - console.error('❌ Error en login con Google:', error)
+      const errorMessage = handleAuthError(error)
+      Alert.alert('Error de autenticación', errorMessage, undefined, 'error')
+    }
+  }
+
   const handleSubmit = async () => {
     if (!email || !password) {
       Alert.alert('Campos requeridos', 'Ingresa tu correo y contraseña.', undefined, 'warning')
       return
     }
     try {
-      console.log('🔐 Intentando login como invitado:', email.trim())
+      // TODO: remove - console.log('🔐 Intentando login como invitado:', email.trim())
       await login(email.trim(), password)
-      console.log('✅ Login exitoso')
+      // TODO: remove - console.log('✅ Login exitoso')
     } catch (error: unknown) {
-      console.error('❌ Error en login:', error)
-
-      // Detectar tipo de error
-      let errorMessage = 'No se pudo iniciar sesión.'
-
-      if (error && typeof error === 'object') {
-        const axiosError = error as {
-          code?: string
-          message?: string
-          response?: {
-            status?: number
-            data?: { message?: string | string[] }
-          }
-        }
-
-        if (axiosError.code === 'ECONNREFUSED' || axiosError.message?.includes('Network Error')) {
-          errorMessage =
-            'No se pudo conectar al servidor.\n\nVerifica que:\n• El backend esté accesible\n• La URL del API sea correcta\n• Tengas conexión a internet'
-        } else if (axiosError.response?.status === 401) {
-          // Mensaje más detallado para credenciales inválidas
-          const responseData = axiosError.response.data as {
-            error?: { message?: string }
-            message?: string | string[]
-          }
-
-          let backendMessage = 'Credenciales incorrectas'
-          if (responseData.error?.message) {
-            backendMessage = responseData.error.message
-          } else if (responseData.message) {
-            backendMessage = Array.isArray(responseData.message)
-              ? responseData.message.join('\n')
-              : responseData.message
-          }
-
-          errorMessage = `${backendMessage}\n\n` +
-            'Verifica que:\n' +
-            '• Tu email sea correcto\n' +
-            '• Tu contraseña sea correcta\n' +
-            '• Tu cuenta esté registrada\n\n' +
-            'Si no tienes cuenta, puedes crear una nueva con el botón "Crear nueva cuenta"'
-        } else if (axiosError.response?.status === 404) {
-          errorMessage =
-            'Endpoint no encontrado.\n\nEl endpoint de autenticación no está disponible. Contacta al administrador.'
-        } else if (axiosError.response?.status === 500) {
-          errorMessage = 'Error del servidor.\n\nIntenta nuevamente más tarde.'
-        } else if (axiosError.message) {
-          // El mensaje ya viene extraído del formato del backend en authApi.login
-          errorMessage = axiosError.message
-        } else if (axiosError.response?.data) {
-          // Formato alternativo del backend: { error: { message: "..." } }
-          const responseData = axiosError.response.data as {
-            error?: { message?: string }
-            message?: string | string[]
-          }
-          if (responseData.error?.message) {
-            errorMessage = responseData.error.message
-          } else if (responseData.message) {
-            errorMessage = Array.isArray(responseData.message)
-              ? responseData.message.join('\n')
-              : responseData.message
-          }
-        }
-      } else if (error instanceof Error) {
-        errorMessage = error.message
-      }
-
+      // TODO: remove - console.error('❌ Error en login:', error)
+      const errorMessage = handleAuthError(error)
       Alert.alert('Error de inicio de sesión', errorMessage, undefined, 'error')
     }
   }
 
-  if (showRegister) {
-    return (
-      <RegisterScreen
-        onSuccess={() => {
-          setShowRegister(false)
-          // El email se puede pre-llenar si se guarda en el estado
-        }}
-        onBack={() => setShowRegister(false)}
-      />
-    )
-  }
-
-  const { height: screenHeight } = Dimensions.get('window')
-  const isSmallScreen = screenHeight < 700
-
-  const scrollToInput = (inputRef: React.RefObject<TextInput | null>, offset: number = 0) => {
+  const scrollToInput = (inputRef: React.RefObject<TextInput>, offset: number = 0) => {
     setTimeout(() => {
       if (inputRef.current && scrollViewRef.current) {
         inputRef.current.measureLayout(
@@ -329,11 +127,25 @@ export function LoginScreen() {
               animated: true,
             })
           },
-          () => { },
+          () => {},
         )
       }
     }, 100)
   }
+
+  if (showRegister) {
+    return (
+      <RegisterScreen
+        onSuccess={() => {
+          setShowRegister(false)
+        }}
+        onBack={() => setShowRegister(false)}
+      />
+    )
+  }
+
+  const { height: screenHeight } = Dimensions.get('window')
+  const isSmallScreen = screenHeight < 700
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -376,149 +188,32 @@ export function LoginScreen() {
           {/* Form Card */}
           <View style={[styles.card, isSmallScreen && styles.cardSmall]}>
             <Text style={[styles.cardTitle, isSmallScreen && styles.cardTitleSmall]}>Iniciar Sesión</Text>
-            <Text style={[styles.cardSubtitle, isSmallScreen && styles.cardSubtitleSmall]}>Acceso para invitados registrados</Text>
+            <Text style={[styles.cardSubtitle, isSmallScreen && styles.cardSubtitleSmall]}>
+              Acceso para invitados registrados
+            </Text>
 
-            {testingConnection && (
-              <View style={[styles.testingContainer, isSmallScreen && styles.testingContainerSmall]}>
-                <ActivityIndicator size="small" color="#22c55e" />
-                <Text style={[styles.testingText, isSmallScreen && styles.testingTextSmall]}>Verificando conexión...</Text>
-              </View>
-            )}
+            <ConnectionTest testing={testingConnection} isSmallScreen={isSmallScreen} />
 
-            <View style={[styles.inputGroup, isSmallScreen && styles.inputGroupSmall]}>
-              <View style={styles.labelContainer}>
-                <Mail size={14} color="rgba(255, 255, 255, 0.7)" style={styles.labelIcon} />
-                <Text style={[styles.label, isSmallScreen && styles.labelSmall]}>Correo electrónico</Text>
-              </View>
-              <Animated.View
-                style={[
-                  styles.inputContainer,
-                  {
-                    borderColor: emailFocusAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['rgba(255, 255, 255, 0.2)', 'rgba(34, 197, 94, 0.6)'],
-                    }),
-                    shadowOpacity: emailFocusAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, 0.2],
-                    }),
-                    shadowColor: '#22c55e',
-                  },
-                ]}
-              >
-                <TextInput
-                  ref={emailInputRef}
-                  style={styles.input}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="correo@ejemplo.com"
-                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  autoCorrect={false}
-                  returnKeyType="next"
-                  onFocus={() => {
-                    setEmailFocused(true)
-                    Animated.spring(emailFocusAnim, {
-                      toValue: 1,
-                      useNativeDriver: false,
-                      tension: 100,
-                      friction: 8,
-                    }).start()
-                    scrollToInput(emailInputRef)
-                  }}
-                  onBlur={() => {
-                    setEmailFocused(false)
-                    Animated.spring(emailFocusAnim, {
-                      toValue: 0,
-                      useNativeDriver: false,
-                      tension: 100,
-                      friction: 8,
-                    }).start()
-                  }}
-                  onSubmitEditing={() => passwordInputRef.current?.focus()}
-                />
-              </Animated.View>
-            </View>
+            <EmailPasswordForm
+              email={email}
+              password={password}
+              showPassword={showPassword}
+              onEmailChange={setEmail}
+              onPasswordChange={setPassword}
+              onTogglePassword={() => setShowPassword(!showPassword)}
+              isSmallScreen={isSmallScreen}
+              emailInputRef={emailInputRef}
+              passwordInputRef={passwordInputRef}
+              onScrollToInput={scrollToInput}
+              onPasswordSubmit={handleSubmit}
+            />
 
-            <View style={[styles.inputGroup, isSmallScreen && styles.inputGroupSmall]}>
-              <View style={styles.labelContainer}>
-                <Lock size={14} color="rgba(255, 255, 255, 0.7)" style={styles.labelIcon} />
-                <Text style={[styles.label, isSmallScreen && styles.labelSmall]}>Contraseña</Text>
-              </View>
-              <Animated.View
-                style={[
-                  styles.inputContainer,
-                  {
-                    borderColor: passwordFocusAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['rgba(255, 255, 255, 0.2)', 'rgba(34, 197, 94, 0.6)'],
-                    }),
-                    shadowOpacity: passwordFocusAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, 0.2],
-                    }),
-                    shadowColor: '#22c55e',
-                  },
-                ]}
-              >
-                <TextInput
-                  ref={passwordInputRef}
-                  style={styles.passwordInput}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="••••••••"
-                  placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                  secureTextEntry={!showPassword}
-                  returnKeyType="done"
-                  onFocus={() => {
-                    setPasswordFocused(true)
-                    Animated.spring(passwordFocusAnim, {
-                      toValue: 1,
-                      useNativeDriver: false,
-                      tension: 100,
-                      friction: 8,
-                    }).start()
-                    scrollToInput(passwordInputRef, 20)
-                  }}
-                  onBlur={() => {
-                    setPasswordFocused(false)
-                    Animated.spring(passwordFocusAnim, {
-                      toValue: 0,
-                      useNativeDriver: false,
-                      tension: 100,
-                      friction: 8,
-                    }).start()
-                  }}
-                  onSubmitEditing={handleSubmit}
-                />
-                <TouchableOpacity
-                  style={styles.passwordToggle}
-                  onPress={() => setShowPassword(!showPassword)}
-                  activeOpacity={0.7}
-                >
-                  {showPassword ? (
-                    <EyeOff size={20} color="rgba(255, 255, 255, 0.6)" />
-                  ) : (
-                    <Eye size={20} color="rgba(255, 255, 255, 0.6)" />
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.button, isSmallScreen && styles.buttonSmall, loading && styles.buttonDisabled]}
+            <LoadingButton
               onPress={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <>
-                  <Text style={[styles.buttonText, isSmallScreen && styles.buttonTextSmall]}>✓ Iniciar sesión</Text>
-                </>
-              )}
-            </TouchableOpacity>
+              loading={loading}
+              title="✓ Iniciar sesión"
+              isSmallScreen={isSmallScreen}
+            />
 
             <View style={[styles.divider, isSmallScreen && styles.dividerSmall]}>
               <View style={styles.dividerLine} />
@@ -526,43 +221,28 @@ export function LoginScreen() {
               <View style={styles.dividerLine} />
             </View>
 
-            <TouchableOpacity
-              style={[
-                styles.googleButton,
-                isSmallScreen && styles.googleButtonSmall,
-                googleAuthLoading && styles.buttonDisabled,
-              ]}
+            <GoogleLoginButton
               onPress={handleGoogleLogin}
-              disabled={googleAuthLoading}
-              activeOpacity={0.85}
-            >
-              {googleAuthLoading ? (
-                <View style={styles.googleButtonContent}>
-                  <ActivityIndicator color="#3c4043" size="small" />
-                  <Text style={[styles.googleButtonText, isSmallScreen && styles.googleButtonTextSmall]}>Autenticando...</Text>
-                </View>
-              ) : (
-                <View style={styles.googleButtonContent}>
-                  <GoogleLogo />
-                  <Text style={[styles.googleButtonText, isSmallScreen && styles.googleButtonTextSmall]}>Continuar con Google</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-            {googleAuthError && !googleAuthError.includes('DEVELOPER_ERROR') && (
-              <Text style={[styles.hint, isSmallScreen && styles.hintSmall]}>
-                ⚠️ Login con Google no disponible: {googleAuthError}
-              </Text>
-            )}
+              loading={googleAuthLoading}
+              isSmallScreen={isSmallScreen}
+              error={googleAuthError}
+            />
+
             {googleAuthError && googleAuthError.includes('DEVELOPER_ERROR') && (
               <Text style={[styles.hint, isSmallScreen && styles.hintSmall, { color: '#f59e0b' }]}>
                 ⚠️ Configuración requerida: Agrega el SHA-1 BC:0C:2C:C3:68:D1:50:C3:7E:07:17:EE:49:8F:D0:35:7D:0F:1E:E3 en Google Cloud Console. Consulta docs/SHA1_CORRECTO_GOOGLE_OAUTH.md
               </Text>
             )}
 
-            <TouchableOpacity style={[styles.registerButton, isSmallScreen && styles.registerButtonSmall]} onPress={() => setShowRegister(true)}>
+            <TouchableOpacity
+              style={[styles.registerButton, isSmallScreen && styles.registerButtonSmall]}
+              onPress={() => setShowRegister(true)}
+            >
               <View style={styles.registerButtonContent}>
                 <UserPlus size={14} color="rgba(255, 255, 255, 0.9)" />
-                <Text style={[styles.registerButtonText, isSmallScreen && styles.registerButtonTextSmall]}>Crear nueva cuenta</Text>
+                <Text style={[styles.registerButtonText, isSmallScreen && styles.registerButtonTextSmall]}>
+                  Crear nueva cuenta
+                </Text>
               </View>
             </TouchableOpacity>
 
@@ -633,19 +313,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.6)',
-    textAlign: 'center',
-    letterSpacing: 0.3,
-  },
   card: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: 16,
@@ -677,129 +344,6 @@ const styles = StyleSheet.create({
   cardSubtitleSmall: {
     fontSize: 11,
     marginBottom: 10,
-  },
-  inputGroup: {
-    marginBottom: 12,
-  },
-  inputGroupSmall: {
-    marginBottom: 10,
-  },
-  labelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-    gap: 6,
-  },
-  labelIcon: {
-    marginRight: 0,
-  },
-  label: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.7)',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  labelSmall: {
-    fontSize: 10,
-  },
-  inputContainer: {
-    borderWidth: 1.5,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
-    elevation: 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 48,
-  },
-  input: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    color: '#fff',
-    fontSize: 15,
-    backgroundColor: 'transparent',
-  },
-  passwordInput: {
-    flex: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    paddingRight: 45,
-    color: '#fff',
-    fontSize: 15,
-    backgroundColor: 'transparent',
-  },
-  passwordToggle: {
-    position: 'absolute',
-    right: 14,
-    top: 12,
-    padding: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  button: {
-    marginTop: 4,
-    backgroundColor: '#22c55e',
-    paddingVertical: 11,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#22c55e',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  buttonSmall: {
-    paddingVertical: 9,
-    borderRadius: 10,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-    letterSpacing: 0.2,
-  },
-  buttonTextSmall: {
-    fontSize: 13,
-  },
-  hint: {
-    marginTop: 12,
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.6)',
-    textAlign: 'center',
-    lineHeight: 16,
-  },
-  hintSmall: {
-    fontSize: 10,
-    marginTop: 8,
-  },
-  testingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    padding: 10,
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.3)',
-  },
-  testingContainerSmall: {
-    marginBottom: 10,
-    padding: 8,
-  },
-  testingText: {
-    marginLeft: 6,
-    fontSize: 11,
-    color: '#22c55e',
-    fontWeight: '500',
-  },
-  testingTextSmall: {
-    fontSize: 10,
   },
   divider: {
     flexDirection: 'row',
@@ -847,52 +391,16 @@ const styles = StyleSheet.create({
   registerButtonTextSmall: {
     fontSize: 13,
   },
-  googleButton: {
-    marginTop: 6,
-    backgroundColor: '#fff',
-    paddingVertical: 11,
-    borderRadius: 10,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
-    overflow: 'hidden', // Evitar que se vea el cuadrito del logo al presionar
+  hint: {
+    marginTop: 12,
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.6)',
+    textAlign: 'center',
+    lineHeight: 16,
   },
-  googleButtonSmall: {
-    paddingVertical: 9,
-    marginBottom: 8,
-  },
-  googleButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-  },
-  googleLogoContainer: {
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    borderRadius: 2,
-  },
-  googleLogoImage: {
-    width: 20,
-    height: 20,
-    backgroundColor: 'transparent',
-  },
-  googleButtonText: {
-    color: '#3c4043',
-    fontSize: 14,
-    fontWeight: '500',
-    letterSpacing: 0.1,
-  },
-  googleButtonTextSmall: {
-    fontSize: 13,
+  hintSmall: {
+    fontSize: 10,
+    marginTop: 8,
   },
 })
+
