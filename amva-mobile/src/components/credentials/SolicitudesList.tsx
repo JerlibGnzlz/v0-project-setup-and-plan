@@ -2,7 +2,8 @@ import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { FileText, Plus } from 'lucide-react-native'
-import type { SolicitudCredencial, EstadoSolicitud, TipoCredencial } from '@api/solicitudes-credenciales'
+import { TipoCredencial } from '@api/solicitudes-credenciales'
+import type { SolicitudCredencial, EstadoSolicitud } from '@api/solicitudes-credenciales'
 
 interface SolicitudesListProps {
   solicitudes: SolicitudCredencial[]
