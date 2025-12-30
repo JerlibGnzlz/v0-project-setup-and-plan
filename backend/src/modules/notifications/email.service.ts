@@ -22,6 +22,7 @@ export class EmailService {
 
     this.logger.log(`📧 Inicializando EmailService con proveedor: ${provider}`)
     this.logger.log(`   EMAIL_PROVIDER=${provider}`)
+    this.logger.log(`   Para usar Nodemailer (SMTP), configura: EMAIL_PROVIDER=gmail o EMAIL_PROVIDER=smtp`)
 
     // Configurar SOLO el proveedor especificado, sin intentar otros
     if (provider === 'resend') {
@@ -32,7 +33,7 @@ export class EmailService {
         this.configureSendGrid()
         // Si SendGrid tampoco se configuró, intentar SMTP
         if (!this.sendgridConfigured && process.env.SMTP_USER) {
-          this.logger.warn('⚠️ SendGrid no se configuró, intentando SMTP como fallback...')
+          this.logger.warn('⚠️ SendGrid no se configuró, intentando SMTP (Nodemailer) como fallback...')
           this.configureSMTP()
         }
       }
@@ -40,22 +41,27 @@ export class EmailService {
       this.configureSendGrid()
       // Si SendGrid no se configuró, intentar SMTP como fallback
       if (!this.sendgridConfigured && process.env.SMTP_USER) {
-        this.logger.warn('⚠️ SendGrid no se configuró, intentando SMTP como fallback...')
+        this.logger.warn('⚠️ SendGrid no se configuró, intentando SMTP (Nodemailer) como fallback...')
         this.configureSMTP()
       }
     } else {
-      // provider === 'gmail' o 'smtp' - usar SOLO SMTP
+      // provider === 'gmail' o 'smtp' - usar SOLO SMTP (Nodemailer)
+      this.logger.log(`📧 Configurando Nodemailer (SMTP) para envío de emails...`)
       this.configureSMTP()
       // NO intentar configurar SendGrid o Resend si el usuario eligió SMTP explícitamente
       if (!this.transporter) {
-        this.logger.error('❌ SMTP no se pudo configurar')
+        this.logger.error('❌ SMTP (Nodemailer) no se pudo configurar')
         this.logger.error('   Verifica que tengas configurado:')
+        this.logger.error('   - EMAIL_PROVIDER=gmail o EMAIL_PROVIDER=smtp')
         this.logger.error('   - SMTP_HOST (opcional, por defecto: smtp.gmail.com)')
         this.logger.error('   - SMTP_PORT (opcional, por defecto: 587)')
         this.logger.error('   - SMTP_SECURE (opcional, por defecto: false)')
-        this.logger.error('   - SMTP_USER (requerido)')
-        this.logger.error('   - SMTP_PASSWORD (requerido)')
+        this.logger.error('   - SMTP_USER (requerido) - Tu email')
+        this.logger.error('   - SMTP_PASSWORD (requerido) - App Password de Gmail')
         this.logger.error('   Para Gmail, necesitas una App Password: https://myaccount.google.com/apppasswords')
+      } else {
+        this.logger.log(`✅ Nodemailer (SMTP) configurado correctamente`)
+        this.logger.log(`   📧 Los recordatorios de pagos pendientes usarán Nodemailer para enviar emails`)
       }
     }
   }
