@@ -82,4 +82,4 @@ import { DataSyncModule } from './modules/data-sync/data-sync.module'
   ],
   exports: [AuditService],
 })
-export class AppModule {}
+export class AppModule { }

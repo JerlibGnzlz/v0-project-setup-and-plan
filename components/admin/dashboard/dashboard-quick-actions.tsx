@@ -9,6 +9,7 @@ import {
   Newspaper,
   UserCheck,
   Shield,
+  Settings,
 } from 'lucide-react'
 import type { DashboardStats as DashboardStatsType } from '@/lib/hooks/use-dashboard-stats'
 
@@ -235,6 +236,33 @@ export function DashboardQuickActions({
                     ({stats.credencialesCapellaniaVencidas} vencidas)
                   </span>
                 )}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      </ScrollReveal>
+
+      <ScrollReveal delay={700}>
+        <Link href="/admin/configuracion-landing">
+          <Card className="hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 cursor-pointer group border-indigo-200/50 dark:border-indigo-500/20 bg-gradient-to-br from-white to-indigo-50/30 dark:from-background dark:to-indigo-950/20 overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 group-hover:from-indigo-500/20 group-hover:to-purple-500/20 transition-colors">
+                  <Settings className="size-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <ArrowRight className="size-5 text-indigo-500/50 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
+              </div>
+              <CardTitle className="mt-4 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                Configuración Landing
+              </CardTitle>
+              <CardDescription>
+                Gestiona estadísticas y contenido de la sección "Quiénes Somos"
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-indigo-600/70 dark:text-indigo-400/70">
+                Estadísticas y contenido personalizable
               </p>
             </CardContent>
           </Card>

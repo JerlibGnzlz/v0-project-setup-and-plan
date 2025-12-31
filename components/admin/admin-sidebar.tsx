@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Shield,
   Globe,
+  Settings,
 } from 'lucide-react'
 
 const navigation = [
@@ -69,6 +70,12 @@ const navigation = [
     href: '/admin/sedes',
     icon: Globe,
     description: 'Ubicaciones y oficinas',
+  },
+  {
+    name: 'Configuración Landing',
+    href: '/admin/configuracion-landing',
+    icon: Settings,
+    description: 'Estadísticas y contenido',
   },
 ]
 
