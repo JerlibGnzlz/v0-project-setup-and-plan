@@ -10,7 +10,7 @@ export function usePastores(
   filters?: {
     search?: string
     status?: 'todos' | 'activos' | 'inactivos'
-    tipo?: 'DIRECTIVA' | 'SUPERVISOR' | 'PRESIDENTE' | 'todos'
+    tipo?: 'DIRECTIVA' | 'SUPERVISOR' | 'PRESIDENTE' | 'PRESIDENTE_GLOBAL' | 'todos'
     mostrarEnLanding?: boolean
   }
 ) {

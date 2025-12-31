@@ -37,6 +37,11 @@ const tipoConfig: Record<TipoPastor, { icon: any; color: string; bgColor: string
     color: 'text-purple-600',
     bgColor: 'bg-purple-100 dark:bg-purple-900/30',
   },
+  PRESIDENTE_GLOBAL: {
+    icon: Globe,
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-100 dark:bg-indigo-900/30',
+  },
   PASTOR: {
     icon: Star,
     color: 'text-emerald-600',

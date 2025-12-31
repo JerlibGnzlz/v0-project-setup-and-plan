@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 // Tipos de pastor
-export const TipoPastorEnum = z.enum(['DIRECTIVA', 'SUPERVISOR', 'PRESIDENTE', 'PASTOR'])
+export const TipoPastorEnum = z.enum(['DIRECTIVA', 'SUPERVISOR', 'PRESIDENTE', 'PRESIDENTE_GLOBAL', 'PASTOR'])
 export type TipoPastor = z.infer<typeof TipoPastorEnum>
 
 export const pastorSchema = z.object({
@@ -44,5 +44,6 @@ export const tipoPastorLabels: Record<TipoPastor, string> = {
   DIRECTIVA: 'Directiva Pastoral',
   SUPERVISOR: 'Supervisor Regional',
   PRESIDENTE: 'Presidente de País',
+  PRESIDENTE_GLOBAL: 'Presidente Global',
   PASTOR: 'Pastor',
 }

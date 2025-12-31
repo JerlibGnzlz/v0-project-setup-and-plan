@@ -101,10 +101,10 @@ export function PastoresDialog({
     }
   }, [pastor, open, isEditing, setValue, reset])
 
-  // Manejar cambio de tipo: solo DIRECTIVA puede mostrar en landing
+  // Manejar cambio de tipo: solo DIRECTIVA o PRESIDENTE_GLOBAL pueden mostrar en landing
   const handleTipoChange = (value: TipoPastor) => {
     setValue('tipo', value)
-    if (value === 'DIRECTIVA') {
+    if (value === 'DIRECTIVA' || value === 'PRESIDENTE_GLOBAL') {
       setValue('mostrarEnLanding', true)
     } else {
       setValue('mostrarEnLanding', false)
@@ -331,27 +331,27 @@ export function PastoresDialog({
                 <Switch
                   id="mostrarEnLanding"
                   checked={watch('mostrarEnLanding')}
-                  disabled={watch('tipo') !== 'DIRECTIVA'}
+                  disabled={watch('tipo') !== 'DIRECTIVA' && watch('tipo') !== 'PRESIDENTE_GLOBAL'}
                   onCheckedChange={checked => setValue('mostrarEnLanding', checked)}
                 />
                 <Label htmlFor="mostrarEnLanding" className="flex items-center gap-2">
                   Mostrar en Landing Page
-                  {watch('tipo') !== 'DIRECTIVA' && (
+                  {watch('tipo') !== 'DIRECTIVA' && watch('tipo') !== 'PRESIDENTE_GLOBAL' && (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Badge variant="outline" className="text-xs cursor-help">
-                          Solo Directiva
+                          Solo Directiva/Presidente Global
                         </Badge>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Este switch solo está disponible para Directiva Pastoral.</p>
+                        <p>Este switch solo está disponible para Directiva Pastoral o Presidente Global.</p>
                         <p className="text-xs mt-1">
                           Los demás tipos aparecerán en "Ver Todo el Equipo Pastoral".
                         </p>
                       </TooltipContent>
                     </Tooltip>
                   )}
-                  {watch('tipo') === 'DIRECTIVA' && (
+                  {(watch('tipo') === 'DIRECTIVA' || watch('tipo') === 'PRESIDENTE_GLOBAL') && (
                     <Badge variant="outline" className="text-xs">
                       {watch('mostrarEnLanding') ? 'Visible' : 'Oculto'}
                     </Badge>
@@ -378,6 +378,7 @@ export function PastoresDialog({
     </Dialog>
   )
 }
+
 
 
 

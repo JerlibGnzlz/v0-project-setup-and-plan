@@ -190,7 +190,7 @@ export class PastoresService extends BaseService<Pastor, CreatePastorDto, Update
   }
 
   /**
-   * Sobrescribe update para asegurar que solo DIRECTIVA puede tener mostrarEnLanding = true
+   * Sobrescribe update para asegurar que solo DIRECTIVA o PRESIDENTE_GLOBAL pueden tener mostrarEnLanding = true
    */
   override async update(id: string, data: UpdatePastorDto): Promise<Pastor> {
     // Si se está actualizando el tipo o mostrarEnLanding, validar la lógica
@@ -203,10 +203,10 @@ export class PastoresService extends BaseService<Pastor, CreatePastorDto, Update
     // Determinar el tipo final (el que viene en data o el actual)
     const finalTipo = data.tipo || currentPastor.tipo
 
-    // Si el tipo no es DIRECTIVA, forzar mostrarEnLanding = false
-    if (finalTipo !== 'DIRECTIVA') {
+    // Si el tipo no es DIRECTIVA ni PRESIDENTE_GLOBAL, forzar mostrarEnLanding = false
+    if (finalTipo !== 'DIRECTIVA' && finalTipo !== 'PRESIDENTE_GLOBAL') {
       data.mostrarEnLanding = false
-      this.logger.log(`⚠️ Pastor ${id} no es DIRECTIVA, desactivando mostrarEnLanding`)
+      this.logger.log(`⚠️ Pastor ${id} no es DIRECTIVA ni PRESIDENTE_GLOBAL, desactivando mostrarEnLanding`)
     }
 
     return super.update(id, data)
@@ -245,14 +245,14 @@ export class PastoresService extends BaseService<Pastor, CreatePastorDto, Update
   }
 
   /**
-   * Sobrescribe create para asegurar que solo DIRECTIVA puede tener mostrarEnLanding = true
+   * Sobrescribe create para asegurar que solo DIRECTIVA o PRESIDENTE_GLOBAL pueden tener mostrarEnLanding = true
    * También valida duplicados antes de crear
    */
   override async create(data: CreatePastorDto): Promise<Pastor> {
-    // Si el tipo no es DIRECTIVA, forzar mostrarEnLanding = false
-    if (data.tipo && data.tipo !== 'DIRECTIVA') {
+    // Si el tipo no es DIRECTIVA ni PRESIDENTE_GLOBAL, forzar mostrarEnLanding = false
+    if (data.tipo && data.tipo !== 'DIRECTIVA' && data.tipo !== 'PRESIDENTE_GLOBAL') {
       data.mostrarEnLanding = false
-      this.logger.log(`⚠️ Pastor nuevo no es DIRECTIVA, desactivando mostrarEnLanding`)
+      this.logger.log(`⚠️ Pastor nuevo no es DIRECTIVA ni PRESIDENTE_GLOBAL, desactivando mostrarEnLanding`)
     }
 
     // Verificar si ya existe un pastor con el mismo email (si se proporciona)
