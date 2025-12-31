@@ -153,108 +153,113 @@ export function SedesSection() {
           </p>
         </div>
 
-        {/* Carousel modernizado */}
-        <div className="relative max-w-6xl mx-auto">
-          <div className="relative rounded-2xl overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10">
-            <div className="relative min-h-[500px] sm:min-h-[600px] md:min-h-[650px] bg-[#0d1f35] group flex flex-col">
-              {/* Image Container - Imagen completa sin recortes */}
+        {/* Carousel modernizado - Diseño compacto y profesional */}
+        <div className="relative max-w-5xl mx-auto">
+          <div className="relative rounded-xl overflow-hidden bg-white/[0.03] backdrop-blur-xl border border-white/10 shadow-2xl group">
+            <div className="relative min-h-[450px] sm:min-h-[500px] bg-[#0d1f35] grid md:grid-cols-2 gap-0">
+              {/* Image Container - Lado izquierdo, compacto */}
               <div
-                className="relative flex-1 min-h-[300px] sm:min-h-[350px] md:min-h-[400px] overflow-hidden bg-gradient-to-br from-[#0a1628] to-[#0d1f35]"
+                className="relative min-h-[250px] sm:min-h-[300px] md:min-h-full overflow-hidden bg-gradient-to-br from-[#0a1628] via-[#0d1f35] to-[#0a1628]"
                 style={{
-                  transform: `translateY(${scrollY * 0.2}px)`,
+                  transform: `translateY(${scrollY * 0.15}px)`,
                   willChange: 'transform',
                 }}
               >
-                {/* Imagen actual con fade suave - object-contain para ver completa */}
+                {/* Imagen completa sin recortes */}
                 <div
-                  className="absolute inset-0 transition-opacity duration-600 ease-in-out flex items-center justify-center p-4"
+                  className="absolute inset-0 transition-opacity duration-500 ease-in-out flex items-center justify-center p-6"
                   style={{
-                    opacity: isTransitioning ? 0.7 : 1,
+                    opacity: isTransitioning ? 0.6 : 1,
                   }}
                 >
                   <ImageWithSkeleton
                     src={currentSede.imagenUrl || '/placeholder.svg'}
                     alt={`${currentSede.pais} - ${currentSede.ciudad}`}
-                    className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                    className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg transition-transform duration-500 ease-out group-hover:scale-[1.01] shadow-2xl"
                   />
                 </div>
 
-                {/* Overlay sutil solo en bordes para mejor contraste */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628]/30 via-transparent to-[#0a1628]/50 z-10 pointer-events-none" />
+                {/* Overlay sutil */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0a1628]/40 z-10 pointer-events-none" />
               </div>
 
-              {/* Content Section - Separada de la imagen */}
-              <div className="relative bg-gradient-to-b from-[#0a1628]/95 to-[#0d1f35] p-6 sm:p-8 md:p-10 border-t border-white/10">
-                {/* Header con bandera y ciudad */}
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="text-5xl sm:text-6xl flex-shrink-0">{currentSede.bandera}</span>
+              {/* Content Section - Lado derecho, compacto */}
+              <div className="relative flex flex-col justify-between p-6 sm:p-8 bg-gradient-to-br from-[#0a1628] to-[#0d1f35] border-l border-white/10 md:border-l md:border-t-0 border-t">
+                {/* Header compacto */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-4xl sm:text-5xl flex-shrink-0">{currentSede.bandera}</span>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
+                      <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1.5 leading-tight">
                         {currentSede.pais}
                       </h3>
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 backdrop-blur-sm w-fit">
-                        <MapPin className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                        <span className="text-white/90 font-medium text-sm sm:text-base">{currentSede.ciudad}</span>
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-400/25 backdrop-blur-sm w-fit">
+                        <MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                        <span className="text-white/90 font-medium text-sm">{currentSede.ciudad}</span>
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Descripción compacta */}
+                  <p className="text-sm sm:text-base text-white/75 leading-relaxed line-clamp-4">
+                    {currentSede.descripcion}
+                  </p>
                 </div>
-                
-                {/* Descripción */}
-                <p className="text-base sm:text-lg text-white/80 leading-relaxed max-w-3xl">
-                  {currentSede.descripcion}
-                </p>
+
+                {/* Footer con indicador */}
+                <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                  <div className="flex gap-1.5">
+                    {sedes.map((sede: Sede, index: number) => (
+                      <button
+                        key={sede.id}
+                        onClick={() => goToSlide(index)}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${index === currentIndex
+                          ? 'bg-emerald-400 w-6'
+                          : 'bg-white/20 hover:bg-white/40 w-1.5'
+                          }`}
+                        aria-label={`Go to slide ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                  <div className="text-xs text-white/40 font-medium">
+                    {currentIndex + 1} / {sedes.length}
+                  </div>
+                </div>
               </div>
 
-              {/* Navigation Buttons */}
+              {/* Navigation Buttons - Más compactos */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 h-12 w-12 transition-all duration-300"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 h-10 w-10 transition-all duration-300 z-20 shadow-lg"
                 onClick={prevSlide}
               >
-                <ChevronLeft className="w-6 h-6 text-white" />
+                <ChevronLeft className="w-5 h-5 text-white" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 h-12 w-12 transition-all duration-300"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 h-10 w-10 transition-all duration-300 z-20 shadow-lg"
                 onClick={nextSlide}
               >
-                <ChevronRight className="w-6 h-6 text-white" />
+                <ChevronRight className="w-5 h-5 text-white" />
               </Button>
             </div>
           </div>
 
-          {/* Dots Indicator */}
-          <div className="flex justify-center gap-2 mt-6">
+          {/* Country Pills - Compacto y profesional */}
+          <div className="flex flex-wrap justify-center gap-2 mt-6">
             {sedes.map((sede: Sede, index: number) => (
               <button
                 key={sede.id}
                 onClick={() => goToSlide(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${index === currentIndex
-                  ? 'bg-emerald-400 w-8'
-                  : 'bg-white/20 hover:bg-white/40 w-2'
-                  }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-
-          {/* Country Pills */}
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
-            {sedes.map((sede: Sede, index: number) => (
-              <button
-                key={sede.id}
-                onClick={() => goToSlide(index)}
-                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${index === currentIndex
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
-                  : 'bg-white/5 text-white/70 hover:bg-white/10 border border-white/10'
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${index === currentIndex
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30 scale-105'
+                  : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white/80 border border-white/10'
                   }`}
               >
-                <span>{sede.bandera}</span>
-                {sede.pais}
+                <span className="text-lg">{sede.bandera}</span>
+                <span>{sede.pais}</span>
               </button>
             ))}
           </div>
