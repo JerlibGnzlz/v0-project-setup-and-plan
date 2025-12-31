@@ -57,6 +57,12 @@ const tipoConfig: Record<
     gradient: 'from-amber-400 to-orange-500',
     bgColor: 'bg-amber-500/10',
   },
+  PRESIDENTE_GLOBAL: {
+    icon: Globe,
+    label: 'Presidente Global',
+    gradient: 'from-indigo-400 to-purple-500',
+    bgColor: 'bg-indigo-500/10',
+  },
   PRESIDENTE: {
     icon: Globe,
     label: 'Presidentes de País',
@@ -140,6 +146,7 @@ function EquipoContent() {
   const groupedPastores = useMemo(() => {
     const groups: Record<TipoPastor, Pastor[]> = {
       DIRECTIVA: [],
+      PRESIDENTE_GLOBAL: [],
       PRESIDENTE: [],
       SUPERVISOR: [],
       PASTOR: [],
