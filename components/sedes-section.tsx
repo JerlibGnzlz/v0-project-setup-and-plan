@@ -154,20 +154,20 @@ export function SedesSection() {
         </div>
 
         {/* Carousel modernizado */}
-        <div className="relative max-w-5xl mx-auto">
+        <div className="relative max-w-6xl mx-auto">
           <div className="relative rounded-2xl overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10">
-            <div className="relative h-[450px] sm:h-[500px] md:h-[550px] bg-[#0d1f35] group">
-              {/* Image Container con Parallax */}
+            <div className="relative min-h-[500px] sm:min-h-[600px] md:min-h-[650px] bg-[#0d1f35] group flex flex-col">
+              {/* Image Container - Imagen completa sin recortes */}
               <div
-                className="absolute inset-0 overflow-hidden"
+                className="relative flex-1 min-h-[300px] sm:min-h-[350px] md:min-h-[400px] overflow-hidden bg-gradient-to-br from-[#0a1628] to-[#0d1f35]"
                 style={{
-                  transform: `translateY(${scrollY * 0.3}px)`,
+                  transform: `translateY(${scrollY * 0.2}px)`,
                   willChange: 'transform',
                 }}
               >
-                {/* Imagen actual con fade suave */}
+                {/* Imagen actual con fade suave - object-contain para ver completa */}
                 <div
-                  className="absolute inset-0 transition-opacity duration-600 ease-in-out"
+                  className="absolute inset-0 transition-opacity duration-600 ease-in-out flex items-center justify-center p-4"
                   style={{
                     opacity: isTransitioning ? 0.7 : 1,
                   }}
@@ -175,29 +175,34 @@ export function SedesSection() {
                   <ImageWithSkeleton
                     src={currentSede.imagenUrl || '/placeholder.svg'}
                     alt={`${currentSede.pais} - ${currentSede.ciudad}`}
-                    className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                    className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                   />
                 </div>
 
-                {/* Overlay mejorado - más oscuro en la parte inferior para mejor legibilidad */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/95 via-[#0a1628]/70 via-[#0a1628]/40 to-transparent z-10" />
-                {/* Overlay adicional para mejorar contraste */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10" />
+                {/* Overlay sutil solo en bordes para mejor contraste */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628]/30 via-transparent to-[#0a1628]/50 z-10 pointer-events-none" />
               </div>
 
-              {/* Content */}
-              <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 md:p-12">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-4xl">{currentSede.bandera}</span>
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm">
-                    <MapPin className="w-4 h-4 text-emerald-400" />
-                    <span className="text-white/90 font-medium">{currentSede.ciudad}</span>
+              {/* Content Section - Separada de la imagen */}
+              <div className="relative bg-gradient-to-b from-[#0a1628]/95 to-[#0d1f35] p-6 sm:p-8 md:p-10 border-t border-white/10">
+                {/* Header con bandera y ciudad */}
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <span className="text-5xl sm:text-6xl flex-shrink-0">{currentSede.bandera}</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
+                        {currentSede.pais}
+                      </h3>
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 backdrop-blur-sm w-fit">
+                        <MapPin className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                        <span className="text-white/90 font-medium text-sm sm:text-base">{currentSede.ciudad}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
-                  {currentSede.pais}
-                </h3>
-                <p className="text-base sm:text-lg text-white/70 max-w-xl leading-relaxed">
+                
+                {/* Descripción */}
+                <p className="text-base sm:text-lg text-white/80 leading-relaxed max-w-3xl">
                   {currentSede.descripcion}
                 </p>
               </div>
