@@ -19,10 +19,10 @@ export class EmailService {
     // Determinar qué proveedor usar
     // PRIORIDAD: SendGrid > Resend > SMTP (Gmail)
     // Gmail SMTP no funciona bien desde servicios cloud (Render, Digital Ocean) debido a bloqueos
-    const provider = (process.env.EMAIL_PROVIDER || 'auto').toLowerCase() as EmailProvider
+    const providerEnv = (process.env.EMAIL_PROVIDER || 'auto').toLowerCase()
     
     // Si no se especifica proveedor o es 'auto', detectar automáticamente
-    if (provider === 'auto' || !provider) {
+    if (providerEnv === 'auto' || !providerEnv) {
       // Prioridad: SendGrid > Resend > SMTP
       if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
         this.emailProvider = 'sendgrid'
@@ -37,9 +37,26 @@ export class EmailService {
       } else {
         this.emailProvider = 'gmail' // Fallback por defecto
         this.logger.warn('⚠️ No se detectó ningún proveedor configurado, usando Gmail SMTP por defecto')
+        this.logger.warn('   ⚠️ Gmail SMTP puede fallar desde servicios cloud (Render, Digital Ocean)')
+        this.logger.warn('   💡 SOLUCIÓN: Configura SendGrid o Resend para producción')
       }
     } else {
-      this.emailProvider = provider
+      // Validar que el proveedor especificado sea válido
+      if (providerEnv === 'sendgrid' || providerEnv === 'resend' || providerEnv === 'gmail' || providerEnv === 'smtp') {
+        this.emailProvider = providerEnv as EmailProvider
+      } else {
+        this.logger.warn(`⚠️ Proveedor '${providerEnv}' no reconocido, usando detección automática`)
+        // Forzar detección automática si el proveedor no es válido
+        if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+          this.emailProvider = 'sendgrid'
+        } else if (process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL) {
+          this.emailProvider = 'resend'
+        } else if (process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+          this.emailProvider = 'gmail'
+        } else {
+          this.emailProvider = 'gmail'
+        }
+      }
     }
 
     this.logger.log(`📧 Inicializando EmailService con proveedor: ${this.emailProvider}`)
