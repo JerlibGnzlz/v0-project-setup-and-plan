@@ -25,7 +25,8 @@
     "test:solicitud-credencial": "ts-node scripts/test-solicitud-credencial.ts",
     "test:recordatorios": "ts-node scripts/test-recordatorios-pagos.ts",
     "verify:resend": "ts-node scripts/verificar-resend.ts",
-    "verify:email-resend": "ts-node scripts/verificar-email-resend.ts"
+    "verify:email-resend": "ts-node scripts/verificar-email-resend.ts",
+    "diagnostico:email": "ts-node scripts/diagnostico-email.ts"
   },
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",
