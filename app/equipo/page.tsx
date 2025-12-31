@@ -343,7 +343,7 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
         {/* Card - Altura fija y compacta */}
         <div className="relative rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300 h-full flex flex-col">
           {/* Image - Altura fija con fondo según tipo */}
-          <div className="relative h-48 overflow-hidden bg-white/5 flex-shrink-0">
+          <div className="relative h-32 overflow-hidden bg-white/5 flex-shrink-0">
             {pastor.fotoUrl ? (
               <>
                 {/* Fondo según tipo */}
@@ -359,7 +359,7 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
               </>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/10 to-white/5">
-                <span className="text-3xl font-bold text-white/30">
+                <span className="text-2xl font-bold text-white/30">
                   {pastor.nombre?.[0]}
                   {pastor.apellido?.[0]}
                 </span>
