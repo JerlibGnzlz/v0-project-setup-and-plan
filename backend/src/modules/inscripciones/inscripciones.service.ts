@@ -2864,19 +2864,11 @@ export class InscripcionesService {
             )
 
             if (resultado) {
-                this.logger.log(`✅ [Recordatorio] ========================================`)
                 this.logger.log(`✅ [Recordatorio] Email enviado EXITOSAMENTE a ${inscripcion.email}`)
-                this.logger.log(`✅ [Recordatorio] Usando: ${process.env.EMAIL_PROVIDER || 'gmail'} (Nodemailer/SMTP)`)
-                this.logger.log(`✅ [Recordatorio] ========================================`)
             } else {
-                this.logger.error(`❌ [Recordatorio] ========================================`)
-                this.logger.error(`❌ [Recordatorio] EmailService retornó FALSE para ${inscripcion.email}`)
-                this.logger.error(`❌ [Recordatorio] El email NO se pudo enviar`)
-                this.logger.error(`   ⚠️ Verifica la configuración de EMAIL_PROVIDER y SMTP_* en las variables de entorno`)
-                this.logger.error(`   ⚠️ EMAIL_PROVIDER debe ser: gmail o smtp`)
-                this.logger.error(`   ⚠️ SMTP_USER debe ser tu email`)
-                this.logger.error(`   ⚠️ SMTP_PASSWORD debe ser tu App Password de Gmail`)
-                this.logger.error(`❌ [Recordatorio] ========================================`)
+                // Error más conciso (los detalles ya están en EmailService)
+                this.logger.error(`❌ [Recordatorio] No se pudo enviar email a ${inscripcion.email}`)
+                this.logger.error(`   💡 Si usas Gmail SMTP desde Render, configura SendGrid o Resend para producción`)
             }
 
             return resultado

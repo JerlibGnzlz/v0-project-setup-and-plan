@@ -16,52 +16,85 @@ export class EmailService {
   private resendConfigured = false
 
   constructor() {
-    // Determinar qué proveedor usar (por defecto: gmail para desarrollo)
-    const provider = (process.env.EMAIL_PROVIDER || 'gmail').toLowerCase() as EmailProvider
-    this.emailProvider = provider
-
-    this.logger.log(`📧 Inicializando EmailService con proveedor: ${provider}`)
-    this.logger.log(`   EMAIL_PROVIDER=${provider}`)
-    this.logger.log(`   Para usar Nodemailer (SMTP), configura: EMAIL_PROVIDER=gmail o EMAIL_PROVIDER=smtp`)
-
-    // Configurar SOLO el proveedor especificado, sin intentar otros
-    if (provider === 'resend') {
-      this.configureResend()
-      // Si Resend no se configuró, intentar SendGrid como fallback
-      if (!this.resendConfigured && (process.env.SENDGRID_API_KEY || process.env.SMTP_USER)) {
-        this.logger.warn('⚠️ Resend no se configuró, intentando SendGrid como fallback...')
-        this.configureSendGrid()
-        // Si SendGrid tampoco se configuró, intentar SMTP
-        if (!this.sendgridConfigured && process.env.SMTP_USER) {
-          this.logger.warn('⚠️ SendGrid no se configuró, intentando SMTP (Nodemailer) como fallback...')
-          this.configureSMTP()
-        }
+    // Determinar qué proveedor usar
+    // PRIORIDAD: SendGrid > Resend > SMTP (Gmail)
+    // Gmail SMTP no funciona bien desde servicios cloud (Render, Digital Ocean) debido a bloqueos
+    const provider = (process.env.EMAIL_PROVIDER || 'auto').toLowerCase() as EmailProvider
+    
+    // Si no se especifica proveedor o es 'auto', detectar automáticamente
+    if (provider === 'auto' || !provider) {
+      // Prioridad: SendGrid > Resend > SMTP
+      if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+        this.emailProvider = 'sendgrid'
+        this.logger.log('📧 Auto-detectado: SendGrid (recomendado para producción)')
+      } else if (process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL) {
+        this.emailProvider = 'resend'
+        this.logger.log('📧 Auto-detectado: Resend')
+      } else if (process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+        this.emailProvider = 'gmail'
+        this.logger.warn('⚠️ Auto-detectado: Gmail SMTP (puede tener problemas desde servicios cloud)')
+        this.logger.warn('   ⚠️ RECOMENDACIÓN: Usa SendGrid o Resend para producción')
+      } else {
+        this.emailProvider = 'gmail' // Fallback por defecto
+        this.logger.warn('⚠️ No se detectó ningún proveedor configurado, usando Gmail SMTP por defecto')
       }
-    } else if (provider === 'sendgrid') {
+    } else {
+      this.emailProvider = provider
+    }
+
+    this.logger.log(`📧 Inicializando EmailService con proveedor: ${this.emailProvider}`)
+
+    // Configurar proveedores en orden de prioridad (con fallbacks inteligentes)
+    if (this.emailProvider === 'resend') {
+      this.configureResend()
+      // Fallback a SendGrid si Resend falla
+      if (!this.resendConfigured && process.env.SENDGRID_API_KEY) {
+        this.logger.warn('⚠️ Resend no configurado, intentando SendGrid...')
+        this.configureSendGrid()
+      }
+      // Fallback a SMTP solo si no hay alternativas mejores
+      if (!this.resendConfigured && !this.sendgridConfigured && process.env.SMTP_USER) {
+        this.logger.warn('⚠️ Usando SMTP como último recurso (puede fallar desde servicios cloud)')
+        this.configureSMTP()
+      }
+    } else if (this.emailProvider === 'sendgrid') {
       this.configureSendGrid()
-      // Si SendGrid no se configuró, intentar SMTP como fallback
-      if (!this.sendgridConfigured && process.env.SMTP_USER) {
-        this.logger.warn('⚠️ SendGrid no se configuró, intentando SMTP (Nodemailer) como fallback...')
+      // Fallback a Resend si SendGrid falla
+      if (!this.sendgridConfigured && process.env.RESEND_API_KEY) {
+        this.logger.warn('⚠️ SendGrid no configurado, intentando Resend...')
+        this.configureResend()
+      }
+      // Fallback a SMTP solo si no hay alternativas mejores
+      if (!this.sendgridConfigured && !this.resendConfigured && process.env.SMTP_USER) {
+        this.logger.warn('⚠️ Usando SMTP como último recurso (puede fallar desde servicios cloud)')
         this.configureSMTP()
       }
     } else {
-      // provider === 'gmail' o 'smtp' - usar SOLO SMTP (Nodemailer)
+      // provider === 'gmail' o 'smtp' - intentar SMTP primero
       this.logger.log(`📧 Configurando Nodemailer (SMTP) para envío de emails...`)
       this.configureSMTP()
-      // NO intentar configurar SendGrid o Resend si el usuario eligió SMTP explícitamente
-      if (!this.transporter) {
-        this.logger.error('❌ SMTP (Nodemailer) no se pudo configurar')
-        this.logger.error('   Verifica que tengas configurado:')
-        this.logger.error('   - EMAIL_PROVIDER=gmail o EMAIL_PROVIDER=smtp')
-        this.logger.error('   - SMTP_HOST (opcional, por defecto: smtp.gmail.com)')
-        this.logger.error('   - SMTP_PORT (opcional, por defecto: 587)')
-        this.logger.error('   - SMTP_SECURE (opcional, por defecto: false)')
-        this.logger.error('   - SMTP_USER (requerido) - Tu email')
-        this.logger.error('   - SMTP_PASSWORD (requerido) - App Password de Gmail')
-        this.logger.error('   Para Gmail, necesitas una App Password: https://myaccount.google.com/apppasswords')
+      
+      // Si SMTP no funciona (común desde servicios cloud), intentar SendGrid/Resend automáticamente
+      if (!this.transporter || (process.env.SENDGRID_API_KEY && !this.sendgridConfigured)) {
+        this.logger.warn('⚠️ SMTP puede tener problemas desde servicios cloud (Render, Digital Ocean)')
+        this.logger.warn('   Intentando configurar SendGrid como alternativa...')
+        this.configureSendGrid()
+      }
+      
+      if (!this.transporter && !this.sendgridConfigured && process.env.RESEND_API_KEY) {
+        this.logger.warn('   Intentando configurar Resend como alternativa...')
+        this.configureResend()
+      }
+      
+      // Si finalmente no hay nada configurado, mostrar error claro
+      if (!this.transporter && !this.sendgridConfigured && !this.resendConfigured) {
+        this.logger.error('❌ No se pudo configurar ningún proveedor de email')
+        this.logger.error('   SOLUCIÓN RECOMENDADA: Configura SendGrid o Resend')
+        this.logger.error('   SendGrid: EMAIL_PROVIDER=sendgrid, SENDGRID_API_KEY, SENDGRID_FROM_EMAIL')
+        this.logger.error('   Resend: EMAIL_PROVIDER=resend, RESEND_API_KEY, RESEND_FROM_EMAIL')
       } else {
-        this.logger.log(`✅ Nodemailer (SMTP) configurado correctamente`)
-        this.logger.log(`   📧 Los recordatorios de pagos pendientes usarán Nodemailer para enviar emails`)
+        const providerActivo = this.sendgridConfigured ? 'SendGrid' : this.resendConfigured ? 'Resend' : 'SMTP (Nodemailer)'
+        this.logger.log(`✅ EmailService configurado correctamente con: ${providerActivo}`)
       }
     }
   }
@@ -229,6 +262,11 @@ export class EmailService {
    * Envía un email de notificación
    * Si el body ya es HTML completo (contiene <!DOCTYPE), lo usa directamente
    * Si no, construye el template usando el método legacy
+   * 
+   * PRIORIDAD DE PROVEEDORES:
+   * 1. SendGrid (mejor para producción, funciona desde servicios cloud)
+   * 2. Resend (alternativa buena para producción)
+   * 3. SMTP/Gmail (puede fallar desde servicios cloud como Render)
    */
   async sendNotificationEmail(
     to: string,
@@ -242,63 +280,33 @@ export class EmailService {
       return false
     }
 
-    // Log detallado del intento de envío
-    this.logger.log(`📧 [EmailService] Intentando enviar email:`)
-    this.logger.log(`   To: ${to}`)
-    this.logger.log(`   Title: ${title}`)
-    this.logger.log(`   Provider configurado: ${this.emailProvider}`)
-    this.logger.log(`   SendGrid configurado: ${this.sendgridConfigured}`)
-    this.logger.log(`   Resend configurado: ${this.resendConfigured}`)
-    this.logger.log(`   SMTP configurado: ${this.transporter ? 'Sí' : 'No'}`)
-
-    // Respetar el proveedor configurado en EMAIL_PROVIDER
-    // Si el usuario eligió 'gmail' o 'smtp', usar SOLO SMTP
-    if (this.emailProvider === 'gmail' || this.emailProvider === 'smtp') {
-      if (!this.transporter) {
-        this.logger.error('❌ SMTP no está configurado')
-        this.logger.error('   Verifica que tengas configurado:')
-        this.logger.error('   - SMTP_USER (requerido)')
-        this.logger.error('   - SMTP_PASSWORD (requerido)')
-        this.logger.error('   - SMTP_HOST (opcional, por defecto: smtp.gmail.com)')
-        this.logger.error('   - SMTP_PORT (opcional, por defecto: 587)')
-        this.logger.error('   - SMTP_SECURE (opcional, por defecto: false)')
-        return false
-      }
-      return this.sendWithSMTP(to, title, body, data)
-    }
-
-    // Si el proveedor es 'resend', usar Resend
-    if (this.emailProvider === 'resend' && this.resendConfigured) {
-      return this.sendWithResend(to, title, body, data)
-    }
-
-    // Si el proveedor es 'sendgrid', usar SendGrid
-    if (this.emailProvider === 'sendgrid' && this.sendgridConfigured) {
-      return this.sendWithSendGrid(to, title, body, data)
-    }
-
-    // Fallback: intentar en orden de prioridad si el proveedor configurado no está disponible
-    if (this.resendConfigured) {
-      this.logger.warn('⚠️ Usando Resend como fallback (proveedor configurado no disponible)')
-      return this.sendWithResend(to, title, body, data)
-    }
-
+    // Intentar envío con proveedores en orden de prioridad (mejor a peor)
+    // 1. SendGrid (mejor para producción)
     if (this.sendgridConfigured) {
-      this.logger.warn('⚠️ Usando SendGrid como fallback (proveedor configurado no disponible)')
-      return this.sendWithSendGrid(to, title, body, data)
+      const resultado = await this.sendWithSendGrid(to, title, body, data)
+      if (resultado) return true
+      // Si SendGrid falla, continuar con siguiente proveedor
     }
 
+    // 2. Resend (buena alternativa)
+    if (this.resendConfigured) {
+      const resultado = await this.sendWithResend(to, title, body, data)
+      if (resultado) return true
+      // Si Resend falla, continuar con siguiente proveedor
+    }
+
+    // 3. SMTP/Gmail (último recurso, puede fallar desde servicios cloud)
     if (this.transporter) {
-      this.logger.warn('⚠️ Usando SMTP como fallback (proveedor configurado no disponible)')
-      return this.sendWithSMTP(to, title, body, data)
+      const resultado = await this.sendWithSMTP(to, title, body, data)
+      if (resultado) return true
+      // Si SMTP falla, ya no hay más opciones
     }
 
-    // Si ningún proveedor está disponible
-    this.logger.error('❌ No se puede enviar email: ningún servicio configurado')
-    this.logger.error('   Verifica que tengas configurado uno de estos:')
-    this.logger.error('   - Resend: RESEND_API_KEY y RESEND_FROM_EMAIL con EMAIL_PROVIDER=resend')
-    this.logger.error('   - SendGrid: SENDGRID_API_KEY y SENDGRID_FROM_EMAIL con EMAIL_PROVIDER=sendgrid')
-    this.logger.error('   - SMTP: SMTP_USER y SMTP_PASSWORD con EMAIL_PROVIDER=gmail')
+    // Si ningún proveedor funcionó
+    this.logger.error(`❌ No se pudo enviar email a ${to} con ningún proveedor disponible`)
+    this.logger.error('   SOLUCIÓN: Configura SendGrid o Resend para producción')
+    this.logger.error('   SendGrid: EMAIL_PROVIDER=sendgrid, SENDGRID_API_KEY, SENDGRID_FROM_EMAIL')
+    this.logger.error('   Resend: EMAIL_PROVIDER=resend, RESEND_API_KEY, RESEND_FROM_EMAIL')
     return false
   }
 
@@ -450,19 +458,8 @@ export class EmailService {
         })
       }
 
-      // Si SendGrid falla (por cualquier razón), intentar con SMTP como fallback
-      if (this.transporter) {
-        if (hasCreditsError) {
-          this.logger.warn('⚠️ SendGrid sin créditos, usando Gmail SMTP como fallback automático...')
-        } else {
-          this.logger.warn('⚠️ SendGrid falló, intentando con SMTP como fallback...')
-        }
-        return this.sendWithSMTP(to, title, body, data)
-      } else if (hasCreditsError) {
-        this.logger.error('   ❌ No hay fallback disponible (SMTP no configurado)')
-        this.logger.error('   → Configura SMTP_USER y SMTP_PASSWORD en Render para usar Gmail SMTP como fallback')
-      }
-
+      // Si SendGrid falla, retornar false para que se intente con otro proveedor
+      // (el método sendNotificationEmail manejará el fallback automáticamente)
       return false
     }
   }
@@ -605,18 +602,8 @@ export class EmailService {
         this.logger.error('   → Verifica tu conexión a internet o el estado de Resend')
       }
 
-      // Fallback a SendGrid si está disponible
-      if (this.sendgridConfigured) {
-        this.logger.warn('⚠️ Resend falló, intentando con SendGrid como fallback...')
-        return this.sendWithSendGrid(to, title, body, data)
-      }
-
-      // Fallback a SMTP si está disponible
-      if (this.transporter) {
-        this.logger.warn('⚠️ Resend falló, intentando con SMTP como fallback...')
-        return this.sendWithSMTP(to, title, body, data)
-      }
-
+      // Si Resend falla, retornar false para que se intente con otro proveedor
+      // (el método sendNotificationEmail manejará el fallback automáticamente)
       return false
     }
   }
@@ -708,36 +695,15 @@ export class EmailService {
         stack: errorStack,
       })
 
-      // Mensajes de error más específicos
-      if (errorCode === 'EAUTH') {
+      // Mensajes de error más específicos (solo para debugging, no repetir en cada email)
+      if (errorCode === 'ETIMEDOUT' || errorMessage.includes('Timeout')) {
+        // Solo mostrar el mensaje completo una vez, no en cada intento
+        this.logger.error('   ⚠️ Gmail SMTP bloqueado desde servicios cloud (común en Render/Digital Ocean)')
+        this.logger.error('   💡 SOLUCIÓN: Configura SendGrid o Resend (ver logs anteriores para instrucciones)')
+      } else if (errorCode === 'EAUTH') {
         this.logger.error('   ⚠️ Error de autenticación SMTP. Verifica SMTP_USER y SMTP_PASSWORD')
       } else if (errorCode === 'ECONNECTION') {
         this.logger.error('   ⚠️ Error de conexión SMTP. Verifica SMTP_HOST y SMTP_PORT')
-      } else if (errorCode === 'ETIMEDOUT' || errorMessage.includes('Timeout')) {
-        this.logger.error('   ⚠️ Timeout de conexión SMTP (después de múltiples reintentos)')
-        this.logger.error('   Posibles causas:')
-        this.logger.error('   - Gmail bloqueando conexiones desde Render (común en servicios cloud)')
-        this.logger.error('   - Firewall de Render bloqueando conexión a Gmail SMTP')
-        this.logger.error('   - Problemas de red temporales')
-        this.logger.error('   - Gmail requiere conexiones desde IPs conocidas')
-        this.logger.error('   ⚠️ SOLUCIÓN RECOMENDADA: Usar SendGrid o Resend en lugar de Gmail SMTP')
-        this.logger.error('   📧 Para configurar SendGrid:')
-        this.logger.error('      1. Crea cuenta en https://sendgrid.com')
-        this.logger.error('      2. Verifica un email en Settings → Sender Authentication')
-        this.logger.error('      3. Crea API Key en Settings → API Keys')
-        this.logger.error('      4. Configura en Render:')
-        this.logger.error('         EMAIL_PROVIDER=sendgrid')
-        this.logger.error('         SENDGRID_API_KEY=tu_api_key')
-        this.logger.error('         SENDGRID_FROM_EMAIL=email_verificado@tudominio.com')
-        this.logger.error('   📧 Para configurar Resend:')
-        this.logger.error('      1. Crea cuenta en https://resend.com')
-        this.logger.error('      2. Verifica dominio o email en Domains/Emails')
-        this.logger.error('      3. Crea API Key en API Keys')
-        this.logger.error('      4. Configura en Render:')
-        this.logger.error('         EMAIL_PROVIDER=resend')
-        this.logger.error('         RESEND_API_KEY=tu_api_key')
-        this.logger.error('         RESEND_FROM_EMAIL=email_verificado@tudominio.com')
-        this.logger.error('   💡 Ver documentación completa en: docs/CONFIGURACION_EMAIL_PRODUCCION.md')
       }
 
       return false
