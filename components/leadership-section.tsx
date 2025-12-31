@@ -198,7 +198,7 @@ function ModernPastorCard({
               />
 
               <div
-                className={`relative w-14 h-14 rounded-full overflow-hidden ring-2 ${accent.ring} ring-offset-2 ring-offset-[#0d1f35]`}
+                className={`relative w-10 h-10 rounded-full overflow-hidden ring-2 ${accent.ring} ring-offset-2 ring-offset-[#0d1f35]`}
               >
                 {pastor.fotoUrl ? (
                   <>
@@ -210,7 +210,7 @@ function ModernPastorCard({
                       src={pastor.fotoUrl}
                       alt={fullName}
                       fill
-                      sizes="56px"
+                      sizes="40px"
                       className="object-cover relative z-10"
                       loading="lazy"
                     />
@@ -219,16 +219,16 @@ function ModernPastorCard({
                   <div
                     className={`w-full h-full bg-gradient-to-br ${accent.gradient} flex items-center justify-center`}
                   >
-                    <span className="text-base font-bold text-white">{initials}</span>
+                    <span className="text-sm font-bold text-white">{initials}</span>
                   </div>
                 )}
               </div>
 
               {/* Status indicator */}
               <div
-                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-gradient-to-br ${accent.gradient} border-2 border-[#0d1f35] flex items-center justify-center`}
+                className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-gradient-to-br ${accent.gradient} border-2 border-[#0d1f35] flex items-center justify-center`}
               >
-                <Sparkles className="w-1.5 h-1.5 text-white" />
+                <Sparkles className="w-1 h-1 text-white" />
               </div>
             </div>
 
