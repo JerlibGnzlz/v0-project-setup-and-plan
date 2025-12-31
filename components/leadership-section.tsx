@@ -277,13 +277,13 @@ function ModernPastorCard({
               </Button>
             </DialogTrigger>
 
-            {/* Modal Content */}
-            <DialogContent className="max-w-lg bg-[#0d1f35]/95 backdrop-blur-2xl border-white/10 text-white">
-              <DialogHeader className="pb-4">
-                <div className="flex items-center gap-4">
+            {/* Modal Content - Responsive */}
+            <DialogContent className="max-w-lg w-[calc(100vw-2rem)] sm:w-full mx-4 sm:mx-auto bg-[#0d1f35]/95 backdrop-blur-2xl border-white/10 text-white max-h-[90vh] overflow-y-auto">
+              <DialogHeader className="pb-3 sm:pb-4">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 text-center sm:text-left">
                   {/* Avatar in modal con fondo según tipo */}
                   <div
-                    className={`relative w-20 h-20 rounded-2xl overflow-hidden ring-2 ${accent.ring}`}
+                    className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden ring-2 ${accent.ring} flex-shrink-0`}
                   >
                     {pastor.fotoUrl ? (
                       <>
@@ -302,14 +302,16 @@ function ModernPastorCard({
                       <div
                         className={`w-full h-full bg-gradient-to-br ${accent.gradient} flex items-center justify-center`}
                       >
-                        <span className="text-2xl font-bold text-white">{initials}</span>
+                        <span className="text-xl sm:text-2xl font-bold text-white">{initials}</span>
                       </div>
                     )}
                   </div>
-                  <div>
-                    <DialogTitle className="text-xl text-white">{fullName}</DialogTitle>
+                  <div className="flex-1 min-w-0">
+                    <DialogTitle className="text-lg sm:text-xl text-white break-words">
+                      {fullName}
+                    </DialogTitle>
                     <DialogDescription
-                      className={`text-sm bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent font-medium`}
+                      className={`text-xs sm:text-sm bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent font-medium break-words`}
                     >
                       {pastor.cargo || pastor.ministerio || 'Pastor'}
                     </DialogDescription>
@@ -317,19 +319,19 @@ function ModernPastorCard({
                 </div>
               </DialogHeader>
 
-              <div className="space-y-5">
+              <div className="space-y-4 sm:space-y-5">
                 {/* Contact info */}
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2 sm:gap-3 justify-center sm:justify-start">
                   {location && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-sm">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {location}
+                    <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-white/5 text-white/60 text-xs sm:text-sm">
+                      <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                      <span className="break-words">{location}</span>
                     </div>
                   )}
                   {pastor.ministerio && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-sm">
-                      <Briefcase className="w-3.5 h-3.5" />
-                      {pastor.ministerio}
+                    <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-white/5 text-white/60 text-xs sm:text-sm">
+                      <Briefcase className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                      <span className="break-words">{pastor.ministerio}</span>
                     </div>
                   )}
                 </div>
@@ -338,9 +340,9 @@ function ModernPastorCard({
                 {pastor.biografia && (
                   <div className="relative">
                     <Quote
-                      className={`absolute -top-1 -left-1 w-6 h-6 ${accent.text} opacity-30`}
+                      className={`absolute -top-1 -left-1 w-5 h-5 sm:w-6 sm:h-6 ${accent.text} opacity-30`}
                     />
-                    <p className="text-white/70 text-sm leading-relaxed pl-5 italic">
+                    <p className="text-white/70 text-xs sm:text-sm leading-relaxed pl-4 sm:pl-5 italic break-words">
                       {pastor.biografia}
                     </p>
                   </div>
@@ -349,12 +351,12 @@ function ModernPastorCard({
                 {/* Trayectoria */}
                 {pastor.trayectoria && (
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm text-white flex items-center gap-2">
-                      <div className={`w-1 h-4 rounded-full bg-gradient-to-b ${accent.gradient}`} />
-                      Trayectoria Ministerial
+                    <h4 className="font-semibold text-xs sm:text-sm text-white flex items-center gap-2">
+                      <div className={`w-1 h-3 sm:h-4 rounded-full bg-gradient-to-b ${accent.gradient} flex-shrink-0`} />
+                      <span>Trayectoria Ministerial</span>
                     </h4>
-                    <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-                      <p className="text-white/60 text-sm leading-relaxed whitespace-pre-line">
+                    <div className="p-3 sm:p-4 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+                      <p className="text-white/60 text-xs sm:text-sm leading-relaxed whitespace-pre-line break-words">
                         {pastor.trayectoria}
                       </p>
                     </div>
