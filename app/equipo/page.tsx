@@ -451,56 +451,56 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
                 <ChevronRight className="h-3 w-3 opacity-0 -ml-2 group-hover/btn:opacity-100 group-hover/btn:ml-0 transition-all duration-300" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg bg-[#0d1f35]/95 backdrop-blur-2xl border-white/10 text-white">
-              <DialogHeader className="pb-4">
-                <div className="flex items-center gap-4">
-                  {/* Avatar in modal con fondo según tipo */}
-                  <div
-                    className={`relative w-20 h-20 rounded-2xl overflow-hidden ring-2 ring-white/20`}
-                  >
-                    {pastor.fotoUrl ? (
-                      <>
-                        {/* Fondo según tipo */}
-                        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-30`} />
-                        <Image
-                          src={pastor.fotoUrl}
-                          alt={fullName}
-                          fill
-                          className="object-cover relative z-10"
-                        />
-                      </>
-                    ) : (
-                      <div
-                        className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}
-                      >
-                        <span className="text-2xl font-bold text-white">{initials}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <DialogTitle className="text-xl text-white">{fullName}</DialogTitle>
-                    <DialogDescription
-                      className={`text-sm bg-gradient-to-r ${gradient} bg-clip-text text-transparent font-medium`}
+            <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg bg-[#0d1f35]/95 backdrop-blur-2xl border-white/10 text-white mx-4 max-h-[90vh] overflow-y-auto">
+              <DialogHeader className="pb-4 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
+                {/* Avatar in modal con fondo según tipo */}
+                <div
+                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden ring-2 ring-white/20 flex-shrink-0`}
+                >
+                  {pastor.fotoUrl ? (
+                    <>
+                      {/* Fondo según tipo */}
+                      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-30`} />
+                      <Image
+                        src={pastor.fotoUrl}
+                        alt={fullName}
+                        fill
+                        className="object-cover relative z-10"
+                      />
+                    </>
+                  ) : (
+                    <div
+                      className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}
                     >
-                      {pastor.cargo || pastor.ministerio || 'Pastor'}
-                    </DialogDescription>
-                  </div>
+                      <span className="text-xl sm:text-2xl font-bold text-white">{initials}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <DialogTitle className="text-lg sm:text-xl text-white break-words">
+                    {fullName}
+                  </DialogTitle>
+                  <DialogDescription
+                    className={`text-xs sm:text-sm bg-gradient-to-r ${gradient} bg-clip-text text-transparent font-medium break-words`}
+                  >
+                    {pastor.cargo || pastor.ministerio || 'Pastor'}
+                  </DialogDescription>
                 </div>
               </DialogHeader>
 
-              <div className="space-y-5">
+              <div className="space-y-4 sm:space-y-5 max-h-[calc(90vh-180px)] overflow-y-auto pr-2">
                 {/* Contact info */}
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-3">
                   {location && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-sm">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {location}
+                    <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-white/5 text-white/60 text-xs sm:text-sm flex-shrink-0">
+                      <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      <span className="break-words">{location}</span>
                     </div>
                   )}
                   {pastor.ministerio && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-sm">
-                      <Briefcase className="w-3.5 h-3.5" />
-                      {pastor.ministerio}
+                    <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-white/5 text-white/60 text-xs sm:text-sm flex-shrink-0">
+                      <Briefcase className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      <span className="break-words">{pastor.ministerio}</span>
                     </div>
                   )}
                 </div>
@@ -508,8 +508,8 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
                 {/* Biography */}
                 {pastor.biografia && (
                   <div className="relative">
-                    <Quote className={`absolute -top-1 -left-1 w-6 h-6 text-white/30`} />
-                    <p className="text-white/70 text-sm leading-relaxed pl-5 italic">
+                    <Quote className={`absolute -top-1 -left-1 w-5 h-5 sm:w-6 sm:h-6 text-white/30`} />
+                    <p className="text-white/70 text-xs sm:text-sm leading-relaxed pl-4 sm:pl-5 italic break-words">
                       {pastor.biografia}
                     </p>
                   </div>
@@ -518,12 +518,12 @@ function PastorCard({ pastor, gradient }: { pastor: Pastor; gradient: string }) 
                 {/* Trayectoria */}
                 {pastor.trayectoria && (
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm text-white flex items-center gap-2">
+                    <h4 className="font-semibold text-xs sm:text-sm text-white flex items-center gap-2">
                       <div className={`w-1 h-4 rounded-full bg-gradient-to-b ${gradient}`} />
                       Trayectoria Ministerial
                     </h4>
-                    <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-                      <p className="text-white/60 text-sm leading-relaxed whitespace-pre-line">
+                    <div className="p-3 sm:p-4 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+                      <p className="text-white/60 text-xs sm:text-sm leading-relaxed whitespace-pre-line break-words">
                         {pastor.trayectoria}
                       </p>
                     </div>
