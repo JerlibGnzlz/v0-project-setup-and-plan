@@ -311,30 +311,68 @@ export class EmailService {
       return false
     }
 
+    // Log detallado del estado de proveedores
+    this.logger.log(`📧 [EmailService] Estado de proveedores:`)
+    this.logger.log(`   SendGrid configurado: ${this.sendgridConfigured}`)
+    this.logger.log(`   Resend configurado: ${this.resendConfigured}`)
+    this.logger.log(`   SMTP configurado: ${this.transporter ? 'Sí' : 'No'}`)
+    this.logger.log(`   Proveedor activo: ${this.emailProvider}`)
+
     // Intentar envío con proveedores en orden de prioridad (mejor a peor)
     // 1. SendGrid (mejor para producción)
     if (this.sendgridConfigured) {
+      this.logger.log(`📧 [EmailService] Intentando envío con SendGrid...`)
       const resultado = await this.sendWithSendGrid(to, title, body, data)
-      if (resultado) return true
+      if (resultado) {
+        this.logger.log(`✅ [EmailService] Email enviado exitosamente con SendGrid`)
+        return true
+      }
+      this.logger.warn(`⚠️ [EmailService] SendGrid falló, intentando siguiente proveedor...`)
       // Si SendGrid falla, continuar con siguiente proveedor
+    } else {
+      this.logger.warn(`⚠️ [EmailService] SendGrid NO está configurado`)
+      if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+        this.logger.warn(`   ⚠️ SendGrid tiene variables configuradas pero no se inicializó correctamente`)
+        this.logger.warn(`   ⚠️ Verifica que SENDGRID_API_KEY y SENDGRID_FROM_EMAIL sean correctos`)
+      }
     }
 
     // 2. Resend (buena alternativa)
     if (this.resendConfigured) {
+      this.logger.log(`📧 [EmailService] Intentando envío con Resend...`)
       const resultado = await this.sendWithResend(to, title, body, data)
-      if (resultado) return true
+      if (resultado) {
+        this.logger.log(`✅ [EmailService] Email enviado exitosamente con Resend`)
+        return true
+      }
+      this.logger.warn(`⚠️ [EmailService] Resend falló, intentando siguiente proveedor...`)
       // Si Resend falla, continuar con siguiente proveedor
     }
 
     // 3. SMTP/Gmail (último recurso, puede fallar desde servicios cloud)
     if (this.transporter) {
+      this.logger.log(`📧 [EmailService] Intentando envío con SMTP...`)
       const resultado = await this.sendWithSMTP(to, title, body, data)
-      if (resultado) return true
+      if (resultado) {
+        this.logger.log(`✅ [EmailService] Email enviado exitosamente con SMTP`)
+        return true
+      }
+      this.logger.warn(`⚠️ [EmailService] SMTP falló`)
       // Si SMTP falla, ya no hay más opciones
     }
 
     // Si ningún proveedor funcionó
-    this.logger.error(`❌ No se pudo enviar email a ${to} con ningún proveedor disponible`)
+    this.logger.error(`❌ [EmailService] No se pudo enviar email a ${to} con ningún proveedor disponible`)
+    this.logger.error(`   SendGrid configurado: ${this.sendgridConfigured}`)
+    this.logger.error(`   Resend configurado: ${this.resendConfigured}`)
+    this.logger.error(`   SMTP configurado: ${this.transporter ? 'Sí' : 'No'}`)
+    this.logger.error(`   SENDGRID_API_KEY presente: ${process.env.SENDGRID_API_KEY ? 'Sí' : 'No'}`)
+    this.logger.error(`   SENDGRID_FROM_EMAIL presente: ${process.env.SENDGRID_FROM_EMAIL ? 'Sí' : 'No'}`)
+    if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL && !this.sendgridConfigured) {
+      this.logger.error(`   ⚠️ PROBLEMA: SendGrid tiene variables pero no se configuró correctamente`)
+      this.logger.error(`   ⚠️ Verifica que SENDGRID_API_KEY comience con 'SG.' y tenga formato correcto`)
+      this.logger.error(`   ⚠️ Verifica que SENDGRID_FROM_EMAIL sea el email verificado en SendGrid`)
+    }
     this.logger.error('   SOLUCIÓN: Configura SendGrid o Resend para producción')
     this.logger.error('   SendGrid: EMAIL_PROVIDER=sendgrid, SENDGRID_API_KEY, SENDGRID_FROM_EMAIL')
     this.logger.error('   Resend: EMAIL_PROVIDER=resend, RESEND_API_KEY, RESEND_FROM_EMAIL')

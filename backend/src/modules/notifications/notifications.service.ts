@@ -47,7 +47,16 @@ export class NotificationsService {
     data?: Record<string, unknown>,
   ): Promise<boolean> {
     try {
-      this.logger.log(`📧 Enviando email a ${email}: ${title}`)
+      this.logger.log(`📧 [NotificationsService] ========================================`)
+      this.logger.log(`📧 [NotificationsService] Enviando email a ${email}`)
+      this.logger.log(`📧 [NotificationsService] Título: ${title}`)
+      this.logger.log(`📧 [NotificationsService] Body length: ${body.length} caracteres`)
+      this.logger.log(`📧 [NotificationsService] Email Provider configurado: ${process.env.EMAIL_PROVIDER || 'auto'}`)
+      this.logger.log(`📧 [NotificationsService] SendGrid API Key configurado: ${process.env.SENDGRID_API_KEY ? 'Sí' : 'No'}`)
+      this.logger.log(`📧 [NotificationsService] SendGrid FROM Email configurado: ${process.env.SENDGRID_FROM_EMAIL ? 'Sí' : 'No'}`)
+      if (process.env.SENDGRID_FROM_EMAIL) {
+        this.logger.log(`📧 [NotificationsService] SendGrid FROM Email: ${process.env.SENDGRID_FROM_EMAIL}`)
+      }
 
       const emailSent = await this.emailService.sendNotificationEmail(
         email,
@@ -57,15 +66,23 @@ export class NotificationsService {
       )
 
       if (emailSent) {
-        this.logger.log(`✅ Email enviado exitosamente a ${email}`)
+        this.logger.log(`✅ [NotificationsService] Email enviado exitosamente a ${email}`)
+        this.logger.log(`📧 [NotificationsService] ========================================`)
         return true
       } else {
-        this.logger.warn(`⚠️ No se pudo enviar email a ${email}`)
+        this.logger.error(`❌ [NotificationsService] No se pudo enviar email a ${email}`)
+        this.logger.error(`📧 [NotificationsService] Verifica los logs de EmailService para más detalles`)
+        this.logger.error(`📧 [NotificationsService] ========================================`)
         return false
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-      this.logger.error(`Error enviando email a ${email}:`, errorMessage)
+      const errorStack = error instanceof Error ? error.stack : undefined
+      this.logger.error(`❌ [NotificationsService] Error enviando email a ${email}:`, {
+        message: errorMessage,
+        stack: errorStack,
+      })
+      this.logger.error(`📧 [NotificationsService] ========================================`)
       return false
     }
   }
