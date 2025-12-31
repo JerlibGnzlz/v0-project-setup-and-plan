@@ -421,15 +421,37 @@ export class EmailService {
       // No mostrar warnings innecesarios - si el email está verificado en SendGrid, funcionará correctamente
       // El usuario ya verificó el email en SendGrid, así que no necesitamos advertirle
 
+      // Configurar email con mejores prácticas para deliverability
       const msg = {
         to,
         from: {
           email: fromEmail,
           name: fromName,
         },
+        replyTo: process.env.SENDGRID_REPLY_TO || fromEmail, // Reply-To configurado
         subject: title,
         html: htmlContent,
         text: textContent,
+        // Headers adicionales para mejorar deliverability
+        headers: {
+          'X-Entity-Ref-ID': `recordatorio-${Date.now()}`, // ID único para tracking
+          'List-Unsubscribe': `<mailto:${fromEmail}?subject=unsubscribe>`, // Opción de darse de baja
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click', // Unsubscribe one-click
+        },
+        // Categorías para mejor tracking en SendGrid
+        categories: ['recordatorio-pago', 'convencion'],
+        // Configuración de tracking
+        trackingSettings: {
+          clickTracking: {
+            enable: true,
+          },
+          openTracking: {
+            enable: true,
+          },
+          subscriptionTracking: {
+            enable: false, // Deshabilitado para evitar problemas de spam
+          },
+        },
       }
 
       this.logger.log(`📧 Enviando email a ${to} desde ${fromEmail} (SendGrid)...`)
