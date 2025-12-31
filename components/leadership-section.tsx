@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Eye, MapPin, Users, ChevronRight, Briefcase, Loader2, Quote, Sparkles } from 'lucide-react'
 import { usePastoresLanding } from '@/lib/hooks/use-pastores'
 import type { Pastor } from '@/lib/api/pastores'
+import { tipoPastorLabels } from '@/lib/validations/pastor'
 
 // Colores para los acentos (se rotan)
 const accentColors = [
@@ -237,11 +238,20 @@ function ModernPastorCard({
               <h3 className="text-base font-bold text-white mb-0.5 truncate group-hover:text-white/90">
                 {fullName}
               </h3>
-              <p
-                className={`text-sm font-medium bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent truncate`}
-              >
-                {pastor.cargo || pastor.ministerio || 'Pastor'}
-              </p>
+              {/* Tipo de clasificación */}
+              <div className="flex items-center gap-1.5 mb-1">
+                <span
+                  className={`text-xs font-semibold bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent`}
+                >
+                  {tipoPastorLabels[pastor.tipo]}
+                </span>
+              </div>
+              {/* Cargo o ministerio si existe */}
+              {(pastor.cargo || pastor.ministerio) && (
+                <p className="text-xs text-white/60 truncate mb-1">
+                  {pastor.cargo || pastor.ministerio}
+                </p>
+              )}
               {location && (
                 <div className="flex items-center gap-1 mt-1 text-white/40 text-xs">
                   <MapPin className="w-3 h-3 flex-shrink-0" />
@@ -313,8 +323,13 @@ function ModernPastorCard({
                     <DialogDescription
                       className={`text-xs sm:text-sm bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent font-medium break-words`}
                     >
-                      {pastor.cargo || pastor.ministerio || 'Pastor'}
+                      {tipoPastorLabels[pastor.tipo]}
                     </DialogDescription>
+                    {(pastor.cargo || pastor.ministerio) && (
+                      <p className="text-xs sm:text-sm text-white/60 mt-1 break-words">
+                        {pastor.cargo || pastor.ministerio}
+                      </p>
+                    )}
                   </div>
                 </div>
               </DialogHeader>
