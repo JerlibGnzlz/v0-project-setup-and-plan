@@ -11,6 +11,7 @@ import {
   CreditCard,
   UserCircle,
   Shield,
+  Settings,
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -206,6 +207,12 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                     href: '/admin/pagos',
                     icon: CreditCard,
                     description: 'Gestionar pagos',
+                  },
+                  {
+                    name: 'Configuración Landing',
+                    href: '/admin/configuracion-landing',
+                    icon: Settings,
+                    description: 'Estadísticas y contenido',
                   },
                 ].map(item => {
                   const isActive =
