@@ -1750,13 +1750,43 @@ export default function InscripcionesPage() {
                                 </div>
                             </div>
                             {resultadoRecordatorios.detalles.length > 0 && (
-                                <div className="max-h-48 overflow-y-auto space-y-2">
-                                    {resultadoRecordatorios.detalles.map((det: any, i: number) => (
-                                        <div key={i} className={`p-2 rounded-lg text-sm flex items-center justify-between ${det.exito ? 'bg-emerald-50 dark:bg-emerald-950/30' : 'bg-red-50 dark:bg-red-950/30'}`}>
-                                            <span className="font-medium">{det.nombre}</span>
-                                            <span className={det.exito ? 'text-emerald-600' : 'text-red-600'}>{det.exito ? '✓ Enviado' : '✗ Error'}</span>
+                                <div className="space-y-3">
+                                    <div className="max-h-48 overflow-y-auto space-y-2">
+                                        {resultadoRecordatorios.detalles.map((det: any, i: number) => (
+                                            <div key={i} className={`p-2 rounded-lg text-sm flex items-center justify-between ${det.exito ? 'bg-emerald-50 dark:bg-emerald-950/30' : 'bg-red-50 dark:bg-red-950/30'}`}>
+                                                <div className="flex-1 min-w-0">
+                                                    <span className="font-medium block truncate">{det.nombre}</span>
+                                                    {!det.exito && (
+                                                        <span className="text-xs text-red-600/70 mt-0.5 block">
+                                                            {det.email}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className={`ml-2 flex-shrink-0 ${det.exito ? 'text-emerald-600' : 'text-red-600'}`}>
+                                                    {det.exito ? '✓ Enviado' : '✗ Error'}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {resultadoRecordatorios.fallidos > 0 && (
+                                        <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+                                            <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-1">
+                                                ⚠️ Emails fallidos
+                                            </p>
+                                            <p className="text-xs text-amber-700 dark:text-amber-300">
+                                                Los emails fallidos pueden deberse a:
+                                            </p>
+                                            <ul className="text-xs text-amber-700 dark:text-amber-300 mt-1 ml-4 list-disc space-y-0.5">
+                                                <li>SendGrid sin créditos disponibles (límite 100/día en plan gratuito)</li>
+                                                <li>Resend sin email/dominio verificado</li>
+                                                <li>Gmail SMTP bloqueado desde servicios cloud</li>
+                                                <li>Configuración incorrecta de variables de entorno</li>
+                                            </ul>
+                                            <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+                                                💡 Revisa los logs del backend para más detalles específicos.
+                                            </p>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             )}
                             <DialogFooter><Button onClick={() => { setShowRecordatoriosDialog(false); setResultadoRecordatorios(null) }}>Cerrar</Button></DialogFooter>
