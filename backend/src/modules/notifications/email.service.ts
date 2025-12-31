@@ -4,7 +4,7 @@ import * as sgMail from '@sendgrid/mail'
 import { Resend } from 'resend'
 import { NotificationData } from './types/notification.types'
 
-type EmailProvider = 'sendgrid' | 'gmail' | 'smtp' | 'resend'
+type EmailProvider = 'sendgrid' | 'gmail' | 'smtp' | 'resend' | 'auto'
 
 @Injectable()
 export class EmailService {
