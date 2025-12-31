@@ -468,6 +468,31 @@ model Sede {
   @@map("sedes")
 }
 
+model ConfiguracionLanding {
+  id                    String   @id @default(uuid())
+  // Estadísticas
+  pastoresFormados      Int      @default(500) @map("pastores_formados")
+  pastoresFormadosSuffix String   @default("+") @map("pastores_formados_suffix")
+  anosMinisterio        Int      @default(15) @map("anos_ministerio")
+  anosMinisterioSuffix  String   @default("+") @map("anos_ministerio_suffix")
+  convenciones          Int      @default(50) @map("convenciones")
+  convencionesSuffix    String   @default("+") @map("convenciones_suffix")
+  // Países se calcula dinámicamente desde sedes, pero podemos tener un override
+  paisesOverride        Int?     @map("paises_override")
+  // Contenido
+  titulo                String   @default("Quiénes Somos") @map("titulo")
+  subtitulo             String   @default("Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino") @map("subtitulo")
+  misionTitulo          String   @default("Nuestra Misión") @map("mision_titulo")
+  misionContenido       String   @default("Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.") @map("mision_contenido")
+  visionTitulo          String   @default("Nuestra Visión") @map("vision_titulo")
+  visionContenido       String   @default("Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.") @map("vision_contenido")
+  // Metadata
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("configuracion_landing")
+}
+
 enum UserRole {
   ADMIN
   EDITOR

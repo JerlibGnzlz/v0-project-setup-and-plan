@@ -1,0 +1,271 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useConfiguracionLanding, useUpdateConfiguracionLanding } from '@/lib/hooks/use-configuracion-landing'
+import { Settings, Save, Users, Globe, Calendar, BookOpen, Target, Eye } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import type { UpdateConfiguracionLandingDto } from '@/lib/api/configuracion-landing'
+
+export default function ConfiguracionLandingPage() {
+  const { data: configuracion, isLoading } = useConfiguracionLanding()
+  const updateMutation = useUpdateConfiguracionLanding()
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isDirty },
+  } = useForm<UpdateConfiguracionLandingDto>({
+    defaultValues: {
+      pastoresFormados: 500,
+      pastoresFormadosSuffix: '+',
+      anosMinisterio: 15,
+      anosMinisterioSuffix: '+',
+      convenciones: 50,
+      convencionesSuffix: '+',
+      titulo: 'Quiénes Somos',
+      subtitulo:
+        'Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino',
+      misionTitulo: 'Nuestra Misión',
+      misionContenido:
+        'Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.',
+      visionTitulo: 'Nuestra Visión',
+      visionContenido:
+        'Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.',
+    },
+  })
+
+  // Resetear formulario cuando carga la configuración
+  useEffect(() => {
+    if (configuracion) {
+      reset({
+        pastoresFormados: configuracion.pastoresFormados,
+        pastoresFormadosSuffix: configuracion.pastoresFormadosSuffix,
+        anosMinisterio: configuracion.anosMinisterio,
+        anosMinisterioSuffix: configuracion.anosMinisterioSuffix,
+        convenciones: configuracion.convenciones,
+        convencionesSuffix: configuracion.convencionesSuffix,
+        paisesOverride: configuracion.paisesOverride,
+        titulo: configuracion.titulo,
+        subtitulo: configuracion.subtitulo,
+        misionTitulo: configuracion.misionTitulo,
+        misionContenido: configuracion.misionContenido,
+        visionTitulo: configuracion.visionTitulo,
+        visionContenido: configuracion.visionContenido,
+      })
+    }
+  }, [configuracion, reset])
+
+  const onSubmit = (data: UpdateConfiguracionLandingDto) => {
+    updateMutation.mutate(data)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <Skeleton className="h-96 w-full" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto py-8 px-4 max-w-5xl">
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <Settings className="w-8 h-8 text-primary" />
+          <h1 className="text-3xl font-bold">Configuración de Landing Page</h1>
+        </div>
+        <p className="text-muted-foreground">
+          Gestiona las estadísticas y contenido de la sección "Quiénes Somos"
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Estadísticas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Estadísticas
+            </CardTitle>
+            <CardDescription>
+              Configura los números que se muestran en las tarjetas de estadísticas
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="pastoresFormados">Pastores Formados</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="pastoresFormados"
+                    type="number"
+                    {...register('pastoresFormados', { valueAsNumber: true })}
+                  />
+                  <Input
+                    placeholder="+"
+                    className="w-20"
+                    {...register('pastoresFormadosSuffix')}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="anosMinisterio">Años de Ministerio</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="anosMinisterio"
+                    type="number"
+                    {...register('anosMinisterio', { valueAsNumber: true })}
+                  />
+                  <Input
+                    placeholder="+"
+                    className="w-20"
+                    {...register('anosMinisterioSuffix')}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="convenciones">Convenciones</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="convenciones"
+                    type="number"
+                    {...register('convenciones', { valueAsNumber: true })}
+                  />
+                  <Input
+                    placeholder="+"
+                    className="w-20"
+                    {...register('convencionesSuffix')}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="paisesOverride">
+                  Países (Override)
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (Opcional: deja vacío para usar conteo automático de sedes)
+                  </span>
+                </Label>
+                <Input
+                  id="paisesOverride"
+                  type="number"
+                  {...register('paisesOverride', {
+                    valueAsNumber: true,
+                    setValueAs: (v) => (v === '' ? null : Number(v)),
+                  })}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Contenido Principal */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5" />
+              Contenido Principal
+            </CardTitle>
+            <CardDescription>Título y subtítulo de la sección</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="titulo">Título</Label>
+              <Input id="titulo" {...register('titulo')} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="subtitulo">Subtítulo</Label>
+              <Textarea
+                id="subtitulo"
+                rows={3}
+                {...register('subtitulo')}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Misión */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              Misión
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="misionTitulo">Título de Misión</Label>
+              <Input id="misionTitulo" {...register('misionTitulo')} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="misionContenido">Contenido de Misión</Label>
+              <Textarea
+                id="misionContenido"
+                rows={5}
+                {...register('misionContenido')}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Visión */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              Visión
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="visionTitulo">Título de Visión</Label>
+              <Input id="visionTitulo" {...register('visionTitulo')} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="visionContenido">Contenido de Visión</Label>
+              <Textarea
+                id="visionContenido"
+                rows={5}
+                {...register('visionContenido')}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Botón de guardar */}
+        <div className="flex justify-end gap-4">
+          <Button
+            type="submit"
+            disabled={!isDirty || updateMutation.isPending}
+            className="min-w-[120px]"
+          >
+            {updateMutation.isPending ? (
+              <>
+                <span className="animate-spin mr-2">⏳</span>
+                Guardando...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Guardar Cambios
+              </>
+            )}
+          </Button>
+        </div>
+      </form>
+    </div>
+  )
+}
+

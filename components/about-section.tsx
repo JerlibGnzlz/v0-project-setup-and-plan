@@ -1,22 +1,88 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Target, Eye, Sparkles } from 'lucide-react'
 import { AnimatedCounter } from './animated-counter'
 import { useSedesCount } from '@/lib/hooks/use-sedes'
+import { useConfiguracionLanding } from '@/lib/hooks/use-configuracion-landing'
 
 export function AboutSection() {
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
   const { data: totalPaisesResponse } = useSedesCount()
-  // Extraer el número del response de axios
-  const totalPaises = typeof totalPaisesResponse === 'number' ? totalPaisesResponse : totalPaisesResponse?.data || 0
+  const { data: configuracion, isLoading: isLoadingConfig } =
+    useConfiguracionLanding()
 
-  const stats = [
-    { end: 500, suffix: '+', label: 'Pastores Formados', color: 'from-sky-400 to-blue-500' },
-    { end: totalPaises, suffix: '', label: 'Países', color: 'from-emerald-400 to-teal-500' },
-    { end: 15, suffix: '+', label: 'Años de Ministerio', color: 'from-amber-400 to-orange-500' },
-    { end: 50, suffix: '+', label: 'Convenciones', color: 'from-sky-400 to-emerald-500' },
-  ]
+  // Extraer el número del response de axios
+  const totalPaises =
+    typeof totalPaisesResponse === 'number'
+      ? totalPaisesResponse
+      : totalPaisesResponse?.data || 0
+
+  // Usar configuración dinámica o valores por defecto
+  const stats = useMemo(() => {
+    if (isLoadingConfig || !configuracion) {
+      // Valores por defecto mientras carga
+      return [
+        {
+          end: 500,
+          suffix: '+',
+          label: 'Pastores Formados',
+          color: 'from-sky-400 to-blue-500',
+        },
+        {
+          end: totalPaises,
+          suffix: '',
+          label: 'Países',
+          color: 'from-emerald-400 to-teal-500',
+        },
+        {
+          end: 15,
+          suffix: '+',
+          label: 'Años de Ministerio',
+          color: 'from-amber-400 to-orange-500',
+        },
+        {
+          end: 50,
+          suffix: '+',
+          label: 'Convenciones',
+          color: 'from-sky-400 to-emerald-500',
+        },
+      ]
+    }
+
+    // Usar configuración dinámica
+    const paises =
+      configuracion.paisesOverride !== null
+        ? configuracion.paisesOverride
+        : totalPaises
+
+    return [
+      {
+        end: configuracion.pastoresFormados,
+        suffix: configuracion.pastoresFormadosSuffix,
+        label: 'Pastores Formados',
+        color: 'from-sky-400 to-blue-500',
+      },
+      {
+        end: paises,
+        suffix: '',
+        label: 'Países',
+        color: 'from-emerald-400 to-teal-500',
+      },
+      {
+        end: configuracion.anosMinisterio,
+        suffix: configuracion.anosMinisterioSuffix,
+        label: 'Años de Ministerio',
+        color: 'from-amber-400 to-orange-500',
+      },
+      {
+        end: configuracion.convenciones,
+        suffix: configuracion.convencionesSuffix,
+        label: 'Convenciones',
+        color: 'from-sky-400 to-emerald-500',
+      },
+    ]
+  }, [configuracion, totalPaises, isLoadingConfig])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -64,14 +130,31 @@ export function AboutSection() {
             <span className="text-sm text-white/80 font-medium">Nuestra Identidad</span>
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
-            Quiénes{' '}
-            <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
-              Somos
-            </span>
+            {configuracion?.titulo
+              ?.split(' ')
+              .map((word, index) => {
+                if (index === 0) return word
+                return (
+                  <span
+                    key={index}
+                    className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent"
+                  >
+                    {' '}
+                    {word}
+                  </span>
+                )
+              }) || (
+              <>
+                Quiénes{' '}
+                <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
+                  Somos
+                </span>
+              </>
+            )}
           </h2>
           <p className="text-lg text-white/60 max-w-3xl mx-auto leading-relaxed">
-            Una organización misionera comprometida con la formación integral de líderes pastorales
-            para el servicio del Reino
+            {configuracion?.subtitulo ||
+              'Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino'}
           </p>
         </div>
 
@@ -105,12 +188,13 @@ export function AboutSection() {
                 <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500">
                   <Target className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-white">Nuestra Misión</h3>
+                <h3 className="text-2xl font-bold text-white">
+                  {configuracion?.misionTitulo || 'Nuestra Misión'}
+                </h3>
               </div>
               <p className="text-white/70 leading-relaxed">
-                Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a
-                través de convenciones, seminarios y recursos de formación continua, promoviendo el
-                crecimiento espiritual y ministerial efectivo.
+                {configuracion?.misionContenido ||
+                  'Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.'}
               </p>
             </div>
           </div>
@@ -123,12 +207,13 @@ export function AboutSection() {
                 <div className="p-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500">
                   <Eye className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-white">Nuestra Visión</h3>
+                <h3 className="text-2xl font-bold text-white">
+                  {configuracion?.visionTitulo || 'Nuestra Visión'}
+                </h3>
               </div>
               <p className="text-white/70 leading-relaxed">
-                Ser una red global de formación pastoral reconocida por su excelencia e impacto,
-                transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de
-                habla hispana.
+                {configuracion?.visionContenido ||
+                  'Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.'}
               </p>
             </div>
           </div>
