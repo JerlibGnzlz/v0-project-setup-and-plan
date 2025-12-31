@@ -379,13 +379,9 @@ export class EmailService {
         return false
       }
 
-      // Nota informativa sobre emails Gmail (solo en desarrollo, no en producción)
       // SendGrid permite usar emails Gmail verificados sin problemas
-      if (fromEmail.includes('@gmail.com') && process.env.NODE_ENV === 'development') {
-        this.logger.log(`ℹ️ Usando email Gmail: ${fromEmail}`)
-        this.logger.log('   ✅ Si el email está verificado en SendGrid, funcionará correctamente')
-        this.logger.log('   📧 Verifica en: SendGrid → Settings → Sender Authentication')
-      }
+      // No mostrar warnings innecesarios - si el email está verificado en SendGrid, funcionará correctamente
+      // El usuario ya verificó el email en SendGrid, así que no necesitamos advertirle
 
       const msg = {
         to,
