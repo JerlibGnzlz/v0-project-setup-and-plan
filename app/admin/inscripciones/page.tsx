@@ -380,10 +380,35 @@ export default function InscripcionesPage() {
     // Función para enviar recordatorios
     const handleEnviarRecordatorios = async () => {
         try {
+            // Limpiar resultado anterior
+            setResultadoRecordatorios(null)
+            
+            // Mostrar toast de inicio
+            toast.info('📧 Enviando recordatorios...', {
+                description: 'Esto puede tardar unos segundos',
+                duration: 3000,
+            })
+            
             const resultado = await enviarRecordatoriosMutation.mutateAsync()
             setResultadoRecordatorios(resultado)
-        } catch (error) {
+            
+            // El toast de éxito/error ya se maneja en el hook useEnviarRecordatorios
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
             console.error('Error al enviar recordatorios:', error)
+            
+            // El toast de error ya se maneja en el hook, pero agregamos uno adicional si es necesario
+            toast.error('Error al enviar recordatorios', {
+                description: errorMessage,
+                duration: 6000,
+            })
+            
+            // Establecer resultado con error para mostrar en el diálogo
+            setResultadoRecordatorios({
+                enviados: 0,
+                fallidos: 0,
+                detalles: [],
+            })
         }
     }
 

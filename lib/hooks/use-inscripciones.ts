@@ -148,12 +148,39 @@ export function useEnviarRecordatorios() {
     mutationFn: (convencionId?: string) => inscripcionesApi.enviarRecordatorios(convencionId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
-      toast.success(`📧 Recordatorios enviados`, {
-        description: `${data.enviados} enviados, ${data.fallidos} fallidos`,
-      })
+      
+      if (data.enviados > 0 && data.fallidos === 0) {
+        toast.success(`✅ Recordatorios enviados exitosamente`, {
+          description: `Se enviaron ${data.enviados} email${data.enviados > 1 ? 's' : ''} a usuarios con pagos pendientes`,
+          duration: 5000,
+        })
+      } else if (data.enviados > 0 && data.fallidos > 0) {
+        toast.warning(`⚠️ Recordatorios enviados parcialmente`, {
+          description: `${data.enviados} enviados exitosamente, ${data.fallidos} fallaron. Revisa los logs del backend.`,
+          duration: 6000,
+        })
+      } else if (data.enviados === 0 && data.fallidos > 0) {
+        toast.error(`❌ No se pudieron enviar los recordatorios`, {
+          description: `Todos los ${data.fallidos} intentos fallaron. Verifica la configuración de email (SMTP_USER, SMTP_PASSWORD)`,
+          duration: 8000,
+        })
+      } else {
+        toast.info(`ℹ️ No hay recordatorios para enviar`, {
+          description: `No se encontraron inscripciones con pagos pendientes`,
+          duration: 4000,
+        })
+      }
     },
-    onError: () => {
-      toast.error("Error al enviar recordatorios")
+    onError: (error: unknown) => {
+      const errorMessage = 
+        (error as { response?: { data?: { error?: { message?: string }; message?: string } } })?.response?.data?.error?.message ||
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (error instanceof Error ? error.message : 'Error desconocido')
+      
+      toast.error("❌ Error al enviar recordatorios", {
+        description: errorMessage || "Verifica que el backend esté funcionando y que las variables de entorno estén configuradas",
+        duration: 8000,
+      })
     },
   })
 }
