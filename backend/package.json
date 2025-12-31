@@ -24,7 +24,8 @@
     "debug:email-mobile": "ts-node scripts/debug-email-mobile.ts",
     "test:solicitud-credencial": "ts-node scripts/test-solicitud-credencial.ts",
     "test:recordatorios": "ts-node scripts/test-recordatorios-pagos.ts",
-    "verify:resend": "ts-node scripts/verificar-resend.ts"
+    "verify:resend": "ts-node scripts/verificar-resend.ts",
+    "verify:email-resend": "ts-node scripts/verificar-email-resend.ts"
   },
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",
