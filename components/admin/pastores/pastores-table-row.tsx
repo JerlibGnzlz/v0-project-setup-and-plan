@@ -169,3 +169,4 @@ export function PastoresTableRow({ pastor, onEdit, tipoConfig }: PastoresTableRo
 
 
 
+
