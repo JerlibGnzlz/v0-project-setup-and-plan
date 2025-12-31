@@ -646,19 +646,19 @@ export class EmailService {
 
       // Mensajes específicos según el tipo de error
       if (errorMessage.includes('domain is not verified') || errorMessage.includes('gmail.com') || errorMessage.includes('domain')) {
-        this.logger.error('   ⚠️ Error: Dominio no verificado en Resend')
-        this.logger.error('   Resend NO permite usar emails de Gmail directamente')
-        this.logger.error('   Soluciones:')
-        this.logger.error('   1. Verifica un dominio propio en Resend:')
-        this.logger.error('      → Ve a Resend → Domains → Add Domain')
-        this.logger.error('      → Configura los registros DNS que te da Resend')
-        this.logger.error('      → Usa un email de ese dominio (ej: noreply@tudominio.com)')
-        this.logger.error('   2. O verifica un email individual en Resend:')
-        this.logger.error('      → Ve a Resend → Emails → Add Email')
-        this.logger.error('      → Verifica el email que quieres usar')
-        this.logger.error('   3. O cambia a SendGrid o SMTP:')
-        this.logger.error('      → Cambia EMAIL_PROVIDER=sendgrid o EMAIL_PROVIDER=gmail en Render')
-        this.logger.error(`   Email actual configurado: ${fromEmail || 'NO CONFIGURADO'}`)
+        this.logger.error('   ⚠️ Error: Email Gmail no verificado en Resend')
+        this.logger.error(`   Email configurado: ${fromEmail || 'NO CONFIGURADO'}`)
+        this.logger.error('   📧 SOLUCIÓN RÁPIDA: Verifica el email individual en Resend')
+        this.logger.error('   1. Ve a https://resend.com → Emails → Add Email')
+        this.logger.error(`   2. Ingresa: ${fromEmail || 'tu_email@gmail.com'}`)
+        this.logger.error('   3. Haz clic en "Send Verification Email"')
+        this.logger.error('   4. Revisa tu Gmail y haz clic en "Verify Email"')
+        this.logger.error('   5. Una vez verificado (checkmark verde ✅), los emails funcionarán')
+        this.logger.error('   📖 Guía completa: docs/VERIFICAR_EMAIL_RESEND.md')
+        this.logger.error('')
+        this.logger.error('   💡 Alternativa temporal: Cambia a SendGrid mientras verificas')
+        this.logger.error('      → En Render, cambia EMAIL_PROVIDER=sendgrid')
+        this.logger.error('      → Reinicia el servicio')
 
         // Si el error es por dominio Gmail no verificado, intentar fallback inmediatamente
         this.logger.warn('   🔄 Intentando fallback automático a SendGrid o SMTP...')
