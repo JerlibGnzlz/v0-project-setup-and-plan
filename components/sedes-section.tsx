@@ -200,8 +200,8 @@ export function SedesSection() {
                     </div>
                   </div>
                   
-                  {/* Descripción compacta */}
-                  <p className="text-sm sm:text-base text-white/75 leading-relaxed line-clamp-4">
+                  {/* Descripción completa */}
+                  <p className="text-sm sm:text-base text-white/75 leading-relaxed">
                     {currentSede.descripcion}
                   </p>
                 </div>
