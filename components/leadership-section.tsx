@@ -187,9 +187,9 @@ function ModernPastorCard({
         />
 
         {/* Content - Altura fija */}
-        <div className="p-4 flex flex-col h-full">
+        <div className="p-5 flex flex-col h-full">
           {/* Header with avatar */}
-          <div className="flex items-start gap-3 mb-3">
+          <div className="flex items-start gap-3.5 mb-3.5">
             {/* Avatar */}
             <div className="relative flex-shrink-0">
               {/* Avatar glow */}
@@ -198,7 +198,7 @@ function ModernPastorCard({
               />
 
               <div
-                className={`relative w-10 h-10 rounded-full overflow-hidden ring-2 ${accent.ring} ring-offset-2 ring-offset-[#0d1f35]`}
+                className={`relative w-12 h-12 rounded-full overflow-hidden ring-2 ${accent.ring} ring-offset-2 ring-offset-[#0d1f35]`}
               >
                 {pastor.fotoUrl ? (
                   <>
@@ -210,7 +210,7 @@ function ModernPastorCard({
                       src={pastor.fotoUrl}
                       alt={fullName}
                       fill
-                      sizes="40px"
+                      sizes="48px"
                       className="object-cover relative z-10"
                       loading="lazy"
                     />
@@ -219,32 +219,32 @@ function ModernPastorCard({
                   <div
                     className={`w-full h-full bg-gradient-to-br ${accent.gradient} flex items-center justify-center`}
                   >
-                    <span className="text-sm font-bold text-white">{initials}</span>
+                    <span className="text-base font-bold text-white">{initials}</span>
                   </div>
                 )}
               </div>
 
               {/* Status indicator */}
               <div
-                className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-gradient-to-br ${accent.gradient} border-2 border-[#0d1f35] flex items-center justify-center`}
+                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-gradient-to-br ${accent.gradient} border-2 border-[#0d1f35] flex items-center justify-center`}
               >
-                <Sparkles className="w-1 h-1 text-white" />
+                <Sparkles className="w-1.5 h-1.5 text-white" />
               </div>
             </div>
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-bold text-white mb-0.5 truncate group-hover:text-white/90">
+              <h3 className="text-base font-bold text-white mb-0.5 truncate group-hover:text-white/90">
                 {fullName}
               </h3>
               <p
-                className={`text-xs font-medium bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent truncate`}
+                className={`text-sm font-medium bg-gradient-to-r ${accent.gradient} bg-clip-text text-transparent truncate`}
               >
                 {pastor.cargo || pastor.ministerio || 'Pastor'}
               </p>
               {location && (
-                <div className="flex items-center gap-1 mt-1 text-white/40 text-[10px]">
-                  <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                <div className="flex items-center gap-1 mt-1 text-white/40 text-xs">
+                  <MapPin className="w-3 h-3 flex-shrink-0" />
                   <span className="truncate">{location}</span>
                 </div>
               )}
@@ -253,11 +253,11 @@ function ModernPastorCard({
 
           {/* Bio preview if exists - Altura fija */}
           {pastor.biografia && (
-            <div className="relative mb-3 flex-1 min-h-[36px]">
+            <div className="relative mb-3.5 flex-1 min-h-[40px]">
               <div
                 className={`absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b ${accent.gradient} rounded-full opacity-40`}
               />
-              <p className="text-white/50 text-[10px] leading-relaxed pl-2.5 line-clamp-2 italic">
+              <p className="text-white/50 text-xs leading-relaxed pl-3 line-clamp-2 italic">
                 "{pastor.biografia}"
               </p>
             </div>
@@ -269,11 +269,11 @@ function ModernPastorCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className={`w-full bg-gradient-to-r from-white/[0.03] to-white/[0.06] hover:from-white/[0.08] hover:to-white/[0.12] text-white/80 hover:text-white border border-white/[0.08] hover:border-white/[0.15] gap-1.5 group/btn transition-all duration-300 rounded-xl h-8 mt-auto`}
+                className={`w-full bg-gradient-to-r from-white/[0.03] to-white/[0.06] hover:from-white/[0.08] hover:to-white/[0.12] text-white/80 hover:text-white border border-white/[0.08] hover:border-white/[0.15] gap-1.5 group/btn transition-all duration-300 rounded-xl h-9 mt-auto`}
               >
-                <Eye className="h-3 w-3" />
-                <span className="text-[10px] font-medium">Ver Perfil</span>
-                <ChevronRight className="h-3 w-3 opacity-0 -ml-2 group-hover/btn:opacity-100 group-hover/btn:ml-0 transition-all duration-300" />
+                <Eye className="h-3.5 w-3.5" />
+                <span className="text-xs font-medium">Ver Perfil</span>
+                <ChevronRight className="h-3.5 w-3.5 opacity-0 -ml-2 group-hover/btn:opacity-100 group-hover/btn:ml-0 transition-all duration-300" />
               </Button>
             </DialogTrigger>
 
