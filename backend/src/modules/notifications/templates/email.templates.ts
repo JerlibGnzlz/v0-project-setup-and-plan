@@ -435,8 +435,12 @@ export function getPagoRecordatorioTemplate(data: EmailTemplateData): EmailTempl
     </p>
   `
 
+  // Asunto mejorado: sin emoji para evitar spam filters
+  // Los emojis en el asunto pueden causar que los emails vayan a spam
+  const asunto = `Recordatorio de Pago Pendiente - ${convencionTitulo}`
+
   return {
-    title: `⏰ Tienes Pagos Pendientes - ${convencionTitulo}`,
+    title: asunto,
     body: buildBaseTemplate('Tienes Pagos Pendientes', body, '⏰', '#ef4444'),
     type: 'pago_recordatorio',
   }
