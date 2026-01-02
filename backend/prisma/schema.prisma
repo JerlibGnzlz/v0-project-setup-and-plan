@@ -17,10 +17,15 @@ model User {
   rol            UserRole             @default(ADMIN)
   avatar         String?
   activo         Boolean              @default(true)
+  ultimoLogin    DateTime?            @map("ultimo_login")
+  loginCount     Int                  @default(0) @map("login_count")
+  ultimaIp       String?              @map("ultima_ip")
   deviceTokens   AdminDeviceToken[]
   passwordResets PasswordResetToken[]
+  auditLogs      AuditLog[]
 
   @@index([activo])
+  @@index([ultimoLogin])
   @@map("users")
 }
 
@@ -36,6 +41,28 @@ model PasswordResetToken {
   @@index([token])
   @@index([userId])
   @@map("password_reset_tokens")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  entityType String   @map("entity_type") // 'NOTICIA', 'GALERIA', 'USUARIO', etc.
+  entityId   String   @map("entity_id")
+  action     String // 'CREATE', 'UPDATE', 'DELETE', 'PUBLICAR', 'OCULTAR'
+  userId     String   @map("user_id")
+  userEmail  String   @map("user_email")
+  userName   String?  @map("user_name")
+  changes    Json? // Cambios realizados { field: string, oldValue: unknown, newValue: unknown }[]
+  metadata   Json? // Información adicional
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
 
 model Convencion {
@@ -471,26 +498,26 @@ model Sede {
 }
 
 model ConfiguracionLanding {
-  id                    String   @id @default(uuid())
+  id                     String   @id @default(uuid())
   // Estadísticas
-  pastoresFormados      Int      @default(500) @map("pastores_formados")
+  pastoresFormados       Int      @default(500) @map("pastores_formados")
   pastoresFormadosSuffix String   @default("+") @map("pastores_formados_suffix")
-  anosMinisterio        Int      @default(15) @map("anos_ministerio")
-  anosMinisterioSuffix  String   @default("+") @map("anos_ministerio_suffix")
-  convenciones          Int      @default(50) @map("convenciones")
-  convencionesSuffix    String   @default("+") @map("convenciones_suffix")
+  anosMinisterio         Int      @default(15) @map("anos_ministerio")
+  anosMinisterioSuffix   String   @default("+") @map("anos_ministerio_suffix")
+  convenciones           Int      @default(50) @map("convenciones")
+  convencionesSuffix     String   @default("+") @map("convenciones_suffix")
   // Países se calcula dinámicamente desde sedes, pero podemos tener un override
-  paisesOverride        Int?     @map("paises_override")
+  paisesOverride         Int?     @map("paises_override")
   // Contenido
-  titulo                String   @default("Quiénes Somos") @map("titulo")
-  subtitulo             String   @default("Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino") @map("subtitulo")
-  misionTitulo          String   @default("Nuestra Misión") @map("mision_titulo")
-  misionContenido       String   @default("Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.") @map("mision_contenido")
-  visionTitulo          String   @default("Nuestra Visión") @map("vision_titulo")
-  visionContenido       String   @default("Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.") @map("vision_contenido")
+  titulo                 String   @default("Quiénes Somos") @map("titulo")
+  subtitulo              String   @default("Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino") @map("subtitulo")
+  misionTitulo           String   @default("Nuestra Misión") @map("mision_titulo")
+  misionContenido        String   @default("Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.") @map("mision_contenido")
+  visionTitulo           String   @default("Nuestra Visión") @map("vision_titulo")
+  visionContenido        String   @default("Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.") @map("vision_contenido")
   // Metadata
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
 
   @@map("configuracion_landing")
 }

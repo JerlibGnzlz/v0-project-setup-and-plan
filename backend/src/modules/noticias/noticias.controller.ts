@@ -10,12 +10,14 @@ import {
   Query,
   UseGuards,
   Logger,
+  Request,
 } from '@nestjs/common'
 import { NoticiasService } from './noticias.service'
 import { CreateNoticiaDto, UpdateNoticiaDto } from './dto/noticia.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import { Roles } from '../auth/decorators/roles.decorator'
+import { AuthenticatedRequest } from '../auth/types/request.types'
 import { CategoriaNoticia } from '@prisma/client'
 
 @Controller('noticias')
@@ -90,39 +92,68 @@ export class NoticiasController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'EDITOR')
-  create(@Body() createNoticiaDto: CreateNoticiaDto) {
-    return this.noticiasService.create(createNoticiaDto)
+  create(@Body() createNoticiaDto: CreateNoticiaDto, @Request() req: AuthenticatedRequest) {
+    const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
+      ? req.headers['x-forwarded-for'][0]
+      : req.headers['x-forwarded-for']
+    const clientIp = req.ip || forwardedFor || undefined
+    return this.noticiasService.create(
+      createNoticiaDto,
+      req.user.id,
+      req.user.email,
+      clientIp
+    )
   }
 
   // Actualizar noticia (admin y editor)
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'EDITOR')
-  update(@Param('id') id: string, @Body() updateNoticiaDto: UpdateNoticiaDto) {
-    return this.noticiasService.update(id, updateNoticiaDto)
+  update(
+    @Param('id') id: string,
+    @Body() updateNoticiaDto: UpdateNoticiaDto,
+    @Request() req: AuthenticatedRequest
+  ) {
+    const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
+      ? req.headers['x-forwarded-for'][0]
+      : req.headers['x-forwarded-for']
+    const clientIp = req.ip || forwardedFor || undefined
+    return this.noticiasService.update(id, updateNoticiaDto, req.user.id, req.user.email, clientIp)
   }
 
   // Eliminar noticia (solo admin)
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  remove(@Param('id') id: string) {
-    return this.noticiasService.remove(id)
+  remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
+      ? req.headers['x-forwarded-for'][0]
+      : req.headers['x-forwarded-for']
+    const clientIp = req.ip || forwardedFor || undefined
+    return this.noticiasService.remove(id, req.user.id, req.user.email, clientIp)
   }
 
   // Toggle publicado (admin y editor)
   @Patch(':id/toggle-publicado')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'EDITOR')
-  togglePublicado(@Param('id') id: string) {
-    return this.noticiasService.togglePublicado(id)
+  togglePublicado(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
+      ? req.headers['x-forwarded-for'][0]
+      : req.headers['x-forwarded-for']
+    const clientIp = req.ip || forwardedFor || undefined
+    return this.noticiasService.togglePublicado(id, req.user.id, req.user.email, clientIp)
   }
 
   // Toggle destacado (admin y editor)
   @Patch(':id/toggle-destacado')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'EDITOR')
-  toggleDestacado(@Param('id') id: string) {
-    return this.noticiasService.toggleDestacado(id)
+  toggleDestacado(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
+      ? req.headers['x-forwarded-for'][0]
+      : req.headers['x-forwarded-for']
+    const clientIp = req.ip || forwardedFor || undefined
+    return this.noticiasService.toggleDestacado(id, req.user.id, req.user.email, clientIp)
   }
 }

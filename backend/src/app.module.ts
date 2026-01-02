@@ -23,6 +23,7 @@ import { PublicModule } from './modules/public/public.module'
 import { SolicitudesCredencialesModule } from './modules/solicitudes-credenciales/solicitudes-credenciales.module'
 import { DataSyncModule } from './modules/data-sync/data-sync.module'
 import { UsuariosModule } from './modules/usuarios/usuarios.module'
+import { AuditModule } from './modules/audit/audit.module'
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { UsuariosModule } from './modules/usuarios/usuarios.module'
     SolicitudesCredencialesModule,
     DataSyncModule,
     UsuariosModule,
+    AuditModule,
   ],
   providers: [
     // Guard global para rate limiting

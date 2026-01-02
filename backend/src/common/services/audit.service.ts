@@ -23,6 +23,9 @@ export type AuditAction =
   | 'DESACTIVAR'
   | 'ARCHIVAR'
   | 'PUBLICAR'
+  | 'OCULTAR'
+  | 'DESTACAR'
+  | 'QUITAR_DESTACADO'
   | 'ACTUALIZAR'
 
 export interface AuditLogData {
@@ -63,24 +66,63 @@ export class AuditService {
         return
       }
 
-      // Para otras entidades, usar una tabla genérica de auditoría
-      // Por ahora, solo logueamos ya que no tenemos tabla genérica
-      // En el futuro se puede crear una tabla `auditoria` genérica
-      const entityId = data.entityId || 'N/A'
-      const userEmail = data.userEmail || 'sistema'
-      this.logger.log(
-        `📝 Auditoría [${data.entityType}]: ${data.action} en ${entityId} por ${userEmail}`
-      )
+      // Para otras entidades, usar tabla genérica de auditoría (AuditLog)
+      if (data.userId) {
+        try {
+          // Obtener nombre del usuario si no está en los datos
+          let userName = data.metadata?.userName as string | undefined
+          if (!userName && data.userId) {
+            const user = await this.prisma.user.findUnique({
+              where: { id: data.userId },
+              select: { nombre: true },
+            })
+            userName = user?.nombre
+          }
 
-      // Log detallado de cambios
-      if (data.changes && data.changes.length > 0) {
-        this.logger.debug(
-          `   Cambios: ${data.changes.map(c => `${c.field}: ${c.oldValue} -> ${c.newValue}`).join(', ')}`
+          await this.prisma.auditLog.create({
+            data: {
+              entityType: data.entityType,
+              entityId: data.entityId || 'N/A',
+              action: data.action,
+              userId: data.userId,
+              userEmail: data.userEmail || 'sistema',
+              userName: userName || null,
+              changes: data.changes
+                ? (data.changes as Prisma.InputJsonValue)
+                : null,
+              metadata: data.metadata
+                ? (data.metadata as Prisma.InputJsonValue)
+                : null,
+              ipAddress: data.ipAddress || null,
+              userAgent: data.userAgent || null,
+            },
+          })
+
+          this.logger.debug(
+            `📝 Auditoría registrada: [${data.entityType}] ${data.action} en ${data.entityId} por ${data.userEmail}`
+          )
+        } catch (error: unknown) {
+          // Si la tabla no existe aún (migración pendiente), solo loguear
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          if (errorMessage.includes('audit_logs') || errorMessage.includes('AuditLog')) {
+            this.logger.debug('Tabla AuditLog no disponible aún, usando solo logs')
+            const entityId = data.entityId || 'N/A'
+            const userEmail = data.userEmail || 'sistema'
+            this.logger.log(
+              `📝 Auditoría [${data.entityType}]: ${data.action} en ${entityId} por ${userEmail}`
+            )
+          } else {
+            throw error
+          }
+        }
+      } else {
+        // Si no hay userId, solo loguear
+        const entityId = data.entityId || 'N/A'
+        const userEmail = data.userEmail || 'sistema'
+        this.logger.log(
+          `📝 Auditoría [${data.entityType}]: ${data.action} en ${entityId} por ${userEmail}`
         )
       }
-
-      // TODO: Crear tabla genérica de auditoría cuando sea necesario
-      // await this.prisma.auditoria.create({ data: { ... } })
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       const errorStack = error instanceof Error ? error.stack : undefined

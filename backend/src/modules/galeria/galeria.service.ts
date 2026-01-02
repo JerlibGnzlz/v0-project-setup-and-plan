@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
+import { AuditService } from '../../common/services/audit.service'
 import { CreateGaleriaDto, UpdateGaleriaDto, TipoGaleria } from './dto/galeria.dto'
 import { BaseService } from '../../common/base.service'
 import { GaleriaImagen } from '@prisma/client'
@@ -19,7 +20,10 @@ export class GaleriaService extends BaseService<GaleriaImagen, CreateGaleriaDto,
   static readonly MAX_IMAGENES = 4
   static readonly MAX_VIDEOS = 2
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private auditService: AuditService
+  ) {
     super(prisma.galeriaImagen as unknown as PrismaModelDelegate<GaleriaImagen>, { entityName: 'Elemento de Galería' })
   }
 
@@ -104,6 +108,85 @@ export class GaleriaService extends BaseService<GaleriaImagen, CreateGaleriaDto,
   async canAddVideo(): Promise<boolean> {
     const count = await this.countVideos()
     return count < GaleriaService.MAX_VIDEOS
+  }
+
+  /**
+   * Método wrapper para create con auditoría
+   * Mantiene compatibilidad con BaseService pero agrega auditoría
+   */
+  async createWithAudit(dto: CreateGaleriaDto, userId?: string, userEmail?: string, ipAddress?: string): Promise<GaleriaImagen> {
+    const item = await super.create(dto)
+
+    // Registrar auditoría
+    if (userId) {
+      await this.auditService.log({
+        entityType: 'GALERIA',
+        entityId: item.id,
+        action: 'CREATE',
+        userId,
+        userEmail: userEmail || 'sistema',
+        metadata: {
+          tipo: item.tipo,
+          url: item.url,
+        },
+        ipAddress: ipAddress || undefined,
+      })
+    }
+
+    return item
+  }
+
+  /**
+   * Método wrapper para update con auditoría
+   * Mantiene compatibilidad con BaseService pero agrega auditoría
+   */
+  async updateWithAudit(id: string, dto: UpdateGaleriaDto, userId?: string, userEmail?: string, ipAddress?: string): Promise<GaleriaImagen> {
+    const oldItem = await this.findOne(id)
+    const updatedItem = await super.update(id, dto)
+
+    // Registrar auditoría con cambios
+    if (userId) {
+      const auditData = this.auditService.createAuditDataFromChanges(
+        'GALERIA',
+        id,
+        'UPDATE',
+        oldItem,
+        dto,
+        userId,
+        userEmail
+      )
+      auditData.ipAddress = ipAddress
+      await this.auditService.log(auditData)
+    }
+
+    return updatedItem
+  }
+
+  /**
+   * Método wrapper para remove con auditoría
+   * Mantiene compatibilidad con BaseService pero agrega auditoría
+   */
+  async removeWithAudit(id: string, userId?: string, userEmail?: string, ipAddress?: string): Promise<GaleriaImagen> {
+    const item = await this.findOne(id)
+    const deletedItem = await super.remove(id)
+
+    // Registrar auditoría
+    if (userId) {
+      await this.auditService.log({
+        entityType: 'GALERIA',
+        entityId: id,
+        action: 'DELETE',
+        userId,
+        userEmail: userEmail || 'sistema',
+        metadata: {
+          tipo: item.tipo,
+          url: item.url,
+        },
+        ipAddress: ipAddress || undefined,
+      })
+    }
+
+    return deletedItem
   }
 
   /**

@@ -9,6 +9,7 @@ import {
   Globe,
   Settings,
   UserCog,
+  FileText,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -96,6 +97,13 @@ export const adminNavigation: NavigationItem[] = [
     href: '/admin/usuarios',
     icon: UserCog,
     description: 'Crear y administrar usuarios',
+    roles: ['ADMIN'],
+  },
+  {
+    name: 'Auditoría',
+    href: '/admin/auditoria',
+    icon: FileText,
+    description: 'Registro de actividad del sistema',
     roles: ['ADMIN'],
   },
 ]

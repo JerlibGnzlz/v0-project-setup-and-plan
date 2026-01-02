@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
+import { AuditService } from '../../common/services/audit.service'
 import { CreateNoticiaDto, UpdateNoticiaDto } from './dto/noticia.dto'
 import { Noticia, CategoriaNoticia } from '@prisma/client'
 
@@ -7,7 +8,10 @@ import { Noticia, CategoriaNoticia } from '@prisma/client'
 export class NoticiasService {
   private readonly logger = new Logger(NoticiasService.name)
 
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private auditService: AuditService
+  ) {}
 
   // Generar slug desde el título
   private generateSlug(titulo: string): string {
@@ -148,8 +152,8 @@ export class NoticiasService {
   }
 
   // Actualizar noticia
-  async update(id: string, updateNoticiaDto: UpdateNoticiaDto): Promise<Noticia> {
-    await this.findOne(id) // Verificar que existe
+  async update(id: string, updateNoticiaDto: UpdateNoticiaDto, userId?: string, userEmail?: string, ipAddress?: string): Promise<Noticia> {
+    const oldNoticia = await this.findOne(id) // Verificar que existe
 
     let slug = updateNoticiaDto.slug
     if (updateNoticiaDto.titulo && !updateNoticiaDto.slug) {
@@ -186,41 +190,125 @@ export class NoticiasService {
       }
     }
 
-    return this.prisma.noticia.update({
+    const updatedNoticia = await this.prisma.noticia.update({
       where: { id },
       data: updateData,
     })
+
+    // Registrar auditoría con cambios
+    if (userId) {
+      const auditData = this.auditService.createAuditDataFromChanges(
+        'NOTICIA',
+        id,
+        'UPDATE',
+        oldNoticia,
+        updateData,
+        userId,
+        userEmail
+      )
+      auditData.ipAddress = ipAddress
+      await this.auditService.log(auditData)
+    }
+
+    return updatedNoticia
   }
 
   // Eliminar noticia
-  async remove(id: string): Promise<void> {
-    await this.findOne(id) // Verificar que existe
+  async remove(id: string, userId?: string, userEmail?: string, ipAddress?: string): Promise<void> {
+    const noticia = await this.findOne(id) // Verificar que existe
+    
     await this.prisma.noticia.delete({
       where: { id },
     })
+
+    // Registrar auditoría
+    if (userId) {
+      await this.auditService.log({
+        entityType: 'NOTICIA',
+        entityId: id,
+        action: 'DELETE',
+        userId,
+        userEmail: userEmail || 'sistema',
+        metadata: {
+          titulo: noticia.titulo,
+          slug: noticia.slug,
+        },
+        ipAddress: ipAddress || undefined,
+      })
+    }
   }
 
   // Publicar/despublicar noticia
-  async togglePublicado(id: string): Promise<Noticia> {
-    const noticia = await this.findOne(id)
+  async togglePublicado(id: string, userId?: string, userEmail?: string, ipAddress?: string): Promise<Noticia> {
+    const oldNoticia = await this.findOne(id)
+    const nuevoEstado = !oldNoticia.publicado
 
-    return this.prisma.noticia.update({
+    const noticia = await this.prisma.noticia.update({
       where: { id },
       data: {
-        publicado: !noticia.publicado,
-        fechaPublicacion: !noticia.publicado ? new Date() : noticia.fechaPublicacion,
+        publicado: nuevoEstado,
+        fechaPublicacion: nuevoEstado ? new Date() : oldNoticia.fechaPublicacion,
       },
     })
+
+    // Registrar auditoría
+    if (userId) {
+      await this.auditService.log({
+        entityType: 'NOTICIA',
+        entityId: id,
+        action: nuevoEstado ? 'PUBLICAR' : 'OCULTAR',
+        userId,
+        userEmail: userEmail || 'sistema',
+        changes: [
+          {
+            field: 'publicado',
+            oldValue: oldNoticia.publicado,
+            newValue: nuevoEstado,
+          },
+        ],
+        metadata: {
+          titulo: noticia.titulo,
+        },
+        ipAddress: ipAddress || undefined,
+      })
+    }
+
+    return noticia
   }
 
   // Destacar/quitar destacado
-  async toggleDestacado(id: string): Promise<Noticia> {
-    const noticia = await this.findOne(id)
+  async toggleDestacado(id: string, userId?: string, userEmail?: string, ipAddress?: string): Promise<Noticia> {
+    const oldNoticia = await this.findOne(id)
+    const nuevoEstado = !oldNoticia.destacado
 
-    return this.prisma.noticia.update({
+    const noticia = await this.prisma.noticia.update({
       where: { id },
-      data: { destacado: !noticia.destacado },
+      data: { destacado: nuevoEstado },
     })
+
+    // Registrar auditoría
+    if (userId) {
+      await this.auditService.log({
+        entityType: 'NOTICIA',
+        entityId: id,
+        action: nuevoEstado ? 'DESTACAR' : 'QUITAR_DESTACADO',
+        userId,
+        userEmail: userEmail || 'sistema',
+        changes: [
+          {
+            field: 'destacado',
+            oldValue: oldNoticia.destacado,
+            newValue: nuevoEstado,
+          },
+        ],
+        metadata: {
+          titulo: noticia.titulo,
+        },
+        ipAddress: ipAddress || undefined,
+      })
+    }
+
+    return noticia
   }
 
   // Incrementar vistas (optimizado - no bloquea, no espera respuesta)

@@ -147,6 +147,21 @@ export class AuthService {
       const { accessToken, refreshToken } = this.generateTokenPair(user.id, user.email, user.rol)
       this.logger.debug(`🎫 Tokens generados exitosamente (access: ${accessToken.length}, refresh: ${refreshToken.length})`)
 
+      // Actualizar tracking de login (si los campos existen)
+      try {
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            ultimoLogin: new Date(),
+            loginCount: { increment: 1 },
+            ultimaIp: clientIp || null,
+          },
+        })
+      } catch (error: unknown) {
+        // Si los campos no existen aún (migración pendiente), solo loguear
+        this.logger.debug('Campos de tracking de login no disponibles aún')
+      }
+
       this.logger.log(`✅ Login exitoso`, {
         userId: user.id,
         email: user.email,
