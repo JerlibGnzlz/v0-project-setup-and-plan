@@ -26,7 +26,9 @@
     "test:recordatorios": "ts-node scripts/test-recordatorios-pagos.ts",
     "verify:resend": "ts-node scripts/verificar-resend.ts",
     "verify:email-resend": "ts-node scripts/verificar-email-resend.ts",
-    "diagnostico:email": "ts-node scripts/diagnostico-email.ts"
+    "diagnostico:email": "ts-node scripts/diagnostico-email.ts",
+    "cleanup:admin-pastores": "ts-node scripts/eliminar-admin-de-pastores.ts",
+    "cleanup:pastor-admin": "ts-node scripts/eliminar-pastor-admin.ts"
   },
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",
