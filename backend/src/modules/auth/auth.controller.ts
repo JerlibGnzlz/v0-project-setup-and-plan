@@ -1,7 +1,7 @@
-import { Controller, Post, UseGuards, Get, Request, Body } from '@nestjs/common'
+import { Controller, Post, UseGuards, Get, Request, Body, HttpCode, HttpStatus } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { UnifiedAuthService } from './unified-auth.service'
-import { LoginDto, RegisterDto, RefreshTokenDto, RegisterDeviceDto } from './dto/auth.dto'
+import { LoginDto, RegisterDto, RefreshTokenDto, RegisterDeviceDto, ForgotPasswordDto, ResetPasswordDto, ChangePasswordDto } from './dto/auth.dto'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
 import {
   ThrottleAuth,
@@ -97,5 +97,33 @@ export class AuthController {
       message: 'Logout exitoso',
       success: true,
     }
+  }
+
+  /**
+   * Solicitar reset de contraseña (Forgot Password)
+   */
+  @ThrottlePasswordReset()
+  @Post('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto)
+  }
+
+  /**
+   * Resetear contraseña con token
+   */
+  @ThrottlePasswordReset()
+  @Post('reset-password')
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto)
+  }
+
+  /**
+   * Cambiar contraseña (cuando estás logueado)
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  async changePassword(@Request() req: AuthenticatedRequest, @Body() dto: ChangePasswordDto) {
+    return this.authService.changePassword(req.user.id, dto)
   }
 }

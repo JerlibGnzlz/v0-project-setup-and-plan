@@ -5,7 +5,18 @@ import {
   LogOut,
   Menu,
   UserCircle,
+  Lock,
+  Shield,
 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { ChangePasswordDialog } from '@/components/admin/change-password-dialog'
 import { getFilteredNavigation } from '@/lib/utils/admin-navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -16,7 +27,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { QueryProvider } from '@/lib/providers/query-provider'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useRouter, usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { NotificationsBell } from '@/components/admin/notifications-bell'
 import { RouteGuard } from '@/components/admin/route-guard'
@@ -25,6 +36,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, logout, isAuthenticated, isHydrated, checkAuth } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
 
   // Páginas públicas que no requieren autenticación
   const publicPaths = ['/admin/login']
@@ -121,25 +133,43 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
             </div>
             {/* Notifications Bell */}
             <NotificationsBell />
-            {/* Avatar con icono de Lucide */}
-            <div className="relative group">
-              <div className="size-10 rounded-full bg-gradient-to-br from-sky-500 via-emerald-500 to-amber-500 flex items-center justify-center ring-2 ring-emerald-500/30 hover:ring-emerald-500/50 transition-all">
-                <Shield className="size-5 text-white drop-shadow-sm" />
-              </div>
-              {/* Tooltip en hover */}
-              <div className="absolute right-0 top-full mt-2 px-2 py-1 bg-black/80 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                {user?.nombre || 'Administrador'}
-              </div>
-            </div>
+            {/* User Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="relative group">
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.nombre || 'Admin'}
+                      className="size-10 rounded-full object-cover ring-2 ring-emerald-500/30 hover:ring-emerald-500/50 transition-all cursor-pointer"
+                    />
+                  ) : (
+                    <div className="size-10 rounded-full bg-gradient-to-br from-sky-500 via-emerald-500 to-amber-500 flex items-center justify-center ring-2 ring-emerald-500/30 hover:ring-emerald-500/50 transition-all cursor-pointer">
+                      <Shield className="size-5 text-white drop-shadow-sm" />
+                    </div>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium">{user?.nombre || 'Admin'}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
+                  <Lock className="size-4 mr-2" />
+                  Cambiar Contraseña
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                  <LogOut className="size-4 mr-2" />
+                  Cerrar Sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <ThemeToggle />
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleLogout}
-              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
-            >
-              <LogOut className="size-4" />
-            </Button>
           </div>
         </div>
       </header>
@@ -253,27 +283,43 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
         {/* User info and actions */}
         <div className="ml-auto flex items-center gap-2">
-          {/* Avatar */}
-          {user?.avatar ? (
-            <img
-              src={user.avatar}
-              alt={user.nombre || 'Admin'}
-              className="size-9 rounded-full object-cover ring-2 ring-emerald-500/30"
-            />
-          ) : (
-            <div className="size-9 rounded-full bg-gradient-to-br from-sky-500 via-emerald-500 to-amber-500 flex items-center justify-center text-white font-bold text-xs">
-              {(user?.nombre || 'A').charAt(0).toUpperCase()}
-            </div>
-          )}
+          {/* User Menu Mobile */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button>
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.nombre || 'Admin'}
+                    className="size-9 rounded-full object-cover ring-2 ring-emerald-500/30"
+                  />
+                ) : (
+                  <div className="size-9 rounded-full bg-gradient-to-br from-sky-500 via-emerald-500 to-amber-500 flex items-center justify-center text-white font-bold text-xs">
+                    {(user?.nombre || 'A').charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium">{user?.nombre || 'Admin'}</p>
+                  <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
+                <Lock className="size-4 mr-2" />
+                Cambiar Contraseña
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <LogOut className="size-4 mr-2" />
+                Cerrar Sesión
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <ThemeToggle />
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleLogout}
-            className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
-          >
-            <LogOut className="size-4" />
-          </Button>
         </div>
       </header>
 
@@ -288,6 +334,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       </main>
 
       <Toaster position="top-right" richColors closeButton />
+
+      {/* Change Password Dialog */}
+      <ChangePasswordDialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen} />
     </div>
   )
 }

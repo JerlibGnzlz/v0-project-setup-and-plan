@@ -3,8 +3,15 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Edit, Trash2, Shield, UserCheck, Eye } from 'lucide-react'
+import { Edit, Trash2, Shield, UserCheck, Eye, Lock } from 'lucide-react'
 import type { Usuario } from '@/lib/api/usuarios'
+
+interface UsuariosTableProps {
+  usuarios: Usuario[]
+  onEdit: (usuario: Usuario) => void
+  onDelete: (id: string) => void
+  onResetPassword: (usuario: Usuario) => void
+}
 // Función simple para formatear fecha
 function formatDate(dateString: string): string {
   const date = new Date(dateString)
@@ -42,7 +49,7 @@ const rolConfig = {
   },
 }
 
-export function UsuariosTable({ usuarios, onEdit, onDelete }: UsuariosTableProps) {
+export function UsuariosTable({ usuarios, onEdit, onDelete, onResetPassword }: UsuariosTableProps) {
   return (
     <div className="rounded-md border overflow-x-auto">
       <Table>
@@ -111,6 +118,16 @@ export function UsuariosTable({ usuarios, onEdit, onDelete }: UsuariosTableProps
                       >
                         <Edit className="size-4" />
                         Editar
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onResetPassword(usuario)}
+                        className="gap-1.5"
+                        title="Resetear contraseña"
+                      >
+                        <Lock className="size-4" />
+                        Resetear Clave
                       </Button>
                       <Button
                         variant="ghost"

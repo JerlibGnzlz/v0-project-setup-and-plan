@@ -8,6 +8,7 @@ import { Users, Plus, Shield, UserCheck, Eye } from 'lucide-react'
 import { useUsuarios, useCreateUsuario, useUpdateUsuario, useDeleteUsuario } from '@/lib/hooks/use-usuarios'
 import { UsuariosTable } from '@/components/admin/usuarios/usuarios-table'
 import { UsuariosDialog } from '@/components/admin/usuarios/usuarios-dialog'
+import { ResetPasswordDialog } from '@/components/admin/usuarios/reset-password-dialog'
 import { UsuariosStats } from '@/components/admin/usuarios/usuarios-stats'
 import type { Usuario, UserRole } from '@/lib/api/usuarios'
 
@@ -15,6 +16,8 @@ export default function UsuariosPage() {
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false)
+  const [usuarioToReset, setUsuarioToReset] = useState<Usuario | null>(null)
 
   const { data: usuarios = [], isLoading } = useUsuarios()
   const createUsuarioMutation = useCreateUsuario()
@@ -41,6 +44,11 @@ export default function UsuariosPage() {
         // Error ya manejado en el hook
       }
     }
+  }
+
+  const handleResetPassword = (usuario: Usuario) => {
+    setUsuarioToReset(usuario)
+    setIsResetPasswordOpen(true)
   }
 
   const handleSubmit = async (data: {
@@ -140,12 +148,13 @@ export default function UsuariosPage() {
               usuarios={usuarios}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onResetPassword={handleResetPassword}
             />
           )}
         </CardContent>
       </Card>
 
-      {/* Dialog */}
+      {/* Dialogs */}
       <UsuariosDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
@@ -153,6 +162,12 @@ export default function UsuariosPage() {
         isCreating={isCreating}
         onSubmit={handleSubmit}
         isLoading={createUsuarioMutation.isPending || updateUsuarioMutation.isPending}
+      />
+
+      <ResetPasswordDialog
+        open={isResetPasswordOpen}
+        onOpenChange={setIsResetPasswordOpen}
+        usuario={usuarioToReset}
       />
     </div>
   )

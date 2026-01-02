@@ -153,4 +153,25 @@ export const authApi = {
       throw error
     }
   },
+
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>('/auth/forgot-password', { email })
+    return response.data
+  },
+
+  resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>('/auth/reset-password', {
+      token,
+      newPassword,
+    })
+    return response.data
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>('/auth/change-password', {
+      currentPassword,
+      newPassword,
+    })
+    return response.data
+  },
 }

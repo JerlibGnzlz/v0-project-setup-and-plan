@@ -1,10 +1,12 @@
-import { Injectable, UnauthorizedException, Logger, BadRequestException } from '@nestjs/common'
+import { Injectable, UnauthorizedException, Logger, BadRequestException, NotFoundException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { PrismaService } from '../../prisma/prisma.service'
 import * as bcrypt from 'bcrypt'
-import { LoginDto, RegisterDto, RegisterDeviceDto } from './dto/auth.dto'
+import * as crypto from 'crypto'
+import { LoginDto, RegisterDto, RegisterDeviceDto, ForgotPasswordDto, ResetPasswordDto, ChangePasswordDto } from './dto/auth.dto'
 import { TokenBlacklistService } from './services/token-blacklist.service'
 import { AdminJwtPayload } from './types/jwt-payload.types'
+import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
 export class AuthService {
@@ -13,7 +15,8 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private tokenBlacklist: TokenBlacklistService
+    private tokenBlacklist: TokenBlacklistService,
+    private notificationsService: NotificationsService
   ) {}
 
   async register(dto: RegisterDto) {
@@ -333,5 +336,242 @@ export class AuthService {
       where: { id: userId },
       select: { id: true, email: true, nombre: true, rol: true, avatar: true },
     })
+  }
+
+  /**
+   * Solicitar reset de contraseña (Forgot Password)
+   */
+  async forgotPassword(dto: ForgotPasswordDto): Promise<{ message: string }> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      })
+
+      // Por seguridad, siempre retornamos el mismo mensaje
+      // No revelamos si el email existe o no
+      if (!user) {
+        this.logger.warn(`⚠️ Intento de reset de contraseña para email no registrado: ${dto.email}`)
+        return {
+          message: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña.',
+        }
+      }
+
+      // Generar token seguro
+      const token = crypto.randomBytes(32).toString('hex')
+      const expiresAt = new Date()
+      expiresAt.setHours(expiresAt.getHours() + 1) // Expira en 1 hora
+
+      // Invalidar tokens anteriores del usuario
+      await this.prisma.passwordResetToken.updateMany({
+        where: {
+          userId: user.id,
+          used: false,
+        },
+        data: {
+          used: true,
+        },
+      })
+
+      // Crear nuevo token de reset
+      await this.prisma.passwordResetToken.create({
+        data: {
+          userId: user.id,
+          token,
+          expiresAt,
+        },
+      })
+
+      // Construir URL de reset (frontend)
+      const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/reset-password?token=${token}`
+
+      // Enviar email con link de reset
+      const emailBody = `
+        <div style="text-align: center; padding: 20px;">
+          <h2 style="color: #0a1628; margin-bottom: 20px;">Recuperación de Contraseña</h2>
+          <p style="color: #4b5563; line-height: 1.6; margin-bottom: 20px;">
+            Hola <strong>${user.nombre}</strong>,
+          </p>
+          <p style="color: #4b5563; line-height: 1.6; margin-bottom: 30px;">
+            Recibimos una solicitud para restablecer tu contraseña. Si no realizaste esta solicitud, puedes ignorar este email.
+          </p>
+          <div style="margin: 30px 0;">
+            <a href="${resetUrl}" style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">
+              Restablecer Contraseña
+            </a>
+          </div>
+          <p style="color: #9ca3af; font-size: 12px; margin-top: 30px;">
+            Este link expirará en 1 hora. Si no funciona, copia y pega este enlace en tu navegador:
+          </p>
+          <p style="color: #9ca3af; font-size: 11px; word-break: break-all;">
+            ${resetUrl}
+          </p>
+        </div>
+      `
+
+      await this.notificationsService.sendEmailToUser(
+        user.email,
+        'Recuperación de Contraseña - AMVA Digital',
+        emailBody,
+        { type: 'password_reset', userId: user.id }
+      )
+
+      this.logger.log(`✅ Email de reset de contraseña enviado a: ${user.email}`)
+
+      return {
+        message: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña.',
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error en forgotPassword: ${errorMessage}`)
+      // Por seguridad, siempre retornamos el mismo mensaje
+      return {
+        message: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña.',
+      }
+    }
+  }
+
+  /**
+   * Resetear contraseña con token
+   */
+  async resetPassword(dto: ResetPasswordDto): Promise<{ message: string }> {
+    try {
+      // Buscar token válido
+      const resetToken = await this.prisma.passwordResetToken.findUnique({
+        where: { token: dto.token },
+        include: { user: true },
+      })
+
+      if (!resetToken) {
+        throw new BadRequestException('Token inválido o expirado')
+      }
+
+      if (resetToken.used) {
+        throw new BadRequestException('Este token ya fue utilizado')
+      }
+
+      if (resetToken.expiresAt < new Date()) {
+        throw new BadRequestException('Token expirado. Por favor, solicita uno nuevo.')
+      }
+
+      // Hash de nueva contraseña
+      const hashedPassword = await bcrypt.hash(dto.newPassword, 10)
+
+      // Actualizar contraseña y marcar token como usado
+      await this.prisma.$transaction([
+        this.prisma.user.update({
+          where: { id: resetToken.userId },
+          data: { password: hashedPassword },
+        }),
+        this.prisma.passwordResetToken.update({
+          where: { id: resetToken.id },
+          data: { used: true },
+        }),
+      ])
+
+      // Enviar email de confirmación
+      const emailBody = `
+        <div style="text-align: center; padding: 20px;">
+          <h2 style="color: #0a1628; margin-bottom: 20px;">Contraseña Restablecida</h2>
+          <p style="color: #4b5563; line-height: 1.6; margin-bottom: 20px;">
+            Hola <strong>${resetToken.user.nombre}</strong>,
+          </p>
+          <p style="color: #4b5563; line-height: 1.6; margin-bottom: 30px;">
+            Tu contraseña ha sido restablecida exitosamente. Si no realizaste este cambio, contacta inmediatamente al administrador.
+          </p>
+          <div style="margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/login" style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">
+              Iniciar Sesión
+            </a>
+          </div>
+        </div>
+      `
+
+      await this.notificationsService.sendEmailToUser(
+        resetToken.user.email,
+        'Contraseña Restablecida - AMVA Digital',
+        emailBody,
+        { type: 'password_reset_confirmation', userId: resetToken.userId }
+      )
+
+      this.logger.log(`✅ Contraseña restablecida para usuario: ${resetToken.user.email}`)
+
+      return {
+        message: 'Contraseña restablecida exitosamente. Ya puedes iniciar sesión.',
+      }
+    } catch (error: unknown) {
+      if (error instanceof BadRequestException) {
+        throw error
+      }
+
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error en resetPassword: ${errorMessage}`)
+      throw new BadRequestException('Error al restablecer la contraseña')
+    }
+  }
+
+  /**
+   * Cambiar contraseña (cuando estás logueado)
+   */
+  async changePassword(userId: string, dto: ChangePasswordDto): Promise<{ message: string }> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true, password: true, nombre: true },
+      })
+
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado')
+      }
+
+      // Verificar contraseña actual
+      const isPasswordValid = await bcrypt.compare(dto.currentPassword, user.password)
+
+      if (!isPasswordValid) {
+        throw new BadRequestException('La contraseña actual es incorrecta')
+      }
+
+      // Hash de nueva contraseña
+      const hashedPassword = await bcrypt.hash(dto.newPassword, 10)
+
+      // Actualizar contraseña
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
+      })
+
+      // Enviar email de confirmación
+      const emailBody = `
+        <div style="text-align: center; padding: 20px;">
+          <h2 style="color: #0a1628; margin-bottom: 20px;">Contraseña Cambiada</h2>
+          <p style="color: #4b5563; line-height: 1.6; margin-bottom: 20px;">
+            Hola <strong>${user.nombre}</strong>,
+          </p>
+          <p style="color: #4b5563; line-height: 1.6; margin-bottom: 30px;">
+            Tu contraseña ha sido cambiada exitosamente. Si no realizaste este cambio, contacta inmediatamente al administrador.
+          </p>
+        </div>
+      `
+
+      await this.notificationsService.sendEmailToUser(
+        user.email,
+        'Contraseña Cambiada - AMVA Digital',
+        emailBody,
+        { type: 'password_changed', userId: user.id }
+      )
+
+      this.logger.log(`✅ Contraseña cambiada para usuario: ${user.email}`)
+
+      return {
+        message: 'Contraseña cambiada exitosamente',
+      }
+    } catch (error: unknown) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error
+      }
+
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error en changePassword: ${errorMessage}`)
+      throw new BadRequestException('Error al cambiar la contraseña')
+    }
   }
 }
