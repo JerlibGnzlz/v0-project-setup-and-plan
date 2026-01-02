@@ -84,9 +84,12 @@ export default function AuditoriaPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <p className="text-destructive mb-2">Error al cargar estadísticas</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-destructive mb-2 font-semibold">Error al cargar estadísticas</p>
+              <p className="text-sm text-muted-foreground mb-2">
                 {statsError instanceof Error ? statsError.message : 'Error desconocido'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Verifica que el backend esté corriendo y que tengas permisos de ADMIN.
               </p>
             </div>
           </CardContent>
@@ -185,10 +188,12 @@ export default function AuditoriaPage() {
           <CardTitle>Registro de Actividad</CardTitle>
           <CardDescription>
             {isLoadingLogs
-              ? 'Cargando...'
-              : logsData
-                ? `${logsData.pagination.total} registro(s) encontrado(s)`
-                : 'No hay registros'}
+              ? 'Cargando registros...'
+              : logsError
+                ? 'Error al cargar registros'
+                : logsData
+                  ? `${logsData.pagination.total} registro(s) encontrado(s)`
+                  : 'No hay registros disponibles'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -202,20 +207,34 @@ export default function AuditoriaPage() {
             <div className="text-center py-12">
               <FileText className="size-12 text-destructive mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2 text-destructive">Error al cargar logs</h3>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground mb-2">
                 {logsError instanceof Error ? logsError.message : 'Error desconocido al cargar los registros de auditoría'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Verifica que el backend esté corriendo y que tengas permisos de ADMIN.
               </p>
             </div>
           ) : !logsData || logsData.logs.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="size-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No hay registros</h3>
+              <h3 className="text-lg font-semibold mb-2">No hay registros de auditoría</h3>
               <p className="text-muted-foreground mb-4">
-                No se encontraron registros de auditoría con los filtros seleccionados.
+                {filters.entityType || filters.action
+                  ? 'No se encontraron registros con los filtros seleccionados. Intenta cambiar los filtros.'
+                  : 'Aún no se han registrado acciones en el sistema.'}
               </p>
-              <p className="text-sm text-muted-foreground">
-                Los registros aparecerán aquí cuando los usuarios realicen acciones en Noticias o Galería.
-              </p>
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p className="font-medium">Los registros aparecerán automáticamente cuando:</p>
+                <ul className="list-disc list-inside space-y-1 text-left max-w-md mx-auto">
+                  <li>Los usuarios (ADMIN o EDITOR) creen, editen o eliminen noticias</li>
+                  <li>Los usuarios (ADMIN o EDITOR) creen, editen o eliminen elementos de galería</li>
+                  <li>Los usuarios publiquen, oculten o destaquen noticias</li>
+                  <li>Los usuarios inicien sesión (se registra automáticamente)</li>
+                </ul>
+                <p className="mt-4 text-xs">
+                  💡 <strong>Tip:</strong> Realiza alguna acción en Noticias o Galería para generar registros de auditoría.
+                </p>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
