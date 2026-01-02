@@ -18,17 +18,23 @@ interface DashboardQuickActionsProps {
   stats: DashboardStatsType
   loadingPastores?: boolean
   loadingInscripciones?: boolean
+  userRole?: 'ADMIN' | 'EDITOR' | 'VIEWER'
 }
 
 export function DashboardQuickActions({
   stats,
   loadingPastores = false,
   loadingInscripciones = false,
+  userRole = 'ADMIN',
 }: DashboardQuickActionsProps) {
+  const isAdmin = userRole === 'ADMIN'
+  
   return (
     <div className="grid gap-6 md:grid-cols-3">
-      <ScrollReveal delay={300}>
-        <Link href="/admin/pastores">
+      {/* Estructura Organizacional - Solo ADMIN */}
+      {isAdmin && (
+        <ScrollReveal delay={300}>
+          <Link href="/admin/pastores">
           <Card className="hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 cursor-pointer group border-sky-200/50 dark:border-sky-500/20 bg-gradient-to-br from-white to-sky-50/30 dark:from-background dark:to-sky-950/20 overflow-hidden">
             <div className="h-1 bg-gradient-to-r from-sky-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -56,9 +62,12 @@ export function DashboardQuickActions({
           </Card>
         </Link>
       </ScrollReveal>
+      )}
 
-      <ScrollReveal delay={350}>
-        <Link href="/admin/pagos">
+      {/* Gestión de Pagos - Solo ADMIN */}
+      {isAdmin && (
+        <ScrollReveal delay={350}>
+          <Link href="/admin/pagos">
           <Card className="hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 cursor-pointer group border-emerald-200/50 dark:border-emerald-500/20 bg-gradient-to-br from-white to-emerald-50/30 dark:from-background dark:to-emerald-950/20 overflow-hidden">
             <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -81,7 +90,9 @@ export function DashboardQuickActions({
           </Card>
         </Link>
       </ScrollReveal>
+      )}
 
+      {/* Multimedia - ADMIN y EDITOR */}
       <ScrollReveal delay={400}>
         <Link href="/admin/galeria">
           <Card className="hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 cursor-pointer group border-amber-200/50 dark:border-amber-500/20 bg-gradient-to-br from-white to-amber-50/30 dark:from-background dark:to-amber-950/20 overflow-hidden">
@@ -109,6 +120,7 @@ export function DashboardQuickActions({
         </Link>
       </ScrollReveal>
 
+      {/* Gestión de Noticias - ADMIN y EDITOR */}
       <ScrollReveal delay={500}>
         <Link href="/admin/noticias">
           <Card className="hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 cursor-pointer group border-sky-200/50 dark:border-sky-500/20 bg-gradient-to-br from-white to-sky-50/30 dark:from-background dark:to-sky-950/20 overflow-hidden">
@@ -136,8 +148,10 @@ export function DashboardQuickActions({
         </Link>
       </ScrollReveal>
 
-      <ScrollReveal delay={550}>
-        <Link href="/admin/inscripciones">
+      {/* Gestión de Inscripciones - Solo ADMIN */}
+      {isAdmin && (
+        <ScrollReveal delay={550}>
+          <Link href="/admin/inscripciones">
           <Card className="hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 cursor-pointer group border-amber-200/50 dark:border-amber-500/20 bg-gradient-to-br from-white to-amber-50/30 dark:from-background dark:to-amber-950/20 overflow-hidden">
             <div className="h-1 bg-gradient-to-r from-amber-500 to-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -168,9 +182,12 @@ export function DashboardQuickActions({
           </Card>
         </Link>
       </ScrollReveal>
+      )}
 
-      <ScrollReveal delay={600}>
-        <Link href="/admin/visor-credenciales">
+      {/* Credencial de Pastores - Solo ADMIN */}
+      {isAdmin && (
+        <ScrollReveal delay={600}>
+          <Link href="/admin/visor-credenciales">
           <Card className="hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer group border-purple-200/50 dark:border-purple-500/20 bg-gradient-to-br from-white to-purple-50/30 dark:from-background dark:to-purple-950/20 overflow-hidden">
             <div className="h-1 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -205,9 +222,12 @@ export function DashboardQuickActions({
           </Card>
         </Link>
       </ScrollReveal>
+      )}
 
-      <ScrollReveal delay={650}>
-        <Link href="/admin/visor-credenciales-capellania">
+      {/* Credenciales de Capellanía - Solo ADMIN */}
+      {isAdmin && (
+        <ScrollReveal delay={650}>
+          <Link href="/admin/visor-credenciales-capellania">
           <Card className="hover:shadow-xl hover:shadow-green-500/10 transition-all duration-300 cursor-pointer group border-green-200/50 dark:border-green-500/20 bg-gradient-to-br from-white to-green-50/30 dark:from-background dark:to-green-950/20 overflow-hidden">
             <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -242,9 +262,12 @@ export function DashboardQuickActions({
           </Card>
         </Link>
       </ScrollReveal>
+      )}
 
-      <ScrollReveal delay={700}>
-        <Link href="/admin/configuracion-landing">
+      {/* Configuración Landing - Solo ADMIN */}
+      {isAdmin && (
+        <ScrollReveal delay={700}>
+          <Link href="/admin/configuracion-landing">
           <Card className="hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 cursor-pointer group border-indigo-200/50 dark:border-indigo-500/20 bg-gradient-to-br from-white to-indigo-50/30 dark:from-background dark:to-indigo-950/20 overflow-hidden">
             <div className="h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -269,9 +292,12 @@ export function DashboardQuickActions({
           </Card>
         </Link>
       </ScrollReveal>
+      )}
 
-      <ScrollReveal delay={750}>
-        <Link href="/admin/usuarios">
+      {/* Gestión de Usuarios - Solo ADMIN */}
+      {isAdmin && (
+        <ScrollReveal delay={750}>
+          <Link href="/admin/usuarios">
           <Card className="hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer group border-purple-200/50 dark:border-purple-500/20 bg-gradient-to-br from-white to-purple-50/30 dark:from-background dark:to-purple-950/20 overflow-hidden">
             <div className="h-1 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader>
@@ -296,6 +322,7 @@ export function DashboardQuickActions({
           </Card>
         </Link>
       </ScrollReveal>
+      )}
     </div>
   )
 }

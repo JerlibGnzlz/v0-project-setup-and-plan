@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useConvenciones, useUpdateConvencion, useCreateConvencion, useDeleteConvencion, useArchivarConvencion, useDesarchivarConvencion } from '@/lib/hooks/use-convencion'
 import { useDashboardStats } from '@/lib/hooks/use-dashboard-stats'
+import { useAuth } from '@/lib/hooks/use-auth'
 import type { ConvencionFormData } from '@/lib/validations/convencion'
 import {
   DashboardHeader,
@@ -16,6 +17,8 @@ import {
 } from '@/components/admin/dashboard'
 
 export default function AdminDashboard() {
+  const { user } = useAuth()
+  const isAdmin = user?.rol === 'ADMIN'
   const { data: convenciones = [], isLoading: loadingConvencion } = useConvenciones()
   // Tomar la primera convención (la más reciente) - siempre visible en admin sin importar si está activa
   const convencionActiva = convenciones[0] || null
@@ -184,8 +187,8 @@ export default function AdminDashboard() {
     )
   }
 
-  // Empty state - no hay convención activa
-  if (!convencionActiva) {
+  // Empty state - no hay convención activa (solo para ADMIN)
+  if (!convencionActiva && isAdmin) {
     return (
       <DashboardEmptyState
         onCreateConvencion={handleCreateConvencion}
@@ -199,39 +202,51 @@ export default function AdminDashboard() {
   // Main dashboard
   return (
     <div className="space-y-6">
-      <DashboardHeader convencionActiva={convencionActiva} />
+      {/* Solo mostrar header y control de convención para ADMIN */}
+      {isAdmin && (
+        <>
+          <DashboardHeader convencionActiva={convencionActiva} />
 
-      <DashboardConvencionControl
-        convencionActiva={convencionActiva}
-        convencionCuotas={convencionCuotas}
-        onUpdate={handleUpdateConvencion}
-        onToggleVisibility={handleToggleVisibility}
-        dialogOpen={dialogOpen}
-        setDialogOpen={setDialogOpen}
-        isPending={updateConvencionMutation.isPending}
-      />
+          {convencionActiva && (
+            <DashboardConvencionControl
+              convencionActiva={convencionActiva}
+              convencionCuotas={convencionCuotas}
+              onUpdate={handleUpdateConvencion}
+              onToggleVisibility={handleToggleVisibility}
+              dialogOpen={dialogOpen}
+              setDialogOpen={setDialogOpen}
+              isPending={updateConvencionMutation.isPending}
+            />
+          )}
 
-      <DashboardConvencionesList
-        convenciones={convenciones}
-        convencionActiva={convencionActiva}
-        mostrarArchivadas={mostrarArchivadas}
-        setMostrarArchivadas={setMostrarArchivadas}
-        filtroAno={filtroAno}
-        setFiltroAno={setFiltroAno}
-        onArchivar={handleArchivarConvencion}
-        onDesarchivar={handleDesarchivarConvencion}
-        onDelete={handleDeleteConvencion}
-        isArchivarPending={archivarConvencionMutation.isPending}
-        isDesarchivarPending={desarchivarConvencionMutation.isPending}
-        isDeletePending={deleteConvencionMutation.isPending}
-      />
+          {convencionActiva && (
+            <DashboardConvencionesList
+              convenciones={convenciones}
+              convencionActiva={convencionActiva}
+              mostrarArchivadas={mostrarArchivadas}
+              setMostrarArchivadas={setMostrarArchivadas}
+              filtroAno={filtroAno}
+              setFiltroAno={setFiltroAno}
+              onArchivar={handleArchivarConvencion}
+              onDesarchivar={handleDesarchivarConvencion}
+              onDelete={handleDeleteConvencion}
+              isArchivarPending={archivarConvencionMutation.isPending}
+              isDesarchivarPending={desarchivarConvencionMutation.isPending}
+              isDeletePending={deleteConvencionMutation.isPending}
+            />
+          )}
+        </>
+      )}
 
-      <DashboardStats stats={stats} />
+      {/* Stats solo para ADMIN */}
+      {isAdmin && <DashboardStats stats={stats} />}
 
+      {/* Quick Actions - filtrado por rol */}
       <DashboardQuickActions
         stats={stats}
         loadingPastores={false}
         loadingInscripciones={false}
+        userRole={user?.rol}
       />
     </div>
   )
