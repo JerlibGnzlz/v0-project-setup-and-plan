@@ -23,8 +23,8 @@ export default function AuditoriaPage() {
     offset: 0,
   })
 
-  const { data: logsData, isLoading: isLoadingLogs } = useAuditLogs(filters)
-  const { data: statsData, isLoading: isLoadingStats } = useAuditStats()
+  const { data: logsData, isLoading: isLoadingLogs, error: logsError } = useAuditLogs(filters)
+  const { data: statsData, isLoading: isLoadingStats, error: statsError } = useAuditStats()
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({
@@ -80,6 +80,17 @@ export default function AuditoriaPage() {
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
+      ) : statsError ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <p className="text-destructive mb-2">Error al cargar estadísticas</p>
+              <p className="text-sm text-muted-foreground">
+                {statsError instanceof Error ? statsError.message : 'Error desconocido'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       ) : statsData ? (
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
@@ -187,11 +198,24 @@ export default function AuditoriaPage() {
                 <Skeleton key={i} className="h-16 w-full" />
               ))}
             </div>
+          ) : logsError ? (
+            <div className="text-center py-12">
+              <FileText className="size-12 text-destructive mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2 text-destructive">Error al cargar logs</h3>
+              <p className="text-muted-foreground">
+                {logsError instanceof Error ? logsError.message : 'Error desconocido al cargar los registros de auditoría'}
+              </p>
+            </div>
           ) : !logsData || logsData.logs.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="size-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No hay registros</h3>
-              <p className="text-muted-foreground">No se encontraron registros de auditoría con los filtros seleccionados.</p>
+              <p className="text-muted-foreground mb-4">
+                No se encontraron registros de auditoría con los filtros seleccionados.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Los registros aparecerán aquí cuando los usuarios realicen acciones en Noticias o Galería.
+              </p>
             </div>
           ) : (
             <div className="space-y-4">

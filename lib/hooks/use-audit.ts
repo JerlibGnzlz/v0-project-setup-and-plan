@@ -6,6 +6,10 @@ export function useAuditLogs(filters?: AuditLogsFilters) {
     queryKey: ['audit', 'logs', filters],
     queryFn: () => auditApi.getLogs(filters),
     staleTime: 1000 * 30, // 30 segundos
+    retry: 1,
+    onError: (error: unknown) => {
+      console.error('[useAuditLogs] Error:', error)
+    },
   })
 }
 
@@ -15,6 +19,10 @@ export function useUserActivity(userId: string, limit?: number, offset?: number)
     queryFn: () => auditApi.getUserActivity(userId, limit, offset),
     enabled: !!userId,
     staleTime: 1000 * 30, // 30 segundos
+    retry: 1,
+    onError: (error: unknown) => {
+      console.error('[useUserActivity] Error:', error)
+    },
   })
 }
 
@@ -23,6 +31,10 @@ export function useAuditStats(startDate?: string, endDate?: string) {
     queryKey: ['audit', 'stats', startDate, endDate],
     queryFn: () => auditApi.getStats(startDate, endDate),
     staleTime: 1000 * 60, // 1 minuto
+    retry: 1,
+    onError: (error: unknown) => {
+      console.error('[useAuditStats] Error:', error)
+    },
   })
 }
 

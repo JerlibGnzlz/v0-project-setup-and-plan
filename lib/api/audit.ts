@@ -89,36 +89,62 @@ export interface AuditLogsFilters {
 
 export const auditApi = {
   getLogs: async (filters?: AuditLogsFilters): Promise<AuditLogsResponse> => {
-    const params = new URLSearchParams()
-    if (filters?.entityType) params.append('entityType', filters.entityType)
-    if (filters?.entityId) params.append('entityId', filters.entityId)
-    if (filters?.userId) params.append('userId', filters.userId)
-    if (filters?.action) params.append('action', filters.action)
-    if (filters?.limit) params.append('limit', filters.limit.toString())
-    if (filters?.offset) params.append('offset', filters.offset.toString())
+    try {
+      const params = new URLSearchParams()
+      if (filters?.entityType) params.append('entityType', filters.entityType)
+      if (filters?.entityId) params.append('entityId', filters.entityId)
+      if (filters?.userId) params.append('userId', filters.userId)
+      if (filters?.action) params.append('action', filters.action)
+      if (filters?.limit) params.append('limit', filters.limit.toString())
+      if (filters?.offset) params.append('offset', filters.offset.toString())
 
-    const response = await apiClient.get<AuditLogsResponse>(`/audit/logs?${params.toString()}`)
-    return response.data
+      const queryString = params.toString()
+      const url = queryString ? `/audit/logs?${queryString}` : '/audit/logs'
+      
+      console.log('[auditApi] Fetching logs from:', url)
+      const response = await apiClient.get<AuditLogsResponse>(url)
+      console.log('[auditApi] Logs response:', response.data)
+      return response.data
+    } catch (error: unknown) {
+      console.error('[auditApi] Error fetching logs:', error)
+      throw error
+    }
   },
 
   getUserActivity: async (userId: string, limit?: number, offset?: number): Promise<UserActivityResponse> => {
-    const params = new URLSearchParams()
-    if (limit) params.append('limit', limit.toString())
-    if (offset) params.append('offset', offset.toString())
+    try {
+      const params = new URLSearchParams()
+      if (limit) params.append('limit', limit.toString())
+      if (offset) params.append('offset', offset.toString())
 
-    const response = await apiClient.get<UserActivityResponse>(
-      `/audit/users/${userId}/activity?${params.toString()}`
-    )
-    return response.data
+      const queryString = params.toString()
+      const url = queryString ? `/audit/users/${userId}/activity?${queryString}` : `/audit/users/${userId}/activity`
+      
+      const response = await apiClient.get<UserActivityResponse>(url)
+      return response.data
+    } catch (error: unknown) {
+      console.error('[auditApi] Error fetching user activity:', error)
+      throw error
+    }
   },
 
   getStats: async (startDate?: string, endDate?: string): Promise<AuditStatsResponse> => {
-    const params = new URLSearchParams()
-    if (startDate) params.append('startDate', startDate)
-    if (endDate) params.append('endDate', endDate)
+    try {
+      const params = new URLSearchParams()
+      if (startDate) params.append('startDate', startDate)
+      if (endDate) params.append('endDate', endDate)
 
-    const response = await apiClient.get<AuditStatsResponse>(`/audit/stats?${params.toString()}`)
-    return response.data
+      const queryString = params.toString()
+      const url = queryString ? `/audit/stats?${queryString}` : '/audit/stats'
+      
+      console.log('[auditApi] Fetching stats from:', url)
+      const response = await apiClient.get<AuditStatsResponse>(url)
+      console.log('[auditApi] Stats response:', response.data)
+      return response.data
+    } catch (error: unknown) {
+      console.error('[auditApi] Error fetching stats:', error)
+      throw error
+    }
   },
 }
 
