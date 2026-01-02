@@ -9,6 +9,7 @@ import { useUsuarios, useCreateUsuario, useUpdateUsuario, useDeleteUsuario } fro
 import { UsuariosTable } from '@/components/admin/usuarios/usuarios-table'
 import { UsuariosDialog } from '@/components/admin/usuarios/usuarios-dialog'
 import { ResetPasswordDialog } from '@/components/admin/usuarios/reset-password-dialog'
+import { DeleteUsuarioDialog } from '@/components/admin/usuarios/delete-usuario-dialog'
 import { UsuariosStats } from '@/components/admin/usuarios/usuarios-stats'
 import type { Usuario, UserRole } from '@/lib/api/usuarios'
 
@@ -18,6 +19,8 @@ export default function UsuariosPage() {
   const [isCreating, setIsCreating] = useState(false)
   const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false)
   const [usuarioToReset, setUsuarioToReset] = useState<Usuario | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [usuarioToDelete, setUsuarioToDelete] = useState<Usuario | null>(null)
 
   const { data: usuarios = [], isLoading } = useUsuarios()
   const createUsuarioMutation = useCreateUsuario()
@@ -36,13 +39,19 @@ export default function UsuariosPage() {
     setIsDialogOpen(true)
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
-      try {
-        await deleteUsuarioMutation.mutateAsync(id)
-      } catch (error) {
-        // Error ya manejado en el hook
-      }
+  const handleDeleteClick = (usuario: Usuario) => {
+    setUsuarioToDelete(usuario)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!usuarioToDelete) return
+    try {
+      await deleteUsuarioMutation.mutateAsync(usuarioToDelete.id)
+      setIsDeleteDialogOpen(false)
+      setUsuarioToDelete(null)
+    } catch (error) {
+      // Error ya manejado en el hook
     }
   }
 
@@ -147,7 +156,7 @@ export default function UsuariosPage() {
             <UsuariosTable
               usuarios={usuarios}
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onDelete={handleDeleteClick}
               onResetPassword={handleResetPassword}
             />
           )}
@@ -168,6 +177,14 @@ export default function UsuariosPage() {
         open={isResetPasswordOpen}
         onOpenChange={setIsResetPasswordOpen}
         usuario={usuarioToReset}
+      />
+
+      <DeleteUsuarioDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        usuario={usuarioToDelete}
+        onConfirm={handleDeleteConfirm}
+        isLoading={deleteUsuarioMutation.isPending}
       />
     </div>
   )

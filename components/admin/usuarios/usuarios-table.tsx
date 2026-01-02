@@ -9,7 +9,7 @@ import type { Usuario } from '@/lib/api/usuarios'
 interface UsuariosTableProps {
   usuarios: Usuario[]
   onEdit: (usuario: Usuario) => void
-  onDelete: (id: string) => void
+  onDelete: (usuario: Usuario) => void
   onResetPassword: (usuario: Usuario) => void
 }
 // Función simple para formatear fecha
@@ -132,7 +132,7 @@ export function UsuariosTable({ usuarios, onEdit, onDelete, onResetPassword }: U
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onDelete(usuario.id)}
+                        onClick={() => onDelete(usuario)}
                         className="gap-1.5 text-destructive hover:text-destructive"
                       >
                         <Trash2 className="size-4" />
