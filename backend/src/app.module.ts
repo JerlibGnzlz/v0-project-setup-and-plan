@@ -22,6 +22,7 @@ import { ConfiguracionLandingModule } from './modules/configuracion-landing/conf
 import { PublicModule } from './modules/public/public.module'
 import { SolicitudesCredencialesModule } from './modules/solicitudes-credenciales/solicitudes-credenciales.module'
 import { DataSyncModule } from './modules/data-sync/data-sync.module'
+import { UsuariosModule } from './modules/usuarios/usuarios.module'
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { DataSyncModule } from './modules/data-sync/data-sync.module'
     PublicModule,
     SolicitudesCredencialesModule,
     DataSyncModule,
+    UsuariosModule,
   ],
   providers: [
     // Guard global para rate limiting

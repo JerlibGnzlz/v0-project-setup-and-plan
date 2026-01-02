@@ -8,6 +8,7 @@ import {
   Shield,
   Globe,
   Settings,
+  UserCog,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -88,6 +89,13 @@ export const adminNavigation: NavigationItem[] = [
     href: '/admin/configuracion-landing',
     icon: Settings,
     description: 'Estadísticas y contenido',
+    roles: ['ADMIN'],
+  },
+  {
+    name: 'Gestión de Usuarios',
+    href: '/admin/usuarios',
+    icon: UserCog,
+    description: 'Crear y administrar usuarios',
     roles: ['ADMIN'],
   },
 ]
