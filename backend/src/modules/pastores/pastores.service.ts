@@ -135,15 +135,37 @@ export class PastoresService extends BaseService<Pastor, CreatePastorDto, Update
     if (filters?.search || filters?.q) {
       const searchTerm = (filters.search || filters.q || '').trim()
       if (searchTerm) {
-        where.OR = [
-          { nombre: { contains: searchTerm, mode: 'insensitive' } },
-          { apellido: { contains: searchTerm, mode: 'insensitive' } },
-          { email: { contains: searchTerm, mode: 'insensitive' } },
-          { cargo: { contains: searchTerm, mode: 'insensitive' } },
-          { ministerio: { contains: searchTerm, mode: 'insensitive' } },
-          { sede: { contains: searchTerm, mode: 'insensitive' } },
-          { region: { contains: searchTerm, mode: 'insensitive' } },
-        ]
+        // Si ya hay un OR para excluir admins, combinarlo con la búsqueda
+        if (where.OR) {
+          // Combinar el OR existente (exclusión de admins) con la búsqueda
+          where.AND = [
+            {
+              OR: where.OR, // Exclusión de admins
+            },
+            {
+              OR: [
+                { nombre: { contains: searchTerm, mode: 'insensitive' } },
+                { apellido: { contains: searchTerm, mode: 'insensitive' } },
+                { email: { contains: searchTerm, mode: 'insensitive' } },
+                { cargo: { contains: searchTerm, mode: 'insensitive' } },
+                { ministerio: { contains: searchTerm, mode: 'insensitive' } },
+                { sede: { contains: searchTerm, mode: 'insensitive' } },
+                { region: { contains: searchTerm, mode: 'insensitive' } },
+              ],
+            },
+          ]
+          delete where.OR // Eliminar el OR original ya que ahora está en AND
+        } else {
+          where.OR = [
+            { nombre: { contains: searchTerm, mode: 'insensitive' } },
+            { apellido: { contains: searchTerm, mode: 'insensitive' } },
+            { email: { contains: searchTerm, mode: 'insensitive' } },
+            { cargo: { contains: searchTerm, mode: 'insensitive' } },
+            { ministerio: { contains: searchTerm, mode: 'insensitive' } },
+            { sede: { contains: searchTerm, mode: 'insensitive' } },
+            { region: { contains: searchTerm, mode: 'insensitive' } },
+          ]
+        }
       }
     }
 
