@@ -115,11 +115,20 @@ export default function AuditoriaPage() {
             <div className="text-center py-8">
               <p className="text-destructive mb-2 font-semibold">Error al cargar estadísticas</p>
               <p className="text-sm text-muted-foreground mb-2">
-                {statsError instanceof Error ? statsError.message : 'Error desconocido'}
+                {statsError instanceof Error 
+                  ? statsError.message 
+                  : typeof statsError === 'object' && statsError !== null && 'message' in statsError
+                    ? String(statsError.message)
+                    : 'Error desconocido'}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mb-2">
                 Verifica que el backend esté corriendo y que tengas permisos de ADMIN.
               </p>
+              {statsError && typeof statsError === 'object' && 'response' in statsError && (
+                <p className="text-xs text-muted-foreground">
+                  Status: {(statsError as { response?: { status?: number } }).response?.status || 'N/A'}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -357,4 +366,5 @@ export default function AuditoriaPage() {
     </div>
   )
 }
+
 
