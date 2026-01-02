@@ -117,8 +117,8 @@ export class NoticiasService {
     return noticia
   }
 
-  // Crear noticia
-  async create(createNoticiaDto: CreateNoticiaDto): Promise<Noticia> {
+  // Crear noticia (con auditoría)
+  async create(createNoticiaDto: CreateNoticiaDto, userId?: string, userEmail?: string, ipAddress?: string): Promise<Noticia> {
     const slug = createNoticiaDto.slug || this.generateSlug(createNoticiaDto.titulo)
     const uniqueSlug = await this.ensureUniqueSlug(slug)
 
@@ -142,13 +142,32 @@ export class NoticiasService {
       fechaPublicacion = new Date()
     }
 
-    return this.prisma.noticia.create({
+    const noticia = await this.prisma.noticia.create({
       data: {
         ...createNoticiaDto,
         slug: uniqueSlug,
         fechaPublicacion,
       },
     })
+
+    // Registrar auditoría
+    if (userId) {
+      await this.auditService.log({
+        entityType: 'NOTICIA',
+        entityId: noticia.id,
+        action: 'CREATE',
+        userId,
+        userEmail: userEmail || 'sistema',
+        metadata: {
+          titulo: noticia.titulo,
+          slug: noticia.slug,
+          publicado: noticia.publicado,
+        },
+        ipAddress: ipAddress || undefined,
+      })
+    }
+
+    return noticia
   }
 
   // Actualizar noticia (con auditoría)
