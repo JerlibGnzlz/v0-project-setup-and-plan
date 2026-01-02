@@ -16,9 +16,11 @@ model User {
   nombre         String
   rol            UserRole             @default(ADMIN)
   avatar         String?
+  activo         Boolean              @default(true)
   deviceTokens   AdminDeviceToken[]
   passwordResets PasswordResetToken[]
 
+  @@index([activo])
   @@map("users")
 }
 

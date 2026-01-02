@@ -5,7 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Users, Plus, Shield, UserCheck, Eye } from 'lucide-react'
-import { useUsuarios, useCreateUsuario, useUpdateUsuario, useDeleteUsuario } from '@/lib/hooks/use-usuarios'
+import {
+  useUsuarios,
+  useCreateUsuario,
+  useUpdateUsuario,
+  useDeleteUsuario,
+  useToggleUsuarioActivo,
+} from '@/lib/hooks/use-usuarios'
 import { UsuariosTable } from '@/components/admin/usuarios/usuarios-table'
 import { UsuariosDialog } from '@/components/admin/usuarios/usuarios-dialog'
 import { ResetPasswordDialog } from '@/components/admin/usuarios/reset-password-dialog'
@@ -26,6 +32,7 @@ export default function UsuariosPage() {
   const createUsuarioMutation = useCreateUsuario()
   const updateUsuarioMutation = useUpdateUsuario()
   const deleteUsuarioMutation = useDeleteUsuario()
+  const toggleActivoMutation = useToggleUsuarioActivo()
 
   const handleCreate = () => {
     setSelectedUsuario(null)
@@ -58,6 +65,14 @@ export default function UsuariosPage() {
   const handleResetPassword = (usuario: Usuario) => {
     setUsuarioToReset(usuario)
     setIsResetPasswordOpen(true)
+  }
+
+  const handleToggleActivo = async (usuario: Usuario) => {
+    try {
+      await toggleActivoMutation.mutateAsync(usuario.id)
+    } catch (error) {
+      // Error ya manejado en el hook
+    }
   }
 
   const handleSubmit = async (data: {
@@ -158,6 +173,8 @@ export default function UsuariosPage() {
               onEdit={handleEdit}
               onDelete={handleDeleteClick}
               onResetPassword={handleResetPassword}
+              onToggleActivo={handleToggleActivo}
+              isTogglingActivo={toggleActivoMutation.isPending}
             />
           )}
         </CardContent>

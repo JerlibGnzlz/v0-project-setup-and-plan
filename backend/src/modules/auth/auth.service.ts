@@ -67,6 +67,7 @@ export class AuthService {
           nombre: true,
           rol: true,
           avatar: true,
+          activo: true,
         },
       })
 
@@ -77,6 +78,17 @@ export class AuthService {
           timestamp: new Date().toISOString(),
         })
         throw new UnauthorizedException('Credenciales inválidas')
+      }
+
+      // Verificar si el usuario está activo
+      if (!user.activo) {
+        this.logger.warn(`❌ Login fallido: usuario desactivado`, {
+          email: dto.email,
+          userId: user.id,
+          ip: clientIp || 'unknown',
+          timestamp: new Date().toISOString(),
+        })
+        throw new UnauthorizedException('Tu cuenta ha sido desactivada. Contacta al administrador.')
       }
 
       this.logger.debug(`✅ Usuario encontrado: ${user.email}`, {

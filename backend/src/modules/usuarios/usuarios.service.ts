@@ -46,6 +46,7 @@ export class UsuariosService {
           nombre: true,
           rol: true,
           avatar: true,
+          activo: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -76,6 +77,7 @@ export class UsuariosService {
         nombre: true,
         rol: true,
         avatar: true,
+        activo: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -97,6 +99,7 @@ export class UsuariosService {
         nombre: true,
         rol: true,
         avatar: true,
+        activo: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -142,6 +145,7 @@ export class UsuariosService {
           ...(dto.nombre && { nombre: dto.nombre }),
           ...(dto.rol && { rol: dto.rol }),
           ...(dto.avatar !== undefined && { avatar: dto.avatar }),
+          ...(dto.activo !== undefined && { activo: dto.activo }),
         },
         select: {
           id: true,
@@ -149,6 +153,7 @@ export class UsuariosService {
           nombre: true,
           rol: true,
           avatar: true,
+          activo: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -256,6 +261,50 @@ export class UsuariosService {
     })
 
     this.logger.log(`✅ Contraseña cambiada para usuario: ${user.id}`)
+  }
+
+  /**
+   * Activar/Desactivar usuario (toggle)
+   * Solo se puede desactivar usuarios EDITOR o VIEWER
+   * Los ADMIN siempre deben estar activos
+   */
+  async toggleActivo(id: string): Promise<Omit<User, 'password'>> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    })
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado')
+    }
+
+    // No permitir desactivar ADMIN
+    if (user.rol === 'ADMIN') {
+      throw new BadRequestException('No se puede desactivar un usuario administrador')
+    }
+
+    // Toggle del estado activo
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        activo: !user.activo,
+      },
+      select: {
+        id: true,
+        email: true,
+        nombre: true,
+        rol: true,
+        avatar: true,
+        activo: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
+
+    this.logger.log(
+      `✅ Usuario ${updatedUser.activo ? 'activado' : 'desactivado'}: ${updatedUser.email}`
+    )
+
+    return updatedUser
   }
 }
 

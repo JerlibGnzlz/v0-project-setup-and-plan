@@ -86,5 +86,13 @@ export class UsuariosController {
   ) {
     await this.usuariosService.changePassword(req.user.id, body.currentPassword, body)
   }
+
+  /**
+   * Activar/Desactivar usuario (toggle)
+   */
+  @Patch(':id/toggle-activo')
+  async toggleActivo(@Param('id') id: string) {
+    return this.usuariosService.toggleActivo(id)
+  }
 }
 

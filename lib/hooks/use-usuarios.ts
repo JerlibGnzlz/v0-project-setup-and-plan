@@ -131,3 +131,29 @@ export function useChangePassword() {
   })
 }
 
+export function useToggleUsuarioActivo() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => usuariosApi.toggleActivo(id),
+    onSuccess: (updatedUsuario) => {
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] })
+      queryClient.invalidateQueries({ queryKey: ['usuarios', updatedUsuario.id] })
+      toast.success(
+        updatedUsuario.activo ? 'Usuario activado' : 'Usuario desactivado',
+        {
+          description: `El usuario ${updatedUsuario.nombre} ha sido ${
+            updatedUsuario.activo ? 'activado' : 'desactivado'
+          } exitosamente`,
+        }
+      )
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Error al cambiar estado'
+      toast.error('Error', {
+        description: errorMessage,
+      })
+    },
+  })
+}
+

@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Edit, Trash2, Shield, UserCheck, Eye, Lock } from 'lucide-react'
 import type { Usuario } from '@/lib/api/usuarios'
@@ -11,6 +12,8 @@ interface UsuariosTableProps {
   onEdit: (usuario: Usuario) => void
   onDelete: (usuario: Usuario) => void
   onResetPassword: (usuario: Usuario) => void
+  onToggleActivo: (usuario: Usuario) => void
+  isTogglingActivo?: boolean
 }
 // Función simple para formatear fecha
 function formatDate(dateString: string): string {
@@ -49,7 +52,14 @@ const rolConfig = {
   },
 }
 
-export function UsuariosTable({ usuarios, onEdit, onDelete, onResetPassword }: UsuariosTableProps) {
+export function UsuariosTable({
+  usuarios,
+  onEdit,
+  onDelete,
+  onResetPassword,
+  onToggleActivo,
+  isTogglingActivo = false,
+}: UsuariosTableProps) {
   return (
     <div className="rounded-md border overflow-x-auto">
       <Table>
@@ -58,6 +68,7 @@ export function UsuariosTable({ usuarios, onEdit, onDelete, onResetPassword }: U
             <TableHead>Usuario</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Rol</TableHead>
+            <TableHead>Estado</TableHead>
             <TableHead>Creado</TableHead>
             <TableHead className="text-right">Acciones</TableHead>
           </TableRow>
@@ -65,7 +76,7 @@ export function UsuariosTable({ usuarios, onEdit, onDelete, onResetPassword }: U
         <TableBody>
           {usuarios.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="p-8 text-center text-muted-foreground">
+              <TableCell colSpan={6} className="p-8 text-center text-muted-foreground">
                 No hay usuarios registrados
               </TableCell>
             </TableRow>
@@ -102,6 +113,24 @@ export function UsuariosTable({ usuarios, onEdit, onDelete, onResetPassword }: U
                       <RolIcon className="size-3" />
                       {rolInfo.label}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {usuario.rol === 'ADMIN' ? (
+                      <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
+                        Activo
+                      </Badge>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={usuario.activo}
+                          onCheckedChange={() => onToggleActivo(usuario)}
+                          disabled={isTogglingActivo}
+                        />
+                        <span className="text-sm text-muted-foreground">
+                          {usuario.activo ? 'Activo' : 'Inactivo'}
+                        </span>
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     <p className="text-sm text-muted-foreground">

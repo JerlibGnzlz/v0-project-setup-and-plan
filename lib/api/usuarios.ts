@@ -8,6 +8,7 @@ export interface Usuario {
   nombre: string
   rol: UserRole
   avatar?: string | null
+  activo: boolean
   createdAt: string
   updatedAt: string
 }
@@ -66,6 +67,11 @@ export const usuariosApi = {
 
   changePassword: async (data: ChangePasswordRequest): Promise<void> => {
     await apiClient.post('/usuarios/me/change-password', data)
+  },
+
+  toggleActivo: async (id: string): Promise<Usuario> => {
+    const response = await apiClient.patch<Usuario>(`/usuarios/${id}/toggle-activo`)
+    return response.data
   },
 }
 
