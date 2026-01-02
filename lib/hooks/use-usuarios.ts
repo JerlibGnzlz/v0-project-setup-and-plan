@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { usuariosApi, type Usuario, type CreateUsuarioRequest, type UpdateUsuarioRequest, type ChangePasswordRequest, type AdminResetPasswordRequest } from '@/lib/api/usuarios'
 import { toast } from 'sonner'
+import { useAuth } from './use-auth'
 
 export function useUsuarios() {
   return useQuery({
@@ -40,13 +41,25 @@ export function useCreateUsuario() {
 
 export function useUpdateUsuario() {
   const queryClient = useQueryClient()
+  const { user: currentUser, updateUser } = useAuth()
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateUsuarioRequest }) =>
       usuariosApi.update(id, data),
-    onSuccess: (_, variables) => {
+    onSuccess: (updatedUsuario, variables) => {
       queryClient.invalidateQueries({ queryKey: ['usuarios'] })
       queryClient.invalidateQueries({ queryKey: ['usuarios', variables.id] })
+      
+      // Si el usuario actualizado es el mismo que está logueado, actualizar el estado de autenticación
+      if (currentUser && currentUser.id === variables.id) {
+        updateUser({
+          email: updatedUsuario.email,
+          nombre: updatedUsuario.nombre,
+          rol: updatedUsuario.rol,
+          avatar: updatedUsuario.avatar,
+        })
+      }
+      
       toast.success('Usuario actualizado', {
         description: 'Los cambios se han guardado correctamente',
       })

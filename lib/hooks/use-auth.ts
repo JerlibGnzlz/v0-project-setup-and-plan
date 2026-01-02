@@ -14,6 +14,7 @@ interface AuthState {
   checkAuth: () => Promise<void>
   setHydrated: () => void
   refreshAccessToken: () => Promise<boolean>
+  updateUser: (userData: Partial<LoginResponse['user']>) => void
 }
 
 // Función para obtener el token del storage correcto
@@ -229,6 +230,26 @@ export const useAuth = create<AuthState>()(set => ({
 
   setHydrated: () => {
     set({ isHydrated: true })
+  },
+
+  // Actualizar datos del usuario actual (útil cuando se edita el propio perfil)
+  updateUser: (userData: Partial<LoginResponse['user']>) => {
+    const currentState = useAuth.getState()
+    if (!currentState.user) return
+
+    const updatedUser = {
+      ...currentState.user,
+      ...userData,
+    }
+
+    // Actualizar estado de Zustand
+    set({ user: updatedUser })
+
+    // Actualizar storage
+    if (typeof window !== 'undefined') {
+      const storage = localStorage.getItem('auth_token') ? localStorage : sessionStorage
+      storage.setItem('auth_user', JSON.stringify(updatedUser))
+    }
   },
 }))
 
