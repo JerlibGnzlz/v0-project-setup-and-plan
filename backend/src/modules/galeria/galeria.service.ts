@@ -127,7 +127,8 @@ export class GaleriaService extends BaseService<GaleriaImagen, CreateGaleriaDto,
         userEmail: userEmail || 'sistema',
         metadata: {
           tipo: item.tipo,
-          url: item.url,
+          imagenUrl: item.imagenUrl,
+          videoOriginalUrl: item.videoOriginalUrl || null,
         },
         ipAddress: ipAddress || undefined,
       })
@@ -180,7 +181,8 @@ export class GaleriaService extends BaseService<GaleriaImagen, CreateGaleriaDto,
         userEmail: userEmail || 'sistema',
         metadata: {
           tipo: item.tipo,
-          url: item.url,
+          imagenUrl: item.imagenUrl,
+          videoOriginalUrl: item.videoOriginalUrl || null,
         },
         ipAddress: ipAddress || undefined,
       })

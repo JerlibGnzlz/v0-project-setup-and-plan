@@ -151,7 +151,8 @@ export class NoticiasService {
     })
   }
 
-  // Actualizar noticia
+  // Actualizar noticia (con auditoría)
+  // Nota: Este método sobrescribe el comportamiento base para agregar auditoría
   async update(id: string, updateNoticiaDto: UpdateNoticiaDto, userId?: string, userEmail?: string, ipAddress?: string): Promise<Noticia> {
     const oldNoticia = await this.findOne(id) // Verificar que existe
 
@@ -213,7 +214,7 @@ export class NoticiasService {
     return updatedNoticia
   }
 
-  // Eliminar noticia
+  // Eliminar noticia (con auditoría)
   async remove(id: string, userId?: string, userEmail?: string, ipAddress?: string): Promise<void> {
     const noticia = await this.findOne(id) // Verificar que existe
     
