@@ -9,8 +9,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input'
 import { FileText, Filter, RefreshCw, Calendar, User, Activity } from 'lucide-react'
 import { useAuditLogs, useAuditStats } from '@/lib/hooks/use-audit'
-import { formatDistanceToNow } from 'date-fns'
-import { es } from 'date-fns/locale'
+
+// Función simple para formatear fecha relativa
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+  if (diffInSeconds < 60) {
+    return 'hace unos segundos'
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60)
+    return `hace ${minutes} ${minutes === 1 ? 'minuto' : 'minutos'}`
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600)
+    return `hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`
+  } else if (diffInSeconds < 604800) {
+    const days = Math.floor(diffInSeconds / 86400)
+    return `hace ${days} ${days === 1 ? 'día' : 'días'}`
+  } else {
+    const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`
+  }
+}
 
 export default function AuditoriaPage() {
   const [filters, setFilters] = useState<{
@@ -251,7 +272,7 @@ export default function AuditoriaPage() {
                         </Badge>
                         <Badge variant="outline">{entityTypeLabels[log.entityType] || log.entityType}</Badge>
                         <span className="text-sm text-muted-foreground">
-                          {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true, locale: es })}
+                          {formatDate(log.createdAt)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
