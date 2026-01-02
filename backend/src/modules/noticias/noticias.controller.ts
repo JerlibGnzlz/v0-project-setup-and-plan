@@ -14,6 +14,8 @@ import {
 import { NoticiasService } from './noticias.service'
 import { CreateNoticiaDto, UpdateNoticiaDto } from './dto/noticia.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { RolesGuard } from '../auth/guards/roles.guard'
+import { Roles } from '../auth/decorators/roles.decorator'
 import { CategoriaNoticia } from '@prisma/client'
 
 @Controller('noticias')
@@ -68,51 +70,58 @@ export class NoticiasController {
 
   // ========== RUTAS PROTEGIDAS (ADMIN) ==========
 
-  // Obtener todas las noticias (admin)
+  // Obtener todas las noticias (admin y editor)
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'EDITOR')
   findAll() {
     return this.noticiasService.findAll()
   }
 
-  // Obtener noticia por ID (admin)
+  // Obtener noticia por ID (admin y editor)
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'EDITOR')
   findOne(@Param('id') id: string) {
     return this.noticiasService.findOne(id)
   }
 
-  // Crear noticia
+  // Crear noticia (admin y editor)
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'EDITOR')
   create(@Body() createNoticiaDto: CreateNoticiaDto) {
     return this.noticiasService.create(createNoticiaDto)
   }
 
-  // Actualizar noticia
+  // Actualizar noticia (admin y editor)
   @Put(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'EDITOR')
   update(@Param('id') id: string, @Body() updateNoticiaDto: UpdateNoticiaDto) {
     return this.noticiasService.update(id, updateNoticiaDto)
   }
 
-  // Eliminar noticia
+  // Eliminar noticia (solo admin)
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   remove(@Param('id') id: string) {
     return this.noticiasService.remove(id)
   }
 
-  // Toggle publicado
+  // Toggle publicado (admin y editor)
   @Patch(':id/toggle-publicado')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'EDITOR')
   togglePublicado(@Param('id') id: string) {
     return this.noticiasService.togglePublicado(id)
   }
 
-  // Toggle destacado
+  // Toggle destacado (admin y editor)
   @Patch(':id/toggle-destacado')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'EDITOR')
   toggleDestacado(@Param('id') id: string) {
     return this.noticiasService.toggleDestacado(id)
   }

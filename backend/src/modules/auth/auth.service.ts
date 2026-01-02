@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service'
 import * as bcrypt from 'bcrypt'
 import { LoginDto, RegisterDto, RegisterDeviceDto } from './dto/auth.dto'
 import { TokenBlacklistService } from './services/token-blacklist.service'
+import { AdminJwtPayload } from './types/jwt-payload.types'
 
 @Injectable()
 export class AuthService {
@@ -294,8 +295,8 @@ export class AuthService {
     }
   }
 
-  private generateToken(userId: string, email: string, role: string) {
-    const payload = { sub: userId, email, role }
+  private generateToken(userId: string, email: string, rol: string) {
+    const payload: AdminJwtPayload = { sub: userId, email, rol: rol as 'ADMIN' | 'EDITOR' | 'VIEWER' }
     // Access token con expiración corta (15 minutos) para mayor seguridad
     return this.jwtService.sign(payload, { expiresIn: '15m' })
   }
@@ -307,9 +308,9 @@ export class AuthService {
   }
 
   // Generar ambos tokens (access + refresh) para mobile
-  generateTokenPair(userId: string, email: string, role: string) {
+  generateTokenPair(userId: string, email: string, rol: string) {
     return {
-      accessToken: this.generateToken(userId, email, role),
+      accessToken: this.generateToken(userId, email, rol),
       refreshToken: this.generateRefreshToken(userId),
     }
   }

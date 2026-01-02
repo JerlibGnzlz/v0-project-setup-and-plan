@@ -13,7 +13,7 @@ export interface AuthenticatedUser {
   id: string
   email: string
   nombre: string
-  rol: 'ADMIN' | 'SUPER_ADMIN'
+  rol: 'ADMIN' | 'EDITOR' | 'VIEWER'
   avatar: string
 }
 

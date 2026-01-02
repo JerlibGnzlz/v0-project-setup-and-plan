@@ -3,91 +3,23 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import {
-  LayoutDashboard,
-  Users,
-  Newspaper,
-  ImageIcon,
-  CreditCard,
-  UserCheck,
-  ChevronRight,
-  Shield,
-  Globe,
-  Settings,
-} from 'lucide-react'
-
-const navigation = [
-  {
-    name: 'Panel de Control',
-    href: '/admin',
-    icon: LayoutDashboard,
-    description: 'Vista general y estadísticas',
-  },
-  {
-    name: 'Estructura Organizacional',
-    href: '/admin/pastores',
-    icon: Users,
-    description: 'Gestión de líderes y pastores',
-  },
-  {
-    name: 'Gestión de Noticias',
-    href: '/admin/noticias',
-    icon: Newspaper,
-    description: 'Publicaciones y contenido',
-  },
-  {
-    name: 'Galería Multimedia',
-    href: '/admin/galeria',
-    icon: ImageIcon,
-    description: 'Archivos y recursos visuales',
-  },
-  {
-    name: 'Registro de Inscripciones',
-    href: '/admin/inscripciones',
-    icon: UserCheck,
-    description: 'Participantes y registros',
-  },
-  {
-    name: 'Administración de Pagos',
-    href: '/admin/pagos',
-    icon: CreditCard,
-    description: 'Transacciones y cuotas',
-  },
-  {
-    name: 'Credenciales Pastorales',
-    href: '/admin/credenciales-ministeriales',
-    icon: Shield,
-    description: 'Solicitudes y emisión pastoral',
-  },
-  {
-    name: 'Credenciales de Capellanía',
-    href: '/admin/credenciales-capellania',
-    icon: Shield,
-    description: 'Solicitudes y emisión de capellanía',
-  },
-  {
-    name: 'Gestión de Sedes',
-    href: '/admin/sedes',
-    icon: Globe,
-    description: 'Ubicaciones y oficinas',
-  },
-  {
-    name: 'Configuración Landing',
-    href: '/admin/configuracion-landing',
-    icon: Settings,
-    description: 'Estadísticas y contenido',
-  },
-]
+import { useAuth } from '@/lib/hooks/use-auth'
+import { ChevronRight } from 'lucide-react'
+import { getFilteredNavigation } from '@/lib/utils/admin-navigation'
 
 export function AdminSidebar() {
   const pathname = usePathname()
+  const { user } = useAuth()
+  
+  // Filtrar navegación según rol del usuario
+  const filteredNavigation = getFilteredNavigation(user?.rol as 'ADMIN' | 'EDITOR' | 'VIEWER' | undefined)
 
   return (
     <div className="hidden lg:flex lg:flex-col lg:w-72 lg:fixed lg:inset-y-0 lg:z-50 lg:pt-16">
       <div className="flex flex-col flex-grow bg-white/80 dark:bg-background/80 backdrop-blur-xl border-r border-sky-200/50 dark:border-sky-500/20 overflow-y-auto">
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-1">
-          {navigation.map(item => {
+          {filteredNavigation.map(item => {
             let isActive = false
             
             // Coincidencia exacta siempre activa

@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@n
 import { GaleriaService } from './galeria.service'
 import { CreateGaleriaDto, UpdateGaleriaDto } from './dto/galeria.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { RolesGuard } from '../auth/guards/roles.guard'
+import { Roles } from '../auth/decorators/roles.decorator'
 
 @Controller('galeria')
 export class GaleriaController {
@@ -17,19 +19,22 @@ export class GaleriaController {
     return this.galeriaService.findOne(id)
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'EDITOR')
   @Post()
   create(@Body() dto: CreateGaleriaDto) {
     return this.galeriaService.create(dto)
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'EDITOR')
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateGaleriaDto) {
     return this.galeriaService.update(id, dto)
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.galeriaService.remove(id)

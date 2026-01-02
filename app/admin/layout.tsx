@@ -4,15 +4,9 @@ import type React from 'react'
 import {
   LogOut,
   Menu,
-  LayoutDashboard,
-  Users,
-  Newspaper,
-  ImageIcon,
-  CreditCard,
   UserCircle,
-  Shield,
-  Settings,
 } from 'lucide-react'
+import { getFilteredNavigation } from '@/lib/utils/admin-navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -25,6 +19,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { NotificationsBell } from '@/components/admin/notifications-bell'
+import { RouteGuard } from '@/components/admin/route-guard'
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, logout, isAuthenticated, isHydrated, checkAuth } = useAuth()
@@ -177,44 +172,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
               {/* Navigation */}
               <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-                {[
-                  {
-                    name: 'Dashboard',
-                    href: '/admin',
-                    icon: LayoutDashboard,
-                    description: 'Vista general',
-                  },
-                  {
-                    name: 'Estructura Organizacional',
-                    href: '/admin/pastores',
-                    icon: Users,
-                    description: 'Gestionar pastores',
-                  },
-                  {
-                    name: 'Noticias',
-                    href: '/admin/noticias',
-                    icon: Newspaper,
-                    description: 'Gestionar noticias',
-                  },
-                  {
-                    name: 'Multimedia',
-                    href: '/admin/galeria',
-                    icon: ImageIcon,
-                    description: 'Gestionar multimedia',
-                  },
-                  {
-                    name: 'Pagos',
-                    href: '/admin/pagos',
-                    icon: CreditCard,
-                    description: 'Gestionar pagos',
-                  },
-                  {
-                    name: 'Configuración Landing',
-                    href: '/admin/configuracion-landing',
-                    icon: Settings,
-                    description: 'Estadísticas y contenido',
-                  },
-                ].map(item => {
+                {getFilteredNavigation(user?.rol as 'ADMIN' | 'EDITOR' | 'VIEWER' | undefined).map(item => {
                   const isActive =
                     pathname === item.href ||
                     (item.href !== '/admin' && pathname?.startsWith(item.href))
@@ -324,7 +282,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <main className="lg:pl-72">
-        <div className="container mx-auto p-6 lg:p-8 max-w-7xl">{children}</div>
+        <div className="container mx-auto p-6 lg:p-8 max-w-7xl">
+          <RouteGuard>{children}</RouteGuard>
+        </div>
       </main>
 
       <Toaster position="top-right" richColors closeButton />
