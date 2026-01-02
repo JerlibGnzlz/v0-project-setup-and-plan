@@ -58,18 +58,49 @@ export class AuthService {
       })
 
       // Obtener usuario - query simple sin campos de seguridad
-      const user = await this.prisma.user.findUnique({
-        where: { email: dto.email },
-        select: {
-          id: true,
-          email: true,
-          password: true,
-          nombre: true,
-          rol: true,
-          avatar: true,
-          activo: true,
-        },
-      })
+      // Intentar obtener con activo, si falla usar query sin activo (compatibilidad con migraciones pendientes)
+      let user: {
+        id: string
+        email: string
+        password: string
+        nombre: string
+        rol: string
+        avatar: string | null
+        activo?: boolean | null
+      } | null = null
+
+      try {
+        user = await this.prisma.user.findUnique({
+          where: { email: dto.email },
+          select: {
+            id: true,
+            email: true,
+            password: true,
+            nombre: true,
+            rol: true,
+            avatar: true,
+            activo: true,
+          },
+        })
+      } catch (error: unknown) {
+        // Si falla porque el campo activo no existe, intentar sin ese campo
+        this.logger.warn('Campo activo no encontrado, usando query sin activo (migración pendiente)')
+        user = await this.prisma.user.findUnique({
+          where: { email: dto.email },
+          select: {
+            id: true,
+            email: true,
+            password: true,
+            nombre: true,
+            rol: true,
+            avatar: true,
+          },
+        })
+        // Si no tiene campo activo, asumir que está activo (comportamiento por defecto)
+        if (user) {
+          user.activo = true
+        }
+      }
 
       if (!user) {
         this.logger.warn(`❌ Login fallido: usuario no encontrado`, {
@@ -80,8 +111,8 @@ export class AuthService {
         throw new UnauthorizedException('Credenciales inválidas')
       }
 
-      // Verificar si el usuario está activo
-      if (!user.activo) {
+      // Verificar si el usuario está activo (solo si el campo existe y es false)
+      if (user.activo === false) {
         this.logger.warn(`❌ Login fallido: usuario desactivado`, {
           email: dto.email,
           userId: user.id,
