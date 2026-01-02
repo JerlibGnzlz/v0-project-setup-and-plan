@@ -102,6 +102,7 @@ export const auditApi = {
       const url = queryString ? `/audit/logs?${queryString}` : '/audit/logs'
       
       console.log('[auditApi] Fetching logs from:', url)
+      console.log('[auditApi] Full URL will be:', `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}${url}`)
       const response = await apiClient.get<AuditLogsResponse>(url)
       console.log('[auditApi] Logs response:', response.data)
       return response.data
@@ -138,6 +139,7 @@ export const auditApi = {
       const url = queryString ? `/audit/stats?${queryString}` : '/audit/stats'
       
       console.log('[auditApi] Fetching stats from:', url)
+      console.log('[auditApi] Full URL will be:', `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}${url}`)
       const response = await apiClient.get<AuditStatsResponse>(url)
       console.log('[auditApi] Stats response:', response.data)
       return response.data

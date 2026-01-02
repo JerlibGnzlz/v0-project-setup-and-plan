@@ -47,6 +47,14 @@ export default function AuditoriaPage() {
   const { data: logsData, isLoading: isLoadingLogs, error: logsError } = useAuditLogs(filters)
   const { data: statsData, isLoading: isLoadingStats, error: statsError } = useAuditStats()
 
+  // Debug: Log errors para troubleshooting
+  if (logsError) {
+    console.error('[AuditoriaPage] Error en logs:', logsError)
+  }
+  if (statsError) {
+    console.error('[AuditoriaPage] Error en stats:', statsError)
+  }
+
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({
       ...prev,
@@ -229,11 +237,25 @@ export default function AuditoriaPage() {
               <FileText className="size-12 text-destructive mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2 text-destructive">Error al cargar logs</h3>
               <p className="text-muted-foreground mb-2">
-                {logsError instanceof Error ? logsError.message : 'Error desconocido al cargar los registros de auditoría'}
+                {logsError instanceof Error 
+                  ? logsError.message 
+                  : typeof logsError === 'object' && logsError !== null && 'message' in logsError
+                    ? String(logsError.message)
+                    : 'Error desconocido al cargar los registros de auditoría'}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mb-2">
                 Verifica que el backend esté corriendo y que tengas permisos de ADMIN.
               </p>
+              {logsError && typeof logsError === 'object' && 'response' in logsError && (
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>Status: {(logsError as { response?: { status?: number } }).response?.status || 'N/A'}</p>
+                  {(logsError as { response?: { status?: number } }).response?.status === 404 && (
+                    <p className="text-amber-600 dark:text-amber-400">
+                      ⚠️ El endpoint /api/audit/logs no se encontró. Verifica que el backend esté desplegado correctamente.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           ) : !logsData || logsData.logs.length === 0 ? (
             <div className="text-center py-12">
