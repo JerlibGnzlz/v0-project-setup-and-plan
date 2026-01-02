@@ -44,16 +44,33 @@ export class PastoresService extends BaseService<Pastor, CreatePastorDto, Update
    * Sobrescribe findAll para ordenar por nombre
    * IMPORTANTE: Solo retorna pastores activos (estructura organizacional)
    * Los invitados (activo=false) NO aparecen aquí
+   * Excluye pastores cuyo email coincida con usuarios administrativos
    */
   override async findAll(): Promise<Pastor[]> {
+    // Obtener emails de usuarios administrativos para excluirlos
+    const adminUsers = await this.prisma.user.findMany({
+      select: { email: true },
+    })
+    const adminEmails = adminUsers.map(u => u.email).filter((email): email is string => !!email)
+
     return this.model.findMany({
-      where: { activo: true }, // Solo pastores organizacionales
+      where: {
+        activo: true, // Solo pastores organizacionales
+        // Excluir pastores cuyo email coincida con usuarios administrativos
+        ...(adminEmails.length > 0 && {
+          OR: [
+            { email: null },
+            { email: { notIn: adminEmails } },
+          ],
+        }),
+      },
       orderBy: { nombre: 'asc' },
     })
   }
 
   /**
    * Obtiene pastores con paginación, búsqueda y filtros
+   * IMPORTANTE: Excluye pastores cuyo email coincida con usuarios administrativos (tabla User)
    */
   async findAllPaginated(
     page: number = 1,
@@ -77,8 +94,22 @@ export class PastoresService extends BaseService<Pastor, CreatePastorDto, Update
       `🔍 Buscando pastores - página: ${page}, límite: ${limit}, filtros: ${JSON.stringify(filters)}`
     )
 
+    // Obtener emails de usuarios administrativos para excluirlos
+    const adminUsers = await this.prisma.user.findMany({
+      select: { email: true },
+    })
+    const adminEmails = adminUsers.map(u => u.email).filter((email): email is string => !!email)
+
     // Construir condiciones WHERE
-    const where: Prisma.PastorWhereInput = {}
+    const where: Prisma.PastorWhereInput = {
+      // Excluir pastores cuyo email coincida con usuarios administrativos
+      ...(adminEmails.length > 0 && {
+        OR: [
+          { email: null },
+          { email: { notIn: adminEmails } },
+        ],
+      }),
+    }
 
     // Aplicar filtro de estado
     // IMPORTANTE: Si es 'todos' o no se especifica, mostrar TODOS (activos e inactivos)
@@ -446,12 +477,26 @@ export class PastoresService extends BaseService<Pastor, CreatePastorDto, Update
 
   /**
    * Obtiene pastores por tipo
+   * Excluye pastores cuyo email coincida con usuarios administrativos
    */
   async findByTipo(tipo: string): Promise<Pastor[]> {
+    // Obtener emails de usuarios administrativos para excluirlos
+    const adminUsers = await this.prisma.user.findMany({
+      select: { email: true },
+    })
+    const adminEmails = adminUsers.map(u => u.email).filter((email): email is string => !!email)
+
     return this.model.findMany({
       where: {
         tipo: tipo as TipoPastor,
         activo: true,
+        // Excluir pastores cuyo email coincida con usuarios administrativos
+        ...(adminEmails.length > 0 && {
+          OR: [
+            { email: null },
+            { email: { notIn: adminEmails } },
+          ],
+        }),
       },
       orderBy: [{ orden: 'asc' }, { nombre: 'asc' }],
     })
@@ -459,12 +504,26 @@ export class PastoresService extends BaseService<Pastor, CreatePastorDto, Update
 
   /**
    * Obtiene la directiva pastoral
+   * Excluye pastores cuyo email coincida con usuarios administrativos
    */
   async findDirectiva(): Promise<Pastor[]> {
+    // Obtener emails de usuarios administrativos para excluirlos
+    const adminUsers = await this.prisma.user.findMany({
+      select: { email: true },
+    })
+    const adminEmails = adminUsers.map(u => u.email).filter((email): email is string => !!email)
+
     return this.model.findMany({
       where: {
         tipo: 'DIRECTIVA',
         activo: true,
+        // Excluir pastores cuyo email coincida con usuarios administrativos
+        ...(adminEmails.length > 0 && {
+          OR: [
+            { email: null },
+            { email: { notIn: adminEmails } },
+          ],
+        }),
       },
       orderBy: [{ orden: 'asc' }, { nombre: 'asc' }],
     })
