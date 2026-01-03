@@ -109,11 +109,23 @@ apiClient.interceptors.response.use(
       const currentPath = window.location.pathname
       const requestUrl = error.config?.url || ''
       
-      // Si es una ruta de admin y el error es 403, probablemente el token tiene rol antiguo
+      // Si es una ruta de admin y el error es 403, probablemente el token tiene rol antiguo o falta permisos
       if (currentPath.startsWith('/admin')) {
-        console.warn('[apiClient] Error 403: Token puede tener rol antiguo. Cierra sesión y vuelve a iniciar sesión.')
-        // No redirigir automáticamente, dejar que el componente muestre el error
-        // El usuario puede cerrar sesión manualmente si es necesario
+        const errorData = error.response?.data
+        let errorMessage = 'No tienes permisos para realizar esta acción'
+        
+        if (errorData && typeof errorData === 'object' && 'message' in errorData) {
+          errorMessage = String(errorData.message)
+        }
+        
+        console.warn('[apiClient] Error 403:', errorMessage)
+        console.warn('[apiClient] Si acabas de cambiar tu rol, cierra sesión y vuelve a iniciar sesión para obtener un nuevo token.')
+        
+        // Crear un error más descriptivo
+        const forbiddenError = new Error(errorMessage)
+        ;(forbiddenError as any).status = 403
+        ;(forbiddenError as any).response = error.response
+        return Promise.reject(forbiddenError)
       }
       
       return Promise.reject(error)

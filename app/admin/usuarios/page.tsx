@@ -18,8 +18,10 @@ import { ResetPasswordDialog } from '@/components/admin/usuarios/reset-password-
 import { DeleteUsuarioDialog } from '@/components/admin/usuarios/delete-usuario-dialog'
 import { UsuariosStats } from '@/components/admin/usuarios/usuarios-stats'
 import type { Usuario, UserRole } from '@/lib/api/usuarios'
+import { useAuth } from '@/lib/hooks/use-auth'
 
 export default function UsuariosPage() {
+  const { user: currentUser } = useAuth()
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
@@ -33,6 +35,9 @@ export default function UsuariosPage() {
   const updateUsuarioMutation = useUpdateUsuario()
   const deleteUsuarioMutation = useDeleteUsuario()
   const toggleActivoMutation = useToggleUsuarioActivo()
+
+  // Verificar permisos
+  const canCreateUsers = currentUser?.rol === 'ADMIN'
 
   const handleCreate = () => {
     setSelectedUsuario(null)
@@ -133,10 +138,17 @@ export default function UsuariosPage() {
             Administra los usuarios que pueden acceder al panel administrativo
           </p>
         </div>
-        <Button onClick={handleCreate} className="gap-2">
-          <Plus className="size-4" />
-          Crear Usuario
-        </Button>
+        {canCreateUsers ? (
+          <Button onClick={handleCreate} className="gap-2">
+            <Plus className="size-4" />
+            Crear Usuario
+          </Button>
+        ) : (
+          <Button disabled className="gap-2" title="Solo usuarios ADMIN pueden crear usuarios">
+            <Plus className="size-4" />
+            Crear Usuario
+          </Button>
+        )}
       </div>
 
       {/* Stats */}

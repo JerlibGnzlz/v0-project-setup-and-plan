@@ -21,6 +21,7 @@ export function useUsuario(id: string) {
 
 export function useCreateUsuario() {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
 
   return useMutation({
     mutationFn: (data: CreateUsuarioRequest) => usuariosApi.create(data),
@@ -31,7 +32,26 @@ export function useCreateUsuario() {
       })
     },
     onError: (error: unknown) => {
-      const errorMessage = error instanceof Error ? error.message : 'Error al crear usuario'
+      let errorMessage = 'Error al crear usuario'
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const response = error.response as { status?: number; data?: { message?: string } }
+        if (response.status === 403) {
+          errorMessage = 'No tienes permisos para crear usuarios. Se requiere rol ADMIN. Si acabas de cambiar tu rol, cierra sesión y vuelve a iniciar sesión.'
+        } else if (response.data?.message) {
+          errorMessage = response.data.message
+        } else if (error instanceof Error) {
+          errorMessage = error.message
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      // Verificar si el usuario actual tiene rol ADMIN
+      if (user?.rol !== 'ADMIN') {
+        errorMessage = `Tu rol actual es ${user?.rol || 'desconocido'}. Solo los usuarios con rol ADMIN pueden crear usuarios.`
+      }
+
       toast.error('Error', {
         description: errorMessage,
       })
