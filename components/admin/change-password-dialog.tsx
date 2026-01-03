@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -57,6 +57,27 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
     resolver: zodResolver(changePasswordSchema),
   })
 
+  // Limpiar el formulario y estados cuando el diálogo se cierra
+  useEffect(() => {
+    if (!open) {
+      // Resetear formulario y estados cuando se cierra
+      reset()
+      setShowCurrentPassword(false)
+      setShowNewPassword(false)
+      setShowConfirmPassword(false)
+    }
+  }, [open, reset])
+
+  const handleCancel = () => {
+    // Resetear formulario antes de cerrar
+    reset()
+    setShowCurrentPassword(false)
+    setShowNewPassword(false)
+    setShowConfirmPassword(false)
+    // Cerrar el diálogo
+    onOpenChange(false)
+  }
+
   const onSubmit = async (data: ChangePasswordFormData) => {
     try {
       await changePasswordMutation.mutateAsync({
@@ -66,6 +87,9 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
       
       // Resetear el formulario
       reset()
+      setShowCurrentPassword(false)
+      setShowNewPassword(false)
+      setShowConfirmPassword(false)
       
       // Cerrar el diálogo después de un pequeño delay para asegurar que el toast se muestre
       // y que el estado se actualice correctamente
@@ -186,7 +210,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={changePasswordMutation.isPending}>
+            <Button type="button" variant="outline" onClick={handleCancel} disabled={changePasswordMutation.isPending}>
               Cancelar
             </Button>
             <Button type="submit" disabled={changePasswordMutation.isPending}>
