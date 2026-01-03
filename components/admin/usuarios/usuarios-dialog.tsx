@@ -120,11 +120,14 @@ export function UsuariosDialog({
         .substring(0, 20)
       emailFinal = `${nombreLimpio}@ministerio-amva.org`
       passwordFinal = 'Cambiar123!' // Contraseña por defecto simple pero segura
+      
+      // Actualizar el campo email en el formulario para mostrarlo
+      setValue('email', emailFinal)
     }
 
     onSubmit({
       email: emailFinal || data.email,
-      password: isCreating ? passwordFinal : undefined,
+      password: isCreating ? (passwordFinal || data.password) : undefined,
       nombre: data.nombre,
       rol: data.rol,
     })
