@@ -185,12 +185,12 @@ export default function AuditoriaPage() {
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
               <label className="text-sm font-medium mb-2 block">Tipo de Entidad</label>
-              <Select value={filters.entityType || ''} onValueChange={value => handleFilterChange('entityType', value)}>
+              <Select value={filters.entityType || 'all'} onValueChange={value => handleFilterChange('entityType', value === 'all' ? undefined : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="NOTICIA">Noticia</SelectItem>
                   <SelectItem value="GALERIA">Galería</SelectItem>
                   <SelectItem value="USUARIO">Usuario</SelectItem>
@@ -201,12 +201,12 @@ export default function AuditoriaPage() {
             </div>
             <div className="flex-1 min-w-[200px]">
               <label className="text-sm font-medium mb-2 block">Acción</label>
-              <Select value={filters.action || ''} onValueChange={value => handleFilterChange('action', value)}>
+              <Select value={filters.action || 'all'} onValueChange={value => handleFilterChange('action', value === 'all' ? undefined : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="CREATE">Crear</SelectItem>
                   <SelectItem value="UPDATE">Actualizar</SelectItem>
                   <SelectItem value="DELETE">Eliminar</SelectItem>
