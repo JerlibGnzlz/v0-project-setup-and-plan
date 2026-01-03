@@ -100,6 +100,17 @@ export class UsuariosController {
   }
 
   /**
+   * Cambiar email propio
+   */
+  @Patch('me/change-email')
+  async changeEmail(
+    @Request() req: AuthenticatedRequest,
+    @Body() body: { newEmail: string; password: string }
+  ) {
+    return this.usuariosService.changeEmail(req.user.id, body.newEmail, body.password)
+  }
+
+  /**
    * Activar/Desactivar usuario (toggle)
    */
   @Patch(':id/toggle-activo')

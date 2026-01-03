@@ -30,17 +30,14 @@ const usuarioSchema = z
     email: z.string().email('El email debe ser válido'),
     password: z
       .string()
-      .min(8, 'La contraseña debe tener al menos 8 caracteres')
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/,
-        'La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial'
-      )
+      .min(6, 'La contraseña debe tener al menos 6 caracteres')
       .optional(),
     nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
     rol: z.enum(['ADMIN', 'EDITOR', 'VIEWER']),
+    usarCredencialesPorDefecto: z.boolean().optional(),
   })
-  .refine(data => !data.password || data.password.length >= 8, {
-    message: 'La contraseña es requerida al crear un usuario',
+  .refine(data => !data.usarCredencialesPorDefecto || (data.email && data.password), {
+    message: 'El email y contraseña son requeridos cuando se usan credenciales por defecto',
     path: ['password'],
   })
 
@@ -82,10 +79,12 @@ export function UsuariosDialog({
       password: '',
       nombre: '',
       rol: 'EDITOR',
+      usarCredencialesPorDefecto: false,
     },
   })
 
   const rol = watch('rol')
+  const usarCredencialesPorDefecto = watch('usarCredencialesPorDefecto')
 
   useEffect(() => {
     if (usuario && !isCreating) {
@@ -101,14 +100,31 @@ export function UsuariosDialog({
         password: '',
         nombre: '',
         rol: 'EDITOR',
+        usarCredencialesPorDefecto: false,
       })
     }
   }, [usuario, isCreating, reset])
 
   const handleFormSubmit = (data: UsuarioFormData) => {
+    // Si se usan credenciales por defecto, generar email y password automáticos
+    let emailFinal = data.email
+    let passwordFinal = data.password
+
+    if (isCreating && data.usarCredencialesPorDefecto) {
+      // Generar email por defecto basado en el nombre
+      const nombreLimpio = data.nombre
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/g, '')
+        .substring(0, 20)
+      emailFinal = `${nombreLimpio}@ministerio-amva.org`
+      passwordFinal = 'Cambiar123!' // Contraseña por defecto simple pero segura
+    }
+
     onSubmit({
-      email: data.email,
-      password: isCreating ? data.password : undefined,
+      email: emailFinal || data.email,
+      password: isCreating ? passwordFinal : undefined,
       nombre: data.nombre,
       rol: data.rol,
     })
@@ -175,23 +191,63 @@ export function UsuariosDialog({
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              {...register('email')}
+              placeholder={usarCredencialesPorDefecto ? "Se generará automáticamente" : "usuario@ejemplo.com"}
+              disabled={isLoading || usarCredencialesPorDefecto}
+            />
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
+            )}
+          </div>
+
           {isCreating && (
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                {...register('password')}
-                placeholder="Mínimo 8 caracteres"
-                disabled={isLoading}
-              />
-              {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+            <>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="usarCredencialesPorDefecto"
+                  {...register('usarCredencialesPorDefecto')}
+                  className="rounded border-gray-300"
+                />
+                <Label htmlFor="usarCredencialesPorDefecto" className="text-sm font-normal cursor-pointer">
+                  Usar credenciales por defecto (email y contraseña temporales)
+                </Label>
+              </div>
+              {usarCredencialesPorDefecto && (
+                <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                  <p className="text-sm text-blue-900 dark:text-blue-100">
+                    <strong>Credenciales por defecto:</strong>
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                    Se generará automáticamente un email basado en el nombre (ej: nombre@ministerio-amva.org) y una contraseña temporal (Cambiar123!).
+                    El usuario deberá cambiar ambas credenciales al iniciar sesión por primera vez.
+                  </p>
+                </div>
               )}
-              <p className="text-xs text-muted-foreground">
-                Debe contener: mayúscula, minúscula, número y carácter especial (!@#$%^&*)
-              </p>
-            </div>
+              {!usarCredencialesPorDefecto && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Contraseña</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    {...register('password')}
+                    placeholder="Mínimo 6 caracteres"
+                    disabled={isLoading}
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-destructive">{errors.password.message}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    La contraseña puede ser simple. El usuario deberá cambiarla al iniciar sesión.
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
           <div className="space-y-2">

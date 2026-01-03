@@ -69,6 +69,11 @@ export const usuariosApi = {
     await apiClient.post('/usuarios/me/change-password', data)
   },
 
+  changeEmail: async (data: { newEmail: string; password: string }): Promise<Usuario> => {
+    const response = await apiClient.patch<Usuario>('/usuarios/me/change-email', data)
+    return response.data
+  },
+
   toggleActivo: async (id: string): Promise<Usuario> => {
     const response = await apiClient.patch<Usuario>(`/usuarios/${id}/toggle-activo`)
     return response.data

@@ -131,6 +131,38 @@ export function useChangePassword() {
   })
 }
 
+export function useChangeEmail() {
+  const queryClient = useQueryClient()
+  const { user: currentUser, updateUser } = useAuth()
+
+  return useMutation({
+    mutationFn: (data: { newEmail: string; password: string }) => usuariosApi.changeEmail(data),
+    onSuccess: (updatedUsuario) => {
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] })
+      
+      // Actualizar el estado de autenticación si es el usuario actual
+      if (currentUser) {
+        updateUser({
+          email: updatedUsuario.email,
+          nombre: updatedUsuario.nombre,
+          rol: updatedUsuario.rol,
+          avatar: updatedUsuario.avatar,
+        })
+      }
+      
+      toast.success('Email cambiado', {
+        description: 'Tu email ha sido cambiado exitosamente',
+      })
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Error al cambiar email'
+      toast.error('Error', {
+        description: errorMessage,
+      })
+    },
+  })
+}
+
 export function useToggleUsuarioActivo() {
   const queryClient = useQueryClient()
 

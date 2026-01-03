@@ -7,6 +7,7 @@ import {
   UserCircle,
   Lock,
   Shield,
+  Mail,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -17,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ChangePasswordDialog } from '@/components/admin/change-password-dialog'
+import { ChangeEmailDialog } from '@/components/admin/change-email-dialog'
 import { getFilteredNavigation } from '@/lib/utils/admin-navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -37,6 +39,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
+  const [isChangeEmailOpen, setIsChangeEmailOpen] = useState(false)
 
   // Páginas públicas que no requieren autenticación
   const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password']
@@ -160,6 +163,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                 <DropdownMenuSeparator />
                 {user?.rol === 'ADMIN' && (
                   <>
+                    <DropdownMenuItem onClick={() => setIsChangeEmailOpen(true)}>
+                      <Mail className="size-4 mr-2" />
+                      Cambiar Email
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
                       <Lock className="size-4 mr-2" />
                       Cambiar Contraseña

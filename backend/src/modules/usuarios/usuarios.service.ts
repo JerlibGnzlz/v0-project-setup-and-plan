@@ -346,6 +346,82 @@ export class UsuariosService {
   }
 
   /**
+   * Cambiar email propio (requiere contraseña actual)
+   */
+  async changeEmail(userId: string, newEmail: string, password: string): Promise<Omit<User, 'password'>> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+      },
+    })
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado')
+    }
+
+    // Verificar contraseña actual
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+
+    if (!isPasswordValid) {
+      throw new BadRequestException('La contraseña actual es incorrecta')
+    }
+
+    // Verificar que el nuevo email no esté en uso
+    const emailInUse = await this.prisma.user.findUnique({
+      where: { email: newEmail },
+    })
+
+    if (emailInUse) {
+      throw new ConflictException('El email ya está en uso por otro usuario')
+    }
+
+    // Actualizar email
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: newEmail,
+      },
+      select: {
+        id: true,
+        email: true,
+        nombre: true,
+        rol: true,
+        avatar: true,
+        activo: true,
+        ultimoLogin: true,
+        loginCount: true,
+        ultimaIp: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
+
+    this.logger.log(`✅ Email cambiado para usuario: ${user.id} de ${user.email} a ${newEmail}`)
+
+    // Registrar auditoría
+    await this.auditService.log({
+      entityType: 'USUARIO',
+      entityId: userId,
+      action: 'UPDATE',
+      userId,
+      userEmail: user.email,
+      changes: [
+        { field: 'email', oldValue: user.email, newValue: newEmail },
+      ],
+      metadata: {
+        email: updatedUser.email,
+        nombre: updatedUser.nombre,
+        rol: updatedUser.rol,
+      },
+    })
+
+    return updatedUser
+  }
+
+  /**
    * Activar/Desactivar usuario (toggle)
    * Solo se puede desactivar usuarios EDITOR o VIEWER
    * Los ADMIN siempre deben estar activos
