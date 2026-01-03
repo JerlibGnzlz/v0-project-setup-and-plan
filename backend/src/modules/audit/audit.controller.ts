@@ -7,7 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service'
 
 @Controller('audit')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SUPER_ADMIN') // Solo SUPER_ADMIN puede ver auditoría
 export class AuditController {
   constructor(
     private auditService: AuditService,

@@ -17,7 +17,7 @@ export interface BaseJwtPayload {
  */
 export interface AdminJwtPayload extends BaseJwtPayload {
   email: string
-  rol: 'ADMIN' | 'EDITOR' | 'VIEWER'
+  rol: 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'VIEWER'
 }
 
 /**

@@ -20,7 +20,7 @@ import { AuthenticatedRequest } from '../auth/types/request.types'
 
 @Controller('usuarios')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN') // Solo ADMIN puede acceder a estos endpoints
+@Roles('SUPER_ADMIN', 'ADMIN') // SUPER_ADMIN y ADMIN pueden acceder
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
@@ -34,7 +34,7 @@ export class UsuariosController {
       ? req.headers['x-forwarded-for'][0]
       : req.headers['x-forwarded-for']
     const clientIp = req.ip || forwardedFor || undefined
-    return this.usuariosService.create(dto, req.user.id, req.user.email, clientIp)
+    return this.usuariosService.create(dto, req.user.id, req.user.email, clientIp, req.user.rol as 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'VIEWER')
   }
 
   /**
@@ -62,7 +62,7 @@ export class UsuariosController {
       ? req.headers['x-forwarded-for'][0]
       : req.headers['x-forwarded-for']
     const clientIp = req.ip || forwardedFor || undefined
-    return this.usuariosService.update(id, dto, req.user.id, req.user.email, clientIp)
+    return this.usuariosService.update(id, dto, req.user.id, req.user.email, clientIp, req.user.rol as 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'VIEWER')
   }
 
   /**

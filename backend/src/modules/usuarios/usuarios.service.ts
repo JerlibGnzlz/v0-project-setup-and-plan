@@ -16,10 +16,29 @@ export class UsuariosService {
 
   /**
    * Crear nuevo usuario
-   * Solo ADMIN puede crear usuarios
+   * Solo SUPER_ADMIN puede crear ADMIN y EDITOR
+   * ADMIN puede crear EDITOR pero no ADMIN
    */
-  async create(dto: CreateUsuarioDto, userId?: string, userEmail?: string, ipAddress?: string): Promise<Omit<User, 'password'>> {
+  async create(dto: CreateUsuarioDto, userId?: string, userEmail?: string, ipAddress?: string, currentUserRole?: UserRole): Promise<Omit<User, 'password'>> {
     try {
+      // Verificar permisos según rol del usuario actual
+      if (currentUserRole) {
+        // Solo SUPER_ADMIN puede crear ADMIN
+        if (dto.rol === 'ADMIN' && currentUserRole !== 'SUPER_ADMIN') {
+          throw new BadRequestException('Solo SUPER_ADMIN puede crear usuarios ADMIN')
+        }
+        
+        // Solo SUPER_ADMIN puede crear SUPER_ADMIN
+        if (dto.rol === 'SUPER_ADMIN' && currentUserRole !== 'SUPER_ADMIN') {
+          throw new BadRequestException('Solo SUPER_ADMIN puede crear usuarios SUPER_ADMIN')
+        }
+        
+        // ADMIN puede crear EDITOR pero no ADMIN ni SUPER_ADMIN
+        if (currentUserRole === 'ADMIN' && (dto.rol === 'ADMIN' || dto.rol === 'SUPER_ADMIN')) {
+          throw new BadRequestException('ADMIN solo puede crear usuarios EDITOR')
+        }
+      }
+
       // Verificar si el email ya existe
       const existingUser = await this.prisma.user.findUnique({
         where: { email: dto.email },
@@ -145,7 +164,7 @@ export class UsuariosService {
   /**
    * Actualizar usuario
    */
-  async update(id: string, dto: UpdateUsuarioDto, userId?: string, userEmail?: string, ipAddress?: string): Promise<Omit<User, 'password'>> {
+  async update(id: string, dto: UpdateUsuarioDto, userId?: string, userEmail?: string, ipAddress?: string, currentUserRole?: UserRole): Promise<Omit<User, 'password'>> {
     try {
       // Verificar si el usuario existe
       const existingUser = await this.prisma.user.findUnique({
@@ -154,6 +173,19 @@ export class UsuariosService {
 
       if (!existingUser) {
         throw new NotFoundException('Usuario no encontrado')
+      }
+
+      // Validar permisos para cambiar roles
+      if (dto.rol && dto.rol !== existingUser.rol && currentUserRole) {
+        // Solo SUPER_ADMIN puede cambiar roles a SUPER_ADMIN o ADMIN
+        if ((dto.rol === 'SUPER_ADMIN' || dto.rol === 'ADMIN') && currentUserRole !== 'SUPER_ADMIN') {
+          throw new BadRequestException('Solo SUPER_ADMIN puede asignar roles SUPER_ADMIN o ADMIN')
+        }
+        
+        // ADMIN no puede cambiar roles a ADMIN o SUPER_ADMIN
+        if (currentUserRole === 'ADMIN' && (dto.rol === 'ADMIN' || dto.rol === 'SUPER_ADMIN')) {
+          throw new BadRequestException('ADMIN no puede cambiar roles a ADMIN o SUPER_ADMIN')
+        }
       }
 
       // Si se está cambiando el email, verificar que no esté en uso
@@ -359,9 +391,9 @@ export class UsuariosService {
       throw new NotFoundException('Usuario no encontrado')
     }
 
-    // No permitir desactivar ADMIN
-    if (user.rol === 'ADMIN') {
-      throw new BadRequestException('No se puede desactivar un usuario administrador')
+    // No permitir desactivar SUPER_ADMIN ni ADMIN
+    if (user.rol === 'SUPER_ADMIN' || user.rol === 'ADMIN') {
+      throw new BadRequestException(`No se puede desactivar un usuario ${user.rol}`)
     }
 
     // Toggle del estado activo

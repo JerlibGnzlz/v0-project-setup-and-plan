@@ -130,3 +130,4 @@ Si necesitas máxima seguridad, puedes implementar un **proceso híbrido**:
 - Alertar a otros admins cuando un admin solicita reset
 - Considerar restricciones especiales para el último admin
 
+

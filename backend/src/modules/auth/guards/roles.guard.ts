@@ -10,7 +10,7 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<('ADMIN' | 'EDITOR' | 'VIEWER')[]>(
+    const requiredRoles = this.reflector.getAllAndOverride<('SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'VIEWER')[]>(
       ROLES_KEY,
       [context.getHandler(), context.getClass()]
     )
@@ -30,9 +30,20 @@ export class RolesGuard implements CanActivate {
 
     const userRole = user.rol
 
-    // ADMIN tiene acceso a todo
+    // SUPER_ADMIN tiene acceso a TODO (incluyendo auditoría)
+    if (userRole === 'SUPER_ADMIN') {
+      this.logger.debug(`✅ RolesGuard: SUPER_ADMIN tiene acceso completo`)
+      return true
+    }
+
+    // ADMIN tiene acceso a todo EXCEPTO auditoría
     if (userRole === 'ADMIN') {
-      this.logger.debug(`✅ RolesGuard: ADMIN tiene acceso completo`)
+      // Si el endpoint requiere SUPER_ADMIN específicamente, denegar acceso
+      if (requiredRoles.includes('SUPER_ADMIN') && !requiredRoles.includes('ADMIN')) {
+        this.logger.warn(`❌ RolesGuard: ADMIN no tiene acceso a recursos exclusivos de SUPER_ADMIN`)
+        throw new ForbiddenException('No tienes permisos para acceder a este recurso. Se requiere rol SUPER_ADMIN.')
+      }
+      this.logger.debug(`✅ RolesGuard: ADMIN tiene acceso`)
       return true
     }
 

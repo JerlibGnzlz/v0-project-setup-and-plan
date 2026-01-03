@@ -175,3 +175,4 @@ Si ninguna de las opciones funciona:
 
 **El sistema está diseñado para que la recuperación sea segura y automática en la mayoría de los casos.**
 
+

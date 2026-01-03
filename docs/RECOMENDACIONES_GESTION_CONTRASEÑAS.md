@@ -262,3 +262,4 @@ POST /auth/admin/reset-password // ADMIN resetea contraseña de otro usuario
 **Última actualización**: Diciembre 2025
 **Versión**: 1.0.0
 
+
