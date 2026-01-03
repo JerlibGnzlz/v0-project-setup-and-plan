@@ -35,6 +35,9 @@ export class UsuariosService {
       // Generar avatar por defecto
       const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(dto.nombre)}&background=10b981&color=fff&size=128&bold=true`
 
+      // Detectar si es una credencial por defecto (email termina en @ministerio-amva.org y password es Cambiar123!)
+      const esCredencialPorDefecto = dto.email.endsWith('@ministerio-amva.org') && dto.password === 'Cambiar123!'
+
       // Crear usuario
       const user = await this.prisma.user.create({
         data: {
@@ -43,6 +46,8 @@ export class UsuariosService {
           nombre: dto.nombre,
           rol: dto.rol,
           avatar: defaultAvatar,
+          // Guardar metadata para indicar que tiene credenciales por defecto
+          // Usaremos el campo metadata si existe, o podemos agregar un campo temporal
         },
         select: {
           id: true,

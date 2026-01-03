@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -79,12 +79,27 @@ export function UsuariosDialog({
       password: '',
       nombre: '',
       rol: 'EDITOR',
-      usarCredencialesPorDefecto: false,
+      usarCredencialesPorDefecto: true, // Por defecto activado
     },
   })
 
   const rol = watch('rol')
+  const nombre = watch('nombre')
   const usarCredencialesPorDefecto = watch('usarCredencialesPorDefecto')
+  
+  // Generar email automático cuando cambia el nombre y está activado el checkbox
+  useEffect(() => {
+    if (isCreating && usarCredencialesPorDefecto && nombre) {
+      const nombreLimpio = nombre
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/g, '')
+        .substring(0, 20)
+      const emailGenerado = `${nombreLimpio}@ministerio-amva.org`
+      setValue('email', emailGenerado)
+    }
+  }, [nombre, usarCredencialesPorDefecto, isCreating, setValue])
 
   useEffect(() => {
     if (usuario && !isCreating) {

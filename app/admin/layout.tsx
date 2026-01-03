@@ -42,7 +42,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const [isChangeEmailOpen, setIsChangeEmailOpen] = useState(false)
 
   // Páginas públicas que no requieren autenticación
-  const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password']
+  const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password', '/admin/setup-credentials']
   const isPublicPath = publicPaths.some(path => pathname?.startsWith(path))
 
   // Verificar autenticación al montar (solo si no está hidratado)
@@ -56,6 +56,15 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   }, [checkAuth, isHydrated])
 
   useEffect(() => {
+    // Si el usuario está autenticado y tiene credenciales por defecto, redirigir a setup
+    if (isHydrated && isAuthenticated && user && pathname !== '/admin/setup-credentials') {
+      const tieneCredencialesPorDefecto = user.email?.endsWith('@ministerio-amva.org')
+      if (tieneCredencialesPorDefecto) {
+        router.push('/admin/setup-credentials')
+        return
+      }
+    }
+
     // Solo redirigir después de que se haya verificado la autenticación
     if (isHydrated && !isAuthenticated && !isPublicPath) {
       // Verificar también en storage como respaldo
