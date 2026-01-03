@@ -10,12 +10,13 @@ import {
   Request,
   HttpCode,
   HttpStatus,
+  SetMetadata,
 } from '@nestjs/common'
 import { UsuariosService } from './usuarios.service'
 import { CreateUsuarioDto, UpdateUsuarioDto, ChangePasswordDto, AdminResetPasswordDto } from './dto/usuario.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
-import { Roles } from '../auth/decorators/roles.decorator'
+import { Roles, ROLES_KEY } from '../auth/decorators/roles.decorator'
 import { AuthenticatedRequest } from '../auth/types/request.types'
 
 @Controller('usuarios')
@@ -93,6 +94,7 @@ export class UsuariosController {
    */
   @Post('me/change-password')
   @UseGuards(JwtAuthGuard) // Solo requiere autenticación, sobrescribe los guards del controlador
+  @SetMetadata(ROLES_KEY, []) // Sin roles específicos - permite cualquier usuario autenticado
   @HttpCode(HttpStatus.NO_CONTENT)
   async changePassword(
     @Request() req: AuthenticatedRequest,
@@ -107,6 +109,7 @@ export class UsuariosController {
    */
   @Patch('me/change-email')
   @UseGuards(JwtAuthGuard) // Solo requiere autenticación, sobrescribe los guards del controlador
+  @SetMetadata(ROLES_KEY, []) // Sin roles específicos - permite cualquier usuario autenticado
   async changeEmail(
     @Request() req: AuthenticatedRequest,
     @Body() body: { newEmail: string; password: string }
