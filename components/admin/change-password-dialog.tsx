@@ -68,14 +68,33 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
     }
   }, [open, reset])
 
-  const handleCancel = () => {
+  const handleCancel = (e?: React.MouseEvent) => {
+    // Prevenir propagación de eventos
+    e?.preventDefault()
+    e?.stopPropagation()
+    
     // Resetear formulario antes de cerrar
     reset()
     setShowCurrentPassword(false)
     setShowNewPassword(false)
     setShowConfirmPassword(false)
-    // Cerrar el diálogo
-    onOpenChange(false)
+    
+    // Usar setTimeout para asegurar que el estado se actualice antes de cerrar
+    // Esto evita problemas con el overlay de Radix UI
+    setTimeout(() => {
+      onOpenChange(false)
+    }, 0)
+  }
+
+  const handleOpenChange = (open: boolean) => {
+    // Si se está cerrando, asegurar que se limpia todo
+    if (!open) {
+      reset()
+      setShowCurrentPassword(false)
+      setShowNewPassword(false)
+      setShowConfirmPassword(false)
+    }
+    onOpenChange(open)
   }
 
   const onSubmit = async (data: ChangePasswordFormData) => {
@@ -101,8 +120,19 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent 
+        className="sm:max-w-[500px]"
+        onInteractOutside={(e) => {
+          // Permitir cerrar al hacer clic fuera del diálogo
+          e.preventDefault()
+          handleCancel()
+        }}
+        onEscapeKeyDown={(e) => {
+          // Permitir cerrar con ESC
+          handleCancel()
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Lock className="size-5" />
