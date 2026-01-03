@@ -125,9 +125,21 @@ export default function AuditoriaPage() {
                 Verifica que el backend esté corriendo y que tengas permisos de ADMIN.
               </p>
               {statsError && typeof statsError === 'object' && 'response' in statsError && (
-                <p className="text-xs text-muted-foreground">
-                  Status: {(statsError as { response?: { status?: number } }).response?.status || 'N/A'}
-                </p>
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>Status: {(statsError as { response?: { status?: number } }).response?.status || 'N/A'}</p>
+                  {(statsError as { response?: { status?: number } }).response?.status === 403 && (
+                    <div className="mt-2 p-2 bg-amber-500/10 border border-amber-500/20 rounded text-amber-700 dark:text-amber-400">
+                      <p className="font-semibold">⚠️ Error 403: Sin permisos</p>
+                      <p className="mt-1">
+                        Tu token de sesión puede tener un rol antiguo. Por favor,{' '}
+                        <a href="/admin/login" className="underline font-semibold">
+                          cierra sesión y vuelve a iniciar sesión
+                        </a>{' '}
+                        para obtener un nuevo token con los permisos correctos.
+                      </p>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </CardContent>
@@ -258,6 +270,18 @@ export default function AuditoriaPage() {
               {logsError && typeof logsError === 'object' && 'response' in logsError && (
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>Status: {(logsError as { response?: { status?: number } }).response?.status || 'N/A'}</p>
+                  {(logsError as { response?: { status?: number } }).response?.status === 403 && (
+                    <div className="mt-2 p-2 bg-amber-500/10 border border-amber-500/20 rounded text-amber-700 dark:text-amber-400">
+                      <p className="font-semibold">⚠️ Error 403: Sin permisos</p>
+                      <p className="mt-1">
+                        Tu token de sesión puede tener un rol antiguo. Por favor,{' '}
+                        <a href="/admin/login" className="underline font-semibold">
+                          cierra sesión y vuelve a iniciar sesión
+                        </a>{' '}
+                        para obtener un nuevo token con los permisos correctos.
+                      </p>
+                    </div>
+                  )}
                   {(logsError as { response?: { status?: number } }).response?.status === 404 && (
                     <p className="text-amber-600 dark:text-amber-400">
                       ⚠️ El endpoint /api/audit/logs no se encontró. Verifica que el backend esté desplegado correctamente.

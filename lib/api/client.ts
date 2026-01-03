@@ -104,6 +104,21 @@ apiClient.interceptors.response.use(
       return Promise.reject(networkError)
     }
 
+    // Manejar errores 403 (Forbidden) - Usuario autenticado pero sin permisos
+    if (typeof window !== 'undefined' && error.response?.status === 403) {
+      const currentPath = window.location.pathname
+      const requestUrl = error.config?.url || ''
+      
+      // Si es una ruta de admin y el error es 403, probablemente el token tiene rol antiguo
+      if (currentPath.startsWith('/admin')) {
+        console.warn('[apiClient] Error 403: Token puede tener rol antiguo. Cierra sesión y vuelve a iniciar sesión.')
+        // No redirigir automáticamente, dejar que el componente muestre el error
+        // El usuario puede cerrar sesión manualmente si es necesario
+      }
+      
+      return Promise.reject(error)
+    }
+
     // Solo manejar redirección en el cliente
     if (typeof window !== 'undefined' && error.response?.status === 401) {
       const currentPath = window.location.pathname
