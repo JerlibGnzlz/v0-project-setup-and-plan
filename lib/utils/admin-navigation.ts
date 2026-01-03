@@ -108,7 +108,7 @@ export const adminNavigation: NavigationItem[] = [
     href: '/admin/usuarios',
     icon: UserCog,
     description: 'Crear y administrar usuarios',
-    roles: ['ADMIN'],
+    roles: ['SUPER_ADMIN', 'ADMIN'], // SUPER_ADMIN y ADMIN pueden gestionar usuarios
     category: 'configuracion',
   },
   {
