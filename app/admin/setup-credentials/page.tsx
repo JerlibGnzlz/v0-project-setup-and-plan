@@ -11,8 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/use-auth'
-import { useChangeEmail } from '@/lib/hooks/use-usuarios'
-import { useChangePassword } from '@/lib/hooks/use-password'
+import { useChangeEmail, useChangePassword } from '@/lib/hooks/use-usuarios'
 import Image from 'next/image'
 
 const setupCredentialsSchema = z
@@ -92,7 +91,7 @@ export default function SetupCredentialsPage() {
         })
       }
 
-      // Cambiar contraseña
+      // Cambiar contraseña usando el endpoint de usuarios (consistente con changeEmail)
       await changePasswordMutation.mutateAsync({
         currentPassword: data.currentPassword,
         newPassword: data.password,
