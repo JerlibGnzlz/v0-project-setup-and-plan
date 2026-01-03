@@ -40,16 +40,18 @@ export function GaleriaVideosSection({
                 variant="outline"
                 className="border-rose-300 dark:border-rose-500/50 text-rose-700 dark:text-rose-300"
               >
-                {videos.length}/{maxVideos}
+                {videos.length}{maxVideos !== Infinity && `/${maxVideos}`}
               </Badge>
             </CardTitle>
             <CardDescription>
-              Sube hasta {maxVideos} videos (máx. 2 min cada uno). Puedes recortar videos largos.
+              {maxVideos === Infinity
+                ? 'Agrega todos los videos que desees (máx. 2 min cada uno). Los primeros 2 se mostrarán en la landing page, el resto en la galería completa. Puedes recortar videos largos.'
+                : `Sube hasta ${maxVideos} videos (máx. 2 min cada uno). Puedes recortar videos largos.`}
             </CardDescription>
           </div>
           <Button
             onClick={onUploadClick}
-            disabled={videos.length >= maxVideos}
+            disabled={maxVideos !== Infinity && videos.length >= maxVideos}
             className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white shadow-lg shadow-rose-500/25 hover:shadow-rose-500/40 transition-all disabled:opacity-50"
           >
             <Plus className="size-4 mr-2" />

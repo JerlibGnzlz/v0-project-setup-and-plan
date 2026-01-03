@@ -38,16 +38,18 @@ export function GaleriaImagenesSection({
                 variant="outline"
                 className="border-amber-300 dark:border-amber-500/50 text-amber-700 dark:text-amber-300"
               >
-                {imagenes.length}/{maxImagenes}
+                {imagenes.length}{maxImagenes !== Infinity && `/${maxImagenes}`}
               </Badge>
             </CardTitle>
             <CardDescription>
-              Sube hasta {maxImagenes} imágenes para mostrar en la galería de la landing
+              {maxImagenes === Infinity 
+                ? 'Agrega todas las imágenes que desees. Las primeras 4 se mostrarán en la landing page, el resto en la galería completa.'
+                : `Sube hasta ${maxImagenes} imágenes para mostrar en la galería de la landing`}
             </CardDescription>
           </div>
           <Button
             onClick={onUploadClick}
-            disabled={imagenes.length >= maxImagenes}
+            disabled={maxImagenes !== Infinity && imagenes.length >= maxImagenes}
             className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all disabled:opacity-50"
           >
             <Plus className="size-4 mr-2" />

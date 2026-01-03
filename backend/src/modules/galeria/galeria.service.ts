@@ -16,9 +16,11 @@ import { PrismaModelDelegate } from '../../common/types/prisma.types'
 export class GaleriaService extends BaseService<GaleriaImagen, CreateGaleriaDto, UpdateGaleriaDto> {
   private readonly logger = new Logger(GaleriaService.name)
 
-  // Límites de elementos para la landing page
-  static readonly MAX_IMAGENES = 12
-  static readonly MAX_VIDEOS = 6
+  // Límites de elementos para la landing page (solo visualización)
+  // El admin puede agregar infinitas imágenes y videos
+  // Estos límites solo se usan para métodos de consulta específicos de la landing
+  static readonly MAX_IMAGENES_LANDING = 4 // Solo para mostrar en landing
+  static readonly MAX_VIDEOS_LANDING = 2 // Solo para mostrar en landing
 
   constructor(
     private prisma: PrismaService,
@@ -96,18 +98,20 @@ export class GaleriaService extends BaseService<GaleriaImagen, CreateGaleriaDto,
 
   /**
    * Verifica si se puede agregar más imágenes
+   * Siempre retorna true - sin límites en el admin
    */
   async canAddImage(): Promise<boolean> {
-    const count = await this.countImages()
-    return count < GaleriaService.MAX_IMAGENES
+    // Sin límites - el admin puede agregar infinitas imágenes
+    return true
   }
 
   /**
    * Verifica si se puede agregar más videos
+   * Siempre retorna true - sin límites en el admin
    */
   async canAddVideo(): Promise<boolean> {
-    const count = await this.countVideos()
-    return count < GaleriaService.MAX_VIDEOS
+    // Sin límites - el admin puede agregar infinitos videos
+    return true
   }
 
   /**
