@@ -59,10 +59,26 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         return
       }
 
-      // Si no está hidratado o no está autenticado, hacer checkAuth
-      if (!isHydrated || !isAuthenticated) {
+      // Si no está hidratado, hacer checkAuth para inicializar el estado
+      if (!isHydrated) {
         await checkAuth()
         setHasCheckedDefaultCredentials(true)
+        return
+      }
+
+      // Si está hidratado pero no autenticado, verificar si hay token en storage
+      // Si hay token, hacer checkAuth para obtener datos actualizados
+      if (isHydrated && !isAuthenticated) {
+        const hasToken = typeof window !== 'undefined' && 
+          (localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token'))
+        
+        if (hasToken) {
+          await checkAuth()
+          setHasCheckedDefaultCredentials(true)
+        } else {
+          // No hay token, no necesitamos verificar credenciales por defecto
+          setHasCheckedDefaultCredentials(true)
+        }
       }
     }
     
