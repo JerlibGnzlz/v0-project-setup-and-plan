@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/hooks/use-auth'
@@ -14,7 +14,7 @@ import {
   LoginFooter,
 } from '@/components/admin/login'
 
-export default function AdminLogin() {
+function AdminLoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { login, isAuthenticated, isHydrated } = useAuth()
