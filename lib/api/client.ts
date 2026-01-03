@@ -125,6 +125,34 @@ apiClient.interceptors.response.use(
     if (typeof window !== 'undefined' && error.response?.status === 403) {
       const currentPath = window.location.pathname
       const requestUrl = error.config?.url || ''
+      const requestMethod = error.config?.method?.toUpperCase() || 'UNKNOWN'
+      
+      // Log detallado para debugging
+      console.error('[apiClient] ❌ Error 403 (Forbidden) detectado')
+      console.error('[apiClient] Path actual:', currentPath)
+      console.error('[apiClient] Request URL:', requestUrl)
+      console.error('[apiClient] Request Method:', requestMethod)
+      console.error('[apiClient] Response data:', error.response?.data)
+      
+      // Verificar token en storage
+      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+      console.error('[apiClient] Token presente:', !!token)
+      if (token) {
+        try {
+          // Decodificar token JWT (sin verificar firma, solo para ver el payload)
+          const payload = JSON.parse(atob(token.split('.')[1]))
+          console.error('[apiClient] Token payload:', {
+            email: payload.email,
+            rol: payload.rol,
+            sub: payload.sub,
+            exp: new Date(payload.exp * 1000).toISOString(),
+          })
+        } catch (e) {
+          console.error('[apiClient] No se pudo decodificar token:', e)
+        }
+      } else {
+        console.error('[apiClient] ⚠️ No hay token en storage')
+      }
       
       // Si es una ruta de admin y el error es 403, probablemente el token tiene rol antiguo o falta permisos
       if (currentPath.startsWith('/admin')) {
@@ -136,7 +164,7 @@ apiClient.interceptors.response.use(
         }
         
         console.warn('[apiClient] Error 403:', errorMessage)
-        console.warn('[apiClient] Si acabas de cambiar tu rol, cierra sesión y vuelve a iniciar sesión para obtener un nuevo token.')
+        console.warn('[apiClient] 💡 Solución: Si acabas de cambiar tu rol, cierra sesión y vuelve a iniciar sesión para obtener un nuevo token.')
         
         // Crear un error más descriptivo
         const forbiddenError = new Error(errorMessage)
