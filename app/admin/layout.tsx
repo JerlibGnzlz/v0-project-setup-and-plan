@@ -45,20 +45,34 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password', '/admin/setup-credentials']
   const isPublicPath = publicPaths.some(path => pathname?.startsWith(path))
 
+  // Estado para rastrear si ya verificamos las credenciales por defecto
+  const [hasCheckedDefaultCredentials, setHasCheckedDefaultCredentials] = useState(false)
+
   // Verificar autenticación al montar (solo si no está hidratado)
   useEffect(() => {
     if (!isHydrated) {
       const verifyAuth = async () => {
         await checkAuth()
+        // Después de verificar autenticación, marcar que podemos verificar credenciales por defecto
+        setHasCheckedDefaultCredentials(true)
+      }
+      verifyAuth()
+    } else if (isHydrated && !hasCheckedDefaultCredentials) {
+      // Si ya está hidratado pero no hemos verificado, hacer checkAuth para obtener datos actualizados
+      const verifyAuth = async () => {
+        await checkAuth()
+        setHasCheckedDefaultCredentials(true)
       }
       verifyAuth()
     }
-  }, [checkAuth, isHydrated])
+  }, [checkAuth, isHydrated, hasCheckedDefaultCredentials])
 
   useEffect(() => {
+    // Solo verificar credenciales por defecto después de que checkAuth haya completado
     // Si el usuario está autenticado y tiene credenciales por defecto, redirigir a setup
     // IMPORTANTE: Solo verificar si NO estamos en la página de login (para evitar loops)
     if (
+      hasCheckedDefaultCredentials &&
       isHydrated &&
       isAuthenticated &&
       user &&
