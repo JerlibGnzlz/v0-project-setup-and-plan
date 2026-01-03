@@ -28,8 +28,7 @@
     "verify:email-resend": "ts-node scripts/verificar-email-resend.ts",
     "diagnostico:email": "ts-node scripts/diagnostico-email.ts",
     "cleanup:admin-pastores": "ts-node scripts/eliminar-admin-de-pastores.ts",
-    "cleanup:pastor-admin": "ts-node scripts/eliminar-pastor-admin.ts",
-    "create-super-admin": "ts-node scripts/create-super-admin.ts"
+    "cleanup:pastor-admin": "ts-node scripts/eliminar-pastor-admin.ts"
   },
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",

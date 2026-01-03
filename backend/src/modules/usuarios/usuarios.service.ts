@@ -156,19 +156,6 @@ export class UsuariosService {
         throw new NotFoundException('Usuario no encontrado')
       }
 
-      // Validar permisos para cambiar roles
-      if (dto.rol && dto.rol !== existingUser.rol && currentUserRole) {
-        // Solo SUPER_ADMIN puede cambiar roles a SUPER_ADMIN o ADMIN
-        if ((dto.rol === 'SUPER_ADMIN' || dto.rol === 'ADMIN') && currentUserRole !== 'SUPER_ADMIN') {
-          throw new BadRequestException('Solo SUPER_ADMIN puede asignar roles SUPER_ADMIN o ADMIN')
-        }
-        
-        // ADMIN no puede cambiar roles a ADMIN o SUPER_ADMIN
-        if (currentUserRole === 'ADMIN' && (dto.rol === 'ADMIN' || dto.rol === 'SUPER_ADMIN')) {
-          throw new BadRequestException('ADMIN no puede cambiar roles a ADMIN o SUPER_ADMIN')
-        }
-      }
-
       // Si se está cambiando el email, verificar que no esté en uso
       if (dto.email && dto.email !== existingUser.email) {
         const emailInUse = await this.prisma.user.findUnique({
@@ -372,9 +359,9 @@ export class UsuariosService {
       throw new NotFoundException('Usuario no encontrado')
     }
 
-    // No permitir desactivar SUPER_ADMIN ni ADMIN
-    if (user.rol === 'SUPER_ADMIN' || user.rol === 'ADMIN') {
-      throw new BadRequestException(`No se puede desactivar un usuario ${user.rol}`)
+    // No permitir desactivar ADMIN
+    if (user.rol === 'ADMIN') {
+      throw new BadRequestException('No se puede desactivar un usuario administrador')
     }
 
     // Toggle del estado activo
