@@ -317,7 +317,8 @@ export function SolicitarCredencialModal({
               style={[styles.modalButton, styles.modalButtonSubmit]}
             />
           </View>
-        </View>
+            </View>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -335,6 +336,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1,
   },
   modalOverlayTouchable: {
     position: 'absolute',
@@ -343,12 +345,19 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    zIndex: 1,
   },
   modalContent: {
-    backgroundColor: '#0f172a',
-    borderRadius: 20,
     width: '90%',
     maxHeight: '85%',
+    zIndex: 2,
+    position: 'relative',
+  },
+  modalContentInner: {
+    backgroundColor: '#0f172a',
+    borderRadius: 20,
+    width: '100%',
+    maxHeight: '100%',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     shadowColor: '#000',
@@ -356,6 +365,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 20,
+    overflow: 'hidden',
   },
   modalHeader: {
     flexDirection: 'row',
