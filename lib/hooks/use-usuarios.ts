@@ -181,8 +181,12 @@ export function useChangeEmail() {
     onSuccess: (updatedUsuario) => {
       queryClient.invalidateQueries({ queryKey: ['usuarios'] })
       
-      // Actualizar el estado de autenticación si es el usuario actual
-      if (currentUser) {
+      // Solo actualizar el estado si NO estamos en setup-credentials (porque vamos a hacer logout)
+      // Verificar si estamos en la página de setup-credentials
+      const isInSetupCredentials = typeof window !== 'undefined' && window.location.pathname === '/admin/setup-credentials'
+      
+      // Actualizar el estado de autenticación si es el usuario actual y NO estamos en setup-credentials
+      if (currentUser && !isInSetupCredentials) {
         updateUser({
           email: updatedUsuario.email,
           nombre: updatedUsuario.nombre,
@@ -191,9 +195,12 @@ export function useChangeEmail() {
         })
       }
       
-      toast.success('Email cambiado', {
-        description: 'Tu email ha sido cambiado exitosamente',
-      })
+      // Solo mostrar toast si NO estamos en setup-credentials (el toast se mostrará después del logout)
+      if (!isInSetupCredentials) {
+        toast.success('Email cambiado', {
+          description: 'Tu email ha sido cambiado exitosamente',
+        })
+      }
     },
     onError: (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : 'Error al cambiar email'
