@@ -17,8 +17,8 @@ export class GaleriaService extends BaseService<GaleriaImagen, CreateGaleriaDto,
   private readonly logger = new Logger(GaleriaService.name)
 
   // Límites de elementos para la landing page
-  static readonly MAX_IMAGENES = 4
-  static readonly MAX_VIDEOS = 2
+  static readonly MAX_IMAGENES = 12
+  static readonly MAX_VIDEOS = 6
 
   constructor(
     private prisma: PrismaService,

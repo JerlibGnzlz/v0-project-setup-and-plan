@@ -22,8 +22,8 @@ import {
   GaleriaDeleteDialog,
 } from '@/components/admin/galeria'
 
-const MAX_IMAGENES = 4
-const MAX_VIDEOS = 2
+const MAX_IMAGENES = 12
+const MAX_VIDEOS = 6
 const MAX_VIDEO_DURATION = 120 // 2 minutos máximo
 
 export default function GaleriaPage() {
