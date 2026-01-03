@@ -89,8 +89,10 @@ export class UsuariosController {
 
   /**
    * Cambiar contraseña propia
+   * No requiere rol específico, solo autenticación (cualquier usuario puede cambiar su propia contraseña)
    */
   @Post('me/change-password')
+  @UseGuards(JwtAuthGuard) // Solo requiere autenticación, sobrescribe los guards del controlador
   @HttpCode(HttpStatus.NO_CONTENT)
   async changePassword(
     @Request() req: AuthenticatedRequest,
@@ -101,8 +103,10 @@ export class UsuariosController {
 
   /**
    * Cambiar email propio
+   * No requiere rol específico, solo autenticación (cualquier usuario puede cambiar su propio email)
    */
   @Patch('me/change-email')
+  @UseGuards(JwtAuthGuard) // Solo requiere autenticación, sobrescribe los guards del controlador
   async changeEmail(
     @Request() req: AuthenticatedRequest,
     @Body() body: { newEmail: string; password: string }
