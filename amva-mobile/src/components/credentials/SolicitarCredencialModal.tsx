@@ -318,6 +318,7 @@ export function SolicitarCredencialModal({
             />
           </View>
         </View>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   )
