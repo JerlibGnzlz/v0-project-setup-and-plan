@@ -37,7 +37,7 @@ type SetupCredentialsFormData = z.infer<typeof setupCredentialsSchema>
 
 export default function SetupCredentialsPage() {
   const router = useRouter()
-  const { user, isAuthenticated, isHydrated } = useAuth()
+  const { user, isAuthenticated, isHydrated, logout } = useAuth()
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -98,8 +98,13 @@ export default function SetupCredentialsPage() {
         newPassword: data.password,
       })
 
-      // Redirigir al dashboard después de cambiar las credenciales
-      router.push('/admin')
+      // Cerrar sesión para limpiar tokens antiguos
+      logout()
+
+      // Mostrar mensaje de éxito y redirigir al login
+      setTimeout(() => {
+        router.push('/admin/login?credentialsUpdated=true')
+      }, 500)
     } catch (error) {
       // Error ya manejado en los hooks
     }
