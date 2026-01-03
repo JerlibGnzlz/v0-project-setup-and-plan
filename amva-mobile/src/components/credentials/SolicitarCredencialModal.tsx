@@ -55,6 +55,7 @@ export function SolicitarCredencialModal({
   })
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [fechaNacimientoDate, setFechaNacimientoDate] = useState<Date | null>(null)
+  const scrollViewRef = React.useRef<ScrollView>(null)
 
   // Pre-llenar formulario con datos del invitado
   useEffect(() => {
