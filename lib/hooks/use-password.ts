@@ -1,7 +1,8 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { authApi } from '@/lib/api/auth'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { useAuth } from './use-auth'
 
 export function useForgotPassword() {
   return useMutation({
@@ -45,13 +46,30 @@ export function useResetPassword() {
 }
 
 export function useChangePassword() {
+  const queryClient = useQueryClient()
+  const { checkAuth } = useAuth()
+
   return useMutation({
     mutationFn: ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) =>
       authApi.changePassword(currentPassword, newPassword),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success('Contraseña cambiada', {
         description: 'Tu contraseña ha sido cambiada exitosamente.',
       })
+      
+      // Verificar autenticación para actualizar el estado del usuario
+      // Esto asegura que el token sigue siendo válido y el estado está actualizado
+      try {
+        await checkAuth()
+      } catch (error) {
+        // Si la verificación falla, el token podría haber sido invalidado
+        // En ese caso, el usuario necesitará hacer login de nuevo
+        console.warn('[useChangePassword] Error al verificar autenticación después de cambiar contraseña:', error)
+      }
+      
+      // Invalidar todas las queries para refrescar datos
+      // Esto asegura que cualquier dato cacheado se actualice
+      queryClient.invalidateQueries()
     },
     onError: (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : 'Error al cambiar contraseña'
