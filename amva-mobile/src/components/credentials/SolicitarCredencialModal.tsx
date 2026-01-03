@@ -388,14 +388,11 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalBody: {
-    flex: 1,
     maxHeight: 400,
-    minHeight: 300,
   },
   modalBodyContent: {
     padding: 20,
     paddingBottom: 40,
-    flexGrow: 1,
   },
   modalFooter: {
     flexDirection: 'row',
