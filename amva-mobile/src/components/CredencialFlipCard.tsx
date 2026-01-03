@@ -392,6 +392,8 @@ export function CredencialFlipCard({ credencial }: CredencialFlipCardProps) {
             showsVerticalScrollIndicator={true}
             showsHorizontalScrollIndicator={true}
             bouncesZoom={true}
+            scrollEnabled={true}
+            pinchGestureEnabled={true}
           >
             {!fullScreenFlipped ? (
               /* FRENTE en pantalla completa */
