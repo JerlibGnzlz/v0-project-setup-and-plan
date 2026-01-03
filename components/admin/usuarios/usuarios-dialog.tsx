@@ -186,25 +186,16 @@ export function UsuariosDialog({
               id="email"
               type="email"
               {...register('email')}
-              placeholder="usuario@ejemplo.com"
-              disabled={isLoading}
+              placeholder={usarCredencialesPorDefecto ? "Se generará automáticamente" : "usuario@ejemplo.com"}
+              disabled={isLoading || (isCreating && usarCredencialesPorDefecto)}
             />
             {errors.email && (
               <p className="text-sm text-destructive">{errors.email.message}</p>
             )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              {...register('email')}
-              placeholder={usarCredencialesPorDefecto ? "Se generará automáticamente" : "usuario@ejemplo.com"}
-              disabled={isLoading || usarCredencialesPorDefecto}
-            />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
+            {isCreating && usarCredencialesPorDefecto && (
+              <p className="text-xs text-muted-foreground">
+                El email se generará automáticamente basado en el nombre.
+              </p>
             )}
           </div>
 
