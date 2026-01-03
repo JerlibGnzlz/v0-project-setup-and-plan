@@ -399,15 +399,16 @@ export function CredentialsScreen() {
             </View>
           )}
 
-        {/* Modal para Solicitar Credencial */}
-        <SolicitarCredencialModal
-          visible={showSolicitarModal}
-          onClose={() => setShowSolicitarModal(false)}
-          onSubmit={handleSolicitarCredencial}
-          invitado={invitado}
-          loading={solicitandoCredencial}
-        />
       </ScrollView>
+
+      {/* Modal para Solicitar Credencial - Fuera del ScrollView para mejor renderizado */}
+      <SolicitarCredencialModal
+        visible={showSolicitarModal}
+        onClose={() => setShowSolicitarModal(false)}
+        onSubmit={handleSolicitarCredencial}
+        invitado={invitado}
+        loading={solicitandoCredencial}
+      />
     </SafeAreaView>
   )
 }
