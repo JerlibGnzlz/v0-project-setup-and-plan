@@ -7,9 +7,12 @@ import {
   Image,
   Animated,
   Dimensions,
+  Modal,
+  ScrollView,
+  PanResponder,
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { RotateCcw, CheckCircle, Clock, AlertCircle } from 'lucide-react-native'
+import { RotateCcw, CheckCircle, Clock, AlertCircle, X, ZoomIn } from 'lucide-react-native'
 import type { CredencialUnificada } from '@api/credenciales'
 import { getEstadoColor, getEstadoMensaje } from '@hooks/use-credenciales'
 
@@ -23,6 +26,8 @@ interface CredencialFlipCardProps {
 
 export function CredencialFlipCard({ credencial }: CredencialFlipCardProps) {
   const [isFlipped, setIsFlipped] = useState(false)
+  const [isFullScreen, setIsFullScreen] = useState(false)
+  const [fullScreenFlipped, setFullScreenFlipped] = useState(false)
   const frontOpacity = React.useRef(new Animated.Value(1)).current
   const backOpacity = React.useRef(new Animated.Value(0)).current
   const frontScale = React.useRef(new Animated.Value(1)).current
@@ -124,6 +129,19 @@ export function CredencialFlipCard({ credencial }: CredencialFlipCardProps) {
   
   const EstadoIcon = getEstadoIcon()
 
+  const openFullScreen = () => {
+    setFullScreenFlipped(isFlipped)
+    setIsFullScreen(true)
+  }
+
+  const closeFullScreen = () => {
+    setIsFullScreen(false)
+  }
+
+  const flipFullScreen = () => {
+    setFullScreenFlipped(!fullScreenFlipped)
+  }
+
   return (
     <View style={styles.container}>
       {/* Botón para voltear */}
@@ -132,8 +150,14 @@ export function CredencialFlipCard({ credencial }: CredencialFlipCardProps) {
         <Text style={styles.flipButtonText}>{isFlipped ? 'Ver Frente' : 'Ver Dorso'}</Text>
       </TouchableOpacity>
 
-      {/* Card Container */}
-      <View style={styles.cardContainer}>
+      {/* Botón para pantalla completa */}
+      <TouchableOpacity style={styles.fullScreenButton} onPress={openFullScreen}>
+        <ZoomIn size={16} color="#fff" />
+        <Text style={styles.fullScreenButtonText}>Ver Completa</Text>
+      </TouchableOpacity>
+
+      {/* Card Container - Tocable para abrir pantalla completa */}
+      <TouchableOpacity style={styles.cardContainer} onPress={openFullScreen} activeOpacity={0.9}>
         {/* FRENTE */}
         <Animated.View
           style={[
@@ -335,7 +359,223 @@ export function CredencialFlipCard({ credencial }: CredencialFlipCardProps) {
             </View>
           </LinearGradient>
         </Animated.View>
-      </View>
+      </TouchableOpacity>
+
+      {/* Modal de Pantalla Completa con Zoom */}
+      <Modal
+        visible={isFullScreen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeFullScreen}
+        statusBarTranslucent={true}
+      >
+        <View style={styles.fullScreenContainer}>
+          {/* Header con controles */}
+          <View style={styles.fullScreenHeader}>
+            <TouchableOpacity style={styles.fullScreenControlButton} onPress={flipFullScreen}>
+              <RotateCcw size={24} color="#fff" />
+              <Text style={styles.fullScreenControlText}>
+                {fullScreenFlipped ? 'Ver Frente' : 'Ver Dorso'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.fullScreenCloseButton} onPress={closeFullScreen}>
+              <X size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Contenedor scrolleable con zoom */}
+          <ScrollView
+            style={styles.fullScreenScrollView}
+            contentContainerStyle={styles.fullScreenScrollContent}
+            maximumZoomScale={3}
+            minimumZoomScale={1}
+            showsVerticalScrollIndicator={true}
+            showsHorizontalScrollIndicator={true}
+            bouncesZoom={true}
+          >
+            {!fullScreenFlipped ? (
+              /* FRENTE en pantalla completa */
+              <View style={[styles.fullScreenCard, { width: SCREEN_WIDTH - 40, height: ((SCREEN_WIDTH - 40) * 252) / 400 }]}>
+                <LinearGradient colors={gradientColors} style={styles.cardGradient}>
+                  {/* Mismo contenido del frente pero con estilos mejorados */}
+                  <View style={styles.header}>
+                    <Text style={styles.headerTitle}>ASOCIACIÓN MISIONERA</Text>
+                    <Text style={styles.headerTitle}>VIDA ABUNDANTE</Text>
+                  </View>
+
+                  <View style={styles.content}>
+                    <View style={styles.contentRow}>
+                      <View style={styles.photoSection}>
+                        <View style={styles.photoContainer}>
+                          {credencial.fotoUrl ? (
+                            <Image
+                              source={{
+                                uri: `${credencial.fotoUrl}${credencial.fotoUrl.includes('?') ? '&' : '?'}t=${credencial.id}`,
+                              }}
+                              style={styles.photo}
+                              key={`photo-${credencial.id}-${credencial.fotoUrl}`}
+                            />
+                          ) : (
+                            <Text style={styles.photoPlaceholder}>FOTO</Text>
+                          )}
+                        </View>
+                        <Text style={styles.tipoText}>
+                          {credencial.tipo === 'pastoral'
+                            ? credencial.tipoPastor || 'PASTOR'
+                            : credencial.tipo === 'ministerial'
+                              ? credencial.tipoPastor || 'PASTOR'
+                              : credencial.tipoCapellan || 'CAPELLAN'}{' '}
+                          / {credencial.tipo === 'capellania' ? 'CHAPLAIN' : 'SHEPHERD'}
+                        </Text>
+                      </View>
+
+                      <View style={styles.infoSection}>
+                        <View style={styles.infoRow}>
+                          <Text style={styles.infoLabel}>Apellido / Surname</Text>
+                          <Text style={styles.infoValue}>{credencial.apellido}</Text>
+                        </View>
+                        <View style={styles.infoRow}>
+                          <Text style={styles.infoLabel}>Nombre / Name</Text>
+                          <Text style={styles.infoValue}>{credencial.nombre}</Text>
+                        </View>
+                        <View style={styles.infoRow}>
+                          <Text style={styles.infoLabel}>Documento / Document</Text>
+                          <Text style={styles.infoValue}>
+                            {credencial.numero || credencial.documento || 'N/A'}
+                          </Text>
+                        </View>
+                        {credencial.nacionalidad && (
+                          <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Nacionalidad / Nationality</Text>
+                            <Text style={styles.infoValue}>{credencial.nacionalidad}</Text>
+                          </View>
+                        )}
+                        {fechaNacimiento && (
+                          <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Fecha de nacimiento / Birthdate</Text>
+                            <Text style={styles.infoValue}>{fechaNacimiento}</Text>
+                          </View>
+                        )}
+                        {/* Estado y días restantes - MEJORADO */}
+                        {credencial.estado !== 'sin_credencial' && (
+                          <View style={styles.estadoContainer}>
+                            <View style={[styles.estadoBadgeLarge, { backgroundColor: `${estadoColor}30` }]}>
+                              <EstadoIcon size={16} color={estadoColor} />
+                              <Text style={[styles.estadoTextLarge, { color: estadoColor }]}>
+                                {credencial.estado.toUpperCase()}
+                              </Text>
+                            </View>
+                            <Text style={styles.diasRestantesTextLarge}>
+                              {credencial.diasRestantes > 0 
+                                ? `${credencial.diasRestantes} días restantes`
+                                : `Vencida hace ${Math.abs(credencial.diasRestantes)} días`}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+
+                      <View style={styles.logoSection}>
+                        <Image
+                          source={
+                            credencial.tipo === 'capellania'
+                              ? require('../../assets/images/capellania.png')
+                              : require('../../assets/images/mundo.png')
+                          }
+                          style={styles.logo}
+                          resizeMode="contain"
+                        />
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={styles.footer}>
+                    <Text style={styles.footerTitle}>
+                      {credencial.tipo === 'pastoral'
+                        ? 'CREDENCIAL PASTORAL'
+                        : credencial.tipo === 'ministerial'
+                          ? 'CREDENCIAL MINISTERIAL INTERNACIONAL'
+                          : 'CHAPLAIN MINISTERS INTERNATIONAL'}
+                    </Text>
+                    <Text style={styles.footerAddress}>
+                      SEDE SOCIAL: PICO 1641 (1429) CAPITAL FEDERAL
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </View>
+            ) : (
+              /* DORSO en pantalla completa */
+              <View style={[styles.fullScreenCard, { width: SCREEN_WIDTH - 40, height: ((SCREEN_WIDTH - 40) * 252) / 400 }]}>
+                <LinearGradient colors={gradientColors} style={styles.cardGradient}>
+                  <View style={styles.dorsoContent}>
+                    <View style={styles.dorsoHeader}>
+                      <Image
+                        source={require('../../assets/images/mundo.png')}
+                        style={styles.dorsoLogo}
+                        resizeMode="contain"
+                      />
+                      <View style={styles.dorsoHeaderText}>
+                        <Text style={styles.dorsoTitle}>EL CONSEJO EJECUTIVO NACIONAL</Text>
+                        <Text style={styles.dorsoCertificacion}>
+                          CERTIFICA QUE EL PORTADOR ESTÁ AUTORIZADO PARA EJERCER LOS CARGOS
+                          MINISTERIALES Y ADMINISTRATIVOS QUE CORRESPONDAN
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.ficheroContainer}>
+                      <Text style={styles.ficheroText}>
+                        FICHERO de CULTO N 2753 PERSO.-JURIDICA{' '}
+                        {credencial.tipo === 'capellania' ? '000-113' : '000-318'} C.U.I.T.30-68748687-7
+                      </Text>
+                    </View>
+
+                    <View style={styles.dorsoFooter}>
+                      <View style={styles.firmaContainer}>
+                        <View style={styles.firmaBox}>
+                          <Image
+                            source={require('../../assets/images/firma-presidente.png')}
+                            style={styles.firmaImage}
+                            resizeMode="contain"
+                          />
+                        </View>
+                        <Text style={styles.firmaText}>FIRMA PRESIDENTE DEL C.E.N.</Text>
+                      </View>
+
+                      <View style={styles.qrContainer}>
+                        <View style={styles.qrBox}>
+                          <Image
+                            source={require('../../assets/images/qr.png')}
+                            style={styles.qrImage}
+                            resizeMode="contain"
+                          />
+                        </View>
+                        {/* Fecha de vencimiento MEJORADA */}
+                        <Text style={styles.venceTextLarge}>VENCE: {fechaVencimiento}</Text>
+                        {/* Estado y días restantes en el dorso - MEJORADO */}
+                        {credencial.estado !== 'sin_credencial' && (
+                          <View style={styles.dorsoEstadoContainer}>
+                            <View style={[styles.dorsoEstadoBadgeLarge, { backgroundColor: `${estadoColor}30` }]}>
+                              <EstadoIcon size={12} color={estadoColor} />
+                              <Text style={[styles.dorsoEstadoTextLarge, { color: estadoColor }]}>
+                                {credencial.estado.toUpperCase()}
+                              </Text>
+                            </View>
+                            <Text style={styles.dorsoDiasTextLarge}>
+                              {credencial.diasRestantes > 0 
+                                ? `${credencial.diasRestantes} días`
+                                : `${Math.abs(credencial.diasRestantes)} días vencida`}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  </View>
+                </LinearGradient>
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -603,14 +843,25 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   venceText: {
-    fontSize: 7,
+    fontSize: 9,
     fontWeight: 'bold',
     color: '#0D374E',
     textAlign: 'right',
     textShadowColor: 'rgba(255, 255, 255, 0.9)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
-    lineHeight: 8,
+    lineHeight: 10,
+  },
+  venceTextLarge: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#0D374E',
+    textAlign: 'right',
+    textShadowColor: 'rgba(255, 255, 255, 0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    lineHeight: 16,
+    marginTop: 4,
   },
   estadoContainer: {
     marginTop: 4,
@@ -620,8 +871,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 4,
     alignSelf: 'flex-start',
   },
@@ -631,12 +882,36 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   diasRestantesText: {
-    fontSize: 8,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '700',
     color: '#0D374E',
     textShadowColor: 'rgba(255, 255, 255, 0.9)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+    marginTop: 2,
+  },
+  estadoBadgeLarge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  estadoTextLarge: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  diasRestantesTextLarge: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0D374E',
+    textShadowColor: 'rgba(255, 255, 255, 0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    marginTop: 4,
   },
   dorsoEstadoContainer: {
     alignItems: 'flex-end',
@@ -652,18 +927,112 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   dorsoEstadoText: {
-    fontSize: 6,
+    fontSize: 7,
     fontWeight: 'bold',
     textTransform: 'uppercase',
   },
   dorsoDiasText: {
-    fontSize: 6,
-    fontWeight: '600',
+    fontSize: 8,
+    fontWeight: '700',
     color: '#0D374E',
     textAlign: 'right',
     textShadowColor: 'rgba(255, 255, 255, 0.9)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+  },
+  dorsoEstadoBadgeLarge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  dorsoEstadoTextLarge: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  dorsoDiasTextLarge: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0D374E',
+    textAlign: 'right',
+    textShadowColor: 'rgba(255, 255, 255, 0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    marginTop: 2,
+  },
+  // Estilos para pantalla completa
+  fullScreenButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+  },
+  fullScreenButtonText: {
+    color: '#22c55e',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+  },
+  fullScreenHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 50,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  },
+  fullScreenControlButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  fullScreenControlText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  fullScreenCloseButton: {
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  fullScreenScrollView: {
+    flex: 1,
+  },
+  fullScreenScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  fullScreenCard: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 20,
   },
 })
 
