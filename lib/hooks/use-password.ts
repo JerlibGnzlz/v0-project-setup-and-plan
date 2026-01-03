@@ -47,38 +47,23 @@ export function useResetPassword() {
 
 export function useChangePassword() {
   const queryClient = useQueryClient()
-  const { checkAuth } = useAuth()
 
   return useMutation({
     mutationFn: ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) =>
       authApi.changePassword(currentPassword, newPassword),
-    onSuccess: async () => {
+    onSuccess: () => {
       toast.success('Contraseña cambiada', {
         description: 'Tu contraseña ha sido cambiada exitosamente.',
       })
       
-      // Verificar autenticación para actualizar el estado del usuario
-      // Esto asegura que el token sigue siendo válido y el estado está actualizado
-      try {
-        // Usar setTimeout para evitar bloquear el UI
-        setTimeout(async () => {
-          try {
-            await checkAuth()
-          } catch (error) {
-            // Si la verificación falla, el token podría haber sido invalidado
-            // En ese caso, el usuario necesitará hacer login de nuevo
-            console.warn('[useChangePassword] Error al verificar autenticación después de cambiar contraseña:', error)
-          }
-          
-          // Invalidar solo las queries relacionadas con el usuario, no todas
-          // Esto evita que la aplicación se congele
-          queryClient.invalidateQueries({ queryKey: ['auth'] })
-          queryClient.invalidateQueries({ queryKey: ['usuarios'] })
-        }, 100)
-      } catch (error) {
-        // Si hay un error, solo loguear pero no bloquear
-        console.warn('[useChangePassword] Error al actualizar estado después de cambiar contraseña:', error)
-      }
+      // No necesitamos llamar a checkAuth() porque el token sigue siendo válido
+      // Solo invalidar las queries relacionadas con usuarios para refrescar datos
+      // Esto se hace de forma asíncrona y no bloqueante
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['usuarios'] }).catch(() => {
+          // Ignorar errores de invalidación
+        })
+      }, 0)
     },
     onError: (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : 'Error al cambiar contraseña'
