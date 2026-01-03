@@ -158,7 +158,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {(user?.rol === 'ADMIN' || user?.rol === 'SUPER_ADMIN') && (
+                {user?.rol === 'ADMIN' && (
                   <>
                     <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
                       <Lock className="size-4 mr-2" />
@@ -206,7 +206,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
               {/* Navigation */}
               <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-                {getFilteredNavigation(user?.rol as 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'VIEWER' | undefined).map(item => {
+                {getFilteredNavigation(user?.rol as 'ADMIN' | 'EDITOR' | 'VIEWER' | undefined).map(item => {
                   const isActive =
                     pathname === item.href ||
                     (item.href !== '/admin' && pathname?.startsWith(item.href))
@@ -312,7 +312,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {(user?.rol === 'ADMIN' || user?.rol === 'SUPER_ADMIN') && (
+              {user?.rol === 'ADMIN' && (
                 <>
                   <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
                     <Lock className="size-4 mr-2" />

@@ -16,29 +16,10 @@ export class UsuariosService {
 
   /**
    * Crear nuevo usuario
-   * Solo SUPER_ADMIN puede crear ADMIN y EDITOR
-   * ADMIN puede crear EDITOR pero no ADMIN
+   * Solo ADMIN puede crear usuarios
    */
-  async create(dto: CreateUsuarioDto, userId?: string, userEmail?: string, ipAddress?: string, currentUserRole?: UserRole): Promise<Omit<User, 'password'>> {
+  async create(dto: CreateUsuarioDto, userId?: string, userEmail?: string, ipAddress?: string): Promise<Omit<User, 'password'>> {
     try {
-      // Verificar permisos según rol del usuario actual
-      if (currentUserRole) {
-        // Solo SUPER_ADMIN puede crear ADMIN
-        if (dto.rol === 'ADMIN' && currentUserRole !== 'SUPER_ADMIN') {
-          throw new BadRequestException('Solo SUPER_ADMIN puede crear usuarios ADMIN')
-        }
-        
-        // Solo SUPER_ADMIN puede crear SUPER_ADMIN
-        if (dto.rol === 'SUPER_ADMIN' && currentUserRole !== 'SUPER_ADMIN') {
-          throw new BadRequestException('Solo SUPER_ADMIN puede crear usuarios SUPER_ADMIN')
-        }
-        
-        // ADMIN puede crear EDITOR pero no ADMIN ni SUPER_ADMIN
-        if (currentUserRole === 'ADMIN' && (dto.rol === 'ADMIN' || dto.rol === 'SUPER_ADMIN')) {
-          throw new BadRequestException('ADMIN solo puede crear usuarios EDITOR')
-        }
-      }
-
       // Verificar si el email ya existe
       const existingUser = await this.prisma.user.findUnique({
         where: { email: dto.email },

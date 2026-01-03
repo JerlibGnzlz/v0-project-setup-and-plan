@@ -18,7 +18,7 @@ export interface NavigationItem {
   href: string
   icon: LucideIcon
   description: string
-  roles: ('SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'VIEWER')[]
+  roles: ('ADMIN' | 'EDITOR' | 'VIEWER')[]
   category?: string
 }
 
@@ -108,7 +108,7 @@ export const adminNavigation: NavigationItem[] = [
     href: '/admin/usuarios',
     icon: UserCog,
     description: 'Crear y administrar usuarios',
-    roles: ['SUPER_ADMIN', 'ADMIN'], // SUPER_ADMIN y ADMIN pueden gestionar usuarios
+    roles: ['ADMIN'],
     category: 'configuracion',
   },
   {
@@ -116,7 +116,7 @@ export const adminNavigation: NavigationItem[] = [
     href: '/admin/auditoria',
     icon: FileText,
     description: 'Registro de actividad del sistema',
-    roles: ['SUPER_ADMIN'], // Solo SUPER_ADMIN puede ver auditoría
+    roles: ['ADMIN'],
     category: 'configuracion',
   },
 ]
@@ -131,22 +131,17 @@ export const categoryLabels: Record<string, string> = {
 
 /**
  * Filtra la navegación según el rol del usuario
- * @param userRole - Rol del usuario ('SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'VIEWER')
+ * @param userRole - Rol del usuario ('ADMIN' | 'EDITOR' | 'VIEWER')
  * @returns Array de items de navegación filtrados
  */
 export function getFilteredNavigation(
-  userRole: 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'VIEWER' | undefined
+  userRole: 'ADMIN' | 'EDITOR' | 'VIEWER' | undefined
 ): NavigationItem[] {
   if (!userRole) return []
   
-  // SUPER_ADMIN tiene acceso a TODO (incluyendo auditoría)
-  if (userRole === 'SUPER_ADMIN') {
-    return adminNavigation
-  }
-  
-  // ADMIN tiene acceso a todo EXCEPTO auditoría
+  // ADMIN tiene acceso a todo
   if (userRole === 'ADMIN') {
-    return adminNavigation.filter(item => item.name !== 'Auditoría del Sistema')
+    return adminNavigation
   }
   
   // Filtrar según roles permitidos

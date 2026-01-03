@@ -357,7 +357,7 @@ export class AuthService {
   }
 
   private generateToken(userId: string, email: string, rol: string) {
-    const payload: AdminJwtPayload = { sub: userId, email, rol: rol as 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'VIEWER' }
+    const payload: AdminJwtPayload = { sub: userId, email, rol: rol as 'ADMIN' | 'EDITOR' | 'VIEWER' }
     // Access token con expiración corta (15 minutos) para mayor seguridad
     return this.jwtService.sign(payload, { expiresIn: '15m' })
   }
