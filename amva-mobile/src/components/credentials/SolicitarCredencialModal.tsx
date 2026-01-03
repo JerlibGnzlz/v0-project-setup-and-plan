@@ -389,6 +389,7 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     maxHeight: 400,
+    minHeight: 300,
   },
   modalBodyContent: {
     padding: 20,
