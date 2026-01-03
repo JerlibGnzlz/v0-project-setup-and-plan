@@ -43,7 +43,7 @@ export class GaleriaController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'EDITOR')
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
