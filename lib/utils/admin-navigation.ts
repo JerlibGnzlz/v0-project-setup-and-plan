@@ -19,6 +19,7 @@ export interface NavigationItem {
   icon: LucideIcon
   description: string
   roles: ('ADMIN' | 'EDITOR' | 'VIEWER')[]
+  category?: string
 }
 
 export const adminNavigation: NavigationItem[] = [
@@ -28,13 +29,7 @@ export const adminNavigation: NavigationItem[] = [
     icon: LayoutDashboard,
     description: 'Vista general y estadísticas',
     roles: ['ADMIN'],
-  },
-  {
-    name: 'Estructura Organizacional',
-    href: '/admin/pastores',
-    icon: Users,
-    description: 'Gestión de líderes y pastores',
-    roles: ['ADMIN'],
+    category: 'principal',
   },
   {
     name: 'Gestión de Noticias',
@@ -42,6 +37,7 @@ export const adminNavigation: NavigationItem[] = [
     icon: Newspaper,
     description: 'Publicaciones y contenido',
     roles: ['ADMIN', 'EDITOR'],
+    category: 'contenido',
   },
   {
     name: 'Galería Multimedia',
@@ -49,6 +45,15 @@ export const adminNavigation: NavigationItem[] = [
     icon: ImageIcon,
     description: 'Archivos y recursos visuales',
     roles: ['ADMIN', 'EDITOR'],
+    category: 'contenido',
+  },
+  {
+    name: 'Estructura Organizacional',
+    href: '/admin/pastores',
+    icon: Users,
+    description: 'Gestión de líderes y pastores',
+    roles: ['ADMIN'],
+    category: 'gestion',
   },
   {
     name: 'Registro de Inscripciones',
@@ -56,6 +61,7 @@ export const adminNavigation: NavigationItem[] = [
     icon: UserCheck,
     description: 'Participantes y registros',
     roles: ['ADMIN'],
+    category: 'gestion',
   },
   {
     name: 'Administración de Pagos',
@@ -63,6 +69,7 @@ export const adminNavigation: NavigationItem[] = [
     icon: CreditCard,
     description: 'Transacciones y cuotas',
     roles: ['ADMIN'],
+    category: 'gestion',
   },
   {
     name: 'Credenciales Pastorales',
@@ -70,6 +77,7 @@ export const adminNavigation: NavigationItem[] = [
     icon: Shield,
     description: 'Solicitudes y emisión pastoral',
     roles: ['ADMIN'],
+    category: 'credenciales',
   },
   {
     name: 'Credenciales de Capellanía',
@@ -77,6 +85,7 @@ export const adminNavigation: NavigationItem[] = [
     icon: Shield,
     description: 'Solicitudes y emisión de capellanía',
     roles: ['ADMIN'],
+    category: 'credenciales',
   },
   {
     name: 'Gestión de Sedes',
@@ -84,6 +93,7 @@ export const adminNavigation: NavigationItem[] = [
     icon: Globe,
     description: 'Ubicaciones y oficinas',
     roles: ['ADMIN'],
+    category: 'configuracion',
   },
   {
     name: 'Configuración Landing',
@@ -91,6 +101,7 @@ export const adminNavigation: NavigationItem[] = [
     icon: Settings,
     description: 'Estadísticas y contenido',
     roles: ['ADMIN'],
+    category: 'configuracion',
   },
   {
     name: 'Gestión de Usuarios',
@@ -98,15 +109,25 @@ export const adminNavigation: NavigationItem[] = [
     icon: UserCog,
     description: 'Crear y administrar usuarios',
     roles: ['ADMIN'],
+    category: 'configuracion',
   },
   {
-    name: 'Auditoría',
+    name: 'Auditoría del Sistema',
     href: '/admin/auditoria',
     icon: FileText,
     description: 'Registro de actividad del sistema',
     roles: ['ADMIN'],
+    category: 'configuracion',
   },
 ]
+
+export const categoryLabels: Record<string, string> = {
+  principal: 'Principal',
+  contenido: 'Contenido',
+  gestion: 'Gestión',
+  credenciales: 'Credenciales',
+  configuracion: 'Configuración',
+}
 
 /**
  * Filtra la navegación según el rol del usuario
