@@ -9,13 +9,17 @@ import {
   TextInput,
   ActivityIndicator,
   Platform,
+  KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { X, Clock } from 'lucide-react-native'
 import { LoadingButton } from '../ui/LoadingButton'
 import { FormField } from '../ui/FormField'
+import { CustomPicker } from '../ui/CustomPicker'
 import { TipoCredencial } from '@api/solicitudes-credenciales'
 import type { Invitado } from '@api/invitado-auth'
+import { paises } from '@utils/paises'
 
 interface SolicitarCredencialModalProps {
   visible: boolean
@@ -104,16 +108,35 @@ export function SolicitarCredencialModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Solicitar Credencial</Text>
-            <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
-              <X size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
+      <KeyboardAvoidingView
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View style={styles.modalOverlayContent}>
+          <TouchableOpacity
+            style={styles.modalOverlayTouchable}
+            activeOpacity={1}
+            onPress={() => {
+              Keyboard.dismiss()
+              onClose()
+            }}
+          />
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Solicitar Credencial</Text>
+              <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
+                <X size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
 
-          <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.modalBody}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={styles.modalBodyContent}
+            >
             {/* Tipo de Credencial */}
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>Tipo de Credencial *</Text>
@@ -182,13 +205,15 @@ export function SolicitarCredencialModal({
             />
 
             {/* Nacionalidad */}
-            <FormField
-              label="Nacionalidad"
-              value={formData.nacionalidad}
-              onChangeText={value => setFormData(prev => ({ ...prev, nacionalidad: value }))}
-              placeholder="Ej: Argentina"
-              containerStyle={styles.formGroup}
-            />
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Nacionalidad</Text>
+              <CustomPicker
+                items={paises.map(pais => ({ label: pais, value: pais }))}
+                selectedValue={formData.nacionalidad || null}
+                onValueChange={value => setFormData(prev => ({ ...prev, nacionalidad: String(value) }))}
+                placeholder="Selecciona tu nacionalidad"
+              />
+            </View>
 
             {/* Fecha de Nacimiento */}
             <View style={styles.formGroup}>
@@ -254,6 +279,12 @@ export function SolicitarCredencialModal({
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
+                onFocus={() => {
+                  // Scroll al campo cuando se enfoca
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true })
+                  }, 100)
+                }}
               />
             </View>
           </ScrollView>
@@ -275,7 +306,8 @@ export function SolicitarCredencialModal({
             />
           </View>
         </View>
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   )
 }
@@ -283,17 +315,35 @@ export function SolicitarCredencialModal({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalOverlayContent: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalOverlayTouchable: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
   },
   modalContent: {
     backgroundColor: '#0f172a',
     borderRadius: 20,
     width: '90%',
-    maxHeight: '80%',
+    maxHeight: '85%',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 20,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -312,8 +362,11 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalBody: {
+    flex: 1,
+  },
+  modalBodyContent: {
     padding: 20,
-    maxHeight: 400,
+    paddingBottom: 40,
   },
   modalFooter: {
     flexDirection: 'row',
