@@ -57,7 +57,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Si el usuario está autenticado y tiene credenciales por defecto, redirigir a setup
-    if (isHydrated && isAuthenticated && user && pathname !== '/admin/setup-credentials') {
+    if (isHydrated && isAuthenticated && user && pathname !== '/admin/setup-credentials' && !isPublicPath) {
       const tieneCredencialesPorDefecto = user.email?.endsWith('@ministerio-amva.org')
       if (tieneCredencialesPorDefecto) {
         router.push('/admin/setup-credentials')
