@@ -367,6 +367,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 20,
     overflow: 'hidden',
+    flexDirection: 'column',
+    minHeight: 400,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -385,7 +387,8 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalBody: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
   },
   modalBodyContent: {
     padding: 20,
