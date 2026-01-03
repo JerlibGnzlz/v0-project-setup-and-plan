@@ -55,6 +55,11 @@ export function CredentialsScreen() {
   const [showSolicitarModal, setShowSolicitarModal] = useState(false)
   const [solicitandoCredencial, setSolicitandoCredencial] = useState(false)
 
+  // Debug: Log cuando cambia el estado del modal
+  useEffect(() => {
+    console.log('🔍 CredentialsScreen: showSolicitarModal cambió a:', showSolicitarModal)
+  }, [showSolicitarModal])
+
   // Refetch automático cuando la app vuelve a estar activa (para solicitudes también)
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
@@ -374,7 +379,10 @@ export function CredentialsScreen() {
         {isInvitadoAuthenticated && invitado && solicitudes.length > 0 && (
           <SolicitudesList
             solicitudes={solicitudes}
-            onSolicitarPress={() => setShowSolicitarModal(true)}
+            onSolicitarPress={() => {
+              console.log('🔍 CredentialsScreen: onSolicitarPress llamado desde SolicitudesList')
+              setShowSolicitarModal(true)
+            }}
             getEstadoSolicitudColor={getEstadoSolicitudColor}
             getEstadoSolicitudLabel={getEstadoSolicitudLabel}
             formatDate={formatDate}

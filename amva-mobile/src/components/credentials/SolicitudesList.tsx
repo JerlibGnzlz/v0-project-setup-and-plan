@@ -81,7 +81,14 @@ export function SolicitudesList({
           </View>
         )
       })}
-      <TouchableOpacity style={styles.solicitarButton} onPress={onSolicitarPress}>
+      <TouchableOpacity
+        style={styles.solicitarButton}
+        onPress={() => {
+          console.log('🔍 SolicitudesList: Botón "Nueva Solicitud" presionado')
+          onSolicitarPress()
+        }}
+        activeOpacity={0.7}
+      >
         <Plus size={20} color="#fff" />
         <Text style={styles.solicitarButtonText}>Nueva Solicitud</Text>
       </TouchableOpacity>

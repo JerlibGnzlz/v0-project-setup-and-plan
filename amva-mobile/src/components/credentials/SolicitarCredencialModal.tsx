@@ -44,6 +44,10 @@ export function SolicitarCredencialModal({
   invitado,
   loading = false,
 }: SolicitarCredencialModalProps) {
+  // Debug: Log cuando cambia la visibilidad del modal
+  useEffect(() => {
+    console.log('🔍 SolicitarCredencialModal: visible cambió a:', visible)
+  }, [visible])
   const [formData, setFormData] = useState({
     tipo: TipoCredencial.MINISTERIAL as TipoCredencial,
     dni: '',
