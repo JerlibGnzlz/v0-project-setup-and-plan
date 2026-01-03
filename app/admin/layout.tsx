@@ -111,7 +111,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         return () => clearTimeout(timeoutId)
       }
     }
-  }, [isAuthenticated, isHydrated, isPublicPath, pathname, checkAuth])
+  }, [isAuthenticated, isHydrated, isPublicPath, pathname, checkAuth, hasCheckedDefaultCredentials, user, router])
 
   const handleLogout = () => {
     logout()
