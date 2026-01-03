@@ -13,7 +13,7 @@ export function AdminSidebar() {
   const { user } = useAuth()
   
   // Filtrar navegación según rol del usuario
-  const filteredNavigation = getFilteredNavigation(user?.rol as 'ADMIN' | 'EDITOR' | 'VIEWER' | undefined)
+  const filteredNavigation = getFilteredNavigation(user?.rol as 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'VIEWER' | undefined)
 
   // Agrupar navegación por categorías
   const groupedNavigation = useMemo(() => {
