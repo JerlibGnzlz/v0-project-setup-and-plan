@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { ImageWithSkeleton } from './image-with-skeleton'
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog'
 import {
@@ -13,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  ArrowRight,
 } from 'lucide-react'
 import { VideoCardModern } from './video-card-modern'
 import { useGaleria } from '@/lib/hooks/use-galeria'
@@ -104,15 +106,20 @@ function AnimateOnScroll({ children, delay = 0 }: { children: React.ReactNode; d
 }
 
 export function GallerySection() {
+  const router = useRouter()
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [playingVideo, setPlayingVideo] = useState<string | null>(null)
   const { data: galeria = [], isLoading } = useGaleria()
 
-  const imagenes = galeria.filter(
+  // Limitar a 4 imágenes y 2 videos para la landing page
+  const todasImagenes = galeria.filter(
     (item: GaleriaImagen) => (item.tipo === 'IMAGEN' || !item.tipo) && item.activa
   )
-  const videos = galeria.filter((item: GaleriaImagen) => item.tipo === 'VIDEO' && item.activa)
+  const todosVideos = galeria.filter((item: GaleriaImagen) => item.tipo === 'VIDEO' && item.activa)
+  
+  const imagenes = todasImagenes.slice(0, 4)
+  const videos = todosVideos.slice(0, 2)
 
   const openLightbox = (index: number) => {
     setSelectedImageIndex(index)
@@ -200,9 +207,17 @@ export function GallerySection() {
                 Galería
               </span>
             </h2>
-            <p className="text-lg text-white/60 max-w-2xl mx-auto">
+            <p className="text-lg text-white/60 max-w-2xl mx-auto mb-6">
               Momentos que capturan el impacto de nuestro trabajo misionero
             </p>
+            <Button
+              onClick={() => router.push('/galeria')}
+              variant="outline"
+              className="bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/30"
+            >
+              Ver Galería Completa
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
           </div>
         </AnimateOnScroll>
 
