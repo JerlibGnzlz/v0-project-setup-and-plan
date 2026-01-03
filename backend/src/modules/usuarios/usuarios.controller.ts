@@ -29,8 +29,12 @@ export class UsuariosController {
    * Solo ADMIN puede crear usuarios
    */
   @Post()
-  async create(@Body() dto: CreateUsuarioDto) {
-    return this.usuariosService.create(dto)
+  async create(@Body() dto: CreateUsuarioDto, @Request() req: AuthenticatedRequest) {
+    const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
+      ? req.headers['x-forwarded-for'][0]
+      : req.headers['x-forwarded-for']
+    const clientIp = req.ip || forwardedFor || undefined
+    return this.usuariosService.create(dto, req.user.id, req.user.email, clientIp)
   }
 
   /**
@@ -53,8 +57,12 @@ export class UsuariosController {
    * Actualizar usuario
    */
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateUsuarioDto) {
-    return this.usuariosService.update(id, dto)
+  async update(@Param('id') id: string, @Body() dto: UpdateUsuarioDto, @Request() req: AuthenticatedRequest) {
+    const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
+      ? req.headers['x-forwarded-for'][0]
+      : req.headers['x-forwarded-for']
+    const clientIp = req.ip || forwardedFor || undefined
+    return this.usuariosService.update(id, dto, req.user.id, req.user.email, clientIp)
   }
 
   /**
@@ -62,8 +70,12 @@ export class UsuariosController {
    */
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string) {
-    await this.usuariosService.remove(id)
+  async remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
+      ? req.headers['x-forwarded-for'][0]
+      : req.headers['x-forwarded-for']
+    const clientIp = req.ip || forwardedFor || undefined
+    await this.usuariosService.remove(id, req.user.id, req.user.email, clientIp)
   }
 
   /**
@@ -91,8 +103,12 @@ export class UsuariosController {
    * Activar/Desactivar usuario (toggle)
    */
   @Patch(':id/toggle-activo')
-  async toggleActivo(@Param('id') id: string) {
-    return this.usuariosService.toggleActivo(id)
+  async toggleActivo(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
+      ? req.headers['x-forwarded-for'][0]
+      : req.headers['x-forwarded-for']
+    const clientIp = req.ip || forwardedFor || undefined
+    return this.usuariosService.toggleActivo(id, req.user.id, req.user.email, clientIp)
   }
 }
 

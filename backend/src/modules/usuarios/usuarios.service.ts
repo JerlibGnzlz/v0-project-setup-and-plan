@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, Logger, ConflictException } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
+import { AuditService } from '../../common/services/audit.service'
 import { CreateUsuarioDto, UpdateUsuarioDto, ChangePasswordDto, AdminResetPasswordDto } from './dto/usuario.dto'
 import { User, UserRole } from '@prisma/client'
 import * as bcrypt from 'bcrypt'
@@ -8,13 +9,16 @@ import * as bcrypt from 'bcrypt'
 export class UsuariosService {
   private readonly logger = new Logger(UsuariosService.name)
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditService: AuditService
+  ) {}
 
   /**
    * Crear nuevo usuario
    * Solo ADMIN puede crear usuarios
    */
-  async create(dto: CreateUsuarioDto): Promise<Omit<User, 'password'>> {
+  async create(dto: CreateUsuarioDto, userId?: string, userEmail?: string, ipAddress?: string): Promise<Omit<User, 'password'>> {
     try {
       // Verificar si el email ya existe
       const existingUser = await this.prisma.user.findUnique({
@@ -56,6 +60,23 @@ export class UsuariosService {
       })
 
       this.logger.log(`✅ Usuario creado: ${user.email} con rol ${user.rol}`)
+
+      // Registrar auditoría
+      if (userId) {
+        await this.auditService.log({
+          entityType: 'USUARIO',
+          entityId: user.id,
+          action: 'CREATE',
+          userId,
+          userEmail: userEmail || 'sistema',
+          metadata: {
+            email: user.email,
+            nombre: user.nombre,
+            rol: user.rol,
+          },
+          ipAddress: ipAddress || undefined,
+        })
+      }
 
       return user
     } catch (error: unknown) {
@@ -124,7 +145,7 @@ export class UsuariosService {
   /**
    * Actualizar usuario
    */
-  async update(id: string, dto: UpdateUsuarioDto): Promise<Omit<User, 'password'>> {
+  async update(id: string, dto: UpdateUsuarioDto, userId?: string, userEmail?: string, ipAddress?: string): Promise<Omit<User, 'password'>> {
     try {
       // Verificar si el usuario existe
       const existingUser = await this.prisma.user.findUnique({
@@ -318,6 +339,26 @@ export class UsuariosService {
     this.logger.log(
       `✅ Usuario ${updatedUser.activo ? 'activado' : 'desactivado'}: ${updatedUser.email}`
     )
+
+    // Registrar auditoría
+    if (userId) {
+      await this.auditService.log({
+        entityType: 'USUARIO',
+        entityId: id,
+        action: updatedUser.activo ? 'ACTIVAR' : 'DESACTIVAR',
+        userId,
+        userEmail: userEmail || 'sistema',
+        changes: [
+          { field: 'activo', oldValue: !updatedUser.activo, newValue: updatedUser.activo },
+        ],
+        metadata: {
+          email: updatedUser.email,
+          nombre: updatedUser.nombre,
+          rol: updatedUser.rol,
+        },
+        ipAddress: ipAddress || undefined,
+      })
+    }
 
     return updatedUser
   }
