@@ -358,7 +358,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a',
     borderRadius: 20,
     width: '100%',
-    maxHeight: '100%',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     shadowColor: '#000',
@@ -368,7 +367,7 @@ const styles = StyleSheet.create({
     elevation: 20,
     overflow: 'hidden',
     flexDirection: 'column',
-    minHeight: 400,
+    maxHeight: 600,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -387,8 +386,8 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalBody: {
-    flexGrow: 1,
-    flexShrink: 1,
+    flex: 1,
+    maxHeight: 450,
   },
   modalBodyContent: {
     padding: 20,
