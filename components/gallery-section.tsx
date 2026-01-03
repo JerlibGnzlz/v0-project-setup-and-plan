@@ -112,14 +112,19 @@ export function GallerySection() {
   const [playingVideo, setPlayingVideo] = useState<string | null>(null)
   const { data: galeria = [], isLoading } = useGaleria()
 
-  // Limitar a 4 imágenes y 2 videos para la landing page
+  // Limitar imágenes y videos para la landing page (el resto se ve en /galeria)
   const todasImagenes = galeria.filter(
     (item: GaleriaImagen) => (item.tipo === 'IMAGEN' || !item.tipo) && item.activa
   )
   const todosVideos = galeria.filter((item: GaleriaImagen) => item.tipo === 'VIDEO' && item.activa)
   
-  const imagenes = todasImagenes.slice(0, 4)
-  const videos = todosVideos.slice(0, 2)
+  // Mostrar más imágenes y videos en la landing (12 imágenes y 6 videos)
+  // Todas las demás se pueden ver en la página completa /galeria
+  const MAX_IMAGENES_LANDING = 12
+  const MAX_VIDEOS_LANDING = 6
+  
+  const imagenes = todasImagenes.slice(0, MAX_IMAGENES_LANDING)
+  const videos = todosVideos.slice(0, MAX_VIDEOS_LANDING)
 
   const openLightbox = (index: number) => {
     setSelectedImageIndex(index)
@@ -237,7 +242,9 @@ export function GallerySection() {
                     </div>
                     <h3 className="text-2xl font-bold text-white">Fotografías</h3>
                     <div className="flex-1 h-px bg-gradient-to-r from-emerald-500/50 to-transparent ml-4" />
-                    <span className="text-white/40 text-sm">{imagenes.length} imágenes</span>
+                    <span className="text-white/40 text-sm">
+                      {imagenes.length} {todasImagenes.length > MAX_IMAGENES_LANDING && `de ${todasImagenes.length}`} imágenes
+                    </span>
                   </div>
 
                   {/* Bento Grid */}
@@ -290,6 +297,24 @@ export function GallerySection() {
                       </AnimateOnScroll>
                     ))}
                   </div>
+                  
+                  {/* Mensaje si hay más imágenes */}
+                  {todasImagenes.length > MAX_IMAGENES_LANDING && (
+                    <div className="text-center mt-8">
+                      <p className="text-white/60 text-sm mb-4">
+                        Mostrando {MAX_IMAGENES_LANDING} de {todasImagenes.length} imágenes
+                      </p>
+                      <Button
+                        onClick={() => router.push('/galeria')}
+                        variant="outline"
+                        size="sm"
+                        className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+                      >
+                        Ver todas las imágenes
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </AnimateOnScroll>
             )}
@@ -304,7 +329,9 @@ export function GallerySection() {
                     </div>
                     <h3 className="text-2xl font-bold text-white">Videos</h3>
                     <div className="flex-1 h-px bg-gradient-to-r from-sky-500/50 to-transparent ml-4" />
-                    <span className="text-white/40 text-sm">{videos.length} videos</span>
+                    <span className="text-white/40 text-sm">
+                      {videos.length} {todosVideos.length > MAX_VIDEOS_LANDING && `de ${todosVideos.length}`} videos
+                    </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -405,6 +432,24 @@ export function GallerySection() {
                       )
                     })}
                   </div>
+                  
+                  {/* Mensaje si hay más videos */}
+                  {todosVideos.length > MAX_VIDEOS_LANDING && (
+                    <div className="text-center mt-8">
+                      <p className="text-white/60 text-sm mb-4">
+                        Mostrando {MAX_VIDEOS_LANDING} de {todosVideos.length} videos
+                      </p>
+                      <Button
+                        onClick={() => router.push('/galeria')}
+                        variant="outline"
+                        size="sm"
+                        className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+                      >
+                        Ver todos los videos
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </AnimateOnScroll>
             )}
