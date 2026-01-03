@@ -121,10 +121,10 @@ export class NoticiasController {
     return this.noticiasService.update(id, updateNoticiaDto, req.user.id, req.user.email, clientIp)
   }
 
-  // Eliminar noticia (solo admin)
+  // Eliminar noticia (admin y editor)
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'EDITOR')
   remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
       ? req.headers['x-forwarded-for'][0]
