@@ -241,7 +241,7 @@ export class UsuariosService {
   /**
    * Eliminar usuario
    */
-  async remove(id: string): Promise<void> {
+  async remove(id: string, userId?: string, userEmail?: string, ipAddress?: string): Promise<void> {
     const user = await this.prisma.user.findUnique({
       where: { id },
     })
@@ -266,6 +266,23 @@ export class UsuariosService {
     })
 
     this.logger.log(`✅ Usuario eliminado: ${user.email}`)
+
+    // Registrar auditoría
+    if (userId) {
+      await this.auditService.log({
+        entityType: 'USUARIO',
+        entityId: id,
+        action: 'DELETE',
+        userId,
+        userEmail: userEmail || 'sistema',
+        metadata: {
+          email: user.email,
+          nombre: user.nombre,
+          rol: user.rol,
+        },
+        ipAddress: ipAddress || undefined,
+      })
+    }
   }
 
   /**
