@@ -61,8 +61,18 @@ export class AuditController {
       this.prisma.auditLog.count({ where }),
     ])
 
+    // Transformar logs para incluir userName y userEmail directamente
+    const transformedLogs = logs.map(log => ({
+      ...log,
+      userName: log.userName || log.user?.nombre || null,
+      userEmail: log.userEmail || log.user?.email || 'sistema',
+      createdAt: log.createdAt.toISOString(),
+      changes: log.changes ? (typeof log.changes === 'object' && log.changes !== null ? log.changes : null) : null,
+      metadata: log.metadata ? (typeof log.metadata === 'object' && log.metadata !== null ? log.metadata : null) : null,
+    }))
+
     return {
-      logs,
+      logs: transformedLogs,
       pagination: {
         total,
         limit: take,
@@ -106,10 +116,25 @@ export class AuditController {
       }),
     ])
 
+    // Transformar logs para incluir userName y userEmail directamente
+    const transformedActivityLogs = logs.map(log => ({
+      ...log,
+      userName: log.userName || null,
+      userEmail: log.userEmail || 'sistema',
+      createdAt: log.createdAt.toISOString(),
+      changes: log.changes ? (typeof log.changes === 'object' && log.changes !== null ? log.changes : null) : null,
+      metadata: log.metadata ? (typeof log.metadata === 'object' && log.metadata !== null ? log.metadata : null) : null,
+    }))
+
     return {
-      user,
+      user: user
+        ? {
+            ...user,
+            ultimoLogin: user.ultimoLogin?.toISOString() || null,
+          }
+        : null,
       activity: {
-        logs,
+        logs: transformedActivityLogs,
         pagination: {
           total,
           limit: take,
@@ -192,7 +217,17 @@ export class AuditController {
 
     const byUserWithNames = byUser.map(stat => ({
       ...stat,
-      user: users.find(u => u.id === stat.userId),
+      user: users.find(u => u.id === stat.userId) || null,
+    }))
+
+    // Transformar recentActivity para incluir userName y userEmail directamente
+    const transformedRecentActivity = recentActivity.map(log => ({
+      ...log,
+      userName: log.userName || log.user?.nombre || null,
+      userEmail: log.userEmail || log.user?.email || 'sistema',
+      createdAt: log.createdAt.toISOString(),
+      changes: log.changes ? (typeof log.changes === 'object' && log.changes !== null ? log.changes : null) : null,
+      metadata: log.metadata ? (typeof log.metadata === 'object' && log.metadata !== null ? log.metadata : null) : null,
     }))
 
     return {
@@ -200,7 +235,7 @@ export class AuditController {
       byEntityType,
       byAction,
       topUsers: byUserWithNames,
-      recentActivity,
+      recentActivity: transformedRecentActivity,
     }
   }
 }
