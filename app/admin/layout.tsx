@@ -48,24 +48,26 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   // Estado para rastrear si ya verificamos las credenciales por defecto
   const [hasCheckedDefaultCredentials, setHasCheckedDefaultCredentials] = useState(false)
 
-  // Verificar autenticación al montar (solo si no está hidratado)
+  // Verificar autenticación al montar
   useEffect(() => {
-    if (!isHydrated) {
-      const verifyAuth = async () => {
+    const verifyAuth = async () => {
+      // Si ya está autenticado e hidratado, solo necesitamos verificar credenciales por defecto
+      if (isHydrated && isAuthenticated && user) {
+        // Si ya tenemos el usuario, solo marcamos que podemos verificar credenciales
+        // No necesitamos hacer checkAuth de nuevo si ya tenemos datos
+        setHasCheckedDefaultCredentials(true)
+        return
+      }
+
+      // Si no está hidratado o no está autenticado, hacer checkAuth
+      if (!isHydrated || !isAuthenticated) {
         await checkAuth()
-        // Después de verificar autenticación, marcar que podemos verificar credenciales por defecto
         setHasCheckedDefaultCredentials(true)
       }
-      verifyAuth()
-    } else if (isHydrated && !hasCheckedDefaultCredentials) {
-      // Si ya está hidratado pero no hemos verificado, hacer checkAuth para obtener datos actualizados
-      const verifyAuth = async () => {
-        await checkAuth()
-        setHasCheckedDefaultCredentials(true)
-      }
-      verifyAuth()
     }
-  }, [checkAuth, isHydrated, hasCheckedDefaultCredentials])
+    
+    verifyAuth()
+  }, [checkAuth, isHydrated, isAuthenticated, user])
 
   useEffect(() => {
     // Solo verificar credenciales por defecto después de que checkAuth haya completado
