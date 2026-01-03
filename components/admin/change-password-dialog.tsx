@@ -63,10 +63,18 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
       })
+      
+      // Resetear el formulario
       reset()
-      onOpenChange(false)
+      
+      // Cerrar el diálogo después de un pequeño delay para asegurar que el toast se muestre
+      // y que el estado se actualice correctamente
+      setTimeout(() => {
+        onOpenChange(false)
+      }, 300)
     } catch (error) {
       // Error ya manejado en el hook
+      // No cerrar el diálogo si hay error para que el usuario pueda corregir
     }
   }
 
