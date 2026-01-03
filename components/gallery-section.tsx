@@ -118,10 +118,10 @@ export function GallerySection() {
   )
   const todosVideos = galeria.filter((item: GaleriaImagen) => item.tipo === 'VIDEO' && item.activa)
   
-  // Mostrar más imágenes y videos en la landing (12 imágenes y 6 videos)
+  // Mostrar solo 4 imágenes y 2 videos en la landing page
   // Todas las demás se pueden ver en la página completa /galeria
-  const MAX_IMAGENES_LANDING = 12
-  const MAX_VIDEOS_LANDING = 6
+  const MAX_IMAGENES_LANDING = 4
+  const MAX_VIDEOS_LANDING = 2
   
   const imagenes = todasImagenes.slice(0, MAX_IMAGENES_LANDING)
   const videos = todosVideos.slice(0, MAX_VIDEOS_LANDING)
