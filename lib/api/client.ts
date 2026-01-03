@@ -58,6 +58,23 @@ apiClient.interceptors.request.use((config: any) => {
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+      
+      // Log para debugging (solo en desarrollo o cuando hay errores 403)
+      if (process.env.NODE_ENV === 'development' || requestUrl.includes('/usuarios')) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]))
+          console.log('[apiClient] Token enviado:', {
+            url: requestUrl,
+            method: config.method?.toUpperCase(),
+            rol: payload.rol,
+            email: payload.email,
+          })
+        } catch (e) {
+          // Ignorar errores al decodificar token
+        }
+      }
+    } else {
+      console.warn('[apiClient] No hay token disponible para:', requestUrl)
     }
   }
   return config
