@@ -115,7 +115,7 @@ export function UsuariosDialog({
         password: '',
         nombre: '',
         rol: 'EDITOR',
-        usarCredencialesPorDefecto: false,
+        usarCredencialesPorDefecto: true, // Por defecto activado
       })
     }
   }, [usuario, isCreating, reset])
