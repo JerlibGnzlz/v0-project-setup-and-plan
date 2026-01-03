@@ -194,6 +194,38 @@ export class UsuariosService {
 
       this.logger.log(`✅ Usuario actualizado: ${user.email}`)
 
+      // Registrar auditoría
+      if (userId) {
+        const changes = []
+        if (dto.email && dto.email !== existingUser.email) {
+          changes.push({ field: 'email', oldValue: existingUser.email, newValue: dto.email })
+        }
+        if (dto.nombre && dto.nombre !== existingUser.nombre) {
+          changes.push({ field: 'nombre', oldValue: existingUser.nombre, newValue: dto.nombre })
+        }
+        if (dto.rol && dto.rol !== existingUser.rol) {
+          changes.push({ field: 'rol', oldValue: existingUser.rol, newValue: dto.rol })
+        }
+        if (dto.activo !== undefined && dto.activo !== existingUser.activo) {
+          changes.push({ field: 'activo', oldValue: existingUser.activo, newValue: dto.activo })
+        }
+
+        await this.auditService.log({
+          entityType: 'USUARIO',
+          entityId: id,
+          action: 'UPDATE',
+          userId,
+          userEmail: userEmail || 'sistema',
+          changes: changes.length > 0 ? changes : undefined,
+          metadata: {
+            email: user.email,
+            nombre: user.nombre,
+            rol: user.rol,
+          },
+          ipAddress: ipAddress || undefined,
+        })
+      }
+
       return user
     } catch (error: unknown) {
       if (error instanceof NotFoundException || error instanceof ConflictException || error instanceof BadRequestException) {
@@ -301,7 +333,7 @@ export class UsuariosService {
    * Solo se puede desactivar usuarios EDITOR o VIEWER
    * Los ADMIN siempre deben estar activos
    */
-  async toggleActivo(id: string): Promise<Omit<User, 'password'>> {
+  async toggleActivo(id: string, userId?: string, userEmail?: string, ipAddress?: string): Promise<Omit<User, 'password'>> {
     const user = await this.prisma.user.findUnique({
       where: { id },
     })
