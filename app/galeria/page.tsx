@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
@@ -415,7 +415,9 @@ function GaleriaPageContent() {
 
               {/* Contador de resultados */}
               <div className="text-sm text-white/40">
-                Mostrando {filteredGaleria.length} de {galeria.length} elementos
+                {totalPages > 1
+                  ? `Mostrando ${itemsPaginados.length} de ${filteredGaleria.length} elementos (Página ${currentPage} de ${totalPages})`
+                  : `Mostrando ${filteredGaleria.length} de ${galeria.length} elementos`}
               </div>
             </div>
           </div>
@@ -545,6 +547,64 @@ function GaleriaPageContent() {
                         )
                       })}
                     </div>
+                  </div>
+                )}
+
+                {/* Paginación */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-12">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="bg-white/5 border-white/20 text-white hover:bg-white/10 disabled:opacity-50"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Anterior
+                    </Button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum: number
+                        if (totalPages <= 5) {
+                          pageNum = i + 1
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i
+                        } else {
+                          pageNum = currentPage - 2 + i
+                        }
+
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={
+                              currentPage === pageNum
+                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                : 'bg-white/5 border-white/20 text-white hover:bg-white/10'
+                            }
+                          >
+                            {pageNum}
+                          </Button>
+                        )
+                      })}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="bg-white/5 border-white/20 text-white hover:bg-white/10 disabled:opacity-50"
+                    >
+                      Siguiente
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
                   </div>
                 )}
               </>
