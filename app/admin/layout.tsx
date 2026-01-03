@@ -321,6 +321,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
               <DropdownMenuSeparator />
               {user?.rol === 'ADMIN' && (
                 <>
+                  <DropdownMenuItem onClick={() => setIsChangeEmailOpen(true)}>
+                    <Mail className="size-4 mr-2" />
+                    Cambiar Email
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
                     <Lock className="size-4 mr-2" />
                     Cambiar Contraseña
@@ -352,6 +356,15 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Change Password Dialog */}
       <ChangePasswordDialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen} />
+      
+      {/* Change Email Dialog */}
+      {user && (
+        <ChangeEmailDialog
+          open={isChangeEmailOpen}
+          onOpenChange={setIsChangeEmailOpen}
+          currentEmail={user.email}
+        />
+      )}
     </div>
   )
 }
