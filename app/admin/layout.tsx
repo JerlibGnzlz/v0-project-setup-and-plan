@@ -39,7 +39,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
 
   // Páginas públicas que no requieren autenticación
-  const publicPaths = ['/admin/login']
+  const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password']
   const isPublicPath = publicPaths.some(path => pathname?.startsWith(path))
 
   // Verificar autenticación al montar (solo si no está hidratado)
