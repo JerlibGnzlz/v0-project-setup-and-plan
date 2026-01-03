@@ -150,6 +150,10 @@ function GaleriaPageContent() {
   const [selectedTipo, setSelectedTipo] = useState<string>('all')
   const [selectedCategoria, setSelectedCategoria] = useState<string>('all')
 
+  // Paginación para mejorar rendimiento
+  const ITEMS_PER_PAGE = 24 // Mostrar 24 elementos por página (12 imágenes + 12 videos aprox)
+  const [currentPage, setCurrentPage] = useState(1)
+
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
@@ -189,10 +193,33 @@ function GaleriaPageContent() {
   }, [galeria, searchQuery, selectedConvencion, selectedTipo, selectedCategoria])
 
   // Separar imágenes y videos
-  const imagenes = filteredGaleria.filter(
+  const todasImagenes = filteredGaleria.filter(
     (item: GaleriaImagen) => (item.tipo === 'IMAGEN' || !item.tipo) && item.activa
   )
-  const videos = filteredGaleria.filter((item: GaleriaImagen) => item.tipo === 'VIDEO' && item.activa)
+  const todosVideos = filteredGaleria.filter((item: GaleriaImagen) => item.tipo === 'VIDEO' && item.activa)
+
+  // Paginación: calcular qué elementos mostrar
+  const totalItems = todasImagenes.length + todosVideos.length
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
+  
+  // Calcular índices para paginación
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const endIndex = startIndex + ITEMS_PER_PAGE
+
+  // Combinar imágenes y videos para paginación
+  const itemsCombinados = [...todasImagenes, ...todosVideos]
+  const itemsPaginados = itemsCombinados.slice(startIndex, endIndex)
+
+  // Separar los items paginados
+  const imagenes = itemsPaginados.filter(
+    (item: GaleriaImagen) => (item.tipo === 'IMAGEN' || !item.tipo) && item.activa
+  )
+  const videos = itemsPaginados.filter((item: GaleriaImagen) => item.tipo === 'VIDEO' && item.activa)
+
+  // Resetear página cuando cambian los filtros
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, selectedConvencion, selectedTipo, selectedCategoria])
 
   // Obtener categorías únicas
   const categorias = useMemo(() => {
