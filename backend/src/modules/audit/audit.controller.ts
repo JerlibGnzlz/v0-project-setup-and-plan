@@ -100,6 +100,16 @@ export class AuditController {
         orderBy: { createdAt: 'desc' },
         take,
         skip,
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              nombre: true,
+              rol: true,
+            },
+          },
+        },
       }),
       this.prisma.auditLog.count({ where: { userId } }),
       this.prisma.user.findUnique({
@@ -119,8 +129,8 @@ export class AuditController {
     // Transformar logs para incluir userName y userEmail directamente
     const transformedActivityLogs = logs.map(log => ({
       ...log,
-      userName: log.userName || null,
-      userEmail: log.userEmail || 'sistema',
+      userName: log.userName || log.user?.nombre || null,
+      userEmail: log.userEmail || log.user?.email || 'sistema',
       createdAt: log.createdAt.toISOString(),
       changes: log.changes ? (typeof log.changes === 'object' && log.changes !== null ? log.changes : null) : null,
       metadata: log.metadata ? (typeof log.metadata === 'object' && log.metadata !== null ? log.metadata : null) : null,
