@@ -58,12 +58,12 @@ export class GaleriaService extends BaseService<GaleriaImagen, CreateGaleriaDto,
         tipo: TipoGaleria.IMAGEN,
       },
       orderBy: { orden: 'asc' },
-      take: GaleriaService.MAX_IMAGENES,
+      take: GaleriaService.MAX_IMAGENES_LANDING,
     })
   }
 
   /**
-   * Obtiene solo los videos activos
+   * Obtiene solo los videos activos para la landing (limitados)
    */
   async findVideos(): Promise<GaleriaImagen[]> {
     return this.model.findMany({
@@ -72,7 +72,7 @@ export class GaleriaService extends BaseService<GaleriaImagen, CreateGaleriaDto,
         tipo: TipoGaleria.VIDEO,
       },
       orderBy: { orden: 'asc' },
-      take: GaleriaService.MAX_VIDEOS,
+      take: GaleriaService.MAX_VIDEOS_LANDING,
     })
   }
 
@@ -247,8 +247,9 @@ export class GaleriaService extends BaseService<GaleriaImagen, CreateGaleriaDto,
       totalVideos,
       imagenesActivas,
       videosActivos,
-      espacioImagenes: GaleriaService.MAX_IMAGENES - imagenesActivas,
-      espacioVideos: GaleriaService.MAX_VIDEOS - videosActivos,
+      // Sin límites - siempre hay espacio disponible
+      espacioImagenes: Infinity,
+      espacioVideos: Infinity,
     }
   }
 }
