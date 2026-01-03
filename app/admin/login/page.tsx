@@ -111,3 +111,20 @@ function AdminLoginContent() {
     </LoginLayout>
   )
 }
+
+export default function AdminLogin() {
+  return (
+    <Suspense fallback={
+      <LoginLayout>
+        <LoginCard>
+          <LoginLogo />
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-sky-500 border-t-transparent"></div>
+          </div>
+        </LoginCard>
+      </LoginLayout>
+    }>
+      <AdminLoginContent />
+    </Suspense>
+  )
+}
