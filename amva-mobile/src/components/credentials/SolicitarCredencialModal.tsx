@@ -135,7 +135,8 @@ export function SolicitarCredencialModal({
             }}
           />
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
+            <View style={styles.modalContentInner}>
+              <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Solicitar Credencial</Text>
               <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
                 <X size={24} color="#fff" />
