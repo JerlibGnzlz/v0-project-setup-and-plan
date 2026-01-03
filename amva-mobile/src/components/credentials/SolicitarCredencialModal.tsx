@@ -137,20 +137,20 @@ export function SolicitarCredencialModal({
           <View style={styles.modalContent}>
             <View style={styles.modalContentInner}>
               <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Solicitar Credencial</Text>
-              <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
-                <X size={24} color="#fff" />
-              </TouchableOpacity>
-            </View>
+                <Text style={styles.modalTitle}>Solicitar Credencial</Text>
+                <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
+                  <X size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
 
-            <ScrollView
-              ref={scrollViewRef}
-              style={styles.modalBody}
-              contentContainerStyle={styles.modalBodyContent}
-              showsVerticalScrollIndicator={true}
-              keyboardShouldPersistTaps="handled"
-              nestedScrollEnabled={true}
-            >
+              <ScrollView
+                ref={scrollViewRef}
+                style={styles.modalBody}
+                contentContainerStyle={styles.modalBodyContent}
+                showsVerticalScrollIndicator={true}
+                keyboardShouldPersistTaps="handled"
+                nestedScrollEnabled={true}
+              >
             {/* Tipo de Credencial */}
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>Tipo de Credencial *</Text>
