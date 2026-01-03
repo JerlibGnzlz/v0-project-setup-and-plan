@@ -158,11 +158,15 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
-                  <Lock className="size-4 mr-2" />
-                  Cambiar Contraseña
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {user?.rol === 'ADMIN' && (
+                  <>
+                    <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
+                      <Lock className="size-4 mr-2" />
+                      Cambiar Contraseña
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                   <LogOut className="size-4 mr-2" />
                   Cerrar Sesión
@@ -308,11 +312,15 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
-                <Lock className="size-4 mr-2" />
-                Cambiar Contraseña
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {user?.rol === 'ADMIN' && (
+                <>
+                  <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
+                    <Lock className="size-4 mr-2" />
+                    Cambiar Contraseña
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                 <LogOut className="size-4 mr-2" />
                 Cerrar Sesión
