@@ -69,12 +69,8 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
   }, [open, reset])
 
   const handleCancel = () => {
-    // Resetear formulario antes de cerrar
-    reset()
-    setShowCurrentPassword(false)
-    setShowNewPassword(false)
-    setShowConfirmPassword(false)
     // Cerrar el diálogo directamente
+    // El useEffect y handleOpenChange se encargarán de limpiar el estado
     onOpenChange(false)
   }
 
@@ -86,6 +82,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
       setShowNewPassword(false)
       setShowConfirmPassword(false)
     }
+    // Pasar el cambio al componente padre
     onOpenChange(open)
   }
 
