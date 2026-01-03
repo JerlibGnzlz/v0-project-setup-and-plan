@@ -98,12 +98,23 @@ export default function SetupCredentialsPage() {
         newPassword: data.password,
       })
 
-      // Cerrar sesión para limpiar tokens antiguos
+      // Cerrar sesión para limpiar tokens antiguos y estado del usuario
       logout()
 
+      // Limpiar también el storage manualmente para asegurar que no quede nada
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('auth_refresh_token')
+        localStorage.removeItem('auth_user')
+        sessionStorage.removeItem('auth_token')
+        sessionStorage.removeItem('auth_refresh_token')
+        sessionStorage.removeItem('auth_user')
+      }
+
       // Mostrar mensaje de éxito y redirigir al login
+      // Usar window.location.href para forzar recarga completa y limpiar todo el estado
       setTimeout(() => {
-        router.push('/admin/login?credentialsUpdated=true')
+        window.location.href = '/admin/login?credentialsUpdated=true'
       }, 500)
     } catch (error) {
       // Error ya manejado en los hooks
