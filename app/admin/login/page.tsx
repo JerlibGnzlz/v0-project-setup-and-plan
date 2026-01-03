@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { type LoginFormData } from '@/lib/validations/auth'
@@ -16,9 +16,23 @@ import {
 
 export default function AdminLogin() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { login, isAuthenticated, isHydrated } = useAuth()
   const [loginError, setLoginError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const credentialsUpdated = searchParams?.get('credentialsUpdated') === 'true'
+
+  // Mostrar mensaje de éxito si las credenciales fueron actualizadas
+  useEffect(() => {
+    if (credentialsUpdated) {
+      toast.success('Credenciales actualizadas', {
+        description: 'Tus credenciales han sido actualizadas exitosamente. Por favor, inicia sesión con tu nuevo email y contraseña.',
+        duration: 5000,
+      })
+      // Limpiar el parámetro de la URL sin recargar la página
+      router.replace('/admin/login', { scroll: false })
+    }
+  }, [credentialsUpdated, router])
 
   // Si ya está autenticado, redirigir al dashboard
   useEffect(() => {
