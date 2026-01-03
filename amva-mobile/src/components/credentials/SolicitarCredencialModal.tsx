@@ -146,9 +146,10 @@ export function SolicitarCredencialModal({
             <ScrollView
               ref={scrollViewRef}
               style={styles.modalBody}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
               contentContainerStyle={styles.modalBodyContent}
+              showsVerticalScrollIndicator={true}
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled={true}
             >
             {/* Tipo de Credencial */}
             <View style={styles.formGroup}>
