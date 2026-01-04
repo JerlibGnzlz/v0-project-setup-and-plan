@@ -15,7 +15,6 @@ import {
 } from '@/components/admin/login'
 
 function AdminLoginContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const { login, isAuthenticated, isHydrated, user } = useAuth()
   const [loginError, setLoginError] = useState<string | null>(null)
