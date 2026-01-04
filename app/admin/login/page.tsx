@@ -133,9 +133,21 @@ function AdminLoginContent() {
           console.error('[AdminLogin] Error al parsear userData:', e)
         }
         
-        // Determinar la ruta de destino basada en si tiene credenciales por defecto
+        // Determinar la ruta de destino basada en si tiene credenciales por defecto y su rol
         const tieneCredencialesPorDefecto = parsedUser?.email?.endsWith('@ministerio-amva.org')
-        const targetPath = tieneCredencialesPorDefecto ? '/admin/setup-credentials' : '/admin'
+        const userRol = parsedUser?.rol
+        
+        let targetPath = '/admin'
+        
+        if (tieneCredencialesPorDefecto) {
+          targetPath = '/admin/setup-credentials'
+        } else if (userRol === 'EDITOR') {
+          // EDITOR solo puede ver Noticias y Galería, redirigir a Noticias por defecto
+          targetPath = '/admin/noticias'
+        } else {
+          // ADMIN y otros roles van al dashboard
+          targetPath = '/admin'
+        }
         
         console.log('[AdminLogin] Redirigiendo después de login exitoso', {
           hasToken: !!token,

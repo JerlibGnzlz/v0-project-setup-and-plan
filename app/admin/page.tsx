@@ -18,7 +18,15 @@ import {
 
 export default function AdminDashboard() {
   const { user } = useAuth()
+  const router = useRouter()
   const isAdmin = user?.rol === 'ADMIN'
+  
+  // Si el usuario es EDITOR, redirigir a Noticias (solo pueden ver Noticias y Galería)
+  useEffect(() => {
+    if (user?.rol === 'EDITOR') {
+      router.replace('/admin/noticias')
+    }
+  }, [user?.rol, router])
   const { data: convenciones = [], isLoading: loadingConvencion } = useConvenciones()
   // Tomar la primera convención (la más reciente) - siempre visible en admin sin importar si está activa
   const convencionActiva = convenciones[0] || null
