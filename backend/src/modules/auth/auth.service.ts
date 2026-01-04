@@ -58,7 +58,7 @@ export class AuthService {
       })
 
       // Obtener usuario - query simple sin campos de seguridad
-      // Intentar obtener con activo, si falla usar query sin activo (compatibilidad con migraciones pendientes)
+      // Intentar obtener con activo y hasChangedPassword, si falla usar query sin estos campos (compatibilidad con migraciones pendientes)
       let user: {
         id: string
         email: string
@@ -67,6 +67,7 @@ export class AuthService {
         rol: string
         avatar: string | null
         activo?: boolean | null
+        hasChangedPassword?: boolean | null
       } | null = null
 
                   try {
