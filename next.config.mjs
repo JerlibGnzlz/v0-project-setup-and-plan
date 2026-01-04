@@ -42,14 +42,9 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        xhr: false,
-      }
-    }
-    return config
+  // Configuración para Turbopack (Next.js 16+)
+  turbopack: {
+    // Configuración vacía para usar Turbopack por defecto
   },
 }
 
