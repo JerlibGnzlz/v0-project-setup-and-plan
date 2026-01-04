@@ -19,8 +19,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ChangePasswordDialog } from '@/components/admin/change-password-dialog'
 import { ChangeEmailDialog } from '@/components/admin/change-email-dialog'
-import { SetupAdminPinDialog } from '@/components/admin/setup-admin-pin-dialog'
-import { useHasAdminPinSafe } from '@/lib/hooks/use-has-admin-pin-safe'
 import { getFilteredNavigation } from '@/lib/utils/admin-navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -42,14 +40,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
   const [isChangeEmailOpen, setIsChangeEmailOpen] = useState(false)
-  const [isSetupPinOpen, setIsSetupPinOpen] = useState(false)
 
   // Páginas públicas que no requieren autenticación
   const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password', '/admin/setup-credentials']
   const isPublicPath = publicPaths.some(path => pathname?.startsWith(path))
-  
-  // Usar hook seguro que previene ejecución en rutas públicas
-  const { hasPin } = useHasAdminPinSafe()
 
   // Verificar autenticación solo cuando sea necesario
   useEffect(() => {
@@ -197,10 +191,6 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                     <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
                       <Lock className="size-4 mr-2" />
                       Cambiar Contraseña
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsSetupPinOpen(true)}>
-                      <Shield className="size-4 mr-2" />
-                      {hasPin ? 'Cambiar PIN Admin' : 'Configurar PIN Admin'}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
@@ -397,19 +387,6 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                     />
                   )}
 
-                  {/* Setup Admin PIN Dialog */}
-                  {user?.rol === 'ADMIN' && (
-                    <SetupAdminPinDialog
-                      open={isSetupPinOpen}
-                      onOpenChange={setIsSetupPinOpen}
-                      onSuccess={() => {
-                        // Invalidar query para refrescar el estado de hasPin
-                        if (typeof window !== 'undefined') {
-                          // El hook se refrescará automáticamente
-                        }
-                      }}
-                    />
-                  )}
                 </div>
               )
             }

@@ -11,15 +11,12 @@ import {
   useUpdateUsuario,
   useDeleteUsuario,
   useToggleUsuarioActivo,
-  useHasAdminPin,
 } from '@/lib/hooks/use-usuarios'
 import { UsuariosTable } from '@/components/admin/usuarios/usuarios-table'
 import { UsuariosDialog } from '@/components/admin/usuarios/usuarios-dialog'
 import { ResetPasswordDialog } from '@/components/admin/usuarios/reset-password-dialog'
 import { DeleteUsuarioDialog } from '@/components/admin/usuarios/delete-usuario-dialog'
 import { UsuariosStats } from '@/components/admin/usuarios/usuarios-stats'
-import { AdminPinDialog } from '@/components/admin/admin-pin-dialog'
-import { SetupAdminPinDialog } from '@/components/admin/setup-admin-pin-dialog'
 import type { Usuario, UserRole } from '@/lib/api/usuarios'
 import { useAuth } from '@/lib/hooks/use-auth'
 
@@ -32,24 +29,15 @@ export default function UsuariosPage() {
   const [usuarioToReset, setUsuarioToReset] = useState<Usuario | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [usuarioToDelete, setUsuarioToDelete] = useState<Usuario | null>(null)
-  const [isPinDialogOpen, setIsPinDialogOpen] = useState(false)
-  const [isSetupPinDialogOpen, setIsSetupPinDialogOpen] = useState(false)
-  const [pendingAction, setPendingAction] = useState<{
-    type: 'edit' | 'reset-password' | 'delete'
-    usuario: Usuario | null
-  } | null>(null)
 
   const { data: usuarios = [], isLoading } = useUsuarios()
   const createUsuarioMutation = useCreateUsuario()
   const updateUsuarioMutation = useUpdateUsuario()
   const deleteUsuarioMutation = useDeleteUsuario()
   const toggleActivoMutation = useToggleUsuarioActivo()
-  const { data: hasPinData, isLoading: isLoadingPin } = useHasAdminPin()
 
   // Verificar permisos
   const canCreateUsers = currentUser?.rol === 'ADMIN'
-  const hasPin = hasPinData?.hasPin ?? false
-  const isAdmin = currentUser?.rol === 'ADMIN'
 
   const handleCreate = () => {
     setSelectedUsuario(null)
@@ -58,42 +46,12 @@ export default function UsuariosPage() {
   }
 
   const handleEdit = (usuario: Usuario) => {
-    if (isAdmin && !hasPin && !isLoadingPin) {
-      // Si es admin y no tiene PIN configurado, mostrar diálogo de setup
-      setIsSetupPinDialogOpen(true)
-      setPendingAction({ type: 'edit', usuario })
-      return
-    }
-
-    if (isAdmin && hasPin) {
-      // Si es admin y tiene PIN, pedir PIN antes de editar
-      setPendingAction({ type: 'edit', usuario })
-      setIsPinDialogOpen(true)
-      return
-    }
-
-    // Si no es admin o no requiere PIN, proceder directamente
     setSelectedUsuario(usuario)
     setIsCreating(false)
     setIsDialogOpen(true)
   }
 
   const handleDeleteClick = (usuario: Usuario) => {
-    if (isAdmin && !hasPin && !isLoadingPin) {
-      // Si es admin y no tiene PIN configurado, mostrar diálogo de setup
-      setIsSetupPinDialogOpen(true)
-      setPendingAction({ type: 'delete', usuario })
-      return
-    }
-
-    if (isAdmin && hasPin) {
-      // Si es admin y tiene PIN, pedir PIN antes de eliminar
-      setPendingAction({ type: 'delete', usuario })
-      setIsPinDialogOpen(true)
-      return
-    }
-
-    // Si no es admin o no requiere PIN, proceder directamente
     setUsuarioToDelete(usuario)
     setIsDeleteDialogOpen(true)
   }
@@ -110,55 +68,8 @@ export default function UsuariosPage() {
   }
 
   const handleResetPassword = (usuario: Usuario) => {
-    if (isAdmin && !hasPin && !isLoadingPin) {
-      // Si es admin y no tiene PIN configurado, mostrar diálogo de setup
-      setIsSetupPinDialogOpen(true)
-      setPendingAction({ type: 'reset-password', usuario })
-      return
-    }
-
-    if (isAdmin && hasPin) {
-      // Si es admin y tiene PIN, pedir PIN antes de resetear
-      setPendingAction({ type: 'reset-password', usuario })
-      setIsPinDialogOpen(true)
-      return
-    }
-
-    // Si no es admin o no requiere PIN, proceder directamente
     setUsuarioToReset(usuario)
     setIsResetPasswordOpen(true)
-  }
-
-  const handlePinSuccess = () => {
-    if (!pendingAction) return
-
-    switch (pendingAction.type) {
-      case 'edit':
-        setSelectedUsuario(pendingAction.usuario)
-        setIsCreating(false)
-        setIsDialogOpen(true)
-        break
-      case 'reset-password':
-        setUsuarioToReset(pendingAction.usuario)
-        setIsResetPasswordOpen(true)
-        break
-      case 'delete':
-        setUsuarioToDelete(pendingAction.usuario)
-        setIsDeleteDialogOpen(true)
-        break
-    }
-
-    setPendingAction(null)
-  }
-
-  const handleSetupPinSuccess = () => {
-    // Después de establecer el PIN, ejecutar la acción pendiente
-    if (pendingAction) {
-      // Refrescar el estado de hasPin
-      setTimeout(() => {
-        handlePinSuccess()
-      }, 500)
-    }
   }
 
   const handleToggleActivo = async (usuario: Usuario) => {
@@ -305,25 +216,6 @@ export default function UsuariosPage() {
         isLoading={deleteUsuarioMutation.isPending}
       />
 
-      {/* PIN Dialog para acciones críticas */}
-      {pendingAction && (
-        <AdminPinDialog
-          open={isPinDialogOpen}
-          onOpenChange={setIsPinDialogOpen}
-          onSuccess={handlePinSuccess}
-          action={pendingAction.type}
-          usuarioNombre={pendingAction.usuario?.nombre}
-        />
-      )}
-
-      {/* Setup PIN Dialog para establecer PIN inicial */}
-      {isAdmin && (
-        <SetupAdminPinDialog
-          open={isSetupPinDialogOpen}
-          onOpenChange={setIsSetupPinDialogOpen}
-          onSuccess={handleSetupPinSuccess}
-        />
-      )}
     </div>
   )
 }
