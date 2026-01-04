@@ -200,7 +200,10 @@ export const useAuth = create<AuthState>()(set => ({
 
     // Si no hay token o usuario, marcar como no autenticado
     if (!token || !user) {
-      console.log('[useAuth] No hay token o usuario en storage, marcando como no autenticado')
+      // Solo log en desarrollo para reducir ruido en producción
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[useAuth] No hay token o usuario en storage, marcando como no autenticado')
+      }
       set({
         user: null,
         token: null,
