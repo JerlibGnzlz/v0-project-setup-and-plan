@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Lock, Eye, EyeOff } from 'lucide-react'
-import { useChangePassword } from '@/lib/hooks/use-password'
+import { useChangePassword } from '@/lib/hooks/use-usuarios'
 
 const changePasswordSchema = z
   .object({
@@ -46,6 +46,8 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const queryClient = useQueryClient()
+  const { checkAuth } = useAuth()
   const changePasswordMutation = useChangePassword()
 
   const {
@@ -98,17 +100,23 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
         newPassword: data.newPassword,
       })
       
+      // Invalidar queries de usuario para refrescar datos (incluyendo hasChangedPassword)
+      await queryClient.invalidateQueries({ queryKey: ['usuarios'] })
+      
+      // Refrescar autenticación para obtener el usuario actualizado
+      await checkAuth()
+      
       // Resetear el formulario
       reset()
       setShowCurrentPassword(false)
       setShowNewPassword(false)
       setShowConfirmPassword(false)
       
-      // Esperar más tiempo para que el usuario vea el mensaje de éxito antes de cerrar
+      // Esperar tiempo suficiente para que el usuario vea el mensaje de éxito antes de cerrar
       // El toast se mostrará automáticamente desde el hook
       setTimeout(() => {
         onOpenChange(false)
-      }, 1500) // Aumentado a 1.5 segundos para dar tiempo a ver el mensaje
+      }, 2000) // 2 segundos para dar tiempo suficiente a ver el mensaje
     } catch (error) {
       // Error ya manejado en el hook
       // No cerrar el diálogo si hay error para que el usuario pueda corregir
