@@ -49,7 +49,7 @@ function AdminLoginContent() {
       typeof window !== 'undefined' &&
       window.location.pathname === '/admin/login'
     ) {
-      console.log('[AdminLogin] Usuario autenticado detectado, preparando redirección...', {
+      console.log('[AdminLogin] Usuario autenticado detectado en useEffect, preparando redirección...', {
         userEmail: user.email,
         isSubmitting,
         isRedirecting,
@@ -59,16 +59,19 @@ function AdminLoginContent() {
       
       setIsRedirecting(true)
       
-      // Pequeño delay para asegurar que el toast se muestre
+      // Redirigir inmediatamente
+      const targetPath = user.email?.endsWith('@ministerio-amva.org')
+        ? '/admin/setup-credentials'
+        : '/admin'
+      
+      console.log('[AdminLogin] Redirigiendo desde useEffect a:', targetPath)
+      
+      // Usar setTimeout para asegurar que se ejecute en el siguiente ciclo del event loop
       const timeoutId = setTimeout(() => {
-        // Redirigir inmediatamente sin delay para evitar que el usuario vea la página de login
-        const targetPath = user.email?.endsWith('@ministerio-amva.org')
-          ? '/admin/setup-credentials'
-          : '/admin'
-        
-        console.log('[AdminLogin] Redirigiendo a:', targetPath)
-        window.location.replace(targetPath)
-      }, 300)
+        if (window.location.pathname === '/admin/login') {
+          window.location.replace(targetPath)
+        }
+      }, 100)
       
       return () => {
         clearTimeout(timeoutId)
@@ -97,9 +100,23 @@ function AdminLoginContent() {
       // Marcar que el login fue exitoso
       setLoginSuccess(true)
       
-      // El useEffect se encargará de la redirección automáticamente
-      // Solo esperar un momento para que el estado se actualice
-      setIsSubmitting(false)
+      // Esperar un momento para que el estado se actualice y el toast se muestre
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Obtener el estado actualizado después del login
+      // Usar el hook directamente en lugar de getState() para evitar problemas
+      // El estado ya debería estar actualizado por el hook useAuth
+      if (user && isAuthenticated) {
+        const targetPath = user.email?.endsWith('@ministerio-amva.org')
+          ? '/admin/setup-credentials'
+          : '/admin'
+        
+        console.log('[AdminLogin] Redirigiendo después de login exitoso a:', targetPath)
+        window.location.replace(targetPath)
+      } else {
+        console.warn('[AdminLogin] Estado no actualizado, esperando useEffect...')
+        setIsSubmitting(false)
+      }
     } catch (error: unknown) {
       console.error('[AdminLogin] ❌ Error capturado en handleSubmit:', error)
       
