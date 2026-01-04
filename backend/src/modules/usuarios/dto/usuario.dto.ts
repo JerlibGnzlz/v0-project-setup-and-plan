@@ -56,3 +56,17 @@ export class AdminResetPasswordDto {
   newPassword!: string
 }
 
+export class SetAdminPinDto {
+  @IsString()
+  @MinLength(4, { message: 'El PIN debe tener 4 dígitos' })
+  @Matches(/^\d{4}$/, { message: 'El PIN debe ser exactamente 4 dígitos numéricos' })
+  pin!: string
+}
+
+export class ValidateAdminPinDto {
+  @IsString()
+  @MinLength(4, { message: 'El PIN debe tener 4 dígitos' })
+  @Matches(/^\d{4}$/, { message: 'El PIN debe ser exactamente 4 dígitos numéricos' })
+  pin!: string
+}
+
