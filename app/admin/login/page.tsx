@@ -109,7 +109,7 @@ function AdminLoginContent() {
       setLoginSuccess(true)
       
       // Esperar un momento para que el estado se actualice y el toast se muestre
-      await new Promise(resolve => setTimeout(resolve, 800))
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
       // Verificar que estamos en el cliente antes de acceder a window/storage
       if (typeof window === 'undefined') {
@@ -122,9 +122,13 @@ function AdminLoginContent() {
         // Obtener el usuario directamente del storage para determinar la ruta de destino
         // Esto es más confiable que esperar a que Zustand se actualice
         const userData = localStorage.getItem('auth_user') || sessionStorage.getItem('auth_user')
+        const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
         
-        if (!userData) {
-          console.warn('[AdminLogin] No se encontró usuario en storage, esperando useEffect...')
+        if (!userData || !token) {
+          console.warn('[AdminLogin] No se encontró usuario o token en storage, esperando useEffect...', {
+            hasUserData: !!userData,
+            hasToken: !!token,
+          })
           setIsSubmitting(false)
           return
         }
@@ -138,11 +142,17 @@ function AdminLoginContent() {
           
           console.log('[AdminLogin] Redirigiendo después de login exitoso a:', targetPath, {
             userEmail: storedUser.email,
-            hasToken: !!(localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')),
+            hasToken: !!token,
+            pathname: window.location.pathname,
           })
           
           // Forzar redirección inmediata
-          window.location.replace(targetPath)
+          if (window.location.pathname === '/admin/login') {
+            window.location.replace(targetPath)
+          } else {
+            console.log('[AdminLogin] Ya no estamos en /admin/login, redirección cancelada')
+            setIsSubmitting(false)
+          }
         } else {
           console.warn('[AdminLogin] Usuario en storage no tiene email válido, esperando useEffect...')
           setIsSubmitting(false)
