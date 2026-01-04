@@ -69,7 +69,8 @@ export default function SetupCredentialsPage() {
       
       if (tieneCredencialesPorDefecto) {
         setNeedsSetup(true)
-        setValue('email', user.email || '')
+        // NO pre-llenar el email - el usuario debe ingresar uno nuevo
+        // setValue('email', '') // Dejar vacío para que el usuario ingrese uno nuevo
       } else {
         // Si no necesita setup, redirigir al dashboard
         router.push('/admin')
@@ -79,7 +80,7 @@ export default function SetupCredentialsPage() {
       // Si no está autenticado, redirigir al login
       router.push('/admin/login')
     }
-  }, [isHydrated, isAuthenticated, user, router, setValue])
+  }, [isHydrated, isAuthenticated, user, router])
 
   const onSubmit = async (data: SetupCredentialsFormData) => {
     try {
