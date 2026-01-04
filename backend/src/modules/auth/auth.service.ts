@@ -187,6 +187,7 @@ export class AuthService {
           nombre: user.nombre,
           avatar: user.avatar || null,
           rol: user.rol,
+          hasChangedPassword: user.hasChangedPassword ?? false, // Incluir hasChangedPassword en la respuesta
         },
       }
 
@@ -409,6 +410,7 @@ export class AuthService {
           rol: true, 
           avatar: true,
           activo: true,
+          hasChangedPassword: true, // Incluir hasChangedPassword para verificar si ya cambió su contraseña
         },
       })
       
