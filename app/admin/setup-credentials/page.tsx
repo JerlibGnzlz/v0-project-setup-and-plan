@@ -16,7 +16,18 @@ import Image from 'next/image'
 
 const setupCredentialsSchema = z
   .object({
-    email: z.string().email('El email debe ser válido'),
+    email: z
+      .string()
+      .email('El email debe ser válido')
+      .refine(
+        (email) => {
+          // El nuevo email NO debe terminar en @ministerio-amva.org
+          return !email.endsWith('@ministerio-amva.org')
+        },
+        {
+          message: 'El nuevo email debe ser personalizado. No puede terminar en @ministerio-amva.org',
+        }
+      ),
     password: z
       .string()
       .min(8, 'La contraseña debe tener al menos 8 caracteres')
@@ -84,13 +95,21 @@ export default function SetupCredentialsPage() {
 
   const onSubmit = async (data: SetupCredentialsFormData) => {
     try {
-      // Cambiar email primero
-      if (data.email !== user?.email) {
-        await changeEmailMutation.mutateAsync({
-          newEmail: data.email,
-          password: data.currentPassword,
-        })
+      // Validar que el nuevo email sea diferente al temporal
+      if (data.email === user?.email) {
+        throw new Error('El nuevo email debe ser diferente al email temporal')
       }
+
+      // Validar que el nuevo email no termine en @ministerio-amva.org
+      if (data.email.endsWith('@ministerio-amva.org')) {
+        throw new Error('El nuevo email no puede terminar en @ministerio-amva.org. Debe ser un email personalizado.')
+      }
+
+      // Cambiar email primero (siempre, porque debe ser diferente)
+      await changeEmailMutation.mutateAsync({
+        newEmail: data.email,
+        password: data.currentPassword,
+      })
 
       // Cambiar contraseña usando el endpoint de usuarios (consistente con changeEmail)
       await changePasswordMutation.mutateAsync({
