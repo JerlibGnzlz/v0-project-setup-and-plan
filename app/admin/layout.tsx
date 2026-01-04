@@ -322,7 +322,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         </Sheet>
 
         {/* Logo visible en el header móvil */}
-        <Link href="/admin" className="flex items-center">
+        <Link href={user?.rol === 'EDITOR' ? '/admin/noticias' : '/admin'} className="flex items-center">
           <Image
             src="/amvadigital.png"
             alt="Logo AMVA"
