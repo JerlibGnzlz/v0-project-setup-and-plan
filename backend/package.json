@@ -29,7 +29,8 @@
     "diagnostico:email": "ts-node scripts/diagnostico-email.ts",
     "cleanup:admin-pastores": "ts-node scripts/eliminar-admin-de-pastores.ts",
     "cleanup:pastor-admin": "ts-node scripts/eliminar-pastor-admin.ts",
-    "create:user": "ts-node scripts/create-user.ts"
+    "create:user": "ts-node scripts/create-user.ts",
+    "check:user": "ts-node scripts/check-user.ts"
   },
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",
