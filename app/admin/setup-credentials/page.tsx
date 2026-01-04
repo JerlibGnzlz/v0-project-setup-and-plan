@@ -62,7 +62,7 @@ export default function SetupCredentialsPage() {
     if (isHydrated && isAuthenticated && user) {
       // Verificar si el email termina en @ministerio-amva.org
       const tieneCredencialesPorDefecto = user.email?.endsWith('@ministerio-amva.org')
-      
+
       if (tieneCredencialesPorDefecto) {
         setNeedsSetup(true)
         // NO pre-llenar el email - el usuario debe ingresar uno nuevo
@@ -86,11 +86,11 @@ export default function SetupCredentialsPage() {
         newPassword: data.password,
       })
 
-      // Después de cambiar la contraseña exitosamente, redirigir directamente al dashboard
-      // El usuario ya está autenticado, solo necesita actualizar su estado
-      // No hacer logout, solo redirigir
+      // Después de cambiar la contraseña exitosamente, usar window.location.href
+      // para forzar una recarga completa y evitar que el useEffect vuelva a ejecutarse
+      // Esto asegura que el usuario sea redirigido al dashboard sin quedarse en setup-credentials
       setTimeout(() => {
-        router.push('/admin')
+        window.location.href = '/admin'
       }, 500)
     } catch (error) {
       // Error ya manejado en los hooks
