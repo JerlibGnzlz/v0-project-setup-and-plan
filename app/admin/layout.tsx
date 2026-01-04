@@ -168,7 +168,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                     />
                   ) : (
                     <div className="size-10 rounded-full bg-gradient-to-br from-sky-500 via-emerald-500 to-amber-500 flex items-center justify-center ring-2 ring-emerald-500/30 hover:ring-emerald-500/50 transition-all cursor-pointer">
-                      <Shield className="size-5 text-white drop-shadow-sm" />
+                      <UserCircle className="size-5 text-white drop-shadow-sm" />
                     </div>
                   )}
                 </button>
