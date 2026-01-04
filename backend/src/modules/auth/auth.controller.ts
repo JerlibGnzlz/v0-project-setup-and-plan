@@ -72,12 +72,15 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getProfile(@Request() req: AuthenticatedRequest) {
+    // Obtener usuario completo con hasChangedPassword desde la base de datos
+    const user = await this.authService.validateUser(req.user.id)
     return {
       id: req.user.id,
       email: req.user.email,
       nombre: req.user.nombre,
       rol: req.user.rol,
       avatar: req.user.avatar,
+      hasChangedPassword: user?.hasChangedPassword ?? false,
     }
   }
 

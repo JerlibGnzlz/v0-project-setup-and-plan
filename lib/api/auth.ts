@@ -14,6 +14,7 @@ export interface LoginResponse {
     nombre: string
     rol: string
     avatar?: string | null
+    hasChangedPassword?: boolean // Indica si el usuario ya cambió su contraseña desde setup-credentials
   }
 }
 
