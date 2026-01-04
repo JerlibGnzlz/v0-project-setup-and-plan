@@ -69,20 +69,27 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
   }, [open, reset])
 
   const handleCancel = () => {
-    // Cerrar el diálogo directamente
-    // El useEffect y handleOpenChange se encargarán de limpiar el estado
+    // Limpiar el formulario y estados antes de cerrar
+    reset()
+    setShowCurrentPassword(false)
+    setShowNewPassword(false)
+    setShowConfirmPassword(false)
+    // Cerrar el diálogo inmediatamente
     onOpenChange(false)
   }
 
   const handleOpenChange = (open: boolean) => {
     // Si se está cerrando, asegurar que se limpia todo
     if (!open) {
-      reset()
-      setShowCurrentPassword(false)
-      setShowNewPassword(false)
-      setShowConfirmPassword(false)
+      // Usar setTimeout para asegurar que el estado se actualice después del render
+      setTimeout(() => {
+        reset()
+        setShowCurrentPassword(false)
+        setShowNewPassword(false)
+        setShowConfirmPassword(false)
+      }, 0)
     }
-    // Pasar el cambio al componente padre
+    // Pasar el cambio al componente padre inmediatamente
     onOpenChange(open)
   }
 
@@ -110,7 +117,17 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent 
+        className="sm:max-w-[500px]"
+        onInteractOutside={(e) => {
+          // Permitir cerrar haciendo clic fuera del diálogo
+          handleCancel()
+        }}
+        onEscapeKeyDown={() => {
+          // Permitir cerrar con ESC
+          handleCancel()
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Lock className="size-5" />
