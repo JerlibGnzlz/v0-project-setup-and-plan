@@ -62,10 +62,22 @@ function AdminLoginContent() {
       // Resetear isSubmitting antes de redirigir
       setIsSubmitting(false)
 
-      // Usar window.location.href para forzar una navegación completa
-      // Esto asegura que el layout del admin detecte correctamente la autenticación
-      // y evita problemas de estado en producción
-      window.location.href = '/admin'
+      // Después del login exitoso, verificar si el usuario tiene credenciales por defecto
+      // Esperar un momento para que el estado se actualice
+      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      // Obtener el usuario del estado de Zustand
+      const authState = useAuth.getState()
+      const userData = authState.user
+      
+      // Si el usuario tiene email que termina en @ministerio-amva.org,
+      // redirigir a setup-credentials para cambiar la contraseña
+      // De lo contrario, redirigir al dashboard
+      if (userData?.email?.endsWith('@ministerio-amva.org')) {
+        window.location.href = '/admin/setup-credentials'
+      } else {
+        window.location.href = '/admin'
+      }
     } catch (error: unknown) {
       console.error('[AdminLogin] Error en login:', error)
       
