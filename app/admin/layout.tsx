@@ -6,7 +6,6 @@ import {
   Menu,
   UserCircle,
   Lock,
-  Shield,
   Mail,
 } from 'lucide-react'
 import {
