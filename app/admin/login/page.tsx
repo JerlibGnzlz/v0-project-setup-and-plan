@@ -121,25 +121,13 @@ function AdminLoginContent() {
           return
         }
         
-        const storedUser = JSON.parse(userData)
+        console.log('[AdminLogin] Redirigiendo después de login exitoso al dashboard', {
+          hasToken: !!token,
+          pathname: window.location.pathname,
+        })
         
-        if (storedUser && storedUser.email && typeof storedUser.email === 'string') {
-          const targetPath = storedUser.email.endsWith('@ministerio-amva.org')
-            ? '/admin/setup-credentials'
-            : '/admin'
-          
-          console.log('[AdminLogin] Redirigiendo después de login exitoso a:', targetPath, {
-            userEmail: storedUser.email,
-            hasToken: !!token,
-            pathname: window.location.pathname,
-          })
-          
-          // Forzar redirección inmediata con window.location.replace
-          window.location.replace(targetPath)
-        } else {
-          console.warn('[AdminLogin] Usuario en storage no tiene email válido, esperando useEffect...')
-          setIsSubmitting(false)
-        }
+        // Forzar redirección inmediata al dashboard
+        window.location.replace('/admin')
       } catch (error) {
         console.error('[AdminLogin] Error al leer storage o redirigir:', error)
         setIsSubmitting(false)
