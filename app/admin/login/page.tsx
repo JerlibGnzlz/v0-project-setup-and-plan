@@ -57,29 +57,13 @@ function AdminLoginContent() {
       
       setIsRedirecting(true)
       
-      // Usar un ref para evitar múltiples redirecciones
-      let redirected = false
+      // Redirigir inmediatamente sin delay para evitar que el usuario vea la página de login
+      const targetPath = user.email?.endsWith('@ministerio-amva.org')
+        ? '/admin/setup-credentials'
+        : '/admin'
       
-      // Pequeño delay para evitar loops
-      const timeoutId = setTimeout(() => {
-        if (!redirected && window.location.pathname === '/admin/login') {
-          redirected = true
-          // Si el usuario tiene email que termina en @ministerio-amva.org,
-          // redirigir a setup-credentials para cambiar la contraseña
-          // De lo contrario, redirigir al dashboard
-          if (user.email?.endsWith('@ministerio-amva.org')) {
-            console.log('[AdminLogin] Redirigiendo a setup-credentials')
-            window.location.replace('/admin/setup-credentials')
-          } else {
-            console.log('[AdminLogin] Redirigiendo a dashboard')
-            window.location.replace('/admin')
-          }
-        }
-      }, 200)
-      
-      return () => {
-        clearTimeout(timeoutId)
-      }
+      console.log('[AdminLogin] Redirigiendo inmediatamente a:', targetPath)
+      window.location.replace(targetPath)
     }
   }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, user])
 
