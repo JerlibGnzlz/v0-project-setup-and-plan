@@ -7,11 +7,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Desactivar caché de imágenes en desarrollo para ver cambios inmediatos
-  images: {
-    ...(process.env.NODE_ENV === 'development' && {
-      unoptimized: false,
-    }),
   images: {
     remotePatterns: [
       {
