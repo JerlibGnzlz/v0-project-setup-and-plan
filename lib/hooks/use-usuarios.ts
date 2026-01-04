@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { usuariosApi, type Usuario, type CreateUsuarioRequest, type UpdateUsuarioRequest, type ChangePasswordRequest, type AdminResetPasswordRequest } from '@/lib/api/usuarios'
 import { toast } from 'sonner'
 import { useAuth } from './use-auth'
+import { usePathname } from 'next/navigation'
 
 export function useUsuarios() {
   return useQuery({
