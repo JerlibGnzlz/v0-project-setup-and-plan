@@ -156,12 +156,20 @@ export function useAdminResetPassword() {
 }
 
 export function useChangePassword() {
+  const pathname = usePathname()
+  
   return useMutation({
     mutationFn: (data: ChangePasswordRequest) => usuariosApi.changePassword(data),
     onSuccess: () => {
-      toast.success('Contraseña cambiada', {
-        description: 'Tu contraseña ha sido cambiada exitosamente',
-      })
+      // Solo mostrar toast si NO estamos en setup-credentials (porque vamos a hacer logout y redirigir)
+      const isInSetupCredentials = pathname === '/admin/setup-credentials'
+      
+      if (!isInSetupCredentials) {
+        toast.success('Contraseña cambiada', {
+          description: 'Tu contraseña ha sido cambiada exitosamente',
+        })
+      }
+      // Si estamos en setup-credentials, el toast se mostrará después del logout en la página de login
     },
     onError: (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : 'Error al cambiar contraseña'
