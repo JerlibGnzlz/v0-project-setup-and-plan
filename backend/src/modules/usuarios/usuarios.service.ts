@@ -293,6 +293,8 @@ export class UsuariosService {
   /**
    * Cambiar contraseña de usuario (desde admin)
    * Establece una contraseña temporal que el usuario deberá cambiar
+   * Si el email no termina en @ministerio-amva.org, también se restablece el email a uno temporal
+   * para asegurar que el usuario sea redirigido a setup-credentials
    */
   async adminResetPassword(id: string, dto: AdminResetPasswordDto): Promise<void> {
     const user = await this.prisma.user.findUnique({
@@ -305,18 +307,42 @@ export class UsuariosService {
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10)
 
+    // Si el email NO termina en @ministerio-amva.org, generar un email temporal
+    // basado en el nombre del usuario para asegurar que sea redirigido a setup-credentials
+    let emailTemporal: string | undefined
+    if (!user.email.endsWith('@ministerio-amva.org')) {
+      const nombreLimpio = user.nombre
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/g, '')
+        .substring(0, 20)
+      emailTemporal = `${nombreLimpio}@ministerio-amva.org`
+      
+      // Verificar que el email temporal no esté en uso por otro usuario
+      const emailEnUso = await this.prisma.user.findUnique({
+        where: { email: emailTemporal },
+      })
+      
+      // Si está en uso, agregar un sufijo único
+      if (emailEnUso && emailEnUso.id !== id) {
+        emailTemporal = `${nombreLimpio}${Date.now().toString().slice(-6)}@ministerio-amva.org`
+      }
+    }
+
     await this.prisma.user.update({
       where: { id },
       data: {
         password: hashedPassword,
+        ...(emailTemporal && { email: emailTemporal }),
       },
     })
 
-    this.logger.log(`✅ Contraseña reseteada para usuario: ${user.email}`)
-    
-    // Si el email termina en @ministerio-amva.org, el usuario será redirigido a setup-credentials
-    // al iniciar sesión para cambiar sus credenciales
-    if (user.email.endsWith('@ministerio-amva.org')) {
+    if (emailTemporal) {
+      this.logger.log(`✅ Contraseña y email reseteados para usuario: ${user.email} -> ${emailTemporal}`)
+      this.logger.log(`ℹ️  Email temporal establecido. El usuario será redirigido a setup-credentials al iniciar sesión.`)
+    } else {
+      this.logger.log(`✅ Contraseña reseteada para usuario: ${user.email}`)
       this.logger.log(`ℹ️  Usuario ${user.email} tiene credenciales por defecto. Será redirigido a setup-credentials al iniciar sesión.`)
     }
   }
