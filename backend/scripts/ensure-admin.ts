@@ -21,6 +21,7 @@ async function ensureAdmin() {
         rol: true,
         activo: true,
         password: true,
+        hasChangedPassword: true,
       },
     })
 
@@ -67,6 +68,16 @@ async function ensureAdmin() {
         console.log('✅ Rol cambiado a ADMIN')
       }
 
+      // Asegurar que hasChangedPassword sea true (para que no sea redirigido a setup-credentials)
+      if (user.hasChangedPassword === false || user.hasChangedPassword === null) {
+        console.log('\n⚠️  Usuario tiene hasChangedPassword=false. Actualizando a true...')
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { hasChangedPassword: true },
+        })
+        console.log('✅ hasChangedPassword actualizado a true')
+      }
+
       console.log('\n📧 Credenciales de acceso:')
       console.log(`   Email: ${email}`)
       console.log(`   Password: ${password}`)
@@ -89,6 +100,7 @@ async function ensureAdmin() {
           rol: 'ADMIN',
           avatar: defaultAvatar,
           activo: true,
+          hasChangedPassword: true, // Usuario creado manualmente ya tiene contraseña personalizada
         },
         select: {
           id: true,
