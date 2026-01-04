@@ -39,6 +39,8 @@ export class UsuariosService {
       const esCredencialPorDefecto = dto.email.endsWith('@ministerio-amva.org') && dto.password === 'Cambiar123!'
 
       // Crear usuario
+      // IMPORTANTE: Si es credencial por defecto, hasChangedPassword debe ser false
+      // para que el usuario sea redirigido a setup-credentials al iniciar sesión
       const user = await this.prisma.user.create({
         data: {
           email: dto.email,
@@ -46,8 +48,7 @@ export class UsuariosService {
           nombre: dto.nombre,
           rol: dto.rol,
           avatar: defaultAvatar,
-          // Guardar metadata para indicar que tiene credenciales por defecto
-          // Usaremos el campo metadata si existe, o podemos agregar un campo temporal
+          hasChangedPassword: false, // Usuarios nuevos con credenciales por defecto deben cambiar su contraseña
         },
         select: {
           id: true,
