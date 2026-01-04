@@ -43,13 +43,14 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
   const [isChangeEmailOpen, setIsChangeEmailOpen] = useState(false)
   const [isSetupPinOpen, setIsSetupPinOpen] = useState(false)
-  
-  const { data: hasPinData } = useHasAdminPin()
-  const hasPin = hasPinData?.hasPin ?? false
 
   // Páginas públicas que no requieren autenticación
   const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password', '/admin/setup-credentials']
   const isPublicPath = publicPaths.some(path => pathname?.startsWith(path))
+  
+  // Solo ejecutar useHasAdminPin si no es una ruta pública y el usuario está autenticado
+  const { data: hasPinData } = useHasAdminPin()
+  const hasPin = hasPinData?.hasPin ?? false
 
   // Verificar autenticación solo cuando sea necesario
   useEffect(() => {
