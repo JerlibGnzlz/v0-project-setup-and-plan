@@ -8,23 +8,23 @@ datasource db {
 }
 
 model User {
-  id                String               @id @default(uuid())
-  email             String               @unique
-  password          String
-  createdAt         DateTime             @default(now()) @map("created_at")
-  updatedAt         DateTime             @updatedAt @map("updated_at")
-  nombre            String
-  rol               UserRole             @default(ADMIN)
-  avatar            String?
-  activo            Boolean              @default(true)
-  ultimoLogin       DateTime?            @map("ultimo_login")
-  loginCount        Int                  @default(0) @map("login_count")
-  ultimaIp          String?              @map("ultima_ip")
-  adminPin          String?              @map("admin_pin") // PIN de 4 dígitos encriptado para acciones críticas
-  hasChangedPassword Boolean             @default(false) @map("has_changed_password") // Indica si el usuario ya cambió su contraseña desde setup-credentials
-  deviceTokens      AdminDeviceToken[]
-  passwordResets    PasswordResetToken[]
-  auditLogs         AuditLog[]
+  id                 String               @id @default(uuid())
+  email              String               @unique
+  password           String
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  nombre             String
+  rol                UserRole             @default(ADMIN)
+  avatar             String?
+  activo             Boolean              @default(true)
+  ultimoLogin        DateTime?            @map("ultimo_login")
+  loginCount         Int                  @default(0) @map("login_count")
+  ultimaIp           String?              @map("ultima_ip")
+  adminPin           String?              @map("admin_pin") // PIN de 4 dígitos encriptado para acciones críticas
+  hasChangedPassword Boolean              @default(false) @map("has_changed_password") // Indica si el usuario ya cambió su contraseña desde setup-credentials
+  deviceTokens       AdminDeviceToken[]
+  passwordResets     PasswordResetToken[]
+  auditLogs          AuditLog[]
 
   @@index([activo])
   @@index([ultimoLogin])
