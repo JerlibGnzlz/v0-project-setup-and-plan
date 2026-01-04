@@ -52,11 +52,19 @@ function AdminLoginContent() {
       !isRedirecting &&
       window.location.pathname === '/admin/login'
     ) {
-      console.log('[AdminLogin] Usuario autenticado detectado, redirigiendo al dashboard')
+      console.log('[AdminLogin] Usuario autenticado detectado en useEffect, redirigiendo', {
+        userEmail: user?.email,
+        tieneCredencialesPorDefecto: user?.email?.endsWith('@ministerio-amva.org'),
+      })
+      
+      // Verificar si tiene credenciales por defecto
+      const tieneCredencialesPorDefecto = user?.email?.endsWith('@ministerio-amva.org')
+      const targetPath = tieneCredencialesPorDefecto ? '/admin/setup-credentials' : '/admin'
+      
       setIsRedirecting(true)
-      window.location.replace('/admin')
+      window.location.replace(targetPath)
     }
-  }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting])
+  }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, user])
 
   const handleSubmit = async (data: LoginFormData & { rememberMe: boolean }) => {
     console.log('[AdminLogin] handleSubmit llamado con:', { email: data.email, rememberMe: data.rememberMe })
