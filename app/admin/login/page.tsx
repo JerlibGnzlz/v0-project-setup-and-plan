@@ -126,7 +126,7 @@ function AdminLoginContent() {
       setLoginSuccess(true)
       
       // Esperar un momento para que el estado se actualice y el toast se muestre
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise(resolve => setTimeout(resolve, 300))
       
       // Verificar que estamos en el cliente antes de acceder a window/storage
       if (typeof window === 'undefined') {
@@ -138,22 +138,29 @@ function AdminLoginContent() {
       // Marcar que estamos redirigiendo para evitar múltiples redirecciones
       setIsRedirecting(true)
       
-      // Esperar un momento para que el estado de Zustand se actualice completamente
-      await new Promise(resolve => setTimeout(resolve, 200))
-      
       try {
         // Obtener el usuario directamente del storage para determinar la ruta de destino
         // Esto es más confiable que esperar a que Zustand se actualice
         const userData = localStorage.getItem('auth_user') || sessionStorage.getItem('auth_user')
         const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
         
+        console.log('[AdminLogin] Verificando storage después de login:', {
+          hasUserData: !!userData,
+          hasToken: !!token,
+          userDataLength: userData?.length,
+          tokenLength: token?.length,
+        })
+        
         if (!userData || !token) {
-          console.warn('[AdminLogin] No se encontró usuario o token en storage, esperando useEffect...', {
+          console.error('[AdminLogin] ❌ No se encontró usuario o token en storage', {
             hasUserData: !!userData,
             hasToken: !!token,
           })
           setIsSubmitting(false)
           setIsRedirecting(false)
+          toast.error('Error', {
+            description: 'No se pudo guardar la sesión. Por favor, intenta nuevamente.',
+          })
           return
         }
         
@@ -161,10 +168,18 @@ function AdminLoginContent() {
         let parsedUser: { email?: string; hasChangedPassword?: boolean; rol?: string } | null = null
         try {
           parsedUser = JSON.parse(userData)
+          console.log('[AdminLogin] Usuario parseado:', {
+            email: parsedUser?.email,
+            hasChangedPassword: parsedUser?.hasChangedPassword,
+            rol: parsedUser?.rol,
+          })
         } catch (e) {
-          console.error('[AdminLogin] Error al parsear userData:', e)
+          console.error('[AdminLogin] ❌ Error al parsear userData:', e)
           setIsSubmitting(false)
           setIsRedirecting(false)
+          toast.error('Error', {
+            description: 'Error al procesar los datos del usuario. Por favor, intenta nuevamente.',
+          })
           return
         }
         
@@ -178,30 +193,36 @@ function AdminLoginContent() {
         // Solo redirigir a setup-credentials si tiene email por defecto Y aún no ha cambiado su contraseña
         if (tieneCredencialesPorDefecto && !yaCambioPassword) {
           targetPath = '/admin/setup-credentials'
+          console.log('[AdminLogin] Usuario con credenciales por defecto, redirigiendo a setup-credentials')
         } else if (userRol === 'EDITOR') {
           // EDITOR solo puede ver Noticias y Galería, redirigir a Noticias por defecto
           targetPath = '/admin/noticias'
+          console.log('[AdminLogin] Usuario EDITOR, redirigiendo a noticias')
         } else {
           // ADMIN y otros roles van al dashboard
           targetPath = '/admin'
+          console.log('[AdminLogin] Usuario ADMIN, redirigiendo a dashboard')
         }
         
-        console.log('[AdminLogin] Redirigiendo después de login exitoso', {
+        console.log('[AdminLogin] ✅ Redirigiendo después de login exitoso', {
           hasToken: !!token,
           userEmail: parsedUser?.email,
           tieneCredencialesPorDefecto,
           yaCambioPassword,
           userRol,
           targetPath,
-          pathname: window.location.pathname,
+          currentPathname: window.location.pathname,
         })
         
-        // Forzar redirección a la ruta apropiada
+        // Forzar redirección a la ruta apropiada usando href para mejor compatibilidad
         window.location.href = targetPath
       } catch (error) {
-        console.error('[AdminLogin] Error al leer storage o redirigir:', error)
+        console.error('[AdminLogin] ❌ Error al leer storage o redirigir:', error)
         setIsSubmitting(false)
         setIsRedirecting(false)
+        toast.error('Error', {
+          description: 'Error al redirigir. Por favor, intenta nuevamente.',
+        })
       }
     } catch (error: unknown) {
       console.error('[AdminLogin] ❌ Error capturado en handleSubmit:', error)
