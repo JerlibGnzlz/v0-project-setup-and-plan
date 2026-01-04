@@ -20,6 +20,7 @@ model User {
   ultimoLogin    DateTime?            @map("ultimo_login")
   loginCount     Int                  @default(0) @map("login_count")
   ultimaIp       String?              @map("ultima_ip")
+  adminPin       String?              @map("admin_pin") // PIN de 4 dígitos encriptado para acciones críticas
   deviceTokens   AdminDeviceToken[]
   passwordResets PasswordResetToken[]
   auditLogs      AuditLog[]

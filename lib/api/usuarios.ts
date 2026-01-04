@@ -78,5 +78,19 @@ export const usuariosApi = {
     const response = await apiClient.patch<Usuario>(`/usuarios/${id}/toggle-activo`)
     return response.data
   },
+
+  setAdminPin: async (pin: string): Promise<void> => {
+    await apiClient.post('/usuarios/me/set-admin-pin', { pin })
+  },
+
+  validateAdminPin: async (pin: string): Promise<{ valid: boolean }> => {
+    const response = await apiClient.post<{ valid: boolean }>('/usuarios/me/validate-admin-pin', { pin })
+    return response.data
+  },
+
+  hasAdminPin: async (): Promise<{ hasPin: boolean }> => {
+    const response = await apiClient.get<{ hasPin: boolean }>('/usuarios/me/has-admin-pin')
+    return response.data
+  },
 }
 

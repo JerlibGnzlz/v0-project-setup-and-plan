@@ -237,3 +237,48 @@ export function useToggleUsuarioActivo() {
   })
 }
 
+export function useSetAdminPin() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: (pin: string) => usuariosApi.setAdminPin(pin),
+    onSuccess: () => {
+      // Invalidar la query de hasPin para refrescar el estado
+      queryClient.invalidateQueries({ queryKey: ['usuarios', 'has-admin-pin'] })
+      toast.success('PIN establecido', {
+        description: 'El PIN de administrador ha sido establecido exitosamente',
+      })
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Error al establecer PIN'
+      toast.error('Error', {
+        description: errorMessage,
+      })
+    },
+  })
+}
+
+export function useValidateAdminPin() {
+  return useMutation({
+    mutationFn: (pin: string) => usuariosApi.validateAdminPin(pin),
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'PIN inválido'
+      toast.error('Error', {
+        description: errorMessage,
+      })
+    },
+  })
+}
+
+export function useHasAdminPin() {
+  return useQuery({
+    queryKey: ['usuarios', 'has-admin-pin'],
+    queryFn: async () => {
+      const response = await usuariosApi.hasAdminPin()
+      return response
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    refetchOnWindowFocus: false,
+  })
+}
+

@@ -13,7 +13,7 @@ import {
   SetMetadata,
 } from '@nestjs/common'
 import { UsuariosService } from './usuarios.service'
-import { CreateUsuarioDto, UpdateUsuarioDto, ChangePasswordDto, AdminResetPasswordDto } from './dto/usuario.dto'
+import { CreateUsuarioDto, UpdateUsuarioDto, ChangePasswordDto, AdminResetPasswordDto, SetAdminPinDto, ValidateAdminPinDto } from './dto/usuario.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import { Roles, ROLES_KEY } from '../auth/decorators/roles.decorator'
@@ -127,6 +127,41 @@ export class UsuariosController {
       : req.headers['x-forwarded-for']
     const clientIp = req.ip || forwardedFor || undefined
     return this.usuariosService.toggleActivo(id, req.user.id, req.user.email, clientIp)
+  }
+
+  /**
+   * Establecer PIN de administrador
+   * Solo el propio administrador puede establecer su PIN
+   */
+  @Post('me/set-admin-pin')
+  @UseGuards(JwtAuthGuard) // Solo requiere autenticación
+  @SetMetadata(ROLES_KEY, []) // Sin roles específicos - permite cualquier usuario autenticado
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async setAdminPin(@Request() req: AuthenticatedRequest, @Body() dto: SetAdminPinDto) {
+    await this.usuariosService.setAdminPin(req.user.id, dto)
+  }
+
+  /**
+   * Validar PIN de administrador
+   * Retorna true si el PIN es correcto
+   */
+  @Post('me/validate-admin-pin')
+  @UseGuards(JwtAuthGuard) // Solo requiere autenticación
+  @SetMetadata(ROLES_KEY, []) // Sin roles específicos - permite cualquier usuario autenticado
+  async validateAdminPin(@Request() req: AuthenticatedRequest, @Body() dto: ValidateAdminPinDto) {
+    const isValid = await this.usuariosService.validateAdminPin(req.user.id, dto)
+    return { valid: isValid }
+  }
+
+  /**
+   * Verificar si el usuario tiene PIN establecido
+   */
+  @Get('me/has-admin-pin')
+  @UseGuards(JwtAuthGuard) // Solo requiere autenticación
+  @SetMetadata(ROLES_KEY, []) // Sin roles específicos - permite cualquier usuario autenticado
+  async hasAdminPin(@Request() req: AuthenticatedRequest) {
+    const hasPin = await this.usuariosService.hasAdminPin(req.user.id)
+    return { hasPin }
   }
 }
 

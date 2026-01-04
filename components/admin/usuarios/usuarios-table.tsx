@@ -15,6 +15,7 @@ interface UsuariosTableProps {
   onToggleActivo: (usuario: Usuario) => void
   isTogglingActivo?: boolean
 }
+
 // Función simple para formatear fecha
 function formatDate(dateString: string): string {
   const date = new Date(dateString)
@@ -23,12 +24,6 @@ function formatDate(dateString: string): string {
   const month = months[date.getMonth()]
   const year = date.getFullYear()
   return `${day} ${month} ${year}`
-}
-
-interface UsuariosTableProps {
-  usuarios: Usuario[]
-  onEdit: (usuario: Usuario) => void
-  onDelete: (id: string) => void
 }
 
 const rolConfig = {

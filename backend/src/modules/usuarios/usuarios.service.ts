@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, Logger, ConflictException } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
 import { AuditService } from '../../common/services/audit.service'
-import { CreateUsuarioDto, UpdateUsuarioDto, ChangePasswordDto, AdminResetPasswordDto } from './dto/usuario.dto'
+import { CreateUsuarioDto, UpdateUsuarioDto, ChangePasswordDto, AdminResetPasswordDto, SetAdminPinDto, ValidateAdminPinDto } from './dto/usuario.dto'
 import { User, UserRole } from '@prisma/client'
 import * as bcrypt from 'bcrypt'
 
@@ -500,6 +500,94 @@ export class UsuariosService {
     }
 
     return updatedUser
+  }
+
+  /**
+   * Establecer PIN de administrador para acciones críticas
+   * Solo ADMIN puede establecer su PIN
+   */
+  async setAdminPin(userId: string, dto: SetAdminPinDto): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    })
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado')
+    }
+
+    if (user.rol !== 'ADMIN') {
+      throw new BadRequestException('Solo los administradores pueden establecer un PIN')
+    }
+
+    // Hash del PIN (similar a la contraseña pero más simple)
+    const hashedPin = await bcrypt.hash(dto.pin, 10)
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        adminPin: hashedPin,
+      },
+    })
+
+    this.logger.log(`✅ PIN de administrador establecido para usuario: ${user.email}`)
+  }
+
+  /**
+   * Validar PIN de administrador
+   * Retorna true si el PIN es correcto, false en caso contrario
+   */
+  async validateAdminPin(userId: string, dto: ValidateAdminPinDto): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        adminPin: true,
+        rol: true,
+      },
+    })
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado')
+    }
+
+    if (user.rol !== 'ADMIN') {
+      throw new BadRequestException('Solo los administradores pueden validar un PIN')
+    }
+
+    // Si no tiene PIN establecido, no se puede validar
+    if (!user.adminPin) {
+      throw new BadRequestException('No se ha establecido un PIN de administrador. Por favor, configúralo primero.')
+    }
+
+    // Comparar PIN
+    const isValid = await bcrypt.compare(dto.pin, user.adminPin)
+
+    if (!isValid) {
+      this.logger.warn(`❌ PIN inválido intentado por usuario: ${user.id}`)
+    } else {
+      this.logger.log(`✅ PIN validado correctamente para usuario: ${user.id}`)
+    }
+
+    return isValid
+  }
+
+  /**
+   * Verificar si el usuario tiene PIN establecido
+   */
+  async hasAdminPin(userId: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        adminPin: true,
+        rol: true,
+      },
+    })
+
+    if (!user || user.rol !== 'ADMIN') {
+      return false
+    }
+
+    return !!user.adminPin
   }
 }
 

@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ChangePasswordDialog } from '@/components/admin/change-password-dialog'
 import { ChangeEmailDialog } from '@/components/admin/change-email-dialog'
+import { SetupAdminPinDialog } from '@/components/admin/setup-admin-pin-dialog'
+import { useHasAdminPin } from '@/lib/hooks/use-usuarios'
 import { getFilteredNavigation } from '@/lib/utils/admin-navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -40,6 +42,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
   const [isChangeEmailOpen, setIsChangeEmailOpen] = useState(false)
+  const [isSetupPinOpen, setIsSetupPinOpen] = useState(false)
+  
+  const { data: hasPinData } = useHasAdminPin()
+  const hasPin = hasPinData?.hasPin ?? false
 
   // Páginas públicas que no requieren autenticación
   const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password', '/admin/setup-credentials']
@@ -171,6 +177,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                     <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
                       <Lock className="size-4 mr-2" />
                       Cambiar Contraseña
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setIsSetupPinOpen(true)}>
+                      <Shield className="size-4 mr-2" />
+                      {hasPin ? 'Cambiar PIN Admin' : 'Configurar PIN Admin'}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
@@ -358,17 +368,31 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       {/* Change Password Dialog */}
       <ChangePasswordDialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen} />
       
-      {/* Change Email Dialog */}
-      {user && (
-        <ChangeEmailDialog
-          open={isChangeEmailOpen}
-          onOpenChange={setIsChangeEmailOpen}
-          currentEmail={user.email}
-        />
-      )}
-    </div>
-  )
-}
+                  {/* Change Email Dialog */}
+                  {user && (
+                    <ChangeEmailDialog
+                      open={isChangeEmailOpen}
+                      onOpenChange={setIsChangeEmailOpen}
+                      currentEmail={user.email}
+                    />
+                  )}
+
+                  {/* Setup Admin PIN Dialog */}
+                  {user?.rol === 'ADMIN' && (
+                    <SetupAdminPinDialog
+                      open={isSetupPinOpen}
+                      onOpenChange={setIsSetupPinOpen}
+                      onSuccess={() => {
+                        // Invalidar query para refrescar el estado de hasPin
+                        if (typeof window !== 'undefined') {
+                          // El hook se refrescará automáticamente
+                        }
+                      }}
+                    />
+                  )}
+                </div>
+              )
+            }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
