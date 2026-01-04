@@ -35,6 +35,7 @@ import { useEffect, useState } from 'react'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { NotificationsBell } from '@/components/admin/notifications-bell'
 import { RouteGuard } from '@/components/admin/route-guard'
+import { ErrorBoundary } from '@/components/admin/error-boundary'
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, logout, isAuthenticated, isHydrated, checkAuth } = useAuth()

@@ -296,27 +296,59 @@ export const useAuth = create<AuthState>()(set => ({
 
 // Inicializar al cargar (solo en cliente)
 if (typeof window !== 'undefined') {
-  // Inicializar estado inmediatamente desde storage (sin esperar validación del backend)
-  const initialToken = getStoredToken()
-  const initialRefreshToken = getStoredRefreshToken()
-  const initialUser = getStoredUser()
-  
-  if (initialToken && initialUser) {
-    // Establecer estado inicial inmediatamente para evitar pantalla en blanco
-    useAuth.setState({
-      user: initialUser,
-      token: initialToken,
-      refreshToken: initialRefreshToken || null,
-      isAuthenticated: true,
-      isHydrated: true, // Marcar como hidratado inmediatamente
-    })
+  try {
+    // Inicializar estado inmediatamente desde storage (sin esperar validación del backend)
+    const initialToken = getStoredToken()
+    const initialRefreshToken = getStoredRefreshToken()
+    const initialUser = getStoredUser()
     
-    // Validar token en background (no bloquea el render)
-    useAuth.getState().checkAuth().catch(() => {
-      // Si falla la validación, se actualizará el estado en checkAuth
-    })
-  } else {
-    // Si no hay token, marcar como hidratado inmediatamente
+    if (initialToken && initialUser) {
+      // Validar que el usuario tenga la estructura correcta
+      if (initialUser && typeof initialUser === 'object' && 'email' in initialUser && 'id' in initialUser) {
+        // Establecer estado inicial inmediatamente para evitar pantalla en blanco
+        useAuth.setState({
+          user: initialUser,
+          token: initialToken,
+          refreshToken: initialRefreshToken || null,
+          isAuthenticated: true,
+          isHydrated: true, // Marcar como hidratado inmediatamente
+        })
+        
+        // Validar token en background (no bloquea el render)
+        useAuth.getState().checkAuth().catch((error: unknown) => {
+          // Si falla la validación, se actualizará el estado en checkAuth
+          console.error('[useAuth] Error al validar token en background:', error)
+        })
+      } else {
+        // Usuario inválido, limpiar storage
+        console.warn('[useAuth] Usuario en storage tiene estructura inválida, limpiando...')
+        localStorage.removeItem('auth_user')
+        sessionStorage.removeItem('auth_user')
+        localStorage.removeItem('auth_token')
+        sessionStorage.removeItem('auth_token')
+        useAuth.setState({
+          isHydrated: true,
+          isAuthenticated: false,
+        })
+      }
+    } else {
+      // Si no hay token, marcar como hidratado inmediatamente
+      useAuth.setState({
+        isHydrated: true,
+        isAuthenticated: false,
+      })
+    }
+  } catch (error: unknown) {
+    console.error('[useAuth] Error al inicializar desde storage:', error)
+    // En caso de error, limpiar storage y marcar como no autenticado
+    try {
+      localStorage.removeItem('auth_user')
+      sessionStorage.removeItem('auth_user')
+      localStorage.removeItem('auth_token')
+      sessionStorage.removeItem('auth_token')
+    } catch (e) {
+      // Ignorar errores al limpiar
+    }
     useAuth.setState({
       isHydrated: true,
       isAuthenticated: false,
