@@ -298,6 +298,7 @@ export class UsuariosService {
    * Cambiar contraseña de usuario (desde admin)
    * Establece la contraseña temporal por defecto (Cambiar123!)
    * El email NO se modifica - se mantiene el email generado por el admin
+   * IMPORTANTE: Resetea hasChangedPassword a false para que el usuario tenga que cambiar su contraseña
    */
   async adminResetPassword(id: string, dto: AdminResetPasswordDto): Promise<void> {
     const user = await this.prisma.user.findUnique({
@@ -310,21 +311,18 @@ export class UsuariosService {
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10)
 
-    // Solo actualizar la contraseña, NO modificar el email
+    // Actualizar la contraseña y resetear hasChangedPassword a false
+    // Esto asegura que el usuario será redirigido a setup-credentials para cambiar su contraseña
     await this.prisma.user.update({
       where: { id },
       data: {
         password: hashedPassword,
+        hasChangedPassword: false, // Resetear para que el usuario tenga que cambiar su contraseña
       },
     })
 
     this.logger.log(`✅ Contraseña reseteada para usuario: ${user.email}`)
-    
-    // Si el email termina en @ministerio-amva.org, el usuario será redirigido a setup-credentials
-    // al iniciar sesión para cambiar su contraseña
-    if (user.email.endsWith('@ministerio-amva.org')) {
-      this.logger.log(`ℹ️  Usuario ${user.email} será redirigido a setup-credentials al iniciar sesión para cambiar su contraseña.`)
-    }
+    this.logger.log(`ℹ️  Usuario ${user.email} será redirigido a setup-credentials al iniciar sesión para cambiar su contraseña.`)
   }
 
   /**

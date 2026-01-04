@@ -139,6 +139,20 @@ export default function SetupCredentialsPage() {
             <CardDescription className="mt-2">
               Has iniciado sesión con una contraseña temporal. Por favor, configura tu contraseña personalizada para continuar.
             </CardDescription>
+            {user?.rol === 'EDITOR' && (
+              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                <p className="text-sm text-blue-900 dark:text-blue-100">
+                  <strong>Rol Editor:</strong> Tendrás acceso a Noticias y Galería Multimedia después de configurar tu contraseña.
+                </p>
+              </div>
+            )}
+            {user?.rol === 'ADMIN' && (
+              <div className="mt-3 p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-md">
+                <p className="text-sm text-emerald-900 dark:text-emerald-100">
+                  <strong>Rol Administrador:</strong> Tendrás acceso completo a todos los módulos después de configurar tu contraseña.
+                </p>
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
