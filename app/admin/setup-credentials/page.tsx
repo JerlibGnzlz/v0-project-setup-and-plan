@@ -58,6 +58,8 @@ export default function SetupCredentialsPage() {
   })
 
   // Verificar si el usuario tiene credenciales por defecto
+  // IMPORTANTE: Solo verificar una vez al cargar la página
+  // No volver a verificar después de cambiar la contraseña
   useEffect(() => {
     if (isHydrated && isAuthenticated && user) {
       // Verificar si el email termina en @ministerio-amva.org
@@ -65,8 +67,6 @@ export default function SetupCredentialsPage() {
 
       if (tieneCredencialesPorDefecto) {
         setNeedsSetup(true)
-        // NO pre-llenar el email - el usuario debe ingresar uno nuevo
-        // setValue('email', '') // Dejar vacío para que el usuario ingrese uno nuevo
       } else {
         // Si no necesita setup, redirigir al dashboard
         router.push('/admin')
@@ -76,7 +76,10 @@ export default function SetupCredentialsPage() {
       // Si no está autenticado, redirigir al login
       router.push('/admin/login')
     }
-  }, [isHydrated, isAuthenticated, user, router])
+    // Solo ejecutar cuando cambian isHydrated o isAuthenticated
+    // No incluir user ni router para evitar re-ejecuciones innecesarias
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHydrated, isAuthenticated])
 
   const onSubmit = async (data: SetupCredentialsFormData) => {
     try {
