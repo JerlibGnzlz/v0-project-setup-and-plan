@@ -99,7 +99,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     // Solo si no estamos ya en setup-credentials o login
     if (isAuthenticated && user && !isPublicPath) {
       const tieneCredencialesPorDefecto = user.email?.endsWith('@ministerio-amva.org')
-      
+
       if (tieneCredencialesPorDefecto && pathname !== '/admin/setup-credentials') {
         console.log('[AdminLayout] Usuario con credenciales por defecto detectado, redirigiendo a setup-credentials')
         router.push('/admin/setup-credentials')

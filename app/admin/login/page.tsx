@@ -104,13 +104,28 @@ function AdminLoginContent() {
           return
         }
         
-        console.log('[AdminLogin] Redirigiendo después de login exitoso al dashboard', {
+        // Parsear el usuario para verificar si tiene credenciales por defecto
+        let parsedUser: { email?: string } | null = null
+        try {
+          parsedUser = JSON.parse(userData)
+        } catch (e) {
+          console.error('[AdminLogin] Error al parsear userData:', e)
+        }
+        
+        // Determinar la ruta de destino basada en si tiene credenciales por defecto
+        const tieneCredencialesPorDefecto = parsedUser?.email?.endsWith('@ministerio-amva.org')
+        const targetPath = tieneCredencialesPorDefecto ? '/admin/setup-credentials' : '/admin'
+        
+        console.log('[AdminLogin] Redirigiendo después de login exitoso', {
           hasToken: !!token,
+          userEmail: parsedUser?.email,
+          tieneCredencialesPorDefecto,
+          targetPath,
           pathname: window.location.pathname,
         })
         
-        // Forzar redirección inmediata al dashboard
-        window.location.replace('/admin')
+        // Forzar redirección a la ruta apropiada
+        window.location.replace(targetPath)
       } catch (error) {
         console.error('[AdminLogin] Error al leer storage o redirigir:', error)
         setIsSubmitting(false)
