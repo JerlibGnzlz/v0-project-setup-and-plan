@@ -215,7 +215,7 @@ export const useAuth = create<AuthState>()(set => ({
     try {
       console.log('[useAuth] Validando token con backend...')
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout')), 5000) // 5 segundos máximo
+        setTimeout(() => reject(new Error('Timeout')), 10000) // 10 segundos máximo
       })
 
       const profilePromise = authApi.getProfile()
@@ -223,6 +223,12 @@ export const useAuth = create<AuthState>()(set => ({
       const response = await Promise.race([profilePromise, timeoutPromise])
 
       console.log('[useAuth] Token válido, actualizando estado')
+      
+      // Validar que la respuesta tenga la estructura correcta
+      if (!response || !response.id || !response.email) {
+        throw new Error('Respuesta del perfil inválida')
+      }
+      
       // Actualizar con los datos del backend (pueden estar más actualizados)
       set({
         user: response,
@@ -234,10 +240,15 @@ export const useAuth = create<AuthState>()(set => ({
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       
-      console.log('[useAuth] Error al validar token:', errorMessage)
+      console.error('[useAuth] Error al validar token:', errorMessage)
       
       // Si es timeout o error de red, mantener el estado actual si hay token
-      if (errorMessage === 'Timeout' || errorMessage.includes('Network') || errorMessage.includes('fetch')) {
+      if (
+        errorMessage === 'Timeout' ||
+        errorMessage.includes('Network') ||
+        errorMessage.includes('fetch') ||
+        errorMessage.includes('Failed to fetch')
+      ) {
         console.log('[useAuth] Error de red/timeout, manteniendo estado autenticado')
         // Si hay token en storage, mantener autenticado (puede ser problema temporal de red)
         set({
