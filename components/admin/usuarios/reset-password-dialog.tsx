@@ -62,7 +62,7 @@ export function ResetPasswordDialog({ open, onOpenChange, usuario }: ResetPasswo
             Resetear Contraseña
           </DialogTitle>
           <DialogDescription>
-            Se establecerá una contraseña temporal para <strong>{usuario?.nombre}</strong>. El usuario deberá cambiarla al iniciar sesión.
+            Se restablecerá la contraseña temporal por defecto para <strong>{usuario?.nombre}</strong> ({usuario?.email}). El usuario deberá cambiarla al iniciar sesión.
           </DialogDescription>
         </DialogHeader>
 
@@ -75,10 +75,13 @@ export function ResetPasswordDialog({ open, onOpenChange, usuario }: ResetPasswo
                   Contraseña Temporal
                 </p>
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  Se establecerá la contraseña por defecto: <strong className="font-mono">{DEFAULT_PASSWORD}</strong>
+                  Se restablecerá la contraseña por defecto: <strong className="font-mono">{DEFAULT_PASSWORD}</strong>
                 </p>
                 <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
-                  El usuario recibirá esta contraseña y deberá cambiarla por una personalizada al iniciar sesión por primera vez.
+                  El email se mantendrá como: <strong className="font-mono">{usuario?.email}</strong>
+                </p>
+                <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+                  El usuario deberá cambiar esta contraseña por una personalizada al iniciar sesión.
                 </p>
               </div>
             </div>
@@ -92,9 +95,10 @@ export function ResetPasswordDialog({ open, onOpenChange, usuario }: ResetPasswo
                   ¿Qué pasará después?
                 </p>
                 <ul className="text-xs text-amber-800 dark:text-amber-200 space-y-1 list-disc list-inside">
-                  <li>El usuario iniciará sesión con: <strong className="font-mono">{DEFAULT_PASSWORD}</strong></li>
-                  <li>Será redirigido automáticamente a configurar sus credenciales</li>
-                  <li>Deberá cambiar tanto el email como la contraseña por valores personalizados</li>
+                  <li>El usuario iniciará sesión con su email: <strong className="font-mono">{usuario?.email}</strong></li>
+                  <li>Y la contraseña temporal: <strong className="font-mono">{DEFAULT_PASSWORD}</strong></li>
+                  <li>Será redirigido automáticamente a configurar su contraseña personalizada</li>
+                  <li>El email se mantendrá igual, solo cambiará la contraseña</li>
                 </ul>
               </div>
             </div>

@@ -11,23 +11,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/use-auth'
-import { useChangeEmail, useChangePassword } from '@/lib/hooks/use-usuarios'
+import { useChangePassword } from '@/lib/hooks/use-usuarios'
 import Image from 'next/image'
 
 const setupCredentialsSchema = z
   .object({
-    email: z
-      .string()
-      .email('El email debe ser válido')
-      .refine(
-        (email) => {
-          // El nuevo email NO debe terminar en @ministerio-amva.org
-          return !email.endsWith('@ministerio-amva.org')
-        },
-        {
-          message: 'El nuevo email debe ser personalizado. No puede terminar en @ministerio-amva.org',
-        }
-      ),
     password: z
       .string()
       .min(8, 'La contraseña debe tener al menos 8 caracteres')
@@ -54,18 +42,15 @@ export default function SetupCredentialsPage() {
   const [isChecking, setIsChecking] = useState(true)
   const [needsSetup, setNeedsSetup] = useState(false)
 
-  const changeEmailMutation = useChangeEmail()
   const changePasswordMutation = useChangePassword()
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
   } = useForm<SetupCredentialsFormData>({
     resolver: zodResolver(setupCredentialsSchema),
     defaultValues: {
-      email: '',
       password: '',
       confirmPassword: '',
       currentPassword: '',
@@ -95,23 +80,7 @@ export default function SetupCredentialsPage() {
 
   const onSubmit = async (data: SetupCredentialsFormData) => {
     try {
-      // Validar que el nuevo email sea diferente al temporal
-      if (data.email === user?.email) {
-        throw new Error('El nuevo email debe ser diferente al email temporal')
-      }
-
-      // Validar que el nuevo email no termine en @ministerio-amva.org
-      if (data.email.endsWith('@ministerio-amva.org')) {
-        throw new Error('El nuevo email no puede terminar en @ministerio-amva.org. Debe ser un email personalizado.')
-      }
-
-      // Cambiar email primero (siempre, porque debe ser diferente)
-      await changeEmailMutation.mutateAsync({
-        newEmail: data.email,
-        password: data.currentPassword,
-      })
-
-      // Cambiar contraseña usando el endpoint de usuarios (consistente con changeEmail)
+      // Solo cambiar la contraseña (el email se mantiene como está)
       await changePasswordMutation.mutateAsync({
         currentPassword: data.currentPassword,
         newPassword: data.password,
@@ -165,33 +134,30 @@ export default function SetupCredentialsPage() {
           <div>
             <CardTitle className="text-2xl flex items-center justify-center gap-2">
               <AlertCircle className="size-6 text-amber-500" />
-              Configuración de Credenciales Requerida
+              Configuración de Contraseña Requerida
             </CardTitle>
             <CardDescription className="mt-2">
-              Has iniciado sesión con credenciales temporales. Por favor, configura tu email y contraseña personalizados para continuar.
+              Has iniciado sesión con una contraseña temporal. Por favor, configura tu contraseña personalizada para continuar.
             </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="size-4" />
-                Nuevo Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="tu-email@ejemplo.com"
-                {...register('email')}
-                disabled={changeEmailMutation.isPending || changePasswordMutation.isPending}
-              />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Este será tu nuevo email para iniciar sesión. Debe ser diferente al email temporal.
-              </p>
+            <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md">
+              <div className="flex items-start gap-3">
+                <Mail className="size-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                    Email de Acceso
+                  </p>
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    Tu email de acceso es: <strong className="font-mono">{user?.email}</strong>
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+                    Este email no se puede modificar. Solo puedes cambiar tu contraseña.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -205,7 +171,7 @@ export default function SetupCredentialsPage() {
                   type={showCurrentPassword ? 'text' : 'password'}
                   placeholder="Cambiar123!"
                   {...register('currentPassword')}
-                  disabled={changeEmailMutation.isPending || changePasswordMutation.isPending}
+                  disabled={changePasswordMutation.isPending}
                   className="pr-10"
                 />
                 <Button
@@ -238,7 +204,7 @@ export default function SetupCredentialsPage() {
                   type={showNewPassword ? 'text' : 'password'}
                   placeholder="Mínimo 8 caracteres"
                   {...register('password')}
-                  disabled={changeEmailMutation.isPending || changePasswordMutation.isPending}
+                  disabled={changePasswordMutation.isPending}
                   className="pr-10"
                 />
                 <Button
@@ -271,7 +237,7 @@ export default function SetupCredentialsPage() {
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Confirma tu nueva contraseña"
                   {...register('confirmPassword')}
-                  disabled={changeEmailMutation.isPending || changePasswordMutation.isPending}
+                  disabled={changePasswordMutation.isPending}
                   className="pr-10"
                 />
                 <Button
@@ -295,18 +261,18 @@ export default function SetupCredentialsPage() {
 
             <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
               <p className="text-sm text-amber-900 dark:text-amber-100">
-                <strong>⚠️ Importante:</strong> No podrás acceder al panel hasta que cambies tus credenciales.
+                <strong>⚠️ Importante:</strong> No podrás acceder al panel hasta que cambies tu contraseña temporal.
               </p>
             </div>
 
             <Button
               type="submit"
               className="w-full"
-              disabled={changeEmailMutation.isPending || changePasswordMutation.isPending}
+              disabled={changePasswordMutation.isPending}
             >
-              {changeEmailMutation.isPending || changePasswordMutation.isPending
+              {changePasswordMutation.isPending
                 ? 'Guardando...'
-                : 'Guardar Credenciales y Continuar'}
+                : 'Guardar Contraseña y Continuar'}
             </Button>
           </form>
         </CardContent>
