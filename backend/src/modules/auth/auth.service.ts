@@ -83,22 +83,29 @@ export class AuthService {
           },
         })
       } catch (error: unknown) {
-        // Si falla porque el campo activo no existe, intentar sin ese campo
-        this.logger.warn('Campo activo no encontrado, usando query sin activo (migración pendiente)')
-        user = await this.prisma.user.findUnique({
-          where: { email: dto.email },
-          select: {
-            id: true,
-            email: true,
-            password: true,
-            nombre: true,
-            rol: true,
-            avatar: true,
-          },
-        })
-        // Si no tiene campo activo, asumir que está activo (comportamiento por defecto)
-        if (user) {
-          user.activo = true
+        // Si falla porque algún campo no existe, intentar con campos mínimos
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        this.logger.warn(`Error al obtener usuario, intentando query mínima: ${errorMessage}`)
+        try {
+          user = await this.prisma.user.findUnique({
+            where: { email: dto.email },
+            select: {
+              id: true,
+              email: true,
+              password: true,
+              nombre: true,
+              rol: true,
+              avatar: true,
+            },
+          })
+          // Si no tiene campo activo, asumir que está activo (comportamiento por defecto)
+          if (user) {
+            user.activo = true
+          }
+        } catch (fallbackError: unknown) {
+          const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+          this.logger.error(`Error en query de fallback: ${fallbackMessage}`)
+          throw fallbackError
         }
       }
 

@@ -52,57 +52,86 @@ export const useAuth = create<AuthState>()(set => ({
 
   login: async (data: LoginRequest & { rememberMe?: boolean }) => {
     try {
+      console.log('[useAuth] Iniciando login para:', data.email)
+      
       // Solo enviar email y password al backend, rememberMe es solo para el frontend
       const { rememberMe, ...loginData } = data
+      
+      console.log('[useAuth] Llamando a authApi.login...')
       const response = await authApi.login(loginData)
+      console.log('[useAuth] Respuesta recibida:', {
+        hasAccessToken: !!response.access_token,
+        hasRefreshToken: !!response.refresh_token,
+        hasUser: !!response.user,
+        userEmail: response.user?.email,
+      })
 
-    // Limpiar ambos storages primero
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_refresh_token')
-      localStorage.removeItem('auth_user')
-      sessionStorage.removeItem('auth_token')
-      sessionStorage.removeItem('auth_refresh_token')
-      sessionStorage.removeItem('auth_user')
+      // Limpiar ambos storages primero
+      if (typeof window !== 'undefined') {
+        console.log('[useAuth] Limpiando storages...')
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('auth_refresh_token')
+        localStorage.removeItem('auth_user')
+        sessionStorage.removeItem('auth_token')
+        sessionStorage.removeItem('auth_refresh_token')
+        sessionStorage.removeItem('auth_user')
 
-      // Si rememberMe es true, usar localStorage (persistente)
-      // Si es false, usar sessionStorage (se borra al cerrar navegador)
-      const storage = data.rememberMe ? localStorage : sessionStorage
+        // Si rememberMe es true, usar localStorage (persistente)
+        // Si es false, usar sessionStorage (se borra al cerrar navegador)
+        const storage = data.rememberMe ? localStorage : sessionStorage
+        console.log('[useAuth] Usando storage:', data.rememberMe ? 'localStorage' : 'sessionStorage')
 
-      // Guardar tokens y usuario en storage
-      storage.setItem('auth_token', response.access_token)
-      if (response.refresh_token) {
-        storage.setItem('auth_refresh_token', response.refresh_token)
+        // Guardar tokens y usuario en storage
+        storage.setItem('auth_token', response.access_token)
+        if (response.refresh_token) {
+          storage.setItem('auth_refresh_token', response.refresh_token)
+        }
+        storage.setItem('auth_user', JSON.stringify(response.user))
+
+        // Verificar que se guardó correctamente
+        const verifyToken = storage.getItem('auth_token')
+        const verifyUser = storage.getItem('auth_user')
+        console.log('[useAuth] Verificación de storage:', {
+          tokenGuardado: !!verifyToken,
+          userGuardado: !!verifyUser,
+        })
+        
+        if (!verifyToken || !verifyUser) {
+          console.error('[useAuth] Error: No se pudo guardar en storage')
+          throw new Error('Error al guardar la sesión en storage')
+        }
       }
-      storage.setItem('auth_user', JSON.stringify(response.user))
 
-      // Verificar que se guardó correctamente
-      const verifyToken = storage.getItem('auth_token')
-      const verifyUser = storage.getItem('auth_user')
-      if (!verifyToken || !verifyUser) {
-        throw new Error('Error al guardar la sesión en storage')
+      // Actualizar estado de Zustand
+      console.log('[useAuth] Actualizando estado de Zustand...')
+      const newState = {
+        user: response.user,
+        token: response.access_token,
+        refreshToken: response.refresh_token || null,
+        isAuthenticated: true,
+        isHydrated: true, // Asegurar que está hidratado
       }
-    }
-
-    // Actualizar estado de Zustand
-    const newState = {
-      user: response.user,
-      token: response.access_token,
-      refreshToken: response.refresh_token || null,
-      isAuthenticated: true,
-      isHydrated: true, // Asegurar que está hidratado
-    }
-    set(newState)
+      set(newState)
+      
+      console.log('[useAuth] Estado actualizado:', {
+        isAuthenticated: newState.isAuthenticated,
+        userEmail: newState.user?.email,
+      })
 
       // Retornar para que el login page pueda esperar
       return Promise.resolve()
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       const errorStack = error instanceof Error ? error.stack : undefined
-      console.error('[useAuth] Error en login:', {
+      const errorResponse = (error as { response?: { status?: number; data?: unknown } })?.response
+      
+      console.error('[useAuth] ❌ Error en login:', {
         message: errorMessage,
+        status: errorResponse?.status,
+        data: errorResponse?.data,
         stack: errorStack,
       })
+      
       throw error
     }
   },
