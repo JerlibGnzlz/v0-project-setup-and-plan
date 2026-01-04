@@ -23,6 +23,7 @@ function AdminLoginContent() {
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [loginSuccess, setLoginSuccess] = useState(false)
   const credentialsUpdated = searchParams?.get('credentialsUpdated') === 'true'
+  const passwordChanged = searchParams?.get('passwordChanged') === 'true'
 
   // Mostrar mensaje de éxito si las credenciales fueron actualizadas
   useEffect(() => {
@@ -35,6 +36,18 @@ function AdminLoginContent() {
       router.replace('/admin/login', { scroll: false })
     }
   }, [credentialsUpdated, router])
+
+  // Mostrar mensaje de éxito si la contraseña fue cambiada
+  useEffect(() => {
+    if (passwordChanged) {
+      toast.success('Contraseña cambiada exitosamente', {
+        description: 'Tu contraseña ha sido cambiada. Por favor, inicia sesión con tu nueva contraseña.',
+        duration: 5000,
+      })
+      // Limpiar el parámetro de la URL sin recargar la página
+      router.replace('/admin/login', { scroll: false })
+    }
+  }, [passwordChanged, router])
 
   // Si ya está autenticado, redirigir al dashboard
   useEffect(() => {

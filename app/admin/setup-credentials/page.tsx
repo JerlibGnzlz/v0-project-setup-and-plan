@@ -89,11 +89,17 @@ export default function SetupCredentialsPage() {
         newPassword: data.password,
       })
 
-      // Después de cambiar la contraseña exitosamente, usar window.location.href
-      // para forzar una recarga completa y evitar que el useEffect vuelva a ejecutarse
-      // Esto asegura que el usuario sea redirigido al dashboard sin quedarse en setup-credentials
+      // Después de cambiar la contraseña exitosamente, hacer logout y redirigir al login
+      // Esto permite que el usuario inicie sesión con su nueva contraseña
+      console.log('[SetupCredentials] Contraseña cambiada exitosamente, haciendo logout y redirigiendo al login')
+      
+      // Hacer logout para limpiar la sesión actual
+      logout()
+      
+      // Esperar un momento para que el logout se complete
       setTimeout(() => {
-        window.location.href = '/admin'
+        // Redirigir al login con un mensaje de éxito
+        window.location.href = '/admin/login?passwordChanged=true'
       }, 500)
     } catch (error) {
       // Error ya manejado en los hooks
