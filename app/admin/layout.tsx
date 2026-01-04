@@ -6,7 +6,6 @@ import {
   Menu,
   UserCircle,
   Lock,
-  Mail,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -17,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ChangePasswordDialog } from '@/components/admin/change-password-dialog'
-import { ChangeEmailDialog } from '@/components/admin/change-email-dialog'
 import { getFilteredNavigation } from '@/lib/utils/admin-navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -38,7 +36,6 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
-  const [isChangeEmailOpen, setIsChangeEmailOpen] = useState(false)
 
   // Páginas públicas que no requieren autenticación
   const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password', '/admin/setup-credentials']
@@ -210,21 +207,8 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {/* ADMIN puede cambiar email y contraseña, EDITOR solo puede cambiar contraseña */}
-                {user?.rol === 'ADMIN' && (
-                  <>
-                    <DropdownMenuItem onClick={() => setIsChangeEmailOpen(true)}>
-                      <Mail className="size-4 mr-2" />
-                      Cambiar Email
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
-                      <Lock className="size-4 mr-2" />
-                      Cambiar Contraseña
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                {user?.rol === 'EDITOR' && (
+                {/* ADMIN y EDITOR pueden cambiar contraseña */}
+                {(user?.rol === 'ADMIN' || user?.rol === 'EDITOR') && (
                   <>
                     <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
                       <Lock className="size-4 mr-2" />
@@ -375,21 +359,8 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {/* ADMIN puede cambiar email y contraseña, EDITOR solo puede cambiar contraseña */}
-              {user?.rol === 'ADMIN' && (
-                <>
-                  <DropdownMenuItem onClick={() => setIsChangeEmailOpen(true)}>
-                    <Mail className="size-4 mr-2" />
-                    Cambiar Email
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
-                    <Lock className="size-4 mr-2" />
-                    Cambiar Contraseña
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
-              {user?.rol === 'EDITOR' && (
+              {/* ADMIN y EDITOR pueden cambiar contraseña */}
+              {(user?.rol === 'ADMIN' || user?.rol === 'EDITOR') && (
                 <>
                   <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
                     <Lock className="size-4 mr-2" />
@@ -422,15 +393,6 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Change Password Dialog */}
       <ChangePasswordDialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen} />
-
-      {/* Change Email Dialog */}
-      {user && (
-        <ChangeEmailDialog
-          open={isChangeEmailOpen}
-          onOpenChange={setIsChangeEmailOpen}
-          currentEmail={user.email}
-        />
-      )}
 
     </div>
   )
