@@ -38,6 +38,11 @@ function AdminLoginContent() {
 
   // Si ya está autenticado, redirigir al dashboard o setup-credentials
   useEffect(() => {
+    // Solo ejecutar en el cliente
+    if (typeof window === 'undefined') {
+      return
+    }
+    
     // Solo redirigir si no estamos en proceso de login y no estamos ya redirigiendo
     // Y solo si realmente estamos en la página de login (no en otra ruta)
     if (
@@ -46,7 +51,6 @@ function AdminLoginContent() {
       !isSubmitting &&
       !isRedirecting &&
       user &&
-      typeof window !== 'undefined' &&
       window.location.pathname === '/admin/login'
     ) {
       console.log('[AdminLogin] Usuario autenticado detectado en useEffect, preparando redirección...', {
@@ -68,8 +72,12 @@ function AdminLoginContent() {
       
       // Usar setTimeout para asegurar que se ejecute en el siguiente ciclo del event loop
       const timeoutId = setTimeout(() => {
-        if (window.location.pathname === '/admin/login') {
-          window.location.replace(targetPath)
+        try {
+          if (window.location.pathname === '/admin/login') {
+            window.location.replace(targetPath)
+          }
+        } catch (error) {
+          console.error('[AdminLogin] Error al redirigir:', error)
         }
       }, 100)
       
