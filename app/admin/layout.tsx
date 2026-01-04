@@ -419,9 +419,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <ErrorBoundary>
       <QueryProvider>
-        <RouteGuard>
-          <AdminLayoutContent>{children}</AdminLayoutContent>
-        </RouteGuard>
+        <AdminLayoutContent>{children}</AdminLayoutContent>
       </QueryProvider>
     </ErrorBoundary>
   )
