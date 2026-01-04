@@ -111,6 +111,8 @@ export const useAuth = create<AuthState>()(set => ({
         isAuthenticated: true,
         isHydrated: true, // Asegurar que está hidratado
       }
+      
+      // Actualizar estado de forma síncrona
       set(newState)
       
       console.log('[useAuth] Estado actualizado:', {
@@ -118,7 +120,10 @@ export const useAuth = create<AuthState>()(set => ({
         userEmail: newState.user?.email,
       })
 
-      // Retornar para que el login page pueda esperar
+      // Pequeño delay para asegurar que el estado se propague
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      // Retornar el usuario para que el login page pueda usarlo directamente
       return Promise.resolve()
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
