@@ -52,16 +52,21 @@ function AdminLoginContent() {
     }
   }, [passwordChanged])
 
-  // Si ya está autenticado, redirigir al dashboard
+  // Si ya está autenticado al cargar la página (no después de un login), redirigir
+  // Este useEffect solo maneja casos donde el usuario ya estaba autenticado antes de llegar a esta página
   useEffect(() => {
     // Solo ejecutar en el cliente
     if (typeof window === 'undefined') {
       return
     }
     
-    // Solo redirigir si no estamos en proceso de login y no estamos ya redirigiendo
-    // Y solo si realmente estamos en la página de login (no en otra ruta)
-    // Y solo si el login fue exitoso (no es un estado previo)
+    // Solo redirigir si:
+    // 1. Está hidratado
+    // 2. Está autenticado
+    // 3. NO estamos en proceso de login (isSubmitting = false)
+    // 4. NO estamos ya redirigiendo (isRedirecting = false)
+    // 5. NO acabamos de hacer login exitoso (loginSuccess = false) - esto evita conflicto con handleSubmit
+    // 6. Estamos en la página de login
     if (
       isHydrated &&
       isAuthenticated &&
@@ -70,7 +75,7 @@ function AdminLoginContent() {
       !loginSuccess &&
       window.location.pathname === '/admin/login'
     ) {
-      console.log('[AdminLogin] Usuario autenticado detectado en useEffect, redirigiendo', {
+      console.log('[AdminLogin] Usuario ya autenticado detectado en useEffect, redirigiendo', {
         userEmail: user?.email,
         tieneCredencialesPorDefecto: user?.email?.endsWith('@ministerio-amva.org'),
         hasChangedPassword: (user as { hasChangedPassword?: boolean })?.hasChangedPassword,
@@ -95,7 +100,7 @@ function AdminLoginContent() {
       }
       
       setIsRedirecting(true)
-      window.location.replace(targetPath)
+      window.location.href = targetPath
     }
   }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, loginSuccess, user])
 
