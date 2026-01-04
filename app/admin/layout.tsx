@@ -48,7 +48,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password', '/admin/setup-credentials']
   const isPublicPath = publicPaths.some(path => pathname?.startsWith(path))
   
-  // Solo ejecutar useHasAdminPin si no es una ruta pública y el usuario está autenticado
+  // Solo ejecutar useHasAdminPin si no es una ruta pública (el hook ya valida autenticación y rol internamente)
   const { data: hasPinData } = useHasAdminPin()
   const hasPin = hasPinData?.hasPin ?? false
 
