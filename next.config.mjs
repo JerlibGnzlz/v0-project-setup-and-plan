@@ -1,9 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Forzar regeneración en cada build para evitar problemas de caché
-  generateBuildId: async () => {
-    return `build-${Date.now()}`
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -46,13 +42,7 @@ const nextConfig = {
       },
     ],
   },
-  // Configuración para Turbopack (Next.js 16+)
-  turbopack: {
-    // Configuración vacía para usar Turbopack por defecto
-  },
-  // Mantener webpack solo para compatibilidad si es necesario
   webpack: (config, { isServer }) => {
-    // Prevenir que axios intente usar XMLHttpRequest en el servidor
     if (isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
