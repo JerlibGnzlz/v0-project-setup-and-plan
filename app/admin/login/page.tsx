@@ -36,7 +36,7 @@ function AdminLoginContent() {
     }
   }, [credentialsUpdated, router])
 
-  // Si ya está autenticado, redirigir al dashboard o setup-credentials
+  // Si ya está autenticado, redirigir al dashboard
   useEffect(() => {
     // Solo ejecutar en el cliente
     if (typeof window === 'undefined') {
@@ -50,30 +50,13 @@ function AdminLoginContent() {
       isAuthenticated &&
       !isSubmitting &&
       !isRedirecting &&
-      user &&
       window.location.pathname === '/admin/login'
     ) {
-      console.log('[AdminLogin] Usuario autenticado detectado en useEffect, preparando redirección...', {
-        userEmail: user.email,
-        isSubmitting,
-        isRedirecting,
-        loginSuccess,
-        currentPath: window.location.pathname,
-      })
-      
+      console.log('[AdminLogin] Usuario autenticado detectado, redirigiendo al dashboard')
       setIsRedirecting(true)
-      
-      // Redirigir inmediatamente
-      const targetPath = user.email?.endsWith('@ministerio-amva.org')
-        ? '/admin/setup-credentials'
-        : '/admin'
-      
-      console.log('[AdminLogin] Redirigiendo desde useEffect a:', targetPath)
-      
-      // Redirigir inmediatamente sin delay
-      window.location.replace(targetPath)
+      window.location.replace('/admin')
     }
-  }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, user, loginSuccess])
+  }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting])
 
   const handleSubmit = async (data: LoginFormData & { rememberMe: boolean }) => {
     console.log('[AdminLogin] handleSubmit llamado con:', { email: data.email, rememberMe: data.rememberMe })
