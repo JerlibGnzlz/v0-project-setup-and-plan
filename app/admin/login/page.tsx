@@ -75,14 +75,16 @@ function AdminLoginContent() {
       !loginSuccess &&
       window.location.pathname === '/admin/login'
     ) {
+      // Detectar credenciales por defecto: @ministerio-amva.org o @*-ministerio-amva.org
+      const tieneCredencialesPorDefecto = 
+        user?.email?.endsWith('@ministerio-amva.org') || 
+        user?.email?.match(/@[a-z]+-ministerio-amva\.org$/) !== null
+      
       console.log('[AdminLogin] Usuario ya autenticado detectado en useEffect, redirigiendo', {
         userEmail: user?.email,
-        tieneCredencialesPorDefecto: user?.email?.endsWith('@ministerio-amva.org'),
+        tieneCredencialesPorDefecto,
         hasChangedPassword: (user as { hasChangedPassword?: boolean })?.hasChangedPassword,
       })
-      
-      // Verificar si tiene credenciales por defecto y si ya cambió su contraseña
-      const tieneCredencialesPorDefecto = user?.email?.endsWith('@ministerio-amva.org')
       const yaCambioPassword = (user as { hasChangedPassword?: boolean })?.hasChangedPassword === true
       const userRol = user?.rol
       
@@ -184,7 +186,10 @@ function AdminLoginContent() {
         }
         
         // Determinar la ruta de destino basada en si tiene credenciales por defecto y su rol
-        const tieneCredencialesPorDefecto = parsedUser?.email?.endsWith('@ministerio-amva.org')
+        // Detectar credenciales por defecto: @ministerio-amva.org o @*-ministerio-amva.org
+        const tieneCredencialesPorDefecto = 
+          parsedUser?.email?.endsWith('@ministerio-amva.org') || 
+          parsedUser?.email?.match(/@[a-z]+-ministerio-amva\.org$/) !== null
         const yaCambioPassword = parsedUser?.hasChangedPassword === true
         const userRol = parsedUser?.rol
         

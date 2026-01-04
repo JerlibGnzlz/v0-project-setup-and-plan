@@ -72,3 +72,4 @@ export function GaleriaDeleteDialog({ open, onOpenChange, onConfirm }: GaleriaDe
 
 
 
+

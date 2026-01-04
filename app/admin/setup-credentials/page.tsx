@@ -62,8 +62,11 @@ export default function SetupCredentialsPage() {
   // No volver a verificar después de cambiar la contraseña
   useEffect(() => {
     if (isHydrated && isAuthenticated && user) {
-      // Verificar si el email termina en @ministerio-amva.org Y si ya cambió su contraseña
-      const tieneCredencialesPorDefecto = user.email?.endsWith('@ministerio-amva.org')
+      // Verificar si el email termina en @ministerio-amva.org o @*-ministerio-amva.org Y si ya cambió su contraseña
+      // Detectar credenciales por defecto: @ministerio-amva.org o @*-ministerio-amva.org
+      const tieneCredencialesPorDefecto = 
+        user.email?.endsWith('@ministerio-amva.org') || 
+        user.email?.match(/@[a-z]+-ministerio-amva\.org$/) !== null
       const yaCambioPassword = (user as { hasChangedPassword?: boolean })?.hasChangedPassword === true
 
       // Solo mostrar setup-credentials si tiene email por defecto Y aún no ha cambiado su contraseña

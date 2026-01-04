@@ -99,7 +99,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     // Solo si no estamos ya en setup-credentials o login
     // IMPORTANTE: Solo redirigir si el usuario NO ha cambiado su contraseña aún
     if (isAuthenticated && user && !isPublicPath) {
-      const tieneCredencialesPorDefecto = user.email?.endsWith('@ministerio-amva.org')
+      // Detectar credenciales por defecto: @ministerio-amva.org o @*-ministerio-amva.org
+      const tieneCredencialesPorDefecto = 
+        user.email?.endsWith('@ministerio-amva.org') || 
+        user.email?.match(/@[a-z]+-ministerio-amva\.org$/) !== null
       const yaCambioPassword = (user as { hasChangedPassword?: boolean })?.hasChangedPassword === true
 
       // Solo redirigir a setup-credentials si tiene email por defecto Y aún no ha cambiado su contraseña
@@ -207,12 +210,22 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {/* ADMIN puede cambiar email y contraseña, EDITOR solo puede cambiar contraseña */}
                 {user?.rol === 'ADMIN' && (
                   <>
                     <DropdownMenuItem onClick={() => setIsChangeEmailOpen(true)}>
                       <Mail className="size-4 mr-2" />
                       Cambiar Email
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
+                      <Lock className="size-4 mr-2" />
+                      Cambiar Contraseña
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                {user?.rol === 'EDITOR' && (
+                  <>
                     <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
                       <Lock className="size-4 mr-2" />
                       Cambiar Contraseña
@@ -362,12 +375,22 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {/* ADMIN puede cambiar email y contraseña, EDITOR solo puede cambiar contraseña */}
               {user?.rol === 'ADMIN' && (
                 <>
                   <DropdownMenuItem onClick={() => setIsChangeEmailOpen(true)}>
                     <Mail className="size-4 mr-2" />
                     Cambiar Email
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
+                    <Lock className="size-4 mr-2" />
+                    Cambiar Contraseña
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              {user?.rol === 'EDITOR' && (
+                <>
                   <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
                     <Lock className="size-4 mr-2" />
                     Cambiar Contraseña

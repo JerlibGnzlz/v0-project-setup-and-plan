@@ -131,3 +131,4 @@ Si necesitas máxima seguridad, puedes implementar un **proceso híbrido**:
 - Considerar restricciones especiales para el último admin
 
 
+

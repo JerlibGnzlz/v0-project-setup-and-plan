@@ -89,17 +89,19 @@ export function UsuariosDialog({
   
   // Generar email automático cuando cambia el nombre y está activado el checkbox
   useEffect(() => {
-    if (isCreating && usarCredencialesPorDefecto && nombre) {
+    if (isCreating && usarCredencialesPorDefecto && nombre && rol) {
       const nombreLimpio = nombre
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]/g, '')
         .substring(0, 20)
-      const emailGenerado = `${nombreLimpio}@ministerio-amva.org`
+      // Generar email con formato: nombre@rol-ministerio-amva.org
+      const rolLower = rol.toLowerCase()
+      const emailGenerado = `${nombreLimpio}@${rolLower}-ministerio-amva.org`
       setValue('email', emailGenerado)
     }
-  }, [nombre, usarCredencialesPorDefecto, isCreating, setValue])
+  }, [nombre, rol, usarCredencialesPorDefecto, isCreating, setValue])
 
   useEffect(() => {
     if (usuario && !isCreating) {
@@ -126,14 +128,16 @@ export function UsuariosDialog({
     let passwordFinal = data.password
 
     if (isCreating && data.usarCredencialesPorDefecto) {
-      // Generar email por defecto basado en el nombre
+      // Generar email por defecto basado en el nombre y rol
+      // Formato: nombre@rol-ministerio-amva.org (ej: maria@editor-ministerio-amva.org)
       const nombreLimpio = data.nombre
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]/g, '')
         .substring(0, 20)
-      emailFinal = `${nombreLimpio}@ministerio-amva.org`
+      const rolLower = data.rol.toLowerCase()
+      emailFinal = `${nombreLimpio}@${rolLower}-ministerio-amva.org`
       passwordFinal = 'Cambiar123!' // Contraseña por defecto simple pero segura
       
       // Actualizar el campo email en el formulario para mostrarlo
@@ -233,8 +237,8 @@ export function UsuariosDialog({
                     <strong>Credenciales por defecto:</strong>
                   </p>
                   <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                    Se generará automáticamente un email basado en el nombre (ej: nombre@ministerio-amva.org) y una contraseña temporal (Cambiar123!).
-                    El usuario deberá cambiar ambas credenciales al iniciar sesión por primera vez.
+                    Se generará automáticamente un email basado en el nombre y rol (ej: maria@editor-ministerio-amva.org) y una contraseña temporal (Cambiar123!).
+                    El usuario deberá cambiar su contraseña al iniciar sesión por primera vez.
                   </p>
                 </div>
               )}
