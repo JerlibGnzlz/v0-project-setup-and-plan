@@ -40,15 +40,45 @@ export function NotificationsBell() {
     typeof window !== 'undefined' &&
     (localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token'))
   
-  const { data: history, isLoading } = useNotificationHistory(20, 0)
-  const { data: unreadCount = 0 } = useUnreadCount()
+  // Hooks de React Query - estos pueden fallar si QueryProvider no está disponible
+  let history: { notifications: unknown[]; total: number } | undefined
+  let isLoading = false
+  let unreadCount = 0
+  
+  try {
+    const historyQuery = useNotificationHistory(20, 0)
+    history = historyQuery.data
+    isLoading = historyQuery.isLoading
+  } catch (error) {
+    console.warn('[NotificationsBell] Error en useNotificationHistory:', error)
+    history = { notifications: [], total: 0 }
+  }
+  
+  try {
+    const unreadQuery = useUnreadCount()
+    unreadCount = typeof unreadQuery.data === 'number' ? unreadQuery.data : 0
+  } catch (error) {
+    console.warn('[NotificationsBell] Error en useUnreadCount:', error)
+    unreadCount = 0
+  }
 
   // Asegurar que unreadCount siempre sea un número
   const safeUnreadCount = typeof unreadCount === 'number' ? unreadCount : 0
-  const markAsRead = useMarkAsRead()
-  const markAllAsRead = useMarkAllAsRead()
-  const deleteNotification = useDeleteNotification()
-  const deleteNotifications = useDeleteNotifications()
+  
+  // Mutations - estos también pueden fallar
+  let markAsRead: ReturnType<typeof useMarkAsRead> | null = null
+  let markAllAsRead: ReturnType<typeof useMarkAllAsRead> | null = null
+  let deleteNotification: ReturnType<typeof useDeleteNotification> | null = null
+  let deleteNotifications: ReturnType<typeof useDeleteNotifications> | null = null
+  
+  try {
+    markAsRead = useMarkAsRead()
+    markAllAsRead = useMarkAllAsRead()
+    deleteNotification = useDeleteNotification()
+    deleteNotifications = useDeleteNotifications()
+  } catch (error) {
+    console.warn('[NotificationsBell] Error inicializando mutations:', error)
+  }
 
   // Estados para diálogos de confirmación
   const [notificationToDelete, setNotificationToDelete] = useState<string | null>(null)
@@ -57,7 +87,6 @@ export function NotificationsBell() {
 
   // Conectar a WebSocket para notificaciones en tiempo real
   // Solo se conecta si estamos en una ruta de admin y autenticados
-  // Usar try-catch para prevenir errores si QueryProvider no está disponible
   try {
     useWebSocketNotifications()
   } catch (error) {
@@ -211,7 +240,7 @@ export function NotificationsBell() {
                 }}
                 className="h-8 text-xs"
                 title="Eliminar todas las leídas"
-                disabled={deleteNotifications.isPending}
+                disabled={deleteNotifications?.isPending || false}
               >
                 <Trash2 className="h-3 w-3 mr-1" />
                 Limpiar
@@ -362,15 +391,17 @@ export function NotificationsBell() {
             <AlertDialogAction
               onClick={async () => {
                 if (notificationToDelete) {
-                  await deleteNotification.mutateAsync(notificationToDelete)
+                  if (deleteNotification) {
+                    await deleteNotification.mutateAsync(notificationToDelete)
+                  }
                   setNotificationToDelete(null)
                   setShowDeleteDialog(false)
                 }
               }}
-              disabled={deleteNotification.isPending}
+              disabled={deleteNotification?.isPending || false}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteNotification.isPending ? 'Eliminando...' : 'Eliminar'}
+              {deleteNotification?.isPending ? 'Eliminando...' : 'Eliminar'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -401,17 +432,19 @@ export function NotificationsBell() {
                 if (history && Array.isArray(history.notifications)) {
                   const readNotifications = history.notifications.filter(n => n.read)
                   if (readNotifications.length > 0) {
-                    await deleteNotifications.mutateAsync({
-                      ids: readNotifications.map(n => n.id),
-                    })
+                    if (deleteNotifications) {
+                      await deleteNotifications.mutateAsync({
+                        ids: readNotifications.map(n => n.id),
+                      })
+                    }
                   }
                   setShowClearDialog(false)
                 }
               }}
-              disabled={deleteNotifications.isPending}
+              disabled={deleteNotifications?.isPending || false}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteNotifications.isPending ? 'Eliminando...' : 'Eliminar todas'}
+              {deleteNotifications?.isPending ? 'Eliminando...' : 'Eliminar todas'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
