@@ -15,7 +15,7 @@ export function useWebSocketNotifications() {
   const queryClient = useQueryClient()
   const socketRef = useRef<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
-  
+
   // Verificar que QueryClient esté disponible antes de continuar
   if (!queryClient) {
     console.warn('[WebSocket] QueryClient no disponible')
@@ -114,7 +114,7 @@ export function useWebSocketNotifications() {
 
               // Invalidar queries para refrescar datos
               queryClient.invalidateQueries({ queryKey: ['notifications'] })
-              
+
               // Actualizar el conteo de no leídas inmediatamente
               queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
 
@@ -134,8 +134,8 @@ export function useWebSocketNotifications() {
         socket.on('unread-count', (data: unknown) => {
           try {
             if (data && typeof data === 'object' && 'count' in data) {
-              const count = typeof (data as { count: unknown }).count === 'number' 
-                ? (data as { count: number }).count 
+              const count = typeof (data as { count: unknown }).count === 'number'
+                ? (data as { count: number }).count
                 : 0
               console.log('📊 Conteo de no leídas actualizado vía WebSocket:', count)
               queryClient.setQueryData(['notifications', 'unread-count'], count)
@@ -149,7 +149,7 @@ export function useWebSocketNotifications() {
           // Solo loguear errores, no romper la aplicación
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
           console.warn('⚠️ Error conectando a WebSocket:', errorMessage)
-          
+
           // Si el error indica token expirado, intentar refrescar
           if (errorMessage.includes('expired') || errorMessage.includes('jwt expired')) {
             console.log('🔄 Token expirado detectado, intentando refrescar...')
@@ -157,10 +157,10 @@ export function useWebSocketNotifications() {
               const refreshToken = typeof window !== 'undefined'
                 ? localStorage.getItem('auth_refresh_token') || sessionStorage.getItem('auth_refresh_token')
                 : null
-              
+
               if (refreshToken) {
                 const response = await authApi.refreshToken(refreshToken)
-                
+
                 // Guardar nuevos tokens
                 if (typeof window !== 'undefined') {
                   const storage = localStorage.getItem('auth_token') ? localStorage : sessionStorage
@@ -169,7 +169,7 @@ export function useWebSocketNotifications() {
                     storage.setItem('auth_refresh_token', response.refresh_token)
                   }
                 }
-                
+
                 console.log('✅ Token refrescado exitosamente, reconectando WebSocket...')
                 // Reconectar con el nuevo token
                 if (socketRef.current) {
@@ -192,17 +192,17 @@ export function useWebSocketNotifications() {
           try {
             if (data && typeof data === 'object' && 'type' in data) {
               const errorData = data as { type: string; message?: string }
-              
+
               if (errorData.type === 'TOKEN_EXPIRED') {
                 console.log('🔄 Token expirado recibido del servidor, intentando refrescar...')
                 try {
                   const refreshToken = typeof window !== 'undefined'
                     ? localStorage.getItem('auth_refresh_token') || sessionStorage.getItem('auth_refresh_token')
                     : null
-                  
+
                   if (refreshToken) {
                     const response = await authApi.refreshToken(refreshToken)
-                    
+
                     // Guardar nuevos tokens
                     if (typeof window !== 'undefined') {
                       const storage = localStorage.getItem('auth_token') ? localStorage : sessionStorage
@@ -211,7 +211,7 @@ export function useWebSocketNotifications() {
                         storage.setItem('auth_refresh_token', response.refresh_token)
                       }
                     }
-                    
+
                     console.log('✅ Token refrescado exitosamente, reconectando WebSocket...')
                     // Reconectar con el nuevo token
                     if (socketRef.current) {
