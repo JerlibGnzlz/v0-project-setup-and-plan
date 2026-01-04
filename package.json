@@ -47,7 +47,7 @@
     "@radix-ui/react-tooltip": "latest",
     "@tanstack/react-query": "latest",
     "@tanstack/react-query-devtools": "latest",
-    "@vercel/analytics": "latest",
+    "@vercel/analytics": "^1.2.1",
     "autoprefixer": "^10.4.20",
     "axios": "latest",
     "bcryptjs": "latest",
