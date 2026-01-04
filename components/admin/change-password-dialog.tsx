@@ -74,22 +74,20 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
     setShowCurrentPassword(false)
     setShowNewPassword(false)
     setShowConfirmPassword(false)
-    // Cerrar el diálogo inmediatamente
+    // Cerrar el diálogo
     onOpenChange(false)
   }
 
   const handleOpenChange = (open: boolean) => {
-    // Si se está cerrando, asegurar que se limpia todo
-    if (!open) {
-      // Usar setTimeout para asegurar que el estado se actualice después del render
-      setTimeout(() => {
-        reset()
-        setShowCurrentPassword(false)
-        setShowNewPassword(false)
-        setShowConfirmPassword(false)
-      }, 0)
+    // Solo manejar el cierre si no estamos en proceso de submit
+    if (!open && !changePasswordMutation.isPending) {
+      // Limpiar el formulario y estados cuando se cierra
+      reset()
+      setShowCurrentPassword(false)
+      setShowNewPassword(false)
+      setShowConfirmPassword(false)
     }
-    // Pasar el cambio al componente padre inmediatamente
+    // Pasar el cambio al componente padre
     onOpenChange(open)
   }
 
@@ -106,11 +104,11 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
       setShowNewPassword(false)
       setShowConfirmPassword(false)
       
-      // Esperar un momento para que el usuario vea el mensaje de éxito antes de cerrar
+      // Esperar más tiempo para que el usuario vea el mensaje de éxito antes de cerrar
       // El toast se mostrará automáticamente desde el hook
       setTimeout(() => {
         onOpenChange(false)
-      }, 500)
+      }, 1500) // Aumentado a 1.5 segundos para dar tiempo a ver el mensaje
     } catch (error) {
       // Error ya manejado en el hook
       // No cerrar el diálogo si hay error para que el usuario pueda corregir
@@ -122,12 +120,22 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
       <DialogContent 
         className="sm:max-w-[500px]"
         onInteractOutside={(e) => {
-          // Permitir cerrar haciendo clic fuera del diálogo
-          handleCancel()
+          // Solo permitir cerrar si no estamos en proceso de submit
+          if (!changePasswordMutation.isPending) {
+            handleCancel()
+          } else {
+            // Prevenir que se cierre durante el submit
+            e.preventDefault()
+          }
         }}
-        onEscapeKeyDown={() => {
-          // Permitir cerrar con ESC
-          handleCancel()
+        onEscapeKeyDown={(e) => {
+          // Solo permitir cerrar con ESC si no estamos en proceso de submit
+          if (!changePasswordMutation.isPending) {
+            handleCancel()
+          } else {
+            // Prevenir que se cierre durante el submit
+            e.preventDefault()
+          }
         }}
       >
         <DialogHeader>
