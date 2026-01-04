@@ -11,8 +11,7 @@ import { authApi } from '@/lib/api/auth'
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
 
 export function useWebSocketNotifications() {
-  const { user, isAuthenticated } = useAuth()
-  const { data: unreadCount } = useUnreadCount()
+  const { user, isAuthenticated, isHydrated } = useAuth()
   const queryClient = useQueryClient()
   const socketRef = useRef<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
@@ -20,6 +19,17 @@ export function useWebSocketNotifications() {
   useEffect(() => {
     // Solo ejecutar en el cliente
     if (typeof window === 'undefined') {
+      return
+    }
+
+    // Verificar que QueryProvider esté disponible
+    if (!queryClient) {
+      console.warn('[WebSocket] QueryClient no disponible aún')
+      return
+    }
+
+    // Verificar que el estado esté hidratado
+    if (!isHydrated) {
       return
     }
 
@@ -259,7 +269,7 @@ export function useWebSocketNotifications() {
         socketRef.current = null
       }
     }
-  }, [isAuthenticated, user, queryClient])
+  }, [isAuthenticated, isHydrated, user, queryClient])
 
   return {
     isConnected,

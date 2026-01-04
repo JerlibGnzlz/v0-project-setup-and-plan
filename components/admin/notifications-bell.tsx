@@ -34,6 +34,12 @@ import { toast } from 'sonner'
 export function NotificationsBell() {
   const [open, setOpen] = useState(false)
   const router = useRouter()
+  
+  // Solo ejecutar hooks si estamos en el cliente y hay token
+  const hasToken =
+    typeof window !== 'undefined' &&
+    (localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token'))
+  
   const { data: history, isLoading } = useNotificationHistory(20, 0)
   const { data: unreadCount = 0 } = useUnreadCount()
 
@@ -51,7 +57,13 @@ export function NotificationsBell() {
 
   // Conectar a WebSocket para notificaciones en tiempo real
   // Solo se conecta si estamos en una ruta de admin y autenticados
-  useWebSocketNotifications()
+  // Usar try-catch para prevenir errores si QueryProvider no está disponible
+  try {
+    useWebSocketNotifications()
+  } catch (error) {
+    // Si hay error, solo loguear y continuar sin WebSocket
+    console.warn('[NotificationsBell] Error inicializando WebSocket:', error)
+  }
 
   const handleMarkAsRead = async (id: string) => {
     await markAsRead.mutateAsync(id)
