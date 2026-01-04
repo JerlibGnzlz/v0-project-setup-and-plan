@@ -25,27 +25,47 @@ export interface RefreshTokenResponse {
 export const authApi = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
     try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
+      console.log('[authApi] Iniciando login...', {
+        email: data.email,
+        apiUrl: API_URL,
+        endpoint: '/auth/login',
+        fullUrl: `${API_URL}/auth/login`,
+      })
+      
       // Agregar timeout explícito para evitar que se quede colgado
       const timeout = 10000 // 10 segundos
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Timeout: El servidor no respondió en 10 segundos')), timeout)
       })
       
+      console.log('[authApi] Haciendo petición POST a /auth/login...')
       const responsePromise = apiClient.post<LoginResponse>('/auth/login', data)
       const response = await Promise.race([responsePromise, timeoutPromise])
       
+      console.log('[authApi] Respuesta recibida:', {
+        hasData: !!response.data,
+        hasAccessToken: !!response.data?.access_token,
+        hasUser: !!response.data?.user,
+        status: response.status,
+      })
+      
       // Validar que la respuesta tenga el formato correcto
       if (!response.data?.access_token || !response.data?.user) {
-        console.error('[authApi] Respuesta inválida:', response.data)
+        console.error('[authApi] ❌ Respuesta inválida:', response.data)
         throw new Error('Respuesta del servidor inválida: faltan access_token o user')
       }
       
+      console.log('[authApi] ✅ Login exitoso')
       return response.data
     } catch (error: any) {
       // Manejo seguro de errores sin serializar objetos complejos
       const errorMessage = error?.message || 'Error desconocido'
       const errorStatus = error?.response?.status
       const errorData = error?.response?.data
+      const errorCode = error?.code
+      const requestUrl = error?.config?.url
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
 
       // Extraer mensaje de error de forma segura
       let errorDetail = errorMessage
@@ -59,20 +79,32 @@ export const authApi = {
         }
       }
 
-      console.error('[authApi] Error en login:', errorMessage)
-      console.error('[authApi] Error completo:', {
+      console.error('[authApi] ❌ Error en login:', errorMessage)
+      console.error('[authApi] Detalles del error:', {
         message: errorMessage,
         status: errorStatus,
-        code: error?.code,
-        response: error?.response?.data,
-        config: error?.config?.url,
+        code: errorCode,
+        requestUrl: requestUrl,
+        apiUrl: apiUrl,
+        fullUrl: `${apiUrl}${requestUrl || '/auth/login'}`,
+        hasResponse: !!error?.response,
+        responseData: errorData,
       })
       
       if (errorStatus) {
-        console.error('[authApi] Status:', errorStatus)
+        console.error('[authApi] Status HTTP:', errorStatus)
+      }
+      if (errorCode) {
+        console.error('[authApi] Código de error:', errorCode)
       }
       if (errorDetail !== errorMessage) {
-        console.error('[authApi] Detalle:', errorDetail)
+        console.error('[authApi] Detalle del error:', errorDetail)
+      }
+      
+      // Si es un error de red, mostrar información adicional
+      if (!error?.response) {
+        console.error('[authApi] ⚠️ Error de red - El servidor no está respondiendo')
+        console.error('[authApi] Verifica que el backend esté corriendo en:', apiUrl)
       }
 
       // Si es timeout, proporcionar mensaje específico

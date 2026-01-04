@@ -53,12 +53,15 @@ function AdminLoginContent() {
   }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, user])
 
   const handleSubmit = async (data: LoginFormData & { rememberMe: boolean }) => {
+    console.log('[AdminLogin] handleSubmit llamado con:', { email: data.email, rememberMe: data.rememberMe })
     setIsSubmitting(true)
     setLoginError(null)
     setIsRedirecting(false)
     
     try {
+      console.log('[AdminLogin] Llamando a login()...')
       await login(data)
+      console.log('[AdminLogin] login() completado exitosamente')
 
       // Limpiar error solo cuando el login es exitoso
       setLoginError(null)
@@ -68,33 +71,64 @@ function AdminLoginContent() {
       })
 
       // Pequeño delay para asegurar que el toast se muestre y que el estado se actualice
+      console.log('[AdminLogin] Esperando 300ms antes de continuar...')
       await new Promise(resolve => setTimeout(resolve, 300))
+      
+      // Verificar el estado después del delay
+      const authState = useAuth.getState()
+      console.log('[AdminLogin] Estado después del login:', {
+        isAuthenticated: authState.isAuthenticated,
+        hasUser: !!authState.user,
+        userEmail: authState.user?.email,
+        isHydrated: authState.isHydrated,
+      })
       
       // El useEffect se encargará de la redirección automáticamente
       // No necesitamos redirigir manualmente aquí para evitar loops
       setIsSubmitting(false)
     } catch (error: unknown) {
-      console.error('[AdminLogin] Error en login:', error)
+      console.error('[AdminLogin] ❌ Error capturado en handleSubmit:', error)
       
-      const errorData = (error as { response?: { data?: { message?: string }; message?: string } })?.response?.data
-      let errorMessage = errorData?.message || (error as { message?: string })?.message || 'Credenciales inválidas'
+      const errorObj = error as { response?: { status?: number; data?: { message?: string } }; message?: string; code?: string }
+      const errorData = errorObj?.response?.data
+      const errorStatus = errorObj?.response?.status
+      const errorCode = errorObj?.code
+      
+      console.error('[AdminLogin] Detalles del error:', {
+        message: errorObj?.message,
+        status: errorStatus,
+        code: errorCode,
+        data: errorData,
+      })
+      
+      let errorMessage = errorData?.message || errorObj?.message || 'Credenciales inválidas'
 
       // Mensaje más claro para credenciales incorrectas
       if (
         errorMessage.includes('Credenciales inválidas') ||
         errorMessage.includes('inválidas') ||
-        errorMessage.includes('401')
+        errorMessage.includes('401') ||
+        errorStatus === 401
       ) {
         errorMessage =
           'El correo electrónico o la contraseña son incorrectos. Por favor, verifica tus credenciales e intenta nuevamente.'
       }
 
       // Mensaje para errores de red
-      if (errorMessage.includes('Network') || errorMessage.includes('conexión') || errorMessage.includes('conectar')) {
+      if (
+        errorMessage.includes('Network') ||
+        errorMessage.includes('conexión') ||
+        errorMessage.includes('conectar') ||
+        errorMessage.includes('Timeout') ||
+        errorCode === 'ECONNREFUSED' ||
+        errorCode === 'NETWORK_ERROR' ||
+        !errorObj?.response
+      ) {
         errorMessage =
-          'No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet e intenta nuevamente.'
+          'No se pudo conectar con el servidor. Por favor, verifica que el backend esté corriendo y accesible.'
       }
 
+      console.error('[AdminLogin] Mensaje de error final:', errorMessage)
       setLoginError(errorMessage)
       toast.error('Error de autenticación', {
         description: errorMessage,
