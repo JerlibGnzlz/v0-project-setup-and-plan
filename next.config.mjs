@@ -1,8 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Forzar regeneración en cada build para evitar problemas de caché
+  generateBuildId: async () => {
+    return `build-${Date.now()}`
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Desactivar caché de imágenes en desarrollo para ver cambios inmediatos
+  images: {
+    ...(process.env.NODE_ENV === 'development' && {
+      unoptimized: false,
+    }),
   images: {
     remotePatterns: [
       {
