@@ -329,6 +329,7 @@ export class UsuariosService {
 
   /**
    * Cambiar contraseña propia (requiere contraseña actual)
+   * Marca hasChangedPassword como true para indicar que el usuario ya cambió su contraseña
    */
   async changePassword(userId: string, currentPassword: string, dto: ChangePasswordDto): Promise<void> {
     const user = await this.prisma.user.findUnique({
@@ -336,6 +337,7 @@ export class UsuariosService {
       select: {
         id: true,
         password: true,
+        email: true,
       },
     })
 
@@ -353,14 +355,17 @@ export class UsuariosService {
     // Hash de nueva contraseña
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10)
 
+    // Actualizar contraseña y marcar que el usuario ya cambió su contraseña
     await this.prisma.user.update({
       where: { id: userId },
       data: {
         password: hashedPassword,
+        hasChangedPassword: true, // Marcar que el usuario ya cambió su contraseña
       },
     })
 
-    this.logger.log(`✅ Contraseña cambiada para usuario: ${user.id}`)
+    this.logger.log(`✅ Contraseña cambiada para usuario: ${user.id} (${user.email})`)
+    this.logger.log(`ℹ️  Usuario ${user.email} ya cambió su contraseña, no será redirigido a setup-credentials`)
   }
 
   /**

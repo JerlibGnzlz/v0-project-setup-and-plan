@@ -62,14 +62,17 @@ export default function SetupCredentialsPage() {
   // No volver a verificar después de cambiar la contraseña
   useEffect(() => {
     if (isHydrated && isAuthenticated && user) {
-      // Verificar si el email termina en @ministerio-amva.org
+      // Verificar si el email termina en @ministerio-amva.org Y si ya cambió su contraseña
       const tieneCredencialesPorDefecto = user.email?.endsWith('@ministerio-amva.org')
+      const yaCambioPassword = (user as { hasChangedPassword?: boolean })?.hasChangedPassword === true
 
-      if (tieneCredencialesPorDefecto) {
+      // Solo mostrar setup-credentials si tiene email por defecto Y aún no ha cambiado su contraseña
+      if (tieneCredencialesPorDefecto && !yaCambioPassword) {
         setNeedsSetup(true)
       } else {
-        // Si no necesita setup, redirigir al dashboard
-        router.push('/admin')
+        // Si ya cambió su contraseña o no tiene credenciales por defecto, redirigir según el rol
+        const targetPath = user.rol === 'EDITOR' ? '/admin/noticias' : '/admin'
+        router.push(targetPath)
       }
       setIsChecking(false)
     } else if (isHydrated && !isAuthenticated) {

@@ -135,11 +135,13 @@ function AdminLoginContent() {
         
         // Determinar la ruta de destino basada en si tiene credenciales por defecto y su rol
         const tieneCredencialesPorDefecto = parsedUser?.email?.endsWith('@ministerio-amva.org')
+        const yaCambioPassword = parsedUser?.hasChangedPassword === true
         const userRol = parsedUser?.rol
         
         let targetPath = '/admin'
         
-        if (tieneCredencialesPorDefecto) {
+        // Solo redirigir a setup-credentials si tiene email por defecto Y aún no ha cambiado su contraseña
+        if (tieneCredencialesPorDefecto && !yaCambioPassword) {
           targetPath = '/admin/setup-credentials'
         } else if (userRol === 'EDITOR') {
           // EDITOR solo puede ver Noticias y Galería, redirigir a Noticias por defecto

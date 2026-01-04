@@ -97,10 +97,13 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
     // Si está autenticado y tiene credenciales por defecto, redirigir a setup-credentials
     // Solo si no estamos ya en setup-credentials o login
+    // IMPORTANTE: Solo redirigir si el usuario NO ha cambiado su contraseña aún
     if (isAuthenticated && user && !isPublicPath) {
       const tieneCredencialesPorDefecto = user.email?.endsWith('@ministerio-amva.org')
+      const yaCambioPassword = (user as { hasChangedPassword?: boolean })?.hasChangedPassword === true
 
-      if (tieneCredencialesPorDefecto && pathname !== '/admin/setup-credentials') {
+      // Solo redirigir a setup-credentials si tiene email por defecto Y aún no ha cambiado su contraseña
+      if (tieneCredencialesPorDefecto && !yaCambioPassword && pathname !== '/admin/setup-credentials') {
         console.log('[AdminLayout] Usuario con credenciales por defecto detectado, redirigiendo a setup-credentials')
         router.push('/admin/setup-credentials')
         return

@@ -69,20 +69,21 @@ export class AuthService {
         activo?: boolean | null
       } | null = null
 
-      try {
-        user = await this.prisma.user.findUnique({
-          where: { email: dto.email },
-          select: {
-            id: true,
-            email: true,
-            password: true,
-            nombre: true,
-            rol: true,
-            avatar: true,
-            activo: true,
-          },
-        })
-      } catch (error: unknown) {
+                  try {
+                  user = await this.prisma.user.findUnique({
+                      where: { email: dto.email },
+                      select: {
+                      id: true,
+                      email: true,
+                      password: true,
+                      nombre: true,
+                      rol: true,
+                      avatar: true,
+                      activo: true,
+                      hasChangedPassword: true,
+                      },
+                  })
+                  } catch (error: unknown) {
         // Si falla porque algún campo no existe, intentar con campos mínimos
         const errorMessage = error instanceof Error ? error.message : String(error)
         this.logger.warn(`Error al obtener usuario, intentando query mínima: ${errorMessage}`)
