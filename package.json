@@ -67,7 +67,7 @@
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
     "multer": "latest",
-    "next": "16.0.7",
+    "next": "^16.1.0",
     "next-themes": "latest",
     "passport": "latest",
     "passport-jwt": "latest",
