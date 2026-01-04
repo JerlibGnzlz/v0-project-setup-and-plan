@@ -109,7 +109,7 @@ function AdminLoginContent() {
       setLoginSuccess(true)
       
       // Esperar un momento para que el estado se actualice y el toast se muestre
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 500))
       
       // Verificar que estamos en el cliente antes de acceder a window/storage
       if (typeof window === 'undefined') {
@@ -146,12 +146,19 @@ function AdminLoginContent() {
             pathname: window.location.pathname,
           })
           
-          // Forzar redirección inmediata
-          if (window.location.pathname === '/admin/login') {
+          // Usar router.push primero, y si no funciona, usar window.location.replace como respaldo
+          try {
+            router.push(targetPath)
+            // También usar window.location como respaldo después de un pequeño delay
+            setTimeout(() => {
+              if (window.location.pathname === '/admin/login') {
+                console.log('[AdminLogin] Router.push no funcionó, usando window.location.replace')
+                window.location.replace(targetPath)
+              }
+            }, 500)
+          } catch (routerError) {
+            console.error('[AdminLogin] Error con router.push, usando window.location.replace:', routerError)
             window.location.replace(targetPath)
-          } else {
-            console.log('[AdminLogin] Ya no estamos en /admin/login, redirección cancelada')
-            setIsSubmitting(false)
           }
         } else {
           console.warn('[AdminLogin] Usuario en storage no tiene email válido, esperando useEffect...')
