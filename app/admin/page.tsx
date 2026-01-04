@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useConvenciones, useUpdateConvencion, useCreateConvencion, useDeleteConvencion, useArchivarConvencion, useDesarchivarConvencion } from '@/lib/hooks/use-convencion'
