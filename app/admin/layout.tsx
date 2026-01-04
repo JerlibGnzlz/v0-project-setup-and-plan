@@ -105,6 +105,21 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         router.push('/admin/setup-credentials')
         return
       }
+
+      // Si NO tiene credenciales por defecto y está en setup-credentials, redirigir según el rol
+      if (!tieneCredencialesPorDefecto && pathname === '/admin/setup-credentials') {
+        const targetPath = user.rol === 'EDITOR' ? '/admin/noticias' : '/admin'
+        console.log('[AdminLayout] Usuario sin credenciales por defecto en setup-credentials, redirigiendo a', targetPath)
+        router.push(targetPath)
+        return
+      }
+
+      // Si es EDITOR y está intentando acceder al dashboard, redirigir a Noticias
+      if (user.rol === 'EDITOR' && pathname === '/admin') {
+        console.log('[AdminLayout] Usuario EDITOR detectado en dashboard, redirigiendo a noticias')
+        router.push('/admin/noticias')
+        return
+      }
     }
   }, [isAuthenticated, isHydrated, isPublicPath, pathname, checkAuth, user, router])
 
