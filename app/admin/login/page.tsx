@@ -33,9 +33,11 @@ function AdminLoginContent() {
         duration: 5000,
       })
       // Limpiar el parámetro de la URL sin recargar la página
-      router.replace('/admin/login', { scroll: false })
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, '', '/admin/login')
+      }
     }
-  }, [credentialsUpdated, router])
+  }, [credentialsUpdated])
 
   // Mostrar mensaje de éxito si la contraseña fue cambiada
   useEffect(() => {
@@ -45,9 +47,11 @@ function AdminLoginContent() {
         duration: 5000,
       })
       // Limpiar el parámetro de la URL sin recargar la página
-      router.replace('/admin/login', { scroll: false })
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, '', '/admin/login')
+      }
     }
-  }, [passwordChanged, router])
+  }, [passwordChanged])
 
   // Si ya está autenticado, redirigir al dashboard
   useEffect(() => {
