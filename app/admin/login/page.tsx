@@ -101,11 +101,7 @@ function AdminLoginContent() {
         description: 'Has iniciado sesión correctamente',
       })
 
-      // Pequeño delay para asegurar que el toast se muestre y que el estado se actualice
-      console.log('[AdminLogin] Esperando 300ms antes de continuar...')
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
-      // Verificar el estado después del delay
+      // Verificar el estado inmediatamente después del login
       const authState = useAuth.getState()
       console.log('[AdminLogin] Estado después del login:', {
         isAuthenticated: authState.isAuthenticated,
@@ -114,9 +110,23 @@ function AdminLoginContent() {
         isHydrated: authState.isHydrated,
       })
       
-      // El useEffect se encargará de la redirección automáticamente
-      // No necesitamos redirigir manualmente aquí para evitar loops
-      setIsSubmitting(false)
+      // Pequeño delay para asegurar que el toast se muestre
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Si el estado se actualizó correctamente, el useEffect debería redirigir
+      // Pero si no lo hace, forzar la redirección aquí como respaldo
+      const finalAuthState = useAuth.getState()
+      if (finalAuthState.isAuthenticated && finalAuthState.user) {
+        const targetPath = finalAuthState.user.email?.endsWith('@ministerio-amva.org')
+          ? '/admin/setup-credentials'
+          : '/admin'
+        
+        console.log('[AdminLogin] Forzando redirección a:', targetPath)
+        window.location.replace(targetPath)
+      } else {
+        console.warn('[AdminLogin] Estado no actualizado correctamente, esperando useEffect...')
+        setIsSubmitting(false)
+      }
     } catch (error: unknown) {
       console.error('[AdminLogin] ❌ Error capturado en handleSubmit:', error)
       
