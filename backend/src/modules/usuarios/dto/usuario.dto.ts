@@ -52,11 +52,7 @@ export class ChangePasswordDto {
 
 export class AdminResetPasswordDto {
   @IsString()
-  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/, {
-    message:
-      'La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial (!@#$%^&*)',
-  })
+  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
   newPassword!: string
 }
 

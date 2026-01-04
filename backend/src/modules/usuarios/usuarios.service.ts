@@ -292,6 +292,7 @@ export class UsuariosService {
 
   /**
    * Cambiar contraseña de usuario (desde admin)
+   * Establece una contraseña temporal que el usuario deberá cambiar
    */
   async adminResetPassword(id: string, dto: AdminResetPasswordDto): Promise<void> {
     const user = await this.prisma.user.findUnique({
@@ -312,6 +313,12 @@ export class UsuariosService {
     })
 
     this.logger.log(`✅ Contraseña reseteada para usuario: ${user.email}`)
+    
+    // Si el email termina en @ministerio-amva.org, el usuario será redirigido a setup-credentials
+    // al iniciar sesión para cambiar sus credenciales
+    if (user.email.endsWith('@ministerio-amva.org')) {
+      this.logger.log(`ℹ️  Usuario ${user.email} tiene credenciales por defecto. Será redirigido a setup-credentials al iniciar sesión.`)
+    }
   }
 
   /**
