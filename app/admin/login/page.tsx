@@ -70,20 +70,8 @@ function AdminLoginContent() {
       
       console.log('[AdminLogin] Redirigiendo desde useEffect a:', targetPath)
       
-      // Usar setTimeout para asegurar que se ejecute en el siguiente ciclo del event loop
-      const timeoutId = setTimeout(() => {
-        try {
-          if (window.location.pathname === '/admin/login') {
-            window.location.replace(targetPath)
-          }
-        } catch (error) {
-          console.error('[AdminLogin] Error al redirigir:', error)
-        }
-      }, 100)
-      
-      return () => {
-        clearTimeout(timeoutId)
-      }
+      // Redirigir inmediatamente sin delay
+      window.location.replace(targetPath)
     }
   }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, user, loginSuccess])
 
@@ -146,20 +134,8 @@ function AdminLoginContent() {
             pathname: window.location.pathname,
           })
           
-          // Usar router.push primero, y si no funciona, usar window.location.replace como respaldo
-          try {
-            router.push(targetPath)
-            // También usar window.location como respaldo después de un pequeño delay
-            setTimeout(() => {
-              if (window.location.pathname === '/admin/login') {
-                console.log('[AdminLogin] Router.push no funcionó, usando window.location.replace')
-                window.location.replace(targetPath)
-              }
-            }, 500)
-          } catch (routerError) {
-            console.error('[AdminLogin] Error con router.push, usando window.location.replace:', routerError)
-            window.location.replace(targetPath)
-          }
+          // Forzar redirección inmediata con window.location.replace
+          window.location.replace(targetPath)
         } else {
           console.warn('[AdminLogin] Usuario en storage no tiene email válido, esperando useEffect...')
           setIsSubmitting(false)
