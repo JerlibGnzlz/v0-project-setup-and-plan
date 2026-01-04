@@ -111,26 +111,44 @@ function AdminLoginContent() {
       // Esperar un momento para que el estado se actualice y el toast se muestre
       await new Promise(resolve => setTimeout(resolve, 800))
       
-      // Obtener el usuario directamente del storage para determinar la ruta de destino
-      // Esto es más confiable que esperar a que Zustand se actualice
-      const storedUser = typeof window !== 'undefined' 
-        ? JSON.parse(localStorage.getItem('auth_user') || sessionStorage.getItem('auth_user') || 'null')
-        : null
+      // Verificar que estamos en el cliente antes de acceder a window/storage
+      if (typeof window === 'undefined') {
+        console.warn('[AdminLogin] window no disponible, no se puede redirigir')
+        setIsSubmitting(false)
+        return
+      }
       
-      if (storedUser && storedUser.email) {
-        const targetPath = storedUser.email.endsWith('@ministerio-amva.org')
-          ? '/admin/setup-credentials'
-          : '/admin'
+      try {
+        // Obtener el usuario directamente del storage para determinar la ruta de destino
+        // Esto es más confiable que esperar a que Zustand se actualice
+        const userData = localStorage.getItem('auth_user') || sessionStorage.getItem('auth_user')
         
-        console.log('[AdminLogin] Redirigiendo después de login exitoso a:', targetPath, {
-          userEmail: storedUser.email,
-          hasToken: !!(localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')),
-        })
+        if (!userData) {
+          console.warn('[AdminLogin] No se encontró usuario en storage, esperando useEffect...')
+          setIsSubmitting(false)
+          return
+        }
         
-        // Forzar redirección inmediata
-        window.location.replace(targetPath)
-      } else {
-        console.warn('[AdminLogin] No se encontró usuario en storage, esperando useEffect...')
+        const storedUser = JSON.parse(userData)
+        
+        if (storedUser && storedUser.email && typeof storedUser.email === 'string') {
+          const targetPath = storedUser.email.endsWith('@ministerio-amva.org')
+            ? '/admin/setup-credentials'
+            : '/admin'
+          
+          console.log('[AdminLogin] Redirigiendo después de login exitoso a:', targetPath, {
+            userEmail: storedUser.email,
+            hasToken: !!(localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')),
+          })
+          
+          // Forzar redirección inmediata
+          window.location.replace(targetPath)
+        } else {
+          console.warn('[AdminLogin] Usuario en storage no tiene email válido, esperando useEffect...')
+          setIsSubmitting(false)
+        }
+      } catch (error) {
+        console.error('[AdminLogin] Error al leer storage o redirigir:', error)
         setIsSubmitting(false)
       }
     } catch (error: unknown) {
