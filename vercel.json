@@ -5,6 +5,9 @@
   "framework": "nextjs",
   "regions": ["iad1"],
   "nodeVersion": "20.x",
+  "env": {
+    "NODE_ENV": "production"
+  },
   "functions": {
     "app/**/*.ts": {
       "maxDuration": 30
