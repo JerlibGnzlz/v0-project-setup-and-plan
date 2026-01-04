@@ -271,14 +271,18 @@ export function useValidateAdminPin() {
 }
 
 export function useHasAdminPin() {
+  const { isAuthenticated, isHydrated } = useAuth()
+  
   return useQuery({
     queryKey: ['usuarios', 'has-admin-pin'],
     queryFn: async () => {
       const response = await usuariosApi.hasAdminPin()
       return response
     },
+    enabled: isAuthenticated && isHydrated, // Solo ejecutar si el usuario está autenticado y el estado está hidratado
     staleTime: 1000 * 60 * 5, // 5 minutos
     refetchOnWindowFocus: false,
+    retry: false, // No reintentar si falla con 401
   })
 }
 
