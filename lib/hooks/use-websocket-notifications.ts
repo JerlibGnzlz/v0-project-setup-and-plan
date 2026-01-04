@@ -92,7 +92,7 @@ export function useWebSocketNotifications() {
           queryClient.invalidateQueries({ queryKey: ['notifications'] })
         })
 
-        socket.on('disconnect', (reason) => {
+        socket.on('disconnect', (reason: string) => {
           setIsConnected(false)
           // Solo loguear si no es un cierre intencional
           if (reason !== 'io client disconnect') {
@@ -100,7 +100,7 @@ export function useWebSocketNotifications() {
           }
         })
 
-        socket.on('reconnect', (attemptNumber) => {
+        socket.on('reconnect', (attemptNumber: number) => {
           console.log(`🔄 Reconectado a WebSocket después de ${attemptNumber} intentos`)
           // Invalidar queries al reconectar
           queryClient.invalidateQueries({ queryKey: ['notifications'] })
