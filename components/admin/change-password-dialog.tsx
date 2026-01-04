@@ -16,6 +16,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Lock, Eye, EyeOff } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '@/lib/hooks/use-auth'
 import { useChangePassword } from '@/lib/hooks/use-usuarios'
 
 const changePasswordSchema = z
