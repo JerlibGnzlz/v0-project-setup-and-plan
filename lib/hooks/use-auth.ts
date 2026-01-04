@@ -195,6 +195,7 @@ export const useAuth = create<AuthState>()(set => ({
 
     // Si no hay token o usuario, marcar como no autenticado
     if (!token || !user) {
+      console.log('[useAuth] No hay token o usuario en storage, marcando como no autenticado')
       set({
         user: null,
         token: null,
@@ -207,6 +208,7 @@ export const useAuth = create<AuthState>()(set => ({
 
     // Validar el token con el backend (con timeout para evitar que se quede colgado)
     try {
+      console.log('[useAuth] Validando token con backend...')
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Timeout')), 5000) // 5 segundos máximo
       })
@@ -215,6 +217,7 @@ export const useAuth = create<AuthState>()(set => ({
 
       const response = await Promise.race([profilePromise, timeoutPromise])
 
+      console.log('[useAuth] Token válido, actualizando estado')
       // Actualizar con los datos del backend (pueden estar más actualizados)
       set({
         user: response,
@@ -226,8 +229,11 @@ export const useAuth = create<AuthState>()(set => ({
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       
+      console.log('[useAuth] Error al validar token:', errorMessage)
+      
       // Si es timeout o error de red, mantener el estado actual si hay token
       if (errorMessage === 'Timeout' || errorMessage.includes('Network') || errorMessage.includes('fetch')) {
+        console.log('[useAuth] Error de red/timeout, manteniendo estado autenticado')
         // Si hay token en storage, mantener autenticado (puede ser problema temporal de red)
         set({
           user,
@@ -239,6 +245,7 @@ export const useAuth = create<AuthState>()(set => ({
         return
       }
 
+      console.log('[useAuth] Token inválido, limpiando storage y estado')
       // Si el token es inválido, limpiar todo
       localStorage.removeItem('auth_token')
       localStorage.removeItem('auth_refresh_token')

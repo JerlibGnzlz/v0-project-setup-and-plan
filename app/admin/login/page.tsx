@@ -38,28 +38,48 @@ function AdminLoginContent() {
   // Si ya está autenticado, redirigir al dashboard o setup-credentials
   useEffect(() => {
     // Solo redirigir si no estamos en proceso de login y no estamos ya redirigiendo
-    if (isHydrated && isAuthenticated && !isSubmitting && !isRedirecting && user) {
+    // Y solo si realmente estamos en la página de login (no en otra ruta)
+    if (
+      isHydrated &&
+      isAuthenticated &&
+      !isSubmitting &&
+      !isRedirecting &&
+      user &&
+      typeof window !== 'undefined' &&
+      window.location.pathname === '/admin/login'
+    ) {
       console.log('[AdminLogin] Usuario autenticado detectado, preparando redirección...', {
         userEmail: user.email,
         isSubmitting,
         isRedirecting,
+        currentPath: window.location.pathname,
       })
       
       setIsRedirecting(true)
       
+      // Usar un ref para evitar múltiples redirecciones
+      let redirected = false
+      
       // Pequeño delay para evitar loops
-      setTimeout(() => {
-        // Si el usuario tiene email que termina en @ministerio-amva.org,
-        // redirigir a setup-credentials para cambiar la contraseña
-        // De lo contrario, redirigir al dashboard
-        if (user.email?.endsWith('@ministerio-amva.org')) {
-          console.log('[AdminLogin] Redirigiendo a setup-credentials')
-          window.location.href = '/admin/setup-credentials'
-        } else {
-          console.log('[AdminLogin] Redirigiendo a dashboard')
-          window.location.href = '/admin'
+      const timeoutId = setTimeout(() => {
+        if (!redirected && window.location.pathname === '/admin/login') {
+          redirected = true
+          // Si el usuario tiene email que termina en @ministerio-amva.org,
+          // redirigir a setup-credentials para cambiar la contraseña
+          // De lo contrario, redirigir al dashboard
+          if (user.email?.endsWith('@ministerio-amva.org')) {
+            console.log('[AdminLogin] Redirigiendo a setup-credentials')
+            window.location.replace('/admin/setup-credentials')
+          } else {
+            console.log('[AdminLogin] Redirigiendo a dashboard')
+            window.location.replace('/admin')
+          }
         }
-      }, 100)
+      }, 200)
+      
+      return () => {
+        clearTimeout(timeoutId)
+      }
     }
   }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, user])
 

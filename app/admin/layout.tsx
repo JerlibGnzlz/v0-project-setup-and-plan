@@ -68,25 +68,33 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       return
     }
 
+    // Si es una ruta pública, no hacer nada (dejar que la página maneje su propia lógica)
+    if (isPublicPath) {
+      return
+    }
+
     // Si no está autenticado y no es una ruta pública, redirigir al login
-    if (!isAuthenticated && !isPublicPath) {
+    if (!isAuthenticated) {
       const storedToken =
         typeof window !== 'undefined'
           ? localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
           : null
 
       if (!storedToken) {
-        // No hay token, redirigir al login
-        if (pathname !== '/admin/login') {
-          window.location.href = '/admin/login'
+        // No hay token, redirigir al login solo si no estamos ya ahí
+        if (pathname !== '/admin/login' && typeof window !== 'undefined') {
+          console.log('[AdminLayout] No hay token, redirigiendo a login')
+          window.location.replace('/admin/login')
         }
       } else {
         // Hay token pero no está autenticado, puede ser que el estado no se haya actualizado
         // Intentar verificar una vez (solo si no estamos ya en login)
-        if (pathname !== '/admin/login') {
+        if (pathname !== '/admin/login' && typeof window !== 'undefined') {
+          console.log('[AdminLayout] Hay token pero no autenticado, verificando...')
           checkAuth().catch(() => {
-            if (pathname !== '/admin/login') {
-              window.location.href = '/admin/login'
+            if (pathname !== '/admin/login' && typeof window !== 'undefined') {
+              console.log('[AdminLayout] Verificación falló, redirigiendo a login')
+              window.location.replace('/admin/login')
             }
           })
         }
