@@ -5,6 +5,7 @@ import {
   LogOut,
   Menu,
   UserCircle,
+  Lock,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -24,15 +25,17 @@ import { Toaster } from '@/components/ui/sonner'
 import { QueryProvider } from '@/lib/providers/query-provider'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useRouter, usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { NotificationsBell } from '@/components/admin/notifications-bell'
 import { ErrorBoundary } from '@/components/admin/error-boundary'
+import { ChangePasswordDialog } from '@/components/admin/change-password-dialog'
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, logout, isAuthenticated, isHydrated, checkAuth } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
 
   // Páginas públicas que no requieren autenticación
   const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password', '/admin/setup-credentials']
@@ -204,6 +207,16 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {/* Solo EDITOR puede cambiar contraseña desde el menú */}
+                {user?.rol === 'EDITOR' && (
+                  <>
+                    <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
+                      <Lock className="size-4 mr-2" />
+                      Cambiar Contraseña
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                   <LogOut className="size-4 mr-2" />
                   Cerrar Sesión
@@ -346,6 +359,16 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {/* Solo EDITOR puede cambiar contraseña desde el menú */}
+              {user?.rol === 'EDITOR' && (
+                <>
+                  <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
+                    <Lock className="size-4 mr-2" />
+                    Cambiar Contraseña
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                 <LogOut className="size-4 mr-2" />
                 Cerrar Sesión
@@ -367,6 +390,11 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       </main>
 
       <Toaster position="top-right" richColors closeButton />
+
+      {/* Change Password Dialog - Solo para EDITOR */}
+      {user?.rol === 'EDITOR' && (
+        <ChangePasswordDialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen} />
+      )}
 
     </div>
   )
