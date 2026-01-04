@@ -17,9 +17,10 @@ import {
 function AdminLoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { login, isAuthenticated, isHydrated } = useAuth()
+  const { login, isAuthenticated, isHydrated, user } = useAuth()
   const [loginError, setLoginError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const credentialsUpdated = searchParams?.get('credentialsUpdated') === 'true'
 
   // Mostrar mensaje de éxito si las credenciales fueron actualizadas
@@ -34,17 +35,27 @@ function AdminLoginContent() {
     }
   }, [credentialsUpdated, router])
 
-  // Si ya está autenticado, redirigir al dashboard
+  // Si ya está autenticado, redirigir al dashboard o setup-credentials
   useEffect(() => {
-    if (isHydrated && isAuthenticated) {
-      // Usar window.location.href para forzar recarga completa en producción
-      window.location.href = '/admin'
+    // Solo redirigir si no estamos en proceso de login y no estamos ya redirigiendo
+    if (isHydrated && isAuthenticated && !isSubmitting && !isRedirecting && user) {
+      setIsRedirecting(true)
+      
+      // Si el usuario tiene email que termina en @ministerio-amva.org,
+      // redirigir a setup-credentials para cambiar la contraseña
+      // De lo contrario, redirigir al dashboard
+      if (user.email?.endsWith('@ministerio-amva.org')) {
+        window.location.href = '/admin/setup-credentials'
+      } else {
+        window.location.href = '/admin'
+      }
     }
-  }, [isAuthenticated, isHydrated])
+  }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, user])
 
   const handleSubmit = async (data: LoginFormData & { rememberMe: boolean }) => {
     setIsSubmitting(true)
     setLoginError(null)
+    setIsRedirecting(false)
     
     try {
       await login(data)
@@ -56,28 +67,12 @@ function AdminLoginContent() {
         description: 'Has iniciado sesión correctamente',
       })
 
-      // Pequeño delay para asegurar que el toast se muestre
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      // Resetear isSubmitting antes de redirigir
+      // Pequeño delay para asegurar que el toast se muestre y que el estado se actualice
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      // El useEffect se encargará de la redirección automáticamente
+      // No necesitamos redirigir manualmente aquí para evitar loops
       setIsSubmitting(false)
-
-      // Después del login exitoso, verificar si el usuario tiene credenciales por defecto
-      // Esperar un momento para que el estado se actualice
-      await new Promise(resolve => setTimeout(resolve, 200))
-      
-      // Obtener el usuario del estado de Zustand
-      const authState = useAuth.getState()
-      const userData = authState.user
-      
-      // Si el usuario tiene email que termina en @ministerio-amva.org,
-      // redirigir a setup-credentials para cambiar la contraseña
-      // De lo contrario, redirigir al dashboard
-      if (userData?.email?.endsWith('@ministerio-amva.org')) {
-        window.location.href = '/admin/setup-credentials'
-      } else {
-        window.location.href = '/admin'
-      }
     } catch (error: unknown) {
       console.error('[AdminLogin] Error en login:', error)
       
@@ -106,6 +101,7 @@ function AdminLoginContent() {
         duration: 5000,
       })
       setIsSubmitting(false)
+      setIsRedirecting(false)
     }
   }
 
