@@ -45,52 +45,40 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password', '/admin/setup-credentials']
   const isPublicPath = publicPaths.some(path => pathname?.startsWith(path))
 
-  // Estado para rastrear si ya verificamos las credenciales por defecto
-  const [hasCheckedDefaultCredentials, setHasCheckedDefaultCredentials] = useState(false)
-
-  // Verificar autenticación al montar
+  // Verificar autenticación solo cuando sea necesario
   useEffect(() => {
-    const verifyAuth = async () => {
-      // Si ya está autenticado e hidratado, solo necesitamos verificar credenciales por defecto
-      if (isHydrated && isAuthenticated && user) {
-        // Si ya tenemos el usuario, solo marcamos que podemos verificar credenciales
-        // No necesitamos hacer checkAuth de nuevo si ya tenemos datos
-        setHasCheckedDefaultCredentials(true)
-        return
-      }
-
-      // Si no está hidratado, hacer checkAuth para inicializar el estado
-      if (!isHydrated) {
-        await checkAuth()
-        setHasCheckedDefaultCredentials(true)
-        return
-      }
-
-      // Si está hidratado pero no autenticado, verificar si hay token en storage
-      // Si hay token, hacer checkAuth para obtener datos actualizados
-      if (isHydrated && !isAuthenticated) {
-        const hasToken = typeof window !== 'undefined' && 
-          (localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token'))
-        
-        if (hasToken) {
-          await checkAuth()
-          setHasCheckedDefaultCredentials(true)
-        } else {
-          // No hay token, no necesitamos verificar credenciales por defecto
-          setHasCheckedDefaultCredentials(true)
-        }
-      }
+    // Si no está hidratado, hacer checkAuth para inicializar el estado
+    if (!isHydrated) {
+      checkAuth().catch(() => {
+        // Si falla, se manejará en el siguiente useEffect
+      })
     }
-    
-    verifyAuth()
-  }, [checkAuth, isHydrated, isAuthenticated, user])
+  }, [isHydrated, checkAuth])
 
+  // Manejar redirecciones y verificación de credenciales por defecto
   useEffect(() => {
-    // Solo verificar credenciales por defecto después de que checkAuth haya completado
-    // Si el usuario está autenticado y tiene credenciales por defecto, redirigir a setup
-    // IMPORTANTE: Solo verificar si NO estamos en la página de login (para evitar loops)
+    // Si no está autenticado y no es una ruta pública, redirigir al login
+    if (isHydrated && !isAuthenticated && !isPublicPath) {
+      const storedToken =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+          : null
+
+      if (!storedToken) {
+        window.location.href = '/admin/login'
+      } else {
+        // Hay token pero no está autenticado, puede ser que el estado no se haya actualizado
+        // Intentar verificar una vez
+        checkAuth().catch(() => {
+          window.location.href = '/admin/login'
+        })
+      }
+      return
+    }
+
+    // Si está autenticado, verificar credenciales por defecto
+    // Solo verificar si NO estamos en páginas públicas o setup-credentials
     if (
-      hasCheckedDefaultCredentials &&
       isHydrated &&
       isAuthenticated &&
       user &&
@@ -101,35 +89,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       const tieneCredencialesPorDefecto = user.email?.endsWith('@ministerio-amva.org')
       if (tieneCredencialesPorDefecto) {
         router.push('/admin/setup-credentials')
-        return
       }
     }
-
-    // Solo redirigir después de que se haya verificado la autenticación
-    if (isHydrated && !isAuthenticated && !isPublicPath) {
-      // Verificar también en storage como respaldo
-      const storedToken =
-        typeof window !== 'undefined'
-          ? localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
-          : null
-
-      if (!storedToken) {
-        // Usar window.location.href para forzar recarga completa en producción
-        window.location.href = '/admin/login'
-      } else {
-        // Si hay token en storage pero el estado no está actualizado, forzar verificación
-        // Pero solo una vez para evitar loops
-        const timeoutId = setTimeout(() => {
-          checkAuth().catch((error: unknown) => {
-            console.error('[AdminLayout] Error en checkAuth:', error)
-            // Si falla la verificación, limpiar y redirigir
-            window.location.href = '/admin/login'
-          })
-        }, 100)
-        return () => clearTimeout(timeoutId)
-      }
-    }
-  }, [isAuthenticated, isHydrated, isPublicPath, pathname, checkAuth, hasCheckedDefaultCredentials, user, router])
+  }, [isAuthenticated, isHydrated, isPublicPath, pathname, user, router, checkAuth])
 
   const handleLogout = () => {
     logout()
