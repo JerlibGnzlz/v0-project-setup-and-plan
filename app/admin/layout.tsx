@@ -156,7 +156,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />
         <div className="flex h-16 items-center justify-between px-6">
           {/* Logo */}
-          <Link href="/admin" className="flex items-center group">
+          <Link href={user?.rol === 'EDITOR' ? '/admin/noticias' : '/admin'} className="flex items-center group">
             <div className="relative">
               <div className="absolute -inset-2 bg-gradient-to-r from-sky-500/20 via-emerald-500/20 to-amber-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
               <Image
