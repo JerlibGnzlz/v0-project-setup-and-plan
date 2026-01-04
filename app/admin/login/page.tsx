@@ -21,6 +21,7 @@ function AdminLoginContent() {
   const [loginError, setLoginError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [loginSuccess, setLoginSuccess] = useState(false)
   const credentialsUpdated = searchParams?.get('credentialsUpdated') === 'true'
 
   // Mostrar mensaje de éxito si las credenciales fueron actualizadas
@@ -52,20 +53,28 @@ function AdminLoginContent() {
         userEmail: user.email,
         isSubmitting,
         isRedirecting,
+        loginSuccess,
         currentPath: window.location.pathname,
       })
       
       setIsRedirecting(true)
       
-      // Redirigir inmediatamente sin delay para evitar que el usuario vea la página de login
-      const targetPath = user.email?.endsWith('@ministerio-amva.org')
-        ? '/admin/setup-credentials'
-        : '/admin'
+      // Pequeño delay para asegurar que el toast se muestre
+      const timeoutId = setTimeout(() => {
+        // Redirigir inmediatamente sin delay para evitar que el usuario vea la página de login
+        const targetPath = user.email?.endsWith('@ministerio-amva.org')
+          ? '/admin/setup-credentials'
+          : '/admin'
+        
+        console.log('[AdminLogin] Redirigiendo a:', targetPath)
+        window.location.replace(targetPath)
+      }, 300)
       
-      console.log('[AdminLogin] Redirigiendo inmediatamente a:', targetPath)
-      window.location.replace(targetPath)
+      return () => {
+        clearTimeout(timeoutId)
+      }
     }
-  }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, user])
+  }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, user, loginSuccess])
 
   const handleSubmit = async (data: LoginFormData & { rememberMe: boolean }) => {
     console.log('[AdminLogin] handleSubmit llamado con:', { email: data.email, rememberMe: data.rememberMe })
@@ -85,32 +94,12 @@ function AdminLoginContent() {
         description: 'Has iniciado sesión correctamente',
       })
 
-      // Verificar el estado inmediatamente después del login
-      const authState = useAuth.getState()
-      console.log('[AdminLogin] Estado después del login:', {
-        isAuthenticated: authState.isAuthenticated,
-        hasUser: !!authState.user,
-        userEmail: authState.user?.email,
-        isHydrated: authState.isHydrated,
-      })
+      // Marcar que el login fue exitoso
+      setLoginSuccess(true)
       
-      // Pequeño delay para asegurar que el toast se muestre
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Si el estado se actualizó correctamente, el useEffect debería redirigir
-      // Pero si no lo hace, forzar la redirección aquí como respaldo
-      const finalAuthState = useAuth.getState()
-      if (finalAuthState.isAuthenticated && finalAuthState.user) {
-        const targetPath = finalAuthState.user.email?.endsWith('@ministerio-amva.org')
-          ? '/admin/setup-credentials'
-          : '/admin'
-        
-        console.log('[AdminLogin] Forzando redirección a:', targetPath)
-        window.location.replace(targetPath)
-      } else {
-        console.warn('[AdminLogin] Estado no actualizado correctamente, esperando useEffect...')
-        setIsSubmitting(false)
-      }
+      // El useEffect se encargará de la redirección automáticamente
+      // Solo esperar un momento para que el estado se actualice
+      setIsSubmitting(false)
     } catch (error: unknown) {
       console.error('[AdminLogin] ❌ Error capturado en handleSubmit:', error)
       
