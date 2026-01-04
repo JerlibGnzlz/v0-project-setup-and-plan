@@ -39,16 +39,27 @@ function AdminLoginContent() {
   useEffect(() => {
     // Solo redirigir si no estamos en proceso de login y no estamos ya redirigiendo
     if (isHydrated && isAuthenticated && !isSubmitting && !isRedirecting && user) {
+      console.log('[AdminLogin] Usuario autenticado detectado, preparando redirección...', {
+        userEmail: user.email,
+        isSubmitting,
+        isRedirecting,
+      })
+      
       setIsRedirecting(true)
       
-      // Si el usuario tiene email que termina en @ministerio-amva.org,
-      // redirigir a setup-credentials para cambiar la contraseña
-      // De lo contrario, redirigir al dashboard
-      if (user.email?.endsWith('@ministerio-amva.org')) {
-        window.location.href = '/admin/setup-credentials'
-      } else {
-        window.location.href = '/admin'
-      }
+      // Pequeño delay para evitar loops
+      setTimeout(() => {
+        // Si el usuario tiene email que termina en @ministerio-amva.org,
+        // redirigir a setup-credentials para cambiar la contraseña
+        // De lo contrario, redirigir al dashboard
+        if (user.email?.endsWith('@ministerio-amva.org')) {
+          console.log('[AdminLogin] Redirigiendo a setup-credentials')
+          window.location.href = '/admin/setup-credentials'
+        } else {
+          console.log('[AdminLogin] Redirigiendo a dashboard')
+          window.location.href = '/admin'
+        }
+      }, 100)
     }
   }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, user])
 

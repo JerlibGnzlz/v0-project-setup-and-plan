@@ -63,21 +63,33 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   // Manejar redirecciones y verificación de credenciales por defecto
   useEffect(() => {
+    // Solo ejecutar si está hidratado
+    if (!isHydrated) {
+      return
+    }
+
     // Si no está autenticado y no es una ruta pública, redirigir al login
-    if (isHydrated && !isAuthenticated && !isPublicPath) {
+    if (!isAuthenticated && !isPublicPath) {
       const storedToken =
         typeof window !== 'undefined'
           ? localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
           : null
 
       if (!storedToken) {
-        window.location.href = '/admin/login'
+        // No hay token, redirigir al login
+        if (pathname !== '/admin/login') {
+          window.location.href = '/admin/login'
+        }
       } else {
         // Hay token pero no está autenticado, puede ser que el estado no se haya actualizado
-        // Intentar verificar una vez
-        checkAuth().catch(() => {
-          window.location.href = '/admin/login'
-        })
+        // Intentar verificar una vez (solo si no estamos ya en login)
+        if (pathname !== '/admin/login') {
+          checkAuth().catch(() => {
+            if (pathname !== '/admin/login') {
+              window.location.href = '/admin/login'
+            }
+          })
+        }
       }
       return
     }
@@ -87,7 +99,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     // por primera vez con credenciales temporales (se maneja en el login)
     // Esto permite que después de cambiar la contraseña, el usuario pueda acceder
     // directamente al dashboard sin ser redirigido nuevamente a setup-credentials
-  }, [isAuthenticated, isHydrated, isPublicPath, pathname, user, router, checkAuth])
+  }, [isAuthenticated, isHydrated, isPublicPath, pathname, checkAuth])
 
   const handleLogout = () => {
     logout()
