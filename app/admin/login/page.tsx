@@ -101,20 +101,28 @@ function AdminLoginContent() {
       setLoginSuccess(true)
       
       // Esperar un momento para que el estado se actualice y el toast se muestre
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise(resolve => setTimeout(resolve, 800))
       
-      // Obtener el estado actualizado después del login
-      // Usar el hook directamente en lugar de getState() para evitar problemas
-      // El estado ya debería estar actualizado por el hook useAuth
-      if (user && isAuthenticated) {
-        const targetPath = user.email?.endsWith('@ministerio-amva.org')
+      // Obtener el usuario directamente del storage para determinar la ruta de destino
+      // Esto es más confiable que esperar a que Zustand se actualice
+      const storedUser = typeof window !== 'undefined' 
+        ? JSON.parse(localStorage.getItem('auth_user') || sessionStorage.getItem('auth_user') || 'null')
+        : null
+      
+      if (storedUser && storedUser.email) {
+        const targetPath = storedUser.email.endsWith('@ministerio-amva.org')
           ? '/admin/setup-credentials'
           : '/admin'
         
-        console.log('[AdminLogin] Redirigiendo después de login exitoso a:', targetPath)
+        console.log('[AdminLogin] Redirigiendo después de login exitoso a:', targetPath, {
+          userEmail: storedUser.email,
+          hasToken: !!(localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')),
+        })
+        
+        // Forzar redirección inmediata
         window.location.replace(targetPath)
       } else {
-        console.warn('[AdminLogin] Estado no actualizado, esperando useEffect...')
+        console.warn('[AdminLogin] No se encontró usuario en storage, esperando useEffect...')
         setIsSubmitting(false)
       }
     } catch (error: unknown) {
