@@ -106,9 +106,11 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
       setShowNewPassword(false)
       setShowConfirmPassword(false)
       
-      // Cerrar el diálogo inmediatamente después de éxito
+      // Esperar un momento para que el usuario vea el mensaje de éxito antes de cerrar
       // El toast se mostrará automáticamente desde el hook
-      onOpenChange(false)
+      setTimeout(() => {
+        onOpenChange(false)
+      }, 500)
     } catch (error) {
       // Error ya manejado en el hook
       // No cerrar el diálogo si hay error para que el usuario pueda corregir
