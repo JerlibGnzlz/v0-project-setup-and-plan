@@ -15,6 +15,12 @@ export function useWebSocketNotifications() {
   const queryClient = useQueryClient()
   const socketRef = useRef<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
+  
+  // Verificar que QueryClient esté disponible antes de continuar
+  if (!queryClient) {
+    console.warn('[WebSocket] QueryClient no disponible')
+    return { isConnected: false, socket: null }
+  }
 
   useEffect(() => {
     // Solo ejecutar en el cliente
