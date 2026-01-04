@@ -397,10 +397,38 @@ export class AuthService {
   }
 
   async validateUser(userId: string) {
-    return this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true, nombre: true, rol: true, avatar: true },
-    })
+    try {
+      this.logger.debug(`🔍 Validando usuario: ${userId}`)
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { 
+          id: true, 
+          email: true, 
+          nombre: true, 
+          rol: true, 
+          avatar: true,
+          activo: true,
+        },
+      })
+      
+      if (!user) {
+        this.logger.warn(`❌ Usuario no encontrado: ${userId}`)
+        return null
+      }
+      
+      // Verificar si el usuario está activo
+      if (user.activo === false) {
+        this.logger.warn(`❌ Usuario desactivado: ${userId}`)
+        return null
+      }
+      
+      this.logger.debug(`✅ Usuario validado: ${user.email}`)
+      return user
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error al validar usuario ${userId}: ${errorMessage}`)
+      return null
+    }
   }
 
   /**
