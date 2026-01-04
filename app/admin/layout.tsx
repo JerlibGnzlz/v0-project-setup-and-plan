@@ -20,7 +20,7 @@ import {
 import { ChangePasswordDialog } from '@/components/admin/change-password-dialog'
 import { ChangeEmailDialog } from '@/components/admin/change-email-dialog'
 import { SetupAdminPinDialog } from '@/components/admin/setup-admin-pin-dialog'
-import { useHasAdminPin } from '@/lib/hooks/use-usuarios'
+import { useHasAdminPinSafe } from '@/lib/hooks/use-has-admin-pin-safe'
 import { getFilteredNavigation } from '@/lib/utils/admin-navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -48,9 +48,8 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const publicPaths = ['/admin/login', '/admin/forgot-password', '/admin/reset-password', '/admin/setup-credentials']
   const isPublicPath = publicPaths.some(path => pathname?.startsWith(path))
   
-  // Solo ejecutar useHasAdminPin si no es una ruta pública (el hook ya valida autenticación y rol internamente)
-  const { data: hasPinData } = useHasAdminPin()
-  const hasPin = hasPinData?.hasPin ?? false
+  // Usar hook seguro que previene ejecución en rutas públicas
+  const { hasPin } = useHasAdminPinSafe()
 
   // Verificar autenticación solo cuando sea necesario
   useEffect(() => {
