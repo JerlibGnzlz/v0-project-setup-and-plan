@@ -95,12 +95,18 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       return
     }
 
-    // Ya no redirigimos automáticamente a setup-credentials desde el layout
-    // La redirección a setup-credentials solo ocurre cuando el usuario inicia sesión
-    // por primera vez con credenciales temporales (se maneja en el login)
-    // Esto permite que después de cambiar la contraseña, el usuario pueda acceder
-    // directamente al dashboard sin ser redirigido nuevamente a setup-credentials
-  }, [isAuthenticated, isHydrated, isPublicPath, pathname, checkAuth])
+    // Si está autenticado y tiene credenciales por defecto, redirigir a setup-credentials
+    // Solo si no estamos ya en setup-credentials o login
+    if (isAuthenticated && user && !isPublicPath) {
+      const tieneCredencialesPorDefecto = user.email?.endsWith('@ministerio-amva.org')
+      
+      if (tieneCredencialesPorDefecto && pathname !== '/admin/setup-credentials') {
+        console.log('[AdminLayout] Usuario con credenciales por defecto detectado, redirigiendo a setup-credentials')
+        router.push('/admin/setup-credentials')
+        return
+      }
+    }
+  }, [isAuthenticated, isHydrated, isPublicPath, pathname, checkAuth, user, router])
 
   const handleLogout = () => {
     logout()
