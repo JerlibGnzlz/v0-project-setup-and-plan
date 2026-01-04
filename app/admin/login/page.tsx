@@ -61,26 +61,43 @@ function AdminLoginContent() {
     
     // Solo redirigir si no estamos en proceso de login y no estamos ya redirigiendo
     // Y solo si realmente estamos en la página de login (no en otra ruta)
+    // Y solo si el login fue exitoso (no es un estado previo)
     if (
       isHydrated &&
       isAuthenticated &&
       !isSubmitting &&
       !isRedirecting &&
+      !loginSuccess &&
       window.location.pathname === '/admin/login'
     ) {
       console.log('[AdminLogin] Usuario autenticado detectado en useEffect, redirigiendo', {
         userEmail: user?.email,
         tieneCredencialesPorDefecto: user?.email?.endsWith('@ministerio-amva.org'),
+        hasChangedPassword: (user as { hasChangedPassword?: boolean })?.hasChangedPassword,
       })
       
-      // Verificar si tiene credenciales por defecto
+      // Verificar si tiene credenciales por defecto y si ya cambió su contraseña
       const tieneCredencialesPorDefecto = user?.email?.endsWith('@ministerio-amva.org')
-      const targetPath = tieneCredencialesPorDefecto ? '/admin/setup-credentials' : '/admin'
+      const yaCambioPassword = (user as { hasChangedPassword?: boolean })?.hasChangedPassword === true
+      const userRol = user?.rol
+      
+      let targetPath = '/admin'
+      
+      // Solo redirigir a setup-credentials si tiene email por defecto Y aún no ha cambiado su contraseña
+      if (tieneCredencialesPorDefecto && !yaCambioPassword) {
+        targetPath = '/admin/setup-credentials'
+      } else if (userRol === 'EDITOR') {
+        // EDITOR solo puede ver Noticias y Galería, redirigir a Noticias por defecto
+        targetPath = '/admin/noticias'
+      } else {
+        // ADMIN y otros roles van al dashboard
+        targetPath = '/admin'
+      }
       
       setIsRedirecting(true)
       window.location.replace(targetPath)
     }
-  }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, user])
+  }, [isAuthenticated, isHydrated, isSubmitting, isRedirecting, loginSuccess, user])
 
   const handleSubmit = async (data: LoginFormData & { rememberMe: boolean }) => {
     console.log('[AdminLogin] handleSubmit llamado con:', { email: data.email, rememberMe: data.rememberMe })
@@ -113,6 +130,12 @@ function AdminLoginContent() {
         return
       }
       
+      // Marcar que estamos redirigiendo para evitar múltiples redirecciones
+      setIsRedirecting(true)
+      
+      // Esperar un momento para que el estado de Zustand se actualice completamente
+      await new Promise(resolve => setTimeout(resolve, 200))
+      
       try {
         // Obtener el usuario directamente del storage para determinar la ruta de destino
         // Esto es más confiable que esperar a que Zustand se actualice
@@ -125,15 +148,19 @@ function AdminLoginContent() {
             hasToken: !!token,
           })
           setIsSubmitting(false)
+          setIsRedirecting(false)
           return
         }
         
         // Parsear el usuario para verificar si tiene credenciales por defecto
-        let parsedUser: { email?: string } | null = null
+        let parsedUser: { email?: string; hasChangedPassword?: boolean; rol?: string } | null = null
         try {
           parsedUser = JSON.parse(userData)
         } catch (e) {
           console.error('[AdminLogin] Error al parsear userData:', e)
+          setIsSubmitting(false)
+          setIsRedirecting(false)
+          return
         }
         
         // Determinar la ruta de destino basada en si tiene credenciales por defecto y su rol
@@ -158,15 +185,18 @@ function AdminLoginContent() {
           hasToken: !!token,
           userEmail: parsedUser?.email,
           tieneCredencialesPorDefecto,
+          yaCambioPassword,
+          userRol,
           targetPath,
           pathname: window.location.pathname,
         })
         
         // Forzar redirección a la ruta apropiada
-        window.location.replace(targetPath)
+        window.location.href = targetPath
       } catch (error) {
         console.error('[AdminLogin] Error al leer storage o redirigir:', error)
         setIsSubmitting(false)
+        setIsRedirecting(false)
       }
     } catch (error: unknown) {
       console.error('[AdminLogin] ❌ Error capturado en handleSubmit:', error)
