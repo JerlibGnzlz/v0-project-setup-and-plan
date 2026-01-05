@@ -73,17 +73,14 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       if (!storedToken) {
         // No hay token, redirigir al login solo si no estamos ya ahí
         if (pathname !== '/admin/login' && typeof window !== 'undefined') {
-          console.log('[AdminLayout] No hay token, redirigiendo a login')
           window.location.replace('/admin/login')
         }
       } else {
         // Hay token pero no está autenticado, puede ser que el estado no se haya actualizado
         // Intentar verificar una vez (solo si no estamos ya en login)
         if (pathname !== '/admin/login' && typeof window !== 'undefined') {
-          console.log('[AdminLayout] Hay token pero no autenticado, verificando...')
           checkAuth().catch(() => {
             if (pathname !== '/admin/login' && typeof window !== 'undefined') {
-              console.log('[AdminLayout] Verificación falló, redirigiendo a login')
               window.location.replace('/admin/login')
             }
           })
@@ -104,7 +101,6 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
       // Solo redirigir a setup-credentials si tiene email por defecto Y aún no ha cambiado su contraseña
       if (tieneCredencialesPorDefecto && !yaCambioPassword && pathname !== '/admin/setup-credentials') {
-        console.log('[AdminLayout] Usuario con credenciales por defecto detectado, redirigiendo a setup-credentials')
         router.push('/admin/setup-credentials')
         return
       }
@@ -112,14 +108,12 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       // Si NO tiene credenciales por defecto y está en setup-credentials, redirigir según el rol
       if (!tieneCredencialesPorDefecto && pathname === '/admin/setup-credentials') {
         const targetPath = user.rol === 'EDITOR' ? '/admin/noticias' : '/admin'
-        console.log('[AdminLayout] Usuario sin credenciales por defecto en setup-credentials, redirigiendo a', targetPath)
         router.push(targetPath)
         return
       }
 
       // Si es EDITOR y está intentando acceder al dashboard, redirigir a Noticias
       if (user.rol === 'EDITOR' && pathname === '/admin') {
-        console.log('[AdminLayout] Usuario EDITOR detectado en dashboard, redirigiendo a noticias')
         router.push('/admin/noticias')
         return
       }

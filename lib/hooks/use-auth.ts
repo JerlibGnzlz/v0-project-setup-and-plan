@@ -52,23 +52,13 @@ export const useAuth = create<AuthState>()(set => ({
 
   login: async (data: LoginRequest & { rememberMe?: boolean }) => {
     try {
-      console.log('[useAuth] Iniciando login para:', data.email)
-      
       // Solo enviar email y password al backend, rememberMe es solo para el frontend
       const { rememberMe, ...loginData } = data
       
-      console.log('[useAuth] Llamando a authApi.login...')
       const response = await authApi.login(loginData)
-      console.log('[useAuth] Respuesta recibida:', {
-        hasAccessToken: !!response.access_token,
-        hasRefreshToken: !!response.refresh_token,
-        hasUser: !!response.user,
-        userEmail: response.user?.email,
-      })
 
       // Limpiar ambos storages primero
       if (typeof window !== 'undefined') {
-        console.log('[useAuth] Limpiando storages...')
         localStorage.removeItem('auth_token')
         localStorage.removeItem('auth_refresh_token')
         localStorage.removeItem('auth_user')
@@ -79,7 +69,6 @@ export const useAuth = create<AuthState>()(set => ({
         // Si rememberMe es true, usar localStorage (persistente)
         // Si es false, usar sessionStorage (se borra al cerrar navegador)
         const storage = data.rememberMe ? localStorage : sessionStorage
-        console.log('[useAuth] Usando storage:', data.rememberMe ? 'localStorage' : 'sessionStorage')
 
         // Guardar tokens y usuario en storage
         storage.setItem('auth_token', response.access_token)
@@ -91,10 +80,6 @@ export const useAuth = create<AuthState>()(set => ({
         // Verificar que se guardó correctamente
         const verifyToken = storage.getItem('auth_token')
         const verifyUser = storage.getItem('auth_user')
-        console.log('[useAuth] Verificación de storage:', {
-          tokenGuardado: !!verifyToken,
-          userGuardado: !!verifyUser,
-        })
         
         if (!verifyToken || !verifyUser) {
           console.error('[useAuth] Error: No se pudo guardar en storage')
@@ -103,7 +88,6 @@ export const useAuth = create<AuthState>()(set => ({
       }
 
       // Actualizar estado de Zustand
-      console.log('[useAuth] Actualizando estado de Zustand...')
       const newState = {
         user: response.user,
         token: response.access_token,
@@ -114,11 +98,6 @@ export const useAuth = create<AuthState>()(set => ({
       
       // Actualizar estado de forma síncrona
       set(newState)
-      
-      console.log('[useAuth] Estado actualizado:', {
-        isAuthenticated: newState.isAuthenticated,
-        userEmail: newState.user?.email,
-      })
 
       // Pequeño delay para asegurar que el estado se propague
       await new Promise(resolve => setTimeout(resolve, 100))

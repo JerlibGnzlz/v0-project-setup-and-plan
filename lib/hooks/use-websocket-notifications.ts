@@ -60,7 +60,6 @@ export function useWebSocketNotifications() {
             ? localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
             : null
         if (!token) {
-          console.log('[WebSocket] No se encontró token de autenticación')
           return
         }
 
@@ -87,21 +86,15 @@ export function useWebSocketNotifications() {
 
         socket.on('connect', () => {
           setIsConnected(true)
-          console.log('✅ Conectado a WebSocket de notificaciones')
           // Invalidar queries al conectar para obtener datos frescos
           queryClient.invalidateQueries({ queryKey: ['notifications'] })
         })
 
-        socket.on('disconnect', (reason: string) => {
+        socket.on('disconnect', () => {
           setIsConnected(false)
-          // Solo loguear si no es un cierre intencional
-          if (reason !== 'io client disconnect') {
-            console.log('❌ Desconectado de WebSocket:', reason)
-          }
         })
 
-        socket.on('reconnect', (attemptNumber: number) => {
-          console.log(`🔄 Reconectado a WebSocket después de ${attemptNumber} intentos`)
+        socket.on('reconnect', () => {
           // Invalidar queries al reconectar
           queryClient.invalidateQueries({ queryKey: ['notifications'] })
         })
@@ -110,7 +103,6 @@ export function useWebSocketNotifications() {
           try {
             if (notification && typeof notification === 'object') {
               const notif = notification as { title?: string; body?: string }
-              console.log('📬 Nueva notificación recibida:', notif)
 
               // Invalidar queries para refrescar datos
               queryClient.invalidateQueries({ queryKey: ['notifications'] })
@@ -137,7 +129,6 @@ export function useWebSocketNotifications() {
               const count = typeof (data as { count: unknown }).count === 'number'
                 ? (data as { count: number }).count
                 : 0
-              console.log('📊 Conteo de no leídas actualizado vía WebSocket:', count)
               queryClient.setQueryData(['notifications', 'unread-count'], count)
             }
           } catch (error) {
@@ -152,15 +143,14 @@ export function useWebSocketNotifications() {
 
           // Si el error indica token expirado, intentar refrescar
           if (errorMessage.includes('expired') || errorMessage.includes('jwt expired')) {
-            console.log('🔄 Token expirado detectado, intentando refrescar...')
             try {
               const refreshToken = typeof window !== 'undefined'
                 ? localStorage.getItem('auth_refresh_token') || sessionStorage.getItem('auth_refresh_token')
                 : null
-
+              
               if (refreshToken) {
                 const response = await authApi.refreshToken(refreshToken)
-
+                
                 // Guardar nuevos tokens
                 if (typeof window !== 'undefined') {
                   const storage = localStorage.getItem('auth_token') ? localStorage : sessionStorage
@@ -169,16 +159,13 @@ export function useWebSocketNotifications() {
                     storage.setItem('auth_refresh_token', response.refresh_token)
                   }
                 }
-
-                console.log('✅ Token refrescado exitosamente, reconectando WebSocket...')
+                
                 // Reconectar con el nuevo token
                 if (socketRef.current) {
                   socketRef.current.disconnect()
                   socketRef.current.auth = { token: response.access_token.replace('Bearer ', '') }
                   socketRef.current.connect()
                 }
-              } else {
-                console.warn('⚠️ No hay refresh token disponible, el usuario necesitará iniciar sesión nuevamente')
               }
             } catch (refreshError) {
               console.error('❌ Error al refrescar token:', refreshError)
@@ -193,41 +180,38 @@ export function useWebSocketNotifications() {
             if (data && typeof data === 'object' && 'type' in data) {
               const errorData = data as { type: string; message?: string }
 
-              if (errorData.type === 'TOKEN_EXPIRED') {
-                console.log('🔄 Token expirado recibido del servidor, intentando refrescar...')
-                try {
-                  const refreshToken = typeof window !== 'undefined'
-                    ? localStorage.getItem('auth_refresh_token') || sessionStorage.getItem('auth_refresh_token')
-                    : null
-
-                  if (refreshToken) {
-                    const response = await authApi.refreshToken(refreshToken)
-
-                    // Guardar nuevos tokens
-                    if (typeof window !== 'undefined') {
-                      const storage = localStorage.getItem('auth_token') ? localStorage : sessionStorage
-                      storage.setItem('auth_token', response.access_token)
-                      if (response.refresh_token) {
-                        storage.setItem('auth_refresh_token', response.refresh_token)
-                      }
-                    }
-
-                    console.log('✅ Token refrescado exitosamente, reconectando WebSocket...')
-                    // Reconectar con el nuevo token
-                    if (socketRef.current) {
-                      socketRef.current.disconnect()
-                      socketRef.current.auth = { token: response.access_token.replace('Bearer ', '') }
-                      socketRef.current.connect()
-                    }
-                  } else {
-                    console.warn('⚠️ No hay refresh token disponible')
-                    toast.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
-                  }
-                } catch (refreshError) {
-                  console.error('❌ Error al refrescar token:', refreshError)
-                  toast.error('Error al renovar tu sesión. Por favor, inicia sesión nuevamente.')
-                }
-              } else if (errorData.type === 'INVALID_TOKEN') {
+                      if (errorData.type === 'TOKEN_EXPIRED') {
+                        try {
+                          const refreshToken = typeof window !== 'undefined'
+                            ? localStorage.getItem('auth_refresh_token') || sessionStorage.getItem('auth_refresh_token')
+                            : null
+                          
+                          if (refreshToken) {
+                            const response = await authApi.refreshToken(refreshToken)
+                            
+                            // Guardar nuevos tokens
+                            if (typeof window !== 'undefined') {
+                              const storage = localStorage.getItem('auth_token') ? localStorage : sessionStorage
+                              storage.setItem('auth_token', response.access_token)
+                              if (response.refresh_token) {
+                                storage.setItem('auth_refresh_token', response.refresh_token)
+                              }
+                            }
+                            
+                            // Reconectar con el nuevo token
+                            if (socketRef.current) {
+                              socketRef.current.disconnect()
+                              socketRef.current.auth = { token: response.access_token.replace('Bearer ', '') }
+                              socketRef.current.connect()
+                            }
+                          } else {
+                            toast.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
+                          }
+                        } catch (refreshError) {
+                          console.error('❌ Error al refrescar token:', refreshError)
+                          toast.error('Error al renovar tu sesión. Por favor, inicia sesión nuevamente.')
+                        }
+                      } else if (errorData.type === 'INVALID_TOKEN') {
                 console.warn('⚠️ Token inválido:', errorData.message)
                 toast.error(errorData.message || 'Token inválido. Por favor, inicia sesión nuevamente.')
               } else if (errorData.type === 'AUTH_ERROR') {
