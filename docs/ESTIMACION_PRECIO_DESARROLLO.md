@@ -7,6 +7,14 @@
 **Tipo**: Aplicación Web Full-Stack + App Móvil  
 **Complejidad**: Alta (Enterprise-level)
 
+### ⚠️ IMPORTANTE: Moneda de Precios
+
+**Todos los precios están expresados en DÓLARES ESTADOUNIDENSES (USD)**.
+
+**Conversión aproximada a Pesos Argentinos (ARS)** - Enero 2025:
+- Tipo de cambio aproximado: $1 USD = $1,000 - $1,200 ARS (varía según mercado)
+- Para conversión exacta, consultar tipo de cambio oficial del día
+
 ---
 
 ## 🏗️ Alcance del Proyecto
@@ -107,8 +115,11 @@
 
 ## 📊 Precio Recomendado por Modalidad
 
+**Nota**: Todos los precios están en USD. Ver conversión a ARS al final de esta sección.
+
 ### **Modalidad 1: Proyecto Completo (Fixed Price)**
-- **Precio base**: **$60,000 - $90,000**
+- **Precio base USD**: **$60,000 - $90,000**
+- **Precio base ARS** (aprox.): **$72,000,000 - $108,000,000** (a $1,200 ARS/USD)
 - **Incluye**:
   - Desarrollo completo de todas las funcionalidades
   - Testing y QA
@@ -117,15 +128,17 @@
   - 1 mes de soporte post-lanzamiento
 
 ### **Modalidad 2: Desarrollo por Fases (Phased Approach)**
-- **Fase 1 - MVP** (Backend + Frontend básico): **$25,000 - $35,000**
-- **Fase 2 - Funcionalidades avanzadas**: **$20,000 - $30,000**
-- **Fase 3 - App Móvil**: **$15,000 - $25,000**
-- **Total**: **$60,000 - $90,000**
+- **Fase 1 - MVP** (Backend + Frontend básico): **$25,000 - $35,000 USD** (~$30,000,000 - $42,000,000 ARS)
+- **Fase 2 - Funcionalidades avanzadas**: **$20,000 - $30,000 USD** (~$24,000,000 - $36,000,000 ARS)
+- **Fase 3 - App Móvil**: **$15,000 - $25,000 USD** (~$18,000,000 - $30,000,000 ARS)
+- **Total USD**: **$60,000 - $90,000**
+- **Total ARS** (aprox.): **$72,000,000 - $108,000,000** (a $1,200 ARS/USD)
 
 ### **Modalidad 3: Time & Materials (T&M)**
-- **Tarifa horaria**: $60-100/hora (dependiendo del nivel)
+- **Tarifa horaria**: $60-100/hora USD (dependiendo del nivel)
 - **Estimación**: 800-1,000 horas
-- **Rango total**: **$48,000 - $100,000**
+- **Rango total USD**: **$48,000 - $100,000**
+- **Rango total ARS** (aprox.): **$57,600,000 - $120,000,000** (a $1,200 ARS/USD)
 - **Ventaja**: Flexibilidad para cambios durante el desarrollo
 
 ---
@@ -177,16 +190,17 @@
 
 ## 💼 Estructura de Precio Recomendada
 
-### **Precio Base Sugerido: $70,000 - $85,000**
+### **Precio Base Sugerido: $70,000 - $85,000 USD**
+### **Precio Base en ARS (aprox.): $84,000,000 - $102,000,000** (a $1,200 ARS/USD)
 
-**Desglose:**
-- Backend API: $25,000 - $30,000
-- Frontend Admin: $20,000 - $25,000
-- Landing Page: $8,000 - $10,000
-- App Móvil: $12,000 - $15,000
-- Integraciones: $5,000 - $5,000
-- Testing & QA: $8,000 - $10,000
-- Deployment: $2,000 - $3,000
+**Desglose en USD:**
+- Backend API: $25,000 - $30,000 (~$30,000,000 - $36,000,000 ARS)
+- Frontend Admin: $20,000 - $25,000 (~$24,000,000 - $30,000,000 ARS)
+- Landing Page: $8,000 - $10,000 (~$9,600,000 - $12,000,000 ARS)
+- App Móvil: $12,000 - $15,000 (~$14,400,000 - $18,000,000 ARS)
+- Integraciones: $5,000 (~$6,000,000 ARS)
+- Testing & QA: $8,000 - $10,000 (~$9,600,000 - $12,000,000 ARS)
+- Deployment: $2,000 - $3,000 (~$2,400,000 - $3,600,000 ARS)
 
 **Incluye:**
 - ✅ Código fuente completo
@@ -248,20 +262,23 @@
 ## 💡 Recomendaciones de Precio Final
 
 ### **Para Cliente Pequeño/Mediano:**
-- **Precio**: **$65,000 - $75,000**
+- **Precio USD**: **$65,000 - $75,000**
+- **Precio ARS** (aprox.): **$78,000,000 - $90,000,000** (a $1,200 ARS/USD)
 - **Modalidad**: Fixed Price
 - **Plazo**: 4-5 meses
 - **Soporte**: 1 mes incluido
 
 ### **Para Cliente Grande/Enterprise:**
-- **Precio**: **$80,000 - $100,000**
+- **Precio USD**: **$80,000 - $100,000**
+- **Precio ARS** (aprox.): **$96,000,000 - $120,000,000** (a $1,200 ARS/USD)
 - **Modalidad**: Phased Approach
 - **Plazo**: 5-6 meses
 - **Soporte**: 3 meses incluido
 - **Training**: Incluido
 
 ### **Para Startup/Proyecto Nuevo:**
-- **Precio**: **$50,000 - $65,000**
+- **Precio USD**: **$50,000 - $65,000**
+- **Precio ARS** (aprox.): **$60,000,000 - $78,000,000** (a $1,200 ARS/USD)
 - **Modalidad**: MVP primero, luego expansión
 - **Plazo**: 3-4 meses (MVP)
 - **Soporte**: 1 mes incluido
@@ -324,6 +341,12 @@
 
 ### **Recomendación Final:**
 **Precio justo y competitivo: $70,000 - $85,000 USD**
+**En Pesos Argentinos (aprox.): $84,000,000 - $102,000,000 ARS** (a $1,200 ARS/USD)
+
+**⚠️ IMPORTANTE**: El tipo de cambio puede variar significativamente. Para cotización exacta, consultar:
+- Tipo de cambio oficial del Banco Central de la República Argentina (BCRA)
+- Tipo de cambio MEP (Mercado Electrónico de Pagos)
+- Tipo de cambio Blue (mercado paralelo)
 
 Este precio refleja:
 - ✅ Complejidad técnica alta
