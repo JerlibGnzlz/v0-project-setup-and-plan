@@ -8,24 +8,35 @@ set -e
 ENVIRONMENT=${1:-production}
 APP_DIR="/var/www/amva-${ENVIRONMENT}"
 
+# Mapear environment a branch
+if [ "$ENVIRONMENT" = "staging" ]; then
+    GIT_BRANCH="develop"
+elif [ "$ENVIRONMENT" = "production" ]; then
+    GIT_BRANCH="main"
+else
+    echo "❌ Error: Environment debe ser 'staging' o 'production'"
+    exit 1
+fi
+
 if [ ! -d "$APP_DIR" ]; then
     echo "❌ Error: Directorio $APP_DIR no existe"
     exit 1
 fi
 
-echo "🚀 Desplegando a ${ENVIRONMENT}..."
+echo "🚀 Desplegando a ${ENVIRONMENT} (branch: ${GIT_BRANCH})..."
 echo "📁 Directorio: ${APP_DIR}"
 
 cd $APP_DIR
 
 # Pull latest code
-echo "📥 Actualizando código desde Git..."
+echo "📥 Actualizando código desde Git (branch: ${GIT_BRANCH})..."
 git fetch origin
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "$CURRENT_BRANCH" != "$ENVIRONMENT" ]; then
-    echo "⚠️  Warning: Branch actual es $CURRENT_BRANCH, debería ser $ENVIRONMENT"
+if [ "$CURRENT_BRANCH" != "$GIT_BRANCH" ]; then
+    echo "⚠️  Cambiando branch de $CURRENT_BRANCH a $GIT_BRANCH..."
+    git checkout $GIT_BRANCH
 fi
-git reset --hard origin/$ENVIRONMENT
+git reset --hard origin/$GIT_BRANCH
 
 # Install dependencies
 echo "📦 Instalando dependencias..."

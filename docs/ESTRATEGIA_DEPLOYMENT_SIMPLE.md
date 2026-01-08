@@ -31,22 +31,26 @@ Esta guía define una estrategia **simple y directa** para desplegar AMVA Digita
 
 ## 🌳 Estrategia de Branches
 
-### **Flujo de Trabajo:**
+### **Estructura Simple (2 Branches):**
 
 ```
 feature/nueva-funcionalidad
   ↓
-develop (desarrollo)
-  ↓
-staging (pruebas)
+develop (desarrollo y pruebas - Staging)
   ↓
 main (producción)
 ```
 
+### **Flujo de Trabajo:**
+
+1. **Desarrollo**: Trabajas en `develop` o feature branches
+2. **Testing**: `develop` se despliega automáticamente a ambiente de pruebas (Staging)
+3. **Producción**: Cuando `develop` está listo, merge a `main` que se despliega a producción
+
 ### **Comandos:**
 
 ```bash
-# 1. Desarrollo en feature branch
+# 1. Desarrollo en feature branch (opcional)
 git checkout develop
 git pull origin develop
 git checkout -b feature/nueva-funcionalidad
@@ -54,19 +58,19 @@ git checkout -b feature/nueva-funcionalidad
 git push origin feature/nueva-funcionalidad
 # Crear PR a develop
 
-# 2. Merge a staging para probar
-git checkout staging
-git pull origin staging
-git merge develop
-git push origin staging
-# → Se despliega automáticamente a staging
+# 2. Merge a develop para probar (o trabajar directamente en develop)
+git checkout develop
+git pull origin develop
+git merge feature/nueva-funcionalidad  # o trabajar directamente
+git push origin develop
+# → Se despliega automáticamente a STAGING (ambiente de pruebas)
 
 # 3. Si todo está bien, merge a production
 git checkout main
 git pull origin main
-git merge staging
+git merge develop
 git push origin main
-# → Se despliega automáticamente a production
+# → Se despliega automáticamente a PRODUCTION
 ```
 
 ---
@@ -75,37 +79,43 @@ git push origin main
 
 ### **1. Crear Droplets**
 
-#### **Droplet para Staging:**
+**Nota**: Puedes usar solo un droplet para desarrollo/pruebas localmente, pero recomendamos 2 ambientes separados.
+
+#### **Droplet para Staging (develop):**
 - **Size**: Basic ($12/mes) - 2GB RAM, 1 vCPU
 - **Region**: Más cercano a tu ubicación
 - **Image**: Ubuntu 22.04 LTS
-- **Hostname**: `amva-staging`
+- **Hostname**: `amva-staging` (o `amva-develop`)
+- **Branch**: `develop` → Se despliega aquí automáticamente
 
-#### **Droplet para Production:**
+#### **Droplet para Production (main):**
 - **Size**: Regular ($24/mes) - 4GB RAM, 2 vCPU
 - **Region**: Más cercano a usuarios
 - **Image**: Ubuntu 22.04 LTS
 - **Hostname**: `amva-production`
+- **Branch**: `main` → Se despliega aquí automáticamente
 
 ### **2. Base de Datos (Digital Ocean Managed Database)**
 
-#### **Staging Database:**
+#### **Staging Database (para develop):**
 - **Engine**: PostgreSQL 16
 - **Size**: Basic ($15/mes) - 1GB RAM, 1 vCPU
-- **Database Name**: `amva_staging`
+- **Database Name**: `amva_staging` (o `amva_develop`)
+- **Branch**: `develop` → Se conecta a esta base de datos
 
-#### **Production Database:**
+#### **Production Database (para main):**
 - **Engine**: PostgreSQL 16
 - **Size**: Professional ($90/mes) - 2GB RAM, 1 vCPU
 - **Database Name**: `amva_production`
 - **Backups**: Diarios automáticos
+- **Branch**: `main` → Se conecta a esta base de datos
 
 ### **3. Redis (Digital Ocean Managed)**
 
-#### **Staging Redis:**
+#### **Staging Redis (para develop):**
 - **Size**: Basic ($15/mes) - 1GB RAM
 
-#### **Production Redis:**
+#### **Production Redis (para main):**
 - **Size**: Professional ($45/mes) - 2GB RAM
 
 ---
@@ -172,13 +182,16 @@ usermod -aG sudo deployer
 ### **8. Configurar Directorios**
 
 ```bash
-# Crear directorio del proyecto
-mkdir -p /var/www/amva-production
+# Crear directorios del proyecto
+# Para Staging (develop branch)
 mkdir -p /var/www/amva-staging
 
+# Para Production (main branch)
+mkdir -p /var/www/amva-production
+
 # Dar permisos
-chown -R deployer:deployer /var/www/amva-production
 chown -R deployer:deployer /var/www/amva-staging
+chown -R deployer:deployer /var/www/amva-production
 ```
 
 ### **9. Configurar SSL (Let's Encrypt)**
@@ -216,11 +229,12 @@ certbot --nginx -d amva.org -d www.amva.org -d api.amva.org
 
 ## 📝 Variables de Entorno
 
-### **Staging** (`/var/www/amva-staging/.env`)
+### **Staging (develop branch)** (`/var/www/amva-staging/.env`)
 
 ```env
 # Environment
 NODE_ENV=staging
+# Nota: Este ambiente usa el branch 'develop'
 
 # Database
 DATABASE_URL=postgresql://user:password@staging-db-host:5432/amva_staging
@@ -246,11 +260,12 @@ SMTP_USER=staging@amva.org
 SMTP_PASS=staging_password
 ```
 
-### **Production** (`/var/www/amva-production/.env`)
+### **Production (main branch)** (`/var/www/amva-production/.env`)
 
 ```env
 # Environment
 NODE_ENV=production
+# Nota: Este ambiente usa el branch 'main'
 
 # Database
 DATABASE_URL=postgresql://user:password@production-db-host:5432/amva_production
@@ -276,13 +291,14 @@ SMTP_USER=noreply@amva.org
 SMTP_PASS=production_password
 ```
 
-### **Frontend Staging** (`/var/www/amva-staging/frontend/.env.local`)
+### **Frontend Staging (develop)** (`/var/www/amva-staging/frontend/.env.local`)
 
 ```env
 NEXT_PUBLIC_API_URL=https://api-staging.amva.org/api
+# O si usas un dominio diferente: https://staging.amva.org/api
 ```
 
-### **Frontend Production** (`/var/www/amva-production/frontend/.env.local`)
+### **Frontend Production (main)** (`/var/www/amva-production/frontend/.env.local`)
 
 ```env
 NEXT_PUBLIC_API_URL=https://api.amva.org/api
@@ -567,7 +583,7 @@ jobs:
 
 ### **Pre-Deployment:**
 
-- [ ] Crear branches `main`, `staging`, `develop`
+- [ ] Verificar que tienes branches `main` y `develop`
 - [ ] Crear droplets en Digital Ocean
 - [ ] Configurar base de datos PostgreSQL
 - [ ] Configurar Redis

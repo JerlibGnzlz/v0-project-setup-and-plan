@@ -1,16 +1,16 @@
-name: Deploy to Staging
+name: Deploy to Staging (develop branch)
 
 on:
   push:
     branches:
-      - staging
+      - develop
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Deploy to Digital Ocean
+      - name: Deploy to Digital Ocean Staging
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.STAGING_HOST }}
