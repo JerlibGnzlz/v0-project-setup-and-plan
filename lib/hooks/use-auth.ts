@@ -54,7 +54,7 @@ export const useAuth = create<AuthState>()(set => ({
     try {
       // Solo enviar email y password al backend, rememberMe es solo para el frontend
       const { rememberMe, ...loginData } = data
-      
+
       const response = await authApi.login(loginData)
 
       // Limpiar ambos storages primero
@@ -80,7 +80,7 @@ export const useAuth = create<AuthState>()(set => ({
         // Verificar que se guardó correctamente
         const verifyToken = storage.getItem('auth_token')
         const verifyUser = storage.getItem('auth_user')
-        
+
         if (!verifyToken || !verifyUser) {
           console.error('[useAuth] Error: No se pudo guardar en storage')
           throw new Error('Error al guardar la sesión en storage')
@@ -95,7 +95,7 @@ export const useAuth = create<AuthState>()(set => ({
         isAuthenticated: true,
         isHydrated: true, // Asegurar que está hidratado
       }
-      
+
       // Actualizar estado de forma síncrona
       set(newState)
 
@@ -108,14 +108,14 @@ export const useAuth = create<AuthState>()(set => ({
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       const errorStack = error instanceof Error ? error.stack : undefined
       const errorResponse = (error as { response?: { status?: number; data?: unknown } })?.response
-      
+
       console.error('[useAuth] ❌ Error en login:', {
         message: errorMessage,
         status: errorResponse?.status,
         data: errorResponse?.data,
         stack: errorStack,
       })
-      
+
       throw error
     }
   },
@@ -129,7 +129,7 @@ export const useAuth = create<AuthState>()(set => ({
       }
 
       const response = await authApi.refreshToken(refreshToken)
-      
+
       // Guardar nuevos tokens
       if (typeof window !== 'undefined') {
         const storage = localStorage.getItem('auth_token') ? localStorage : sessionStorage
@@ -198,12 +198,12 @@ export const useAuth = create<AuthState>()(set => ({
       const profilePromise = authApi.getProfile()
 
       const response = await Promise.race([profilePromise, timeoutPromise])
-      
+
       // Validar que la respuesta tenga la estructura correcta
       if (!response || !response.id || !response.email) {
         throw new Error('Respuesta del perfil inválida')
       }
-      
+
       // Actualizar con los datos del backend (pueden estar más actualizados)
       set({
         user: response,
@@ -214,9 +214,9 @@ export const useAuth = create<AuthState>()(set => ({
       })
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-      
+
       console.error('[useAuth] Error al validar token:', errorMessage)
-      
+
       // Si es timeout o error de red, mantener el estado actual si hay token
       if (
         errorMessage === 'Timeout' ||
@@ -285,7 +285,7 @@ if (typeof window !== 'undefined') {
     const initialToken = getStoredToken()
     const initialRefreshToken = getStoredRefreshToken()
     const initialUser = getStoredUser()
-    
+
     if (initialToken && initialUser) {
       // Validar que el usuario tenga la estructura correcta
       if (initialUser && typeof initialUser === 'object' && 'email' in initialUser && 'id' in initialUser) {
@@ -297,7 +297,7 @@ if (typeof window !== 'undefined') {
           isAuthenticated: true,
           isHydrated: true, // Marcar como hidratado inmediatamente
         })
-        
+
         // Validar token en background (no bloquea el render)
         useAuth.getState().checkAuth().catch((error: unknown) => {
           // Si falla la validación, se actualizará el estado en checkAuth
