@@ -51,11 +51,21 @@ export function MouseFollower({
 }: MouseFollowerProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isVisible, setIsVisible] = useState(false)
+  const [isTouchDevice, setIsTouchDevice] = useState(true)
   const [pastScrollThreshold, setPastScrollThreshold] = useState(
     showOnlyAfterScrollY == null
   )
   const rafId = useRef<number | null>(null)
   const ticking = useRef(false)
+
+  useEffect(() => {
+    setIsTouchDevice(
+      typeof window !== 'undefined' &&
+      ('ontouchstart' in window || window.matchMedia('(pointer: coarse)').matches)
+    )
+  }, [])
+
+  const isEnabled = Boolean(enabled && !isTouchDevice)
 
   useEffect(() => {
     if (showOnlyAfterScrollY == null) {
@@ -70,7 +80,7 @@ export function MouseFollower({
   }, [showOnlyAfterScrollY])
 
   useEffect(() => {
-    if (!effectiveEnabled || !pastScrollThreshold) return
+    if (!isEnabled || !pastScrollThreshold) return
 
     const handleMouseMove = (e: MouseEvent) => {
       if (ticking.current) return
@@ -99,10 +109,10 @@ export function MouseFollower({
       document.documentElement.removeEventListener('mouseleave', handleMouseLeave)
       if (rafId.current !== null) cancelAnimationFrame(rafId.current)
     }
-  }, [effectiveEnabled, pastScrollThreshold, offsetX, offsetY, width, height])
+  }, [isEnabled, pastScrollThreshold, offsetX, offsetY, width, height])
 
   useEffect(() => {
-    if (!hideCursor || !effectiveEnabled) return
+    if (!hideCursor || !isEnabled) return
     const style = document.documentElement.style
     if (isVisible && pastScrollThreshold) {
       style.setProperty('cursor', 'none')
@@ -110,9 +120,11 @@ export function MouseFollower({
       style.removeProperty('cursor')
     }
     return () => style.removeProperty('cursor')
-  }, [hideCursor, effectiveEnabled, isVisible, pastScrollThreshold])
+  }, [hideCursor, isEnabled, isVisible, pastScrollThreshold])
 
-  if (!effectiveEnabled || !pastScrollThreshold) return null
+  // SSR/prerender: no window, avoid any client-only logic
+  if (typeof window === 'undefined') return null
+  if (!enabled || isTouchDevice || !pastScrollThreshold) return null
 
   return (
     <div
