@@ -44,6 +44,9 @@ function InscripcionSuccessHandler() {
 }
 
 function HomePageContent() {
+  const { data: convencionActiva } = useConvencionActiva()
+  const hasActiveConvencion = Boolean(convencionActiva)
+
   useEffect(() => {
     // Solo ejecutar en el cliente
     if (typeof window === 'undefined') return
