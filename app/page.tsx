@@ -16,6 +16,8 @@ import { Footer } from '@/components/footer'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import { ScrollProgress } from '@/components/scroll-progress'
 import { FloatingCTA } from '@/components/floating-cta'
+import { MouseFollower } from '@/components/mouse-follower'
+import { Calendar } from 'lucide-react'
 import { QueryProvider } from '@/lib/providers/query-provider'
 import { restoreScrollPosition } from '@/lib/utils/scroll-restore'
 
@@ -89,13 +91,26 @@ function HomePageContent() {
 
   return (
     <div
-      className="min-h-screen bg-[#0a1628] text-white"
+      className="min-h-screen bg-[#0a1628] text-white overflow-x-hidden"
       style={{
         colorScheme: 'dark',
       }}
     >
       <ScrollProgress />
       <FloatingCTA />
+      <MouseFollower
+        showOnlyAfterScrollY={500}
+        offsetX={20}
+        offsetY={20}
+        width={180}
+        height={48}
+        className="rounded-xl bg-gradient-to-r from-emerald-500/90 via-teal-500/90 to-cyan-500/90 backdrop-blur-md border border-white/25 px-3.5 py-2.5 text-xs font-semibold text-white shadow-xl shadow-emerald-500/20"
+      >
+        <span className="flex items-center gap-2">
+          <Calendar className="size-3.5 shrink-0 text-white/95" />
+          Inscribirse en convención
+        </span>
+      </MouseFollower>
       <main>
         <Navbar />
         <div id="inicio">
