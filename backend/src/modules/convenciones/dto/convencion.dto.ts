@@ -51,6 +51,15 @@ export class CreateConvencionDto {
   @IsOptional()
   @IsBoolean()
   archivada?: boolean
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 120, { message: 'El nombre del invitado no puede exceder 120 caracteres' })
+  invitadoNombre?: string
+
+  @IsOptional()
+  @IsString()
+  invitadoFotoUrl?: string
 }
 
 export class UpdateConvencionDto {
@@ -94,4 +103,13 @@ export class UpdateConvencionDto {
   @IsOptional()
   @IsBoolean()
   activa?: boolean
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 120, { message: 'El nombre del invitado no puede exceder 120 caracteres' })
+  invitadoNombre?: string
+
+  @IsOptional()
+  @IsString()
+  invitadoFotoUrl?: string
 }

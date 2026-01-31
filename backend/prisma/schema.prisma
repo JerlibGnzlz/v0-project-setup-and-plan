@@ -68,22 +68,24 @@ model AuditLog {
 }
 
 model Convencion {
-  id             String          @id @default(uuid())
-  titulo         String
-  descripcion    String?
-  ubicacion      String
-  activa         Boolean         @default(true)
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
-  costo          Decimal         @default(0) @db.Decimal(10, 2)
-  cupoMaximo     Int?            @map("cupo_maximo")
-  fechaFin       DateTime        @map("fecha_fin")
-  fechaInicio    DateTime        @map("fecha_inicio")
-  imagenUrl      String?         @map("imagen_url")
-  archivada      Boolean         @default(false)
-  fechaArchivado DateTime?       @map("fecha_archivado")
-  galeria        GaleriaImagen[]
-  inscripciones  Inscripcion[]
+  id               String          @id @default(uuid())
+  titulo           String
+  descripcion      String?
+  ubicacion        String
+  activa          Boolean         @default(true)
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  costo            Decimal         @default(0) @db.Decimal(10, 2)
+  cupoMaximo       Int?            @map("cupo_maximo")
+  fechaFin         DateTime        @map("fecha_fin")
+  fechaInicio      DateTime        @map("fecha_inicio")
+  imagenUrl        String?         @map("imagen_url")
+  archivada        Boolean         @default(false)
+  fechaArchivado   DateTime?       @map("fecha_archivado")
+  invitadoNombre   String?         @map("invitado_nombre")
+  invitadoFotoUrl  String?         @map("invitado_foto_url")
+  galeria          GaleriaImagen[]
+  inscripciones    Inscripcion[]
 
   @@index([activa])
   @@index([fechaInicio])

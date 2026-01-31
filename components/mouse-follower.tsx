@@ -70,7 +70,7 @@ export function MouseFollower({
   }, [showOnlyAfterScrollY])
 
   useEffect(() => {
-    if (!enabled || !pastScrollThreshold) return
+    if (!effectiveEnabled || !pastScrollThreshold) return
 
     const handleMouseMove = (e: MouseEvent) => {
       if (ticking.current) return
@@ -99,10 +99,10 @@ export function MouseFollower({
       document.documentElement.removeEventListener('mouseleave', handleMouseLeave)
       if (rafId.current !== null) cancelAnimationFrame(rafId.current)
     }
-  }, [enabled, pastScrollThreshold, offsetX, offsetY, width, height])
+  }, [effectiveEnabled, pastScrollThreshold, offsetX, offsetY, width, height])
 
   useEffect(() => {
-    if (!hideCursor || !enabled) return
+    if (!hideCursor || !effectiveEnabled) return
     const style = document.documentElement.style
     if (isVisible && pastScrollThreshold) {
       style.setProperty('cursor', 'none')
@@ -110,9 +110,9 @@ export function MouseFollower({
       style.removeProperty('cursor')
     }
     return () => style.removeProperty('cursor')
-  }, [hideCursor, enabled, isVisible, pastScrollThreshold])
+  }, [hideCursor, effectiveEnabled, isVisible, pastScrollThreshold])
 
-  if (!enabled || !pastScrollThreshold) return null
+  if (!effectiveEnabled || !pastScrollThreshold) return null
 
   return (
     <div

@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DatePickerSimple } from '@/components/ui/date-picker-simple'
+import { ImageUpload } from '@/components/ui/image-upload'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { convencionSchema, type ConvencionFormData } from '@/lib/validations/convencion'
@@ -21,7 +22,7 @@ import { format } from 'date-fns'
 // Función helper para convertir fecha ISO a formato local yyyy-MM-dd sin problemas de zona horaria
 function formatDateToLocal(dateString: string | Date): string {
   if (!dateString) return ''
-  
+
   let date: Date
   if (typeof dateString === 'string') {
     // Si es string ISO, crear Date y usar métodos locales para evitar problemas de zona horaria
@@ -29,12 +30,12 @@ function formatDateToLocal(dateString: string | Date): string {
   } else {
     date = dateString
   }
-  
+
   // Usar métodos locales para obtener año, mes y día sin problemas de zona horaria
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
-  
+
   return `${year}-${month}-${day}`
 }
 
@@ -47,8 +48,11 @@ interface ConvencionEditDialogProps {
     fechaInicio?: string | Date
     ubicacion?: string
     costo?: number | string
+    invitadoNombre?: string
+    invitadoFotoUrl?: string
   } | null
   onSubmit: (data: ConvencionFormData) => Promise<void>
+  onImageUpload: (file: File) => Promise<string>
   isPending: boolean
 }
 
@@ -57,23 +61,28 @@ export function ConvencionEditDialog({
   onOpenChange,
   convencion,
   onSubmit,
+  onImageUpload,
   isPending,
 }: ConvencionEditDialogProps) {
   const convencionFormData: ConvencionFormData = convencion
     ? {
-        nombre: convencion.titulo || '',
-        fecha: convencion.fechaInicio ? formatDateToLocal(convencion.fechaInicio) : '',
-        lugar: convencion.ubicacion || '',
-        monto: convencion.costo ? Number(convencion.costo) : 0,
-        cuotas: 3, // Por defecto
-      }
+      nombre: convencion.titulo || '',
+      fecha: convencion.fechaInicio ? formatDateToLocal(convencion.fechaInicio) : '',
+      lugar: convencion.ubicacion || '',
+      monto: convencion.costo ? Number(convencion.costo) : 0,
+      cuotas: 3,
+      invitadoNombre: convencion.invitadoNombre || '',
+      invitadoFotoUrl: convencion.invitadoFotoUrl || '',
+    }
     : {
-        nombre: '',
-        fecha: '',
-        lugar: '',
-        monto: 0,
-        cuotas: 3,
-      }
+      nombre: '',
+      fecha: '',
+      lugar: '',
+      monto: 0,
+      cuotas: 3,
+      invitadoNombre: '',
+      invitadoFotoUrl: '',
+    }
 
   const {
     register,
@@ -89,6 +98,8 @@ export function ConvencionEditDialog({
 
   const fechaValue = watch('fecha')
 
+  const invitadoFotoUrl = watch('invitadoFotoUrl')
+
   // Resetear formulario cuando cambia la convención
   useEffect(() => {
     if (convencion) {
@@ -98,6 +109,8 @@ export function ConvencionEditDialog({
         lugar: convencion.ubicacion || '',
         monto: convencion.costo ? Number(convencion.costo) : 0,
         cuotas: 3,
+        invitadoNombre: convencion.invitadoNombre || '',
+        invitadoFotoUrl: convencion.invitadoFotoUrl || '',
       })
     }
   }, [convencion, reset])
@@ -234,6 +247,34 @@ export function ConvencionEditDialog({
               {errors.cuotas && (
                 <p className="text-sm text-destructive">{errors.cuotas.message}</p>
               )}
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-2 border-t">
+            <p className="text-sm font-medium text-muted-foreground">
+              Invitado en la invitación (landing)
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="invitadoNombre">Nombre del invitado</Label>
+              <Input
+                id="invitadoNombre"
+                placeholder="Ej: Dr. Juan Pérez"
+                {...register('invitadoNombre')}
+              />
+              {errors.invitadoNombre && (
+                <p className="text-sm text-destructive">{errors.invitadoNombre.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Foto del invitado</Label>
+              <ImageUpload
+                value={invitadoFotoUrl}
+                onChange={(url) => setValue('invitadoFotoUrl', url, { shouldValidate: true })}
+                onUpload={onImageUpload}
+                label="Subir foto"
+                maxSize={3}
+                previewSize="md"
+              />
             </div>
           </div>
 

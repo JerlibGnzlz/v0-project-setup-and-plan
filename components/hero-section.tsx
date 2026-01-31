@@ -273,7 +273,7 @@ export function HeroSection() {
             variant="outline"
             className="px-8 py-6 text-lg bg-white/5 backdrop-blur-md border border-emerald-400/30 text-white hover:bg-emerald-500/10 hover:border-emerald-400/50 transition-all duration-500 hover:scale-105"
           >
-            <Link href="#nosotros">Conocer Más</Link>
+            <Link href="#mision">Conocer Más</Link>
           </Button>
         </div>
 

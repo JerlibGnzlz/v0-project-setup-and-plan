@@ -91,9 +91,8 @@ function ComingSoonAnnouncement() {
   return (
     <section
       id="convenciones"
-      className={`relative py-24 overflow-hidden transition-all duration-700 ease-out ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}
+      className={`relative py-24 overflow-hidden transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}
     >
       {/* Background con efecto especial */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0d1f35] via-[#0a1628] to-[#0d1f35]">
@@ -329,6 +328,31 @@ function HorizontalInvitationCard({
                 <div className="h-px w-8 bg-gradient-to-l from-transparent to-amber-500/40" />
               </div>
             </div>
+
+            {/* Invitado destacado (foto y nombre desde dashboard) */}
+            {(convencion.invitadoNombre || convencion.invitadoFotoUrl) && (
+              <div className="mt-4 flex flex-col items-center gap-2 p-3 rounded-xl bg-white/5 border border-amber-500/20">
+                {convencion.invitadoFotoUrl && (
+                  <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-amber-500/40 ring-2 ring-amber-500/20">
+                    <Image
+                      src={convencion.invitadoFotoUrl}
+                      alt={convencion.invitadoNombre || 'Invitado'}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                  </div>
+                )}
+                {convencion.invitadoNombre && (
+                  <p
+                    className="text-sm font-semibold text-white text-center"
+                    style={{ fontFamily: 'Georgia, serif' }}
+                  >
+                    {convencion.invitadoNombre}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Elegant divider - Enhanced */}
@@ -514,9 +538,8 @@ export function ConventionsSection() {
   return (
     <section
       id="convenciones"
-      className={`relative py-16 sm:py-20 lg:py-24 overflow-hidden transition-all duration-700 ease-out ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}
+      className={`relative py-16 sm:py-20 lg:py-24 overflow-hidden transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}
     >
       {/* Background */}
       <div className="absolute inset-0 bg-[#0d1f35]">

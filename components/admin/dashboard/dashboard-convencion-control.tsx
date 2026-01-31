@@ -19,10 +19,13 @@ interface DashboardConvencionControlProps {
     ubicacion?: string
     costo?: number | string
     activa?: boolean
+    invitadoNombre?: string
+    invitadoFotoUrl?: string
   } | null
   convencionCuotas: number
   onUpdate: (data: ConvencionFormData) => Promise<void>
   onToggleVisibility: (checked: boolean) => Promise<void>
+  onImageUpload: (file: File) => Promise<string>
   dialogOpen: boolean
   setDialogOpen: (open: boolean) => void
   isPending: boolean
@@ -33,6 +36,7 @@ export function DashboardConvencionControl({
   convencionCuotas,
   onUpdate,
   onToggleVisibility,
+  onImageUpload,
   dialogOpen,
   setDialogOpen,
   isPending,
@@ -106,11 +110,10 @@ export function DashboardConvencionControl({
 
           {/* Switch de visibilidad */}
           <div
-            className={`flex items-center justify-between p-4 rounded-lg border transition-all duration-300 ${
-              convencionActiva?.activa
+            className={`flex items-center justify-between p-4 rounded-lg border transition-all duration-300 ${convencionActiva?.activa
                 ? 'bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border-emerald-200 dark:border-emerald-500/30'
                 : 'bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/40 dark:to-gray-950/40 border-slate-200 dark:border-slate-500/30'
-            }`}
+              }`}
           >
             <div className="space-y-1">
               <Label htmlFor="mostrar-landing" className="text-base font-semibold">
@@ -161,6 +164,7 @@ export function DashboardConvencionControl({
         onOpenChange={setDialogOpen}
         convencion={convencionActiva}
         onSubmit={onUpdate}
+        onImageUpload={onImageUpload}
         isPending={isPending}
       />
     </ScrollReveal>

@@ -24,7 +24,7 @@ export class ConvencionesService {
   constructor(
     private readonly repository: ConvencionRepository,
     private readonly dataSyncGateway: DataSyncGateway
-  ) {}
+  ) { }
 
   /**
    * Obtiene todas las convenciones
@@ -70,12 +70,14 @@ export class ConvencionesService {
       imagenUrl: dto.imagenUrl || null,
       activa: dto.activa ?? false,
       archivada: dto.archivada ?? false,
+      invitadoNombre: dto.invitadoNombre || null,
+      invitadoFotoUrl: dto.invitadoFotoUrl || null,
     }
     const convencion = await this.repository.create(data as unknown as Partial<Convencion>)
-    
+
     // Emitir evento de sincronización
     this.dataSyncGateway.emitConvencionCreated(convencion.id)
-    
+
     return convencion
   }
 
@@ -86,7 +88,7 @@ export class ConvencionesService {
   async update(id: string, dto: UpdateConvencionDto): Promise<Convencion> {
     // Convertir fechas de string a Date si vienen y costo a Decimal
     const data: Prisma.ConvencionUpdateInput = {}
-    
+
     if (dto.titulo !== undefined) data.titulo = dto.titulo
     if (dto.descripcion !== undefined) data.descripcion = dto.descripcion
     if (dto.fechaInicio !== undefined) data.fechaInicio = new Date(dto.fechaInicio)
@@ -96,6 +98,8 @@ export class ConvencionesService {
     if (dto.cupoMaximo !== undefined) data.cupoMaximo = dto.cupoMaximo
     if (dto.imagenUrl !== undefined) data.imagenUrl = dto.imagenUrl
     if (dto.activa !== undefined) data.activa = dto.activa
+    if (dto.invitadoNombre !== undefined) data.invitadoNombre = dto.invitadoNombre
+    if (dto.invitadoFotoUrl !== undefined) data.invitadoFotoUrl = dto.invitadoFotoUrl
 
     this.logger.log(`📝 Actualizando convención: ${id}`)
 
@@ -108,10 +112,10 @@ export class ConvencionesService {
       const result = await this.repository.update(id, data as unknown as Partial<Convencion>)
 
       this.logger.log(`✅ Convención actualizada: ${result.titulo} (activa: ${result.activa})`)
-      
+
       // Emitir evento de sincronización
       this.dataSyncGateway.emitConvencionUpdated(id)
-      
+
       return result
     } catch (error) {
       this.logger.error(`❌ Error actualizando convención: ${error}`)
@@ -150,10 +154,10 @@ export class ConvencionesService {
   async remove(id: string): Promise<Convencion> {
     this.logger.warn(`🗑️ Eliminando convención: ${id}`)
     const convencion = await this.repository.delete(id)
-    
+
     // Emitir evento de sincronización
     this.dataSyncGateway.emitConvencionDeleted(id)
-    
+
     return convencion
   }
 

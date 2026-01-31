@@ -13,6 +13,8 @@ export interface Convencion {
   activa: boolean
   archivada?: boolean
   fechaArchivado?: string
+  invitadoNombre?: string
+  invitadoFotoUrl?: string
   createdAt: string
   updatedAt: string
 }

@@ -8,6 +8,7 @@ import { useConvenciones, useUpdateConvencion, useCreateConvencion, useDeleteCon
 import { useDashboardStats } from '@/lib/hooks/use-dashboard-stats'
 import { useAuth } from '@/lib/hooks/use-auth'
 import type { ConvencionFormData } from '@/lib/validations/convencion'
+import { uploadApi } from '@/lib/api/upload'
 import {
   DashboardHeader,
   DashboardEmptyState,
@@ -21,7 +22,7 @@ export default function AdminDashboard() {
   const { user } = useAuth()
   const router = useRouter()
   const isAdmin = user?.rol === 'ADMIN'
-  
+
   // Si el usuario es EDITOR, redirigir a Noticias (solo pueden ver Noticias y Galería)
   useEffect(() => {
     if (user?.rol === 'EDITOR') {
@@ -46,6 +47,11 @@ export default function AdminDashboard() {
 
   const convencionCuotas = 3 // Por defecto
 
+  const handleImageUpload = async (file: File): Promise<string> => {
+    const result = await uploadApi.uploadPastorImage(file)
+    return result.url
+  }
+
   // Handlers
   const handleUpdateConvencion = async (data: ConvencionFormData) => {
     if (!convencionActiva) {
@@ -58,10 +64,10 @@ export default function AdminDashboard() {
       // Usar fecha local para evitar problemas de zona horaria
       // data.fecha viene en formato yyyy-MM-dd
       const [year, month, day] = data.fecha.split('-').map(Number)
-      
+
       // Crear fecha de inicio a las 00:00:00 en zona horaria local
       const fechaInicio = new Date(year, month - 1, day, 0, 0, 0)
-      
+
       // Crear fecha de fin 2 días después a las 23:59:59 en zona horaria local
       const fechaFin = new Date(year, month - 1, day + 2, 23, 59, 59)
 
@@ -73,6 +79,8 @@ export default function AdminDashboard() {
           costo: data.monto,
           fechaInicio: fechaInicio.toISOString(),
           fechaFin: fechaFin.toISOString(),
+          invitadoNombre: data.invitadoNombre?.trim() || undefined,
+          invitadoFotoUrl: data.invitadoFotoUrl?.trim() || undefined,
         },
       })
 
@@ -145,10 +153,10 @@ export default function AdminDashboard() {
       // Usar fecha local para evitar problemas de zona horaria
       // data.fecha viene en formato yyyy-MM-dd
       const [year, month, day] = data.fecha.split('-').map(Number)
-      
+
       // Crear fecha de inicio a las 00:00:00 en zona horaria local
       const fechaInicio = new Date(year, month - 1, day, 0, 0, 0)
-      
+
       // Crear fecha de fin 2 días después a las 23:59:59 en zona horaria local
       const fechaFin = new Date(year, month - 1, day + 2, 23, 59, 59)
 
@@ -222,6 +230,7 @@ export default function AdminDashboard() {
               convencionCuotas={convencionCuotas}
               onUpdate={handleUpdateConvencion}
               onToggleVisibility={handleToggleVisibility}
+              onImageUpload={handleImageUpload}
               dialogOpen={dialogOpen}
               setDialogOpen={setDialogOpen}
               isPending={updateConvencionMutation.isPending}

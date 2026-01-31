@@ -26,6 +26,8 @@ export const convencionSchema = z.object({
     .int('Las cuotas deben ser un número entero')
     .min(1, 'Debe haber al menos 1 cuota')
     .max(12, 'Las cuotas deben estar entre 1 y 12'),
+  invitadoNombre: z.string().max(120, 'Máximo 120 caracteres').optional().or(z.literal('')),
+  invitadoFotoUrl: z.string().optional(),
 })
 
 export type ConvencionFormData = z.infer<typeof convencionSchema>
