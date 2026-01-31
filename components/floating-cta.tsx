@@ -14,8 +14,6 @@ export function FloatingCTA({ enabled = true }: FloatingCTAProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [isNearFooter, setIsNearFooter] = useState(false)
 
-  if (!enabled) return null
-
   useEffect(() => {
     const toggleVisibility = () => {
       const scrollY = window.scrollY
@@ -49,6 +47,8 @@ export function FloatingCTA({ enabled = true }: FloatingCTAProps) {
     }
   }, [])
 
+  if (!enabled) return null
+
   const scrollToConvenciones = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
 
@@ -72,8 +72,8 @@ export function FloatingCTA({ enabled = true }: FloatingCTAProps) {
       href="#convenciones"
       onClick={scrollToConvenciones}
       className={`fixed bottom-8 left-4 sm:left-8 z-50 transition-all duration-500 ease-out ${isVisible
-          ? 'opacity-100 translate-x-0 translate-y-0'
-          : 'opacity-0 -translate-x-16 pointer-events-none'
+        ? 'opacity-100 translate-x-0 translate-y-0'
+        : 'opacity-0 -translate-x-16 pointer-events-none'
         } ${isNearFooter ? 'translate-y-0' : ''}`}
       aria-label="Inscribirse en convención"
     >
