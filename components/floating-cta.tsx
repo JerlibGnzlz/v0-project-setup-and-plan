@@ -5,9 +5,16 @@ import Link from 'next/link'
 import { Calendar, ArrowRight, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-export function FloatingCTA() {
+interface FloatingCTAProps {
+  /** Si es false, no se muestra el botón (ej. cuando no hay convención activa). Default true. */
+  enabled?: boolean
+}
+
+export function FloatingCTA({ enabled = true }: FloatingCTAProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [isNearFooter, setIsNearFooter] = useState(false)
+
+  if (!enabled) return null
 
   useEffect(() => {
     const toggleVisibility = () => {
@@ -44,7 +51,7 @@ export function FloatingCTA() {
 
   const scrollToConvenciones = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
-    
+
     // Guardar la sección activa
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('amva_last_section', 'convenciones')
@@ -64,11 +71,10 @@ export function FloatingCTA() {
     <Link
       href="#convenciones"
       onClick={scrollToConvenciones}
-      className={`fixed bottom-8 left-4 sm:left-8 z-50 transition-all duration-500 ease-out ${
-        isVisible
+      className={`fixed bottom-8 left-4 sm:left-8 z-50 transition-all duration-500 ease-out ${isVisible
           ? 'opacity-100 translate-x-0 translate-y-0'
           : 'opacity-0 -translate-x-16 pointer-events-none'
-      } ${isNearFooter ? 'translate-y-0' : ''}`}
+        } ${isNearFooter ? 'translate-y-0' : ''}`}
       aria-label="Inscribirse en convención"
     >
       <Button

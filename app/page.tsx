@@ -18,7 +18,7 @@ import { FloatingCTA } from '@/components/floating-cta'
 import { MouseFollower } from '@/components/mouse-follower'
 import { Calendar } from 'lucide-react'
 import { QueryProvider } from '@/lib/providers/query-provider'
-import { restoreScrollPosition } from '@/lib/utils/scroll-restore'
+import { useConvencionActiva } from '@/lib/hooks/use-convencion'
 
 function InscripcionSuccessHandler() {
   useEffect(() => {
@@ -101,8 +101,9 @@ function HomePageContent() {
       >
         Saltar al contenido principal
       </a>
-      <FloatingCTA />
+      <FloatingCTA enabled={hasActiveConvencion} />
       <MouseFollower
+        enabled={hasActiveConvencion}
         showOnlyAfterScrollY={500}
         offsetX={20}
         offsetY={20}
