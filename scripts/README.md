@@ -31,6 +31,18 @@ Este script inserta datos de prueba incluyendo:
 4. Copia y pega el contenido de cada script
 5. Haz clic en "Run" para ejecutar
 
+## Scripts adicionales (ejecutar una vez si aplica)
+
+### Invitado en la invitación (landing)
+
+Si usas la función **"Invitado en la invitación"** en Editar Convención (nombre y foto del invitado en la tarjeta de la landing), ejecuta una vez:
+
+**Neon:** SQL Editor → pegar y ejecutar el contenido de:
+
+`scripts/sql/add-convencion-invitado-columns.sql`
+
+Añade las columnas `invitado_nombre` e `invitado_foto_url` a la tabla `convenciones`. Sin esto, el dashboard y la landing no mostrarán/guardarán esos datos.
+
 ## Verificar que funcionó
 
 Ejecuta estas consultas para verificar:
