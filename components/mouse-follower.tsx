@@ -17,18 +17,25 @@ interface MouseFollowerProps {
   enabled?: boolean
   /** Mostrar solo después de este scroll Y (ej: 600 = mismo momento que FloatingCTA). Sin definir = siempre visible. */
   showOnlyAfterScrollY?: number
+  /** Ocultar cursor nativo cuando el follower está visible (estilo Mercado Libre / tutoriales) */
+  hideCursor?: boolean
+  /** z-index del elemento (default 999 para estar sobre todo) */
+  zIndex?: number
 }
 
 /**
- * Elemento flotante que sigue al mouse (badge/tooltip/custom cursor).
- * Implementado para NO provocar scroll horizontal:
- * - position: fixed (no afecta el layout del documento)
- * - Coordenadas clampadas al viewport según tamaño del elemento
- * - pointer-events: none (no interfiere con clics)
- * - Contenedor de la landing debe tener overflow-x: hidden por seguridad
+ * Elemento flotante que sigue al mouse (tracking visual, tutoriales, micro-interacciones).
+ * Patrón tipo Mercado Libre: position: fixed + transform (GPU), pointer-events: none.
  *
- * Ubicación recomendada: en app/page.tsx, dentro del mismo div que ScrollProgress
- * y FloatingCTA (hermano de ellos), para que solo aparezca en la landing.
+ * - position: fixed; top/left pequeños; transform: translate(x,y) para la posición (no mueve el scroll).
+ * - Coordenadas clampadas al viewport para no provocar scroll horizontal/vertical.
+ * - pointer-events: none para no interferir con clics.
+ *
+ * Dónde usarlo en la landing:
+ * 1. Refuerzo CTA (actual): después del hero (showOnlyAfterScrollY) → "Inscribirse en convención".
+ * 2. Solo en Hero: hint sutil "Explorar" o "Ver convenciones" (showOnlyAfterScrollY sin definir, pero solo en sección hero vía lógica).
+ * 3. Solo en sección Convenciones: micro-interacción "Inscribirse aquí" cuando el usuario está en #convenciones.
+ * 4. Tutorial/onboarding: primera visita, tooltip que sigue al mouse apuntando al CTA.
  */
 export function MouseFollower({
   children,
@@ -39,6 +46,8 @@ export function MouseFollower({
   className = '',
   enabled = true,
   showOnlyAfterScrollY,
+  hideCursor = false,
+  zIndex = 999,
 }: MouseFollowerProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isVisible, setIsVisible] = useState(false)
@@ -70,7 +79,6 @@ export function MouseFollower({
       rafId.current = window.requestAnimationFrame(() => {
         const vw = window.innerWidth
         const vh = window.innerHeight
-        // Clamp: el elemento no debe salir del viewport (evita scroll horizontal/vertical)
         const x = Math.max(0, Math.min(e.clientX + offsetX, vw - width))
         const y = Math.max(0, Math.min(e.clientY + offsetY, vh - height))
         setPosition({ x, y })
@@ -93,17 +101,27 @@ export function MouseFollower({
     }
   }, [enabled, pastScrollThreshold, offsetX, offsetY, width, height])
 
+  useEffect(() => {
+    if (!hideCursor || !enabled) return
+    const style = document.documentElement.style
+    if (isVisible && pastScrollThreshold) {
+      style.setProperty('cursor', 'none')
+    } else {
+      style.removeProperty('cursor')
+    }
+    return () => style.removeProperty('cursor')
+  }, [hideCursor, enabled, isVisible, pastScrollThreshold])
+
   if (!enabled || !pastScrollThreshold) return null
 
   return (
     <div
       aria-hidden
-      className={`fixed z-[60] pointer-events-none transition-opacity duration-150 ${className}`}
+      className={`fixed top-0 left-0 pointer-events-none transition-opacity duration-150 ${className}`}
       style={{
-        left: position.x,
-        top: position.y,
+        transform: `translate(${position.x}px, ${position.y}px)`,
         opacity: isVisible ? 1 : 0,
-        // Asegurar que no desborde (por si el contenido es más grande que width/height)
+        zIndex,
         maxWidth: `min(100vw - ${position.x}px, ${width}px)`,
       }}
     >
