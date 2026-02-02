@@ -227,34 +227,40 @@ async function bootstrap() {
   app.setGlobalPrefix('api')
 
   // ============================================
-  // 🔒 HTTPS ENFORCEMENT (Producción)
+  // 🔒 HTTPS ENFORCEMENT (Producción con SSL)
+  // Solo redirigir si DISABLE_HTTPS_ENFORCEMENT no está definido
+  // y el frontend usa HTTPS (ej: Vercel, dominio con Let's Encrypt)
+  // Para Digital Ocean sin SSL, definir DISABLE_HTTPS_ENFORCEMENT=true en .env
   // ============================================
-  if (process.env.NODE_ENV === 'production') {
-    app.use((req, res, next) => {
-      // Verificar si la request viene a través de un proxy (Railway, Vercel, etc.)
-      const forwardedProto = req.headers['x-forwarded-proto']
-      const host = req.headers.host
+  const disableHttpsEnforcement = process.env.DISABLE_HTTPS_ENFORCEMENT === 'true'
+  if (process.env.NODE_ENV === 'production' && !disableHttpsEnforcement) {
+    const frontendUrl = process.env.FRONTEND_URL || ''
+    const useHttps = frontendUrl.startsWith('https://')
+    if (useHttps) {
+      app.use((req, res, next) => {
+        const forwardedProto = req.headers['x-forwarded-proto']
+        const host = req.headers.host
 
-      // No redirigir si es localhost (desarrollo)
-      if (host && (host.includes('localhost') || host.includes('127.0.0.1'))) {
-        return next()
-      }
+        if (host && (host.includes('localhost') || host.includes('127.0.0.1'))) {
+          return next()
+        }
 
-      // Si no es HTTPS y estamos en producción, redirigir
-      if (forwardedProto && forwardedProto !== 'https' && host) {
-        logger.warn(`⚠️  Redirigiendo HTTP a HTTPS: ${host}${req.url}`)
-        return res.redirect(301, `https://${host}${req.url}`)
-      }
+        if (forwardedProto && forwardedProto !== 'https' && host) {
+          logger.warn(`⚠️  Redirigiendo HTTP a HTTPS: ${host}${req.url}`)
+          return res.redirect(301, `https://${host}${req.url}`)
+        }
 
-      // También verificar el protocolo directo (si no hay proxy)
-      if (!forwardedProto && req.protocol !== 'https' && host) {
-        logger.warn(`⚠️  Redirigiendo HTTP a HTTPS: ${host}${req.url}`)
-        return res.redirect(301, `https://${host}${req.url}`)
-      }
+        if (!forwardedProto && req.protocol !== 'https' && host) {
+          logger.warn(`⚠️  Redirigiendo HTTP a HTTPS: ${host}${req.url}`)
+          return res.redirect(301, `https://${host}${req.url}`)
+        }
 
-      next()
-    })
-    logger.log('✅ HTTPS enforcement habilitado para producción')
+        next()
+      })
+      logger.log('✅ HTTPS enforcement habilitado para producción')
+    } else {
+      logger.log('ℹ️  HTTPS enforcement deshabilitado (FRONTEND_URL usa HTTP)')
+    }
   }
 
   // Servir archivos estáticos desde la carpeta uploads
