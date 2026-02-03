@@ -28,7 +28,7 @@ export function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Aumentar el umbral para que no cambie tan rápido
+      if (typeof window === 'undefined') return
       setScrolled(window.scrollY > 50)
 
       const sections = [
@@ -40,7 +40,6 @@ export function Navbar() {
         'convenciones',
         'galeria',
         'educacion',
-        'inscripcion',
       ]
       const scrollPosition = window.scrollY + 100
 
@@ -51,7 +50,6 @@ export function Navbar() {
           const offsetHeight = element.offsetHeight
           if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
             setActiveSection(section)
-            // Guardar la sección activa mientras el usuario hace scroll
             if (typeof window !== 'undefined') {
               sessionStorage.setItem('amva_last_section', section)
             }
@@ -61,21 +59,41 @@ export function Navbar() {
       }
     }
 
-    handleScroll()
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    // Esperar a que el DOM y el layout estén listos (evita fallos intermitentes)
+    const rafId = requestAnimationFrame(() => {
+      handleScroll()
+      // Segundo frame por si hay layout shifts (imágenes, fuentes)
+      requestAnimationFrame(handleScroll)
+    })
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('load', handleScroll, { once: true })
+    return () => {
+      cancelAnimationFrame(rafId)
+      window.removeEventListener('scroll', handleScroll)
+    }
   }, [])
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault()
-    const targetId = href.replace('#', '')
+    const targetId = href.replace('#', '').replace('/', '')
 
-    // Guardar la sección activa
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('amva_last_section', targetId)
     }
 
-    const element = document.getElementById(targetId)
+    let element = document.getElementById(targetId)
+    // Si no existe aún (layout no listo), reintentar tras un breve delay
+    if (!element) {
+      requestAnimationFrame(() => {
+        const el = document.getElementById(targetId)
+        if (el) {
+          const offsetTop = el.offsetTop - 80
+          window.scrollTo({ top: offsetTop, behavior: 'smooth' })
+        }
+      })
+      setIsOpen(false)
+      return
+    }
 
     if (element) {
       const offsetTop = element.offsetTop - 80
@@ -121,27 +139,24 @@ export function Navbar() {
     <>
       {/* Floating Navbar */}
       <nav
-        className={`fixed z-50 ${
-          scrolled ? 'top-4 left-4 right-4 mx-auto max-w-7xl' : 'top-0 left-0 right-0'
-        }`}
+        className={`fixed z-50 ${scrolled ? 'top-4 left-4 right-4 mx-auto max-w-7xl' : 'top-0 left-0 right-0'
+          }`}
         style={{
           transition: 'all 1s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
         <div
-          className={`${
-            scrolled
+          className={`${scrolled
               ? 'bg-[#0a1628]/80 backdrop-blur-2xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-white/10'
               : 'bg-[#0a1628]/60 backdrop-blur-xl border-b border-white/5'
-          }`}
+            }`}
           style={{
             transition: 'all 1s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
           <div
-            className={`container mx-auto px-4 sm:px-6 flex items-center justify-between ${
-              scrolled ? 'h-16' : 'h-[72px]'
-            }`}
+            className={`container mx-auto px-4 sm:px-6 flex items-center justify-between ${scrolled ? 'h-16' : 'h-[72px]'
+              }`}
             style={{
               transition: 'height 1s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
@@ -162,9 +177,8 @@ export function Navbar() {
                   alt="Logo AMVA"
                   width={64}
                   height={64}
-                  className={`object-contain group-hover:scale-105 ${
-                    scrolled ? 'w-12 h-12' : 'w-14 h-14 sm:w-16 sm:h-16'
-                  }`}
+                  className={`object-contain group-hover:scale-105 ${scrolled ? 'w-12 h-12' : 'w-14 h-14 sm:w-16 sm:h-16'
+                    }`}
                   style={{
                     transition: 'all 1s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
@@ -174,9 +188,8 @@ export function Navbar() {
               </div>
               <div className="flex flex-col">
                 <span
-                  className={`font-bold text-white leading-tight ${
-                    scrolled ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
-                  }`}
+                  className={`font-bold text-white leading-tight ${scrolled ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
+                    }`}
                   style={{
                     transition: 'font-size 1s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
@@ -185,9 +198,8 @@ export function Navbar() {
                   <span className="sm:hidden">A.M.V.A</span>
                 </span>
                 <span
-                  className={`hidden sm:block font-bold bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent leading-tight ${
-                    scrolled ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
-                  }`}
+                  className={`hidden sm:block font-bold bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent leading-tight ${scrolled ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
+                    }`}
                   style={{
                     transition: 'font-size 1s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
@@ -224,9 +236,8 @@ export function Navbar() {
                       navLinksRef.current[sectionId] = el
                     }}
                     onClick={e => handleNavClick(e, link.href)}
-                    className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
-                      isActive ? 'text-white' : 'text-white/60 hover:text-white hover:bg-white/5'
-                    }`}
+                    className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ${isActive ? 'text-white' : 'text-white/60 hover:text-white hover:bg-white/5'
+                      }`}
                   >
                     {link.label}
                     {/* Active indicator dot */}
@@ -260,19 +271,16 @@ export function Navbar() {
             >
               <div className="w-5 h-4 relative flex flex-col justify-between">
                 <span
-                  className={`w-full h-0.5 bg-white rounded-full transition-all duration-300 ease-in-out origin-center ${
-                    isOpen ? 'rotate-45 translate-y-[7px]' : ''
-                  }`}
+                  className={`w-full h-0.5 bg-white rounded-full transition-all duration-300 ease-in-out origin-center ${isOpen ? 'rotate-45 translate-y-[7px]' : ''
+                    }`}
                 />
                 <span
-                  className={`w-full h-0.5 bg-white rounded-full transition-all duration-300 ease-in-out ${
-                    isOpen ? 'opacity-0 scale-0' : ''
-                  }`}
+                  className={`w-full h-0.5 bg-white rounded-full transition-all duration-300 ease-in-out ${isOpen ? 'opacity-0 scale-0' : ''
+                    }`}
                 />
                 <span
-                  className={`w-full h-0.5 bg-white rounded-full transition-all duration-300 ease-in-out origin-center ${
-                    isOpen ? '-rotate-45 -translate-y-[7px]' : ''
-                  }`}
+                  className={`w-full h-0.5 bg-white rounded-full transition-all duration-300 ease-in-out origin-center ${isOpen ? '-rotate-45 -translate-y-[7px]' : ''
+                    }`}
                 />
               </div>
             </button>
@@ -282,18 +290,16 @@ export function Navbar() {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${
-          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
         onClick={() => setIsOpen(false)}
         style={{ top: scrolled ? '76px' : '72px' }}
       />
 
       {/* Mobile Menu Panel */}
       <div
-        className={`lg:hidden fixed right-0 z-40 w-[300px] sm:w-[350px] bg-[#0d1f35]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl transition-all duration-300 ease-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`lg:hidden fixed right-0 z-40 w-[300px] sm:w-[350px] bg-[#0d1f35]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl transition-all duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
         style={{
           top: scrolled ? '76px' : '72px',
           height: scrolled ? 'calc(100vh - 76px)' : 'calc(100vh - 72px)',
@@ -327,22 +333,20 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={e => handleNavClick(e, link.href)}
-                className={`group flex items-center justify-between py-3 px-4 text-lg font-medium rounded-xl transition-all duration-200 ${
-                  isActive
+                className={`group flex items-center justify-between py-3 px-4 text-lg font-medium rounded-xl transition-all duration-200 ${isActive
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
                     : 'hover:bg-white/5 text-white/70'
-                } ${isOpen ? 'animate-in slide-in-from-right-4 fade-in' : ''}`}
+                  } ${isOpen ? 'animate-in slide-in-from-right-4 fade-in' : ''}`}
                 style={{
                   animationDelay: isOpen ? `${index * 50}ms` : '0ms',
                 }}
               >
                 <span>{link.label}</span>
                 <ChevronRight
-                  className={`w-5 h-5 transition-all duration-200 ${
-                    isActive
+                  className={`w-5 h-5 transition-all duration-200 ${isActive
                       ? 'opacity-100'
                       : 'opacity-0 group-hover:opacity-100 group-hover:translate-x-1'
-                  }`}
+                    }`}
                 />
               </Link>
             )

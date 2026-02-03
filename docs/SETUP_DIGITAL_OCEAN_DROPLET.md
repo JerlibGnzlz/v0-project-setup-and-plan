@@ -238,6 +238,9 @@ server {
     listen 80;
     server_name 64.225.115.122;
 
+    # Límite de subida: 100MB (imágenes 5MB, videos hasta 100MB)
+    client_max_body_size 100M;
+
     # Frontend
     location / {
         proxy_pass http://localhost:3000;
@@ -263,6 +266,13 @@ server {
         proxy_connect_timeout 300s;
         proxy_send_timeout 300s;
         proxy_read_timeout 300s;
+    }
+
+    # Archivos subidos localmente (fallback cuando Cloudinary no está configurado)
+    location /uploads {
+        proxy_pass http://localhost:4000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
     }
 }
 ```
@@ -367,6 +377,7 @@ Cuando tengas dominio configurado:
 **Backend** (`/var/www/amva-production/backend/.env`):
 ```env
 FRONTEND_URL=https://amva.org.es
+BACKEND_URL=https://amva.org.es
 ```
 
 **Frontend** (`/var/www/amva-production/.env.local`):
@@ -374,7 +385,69 @@ FRONTEND_URL=https://amva.org.es
 NEXT_PUBLIC_API_URL=https://amva.org.es/api
 ```
 
-5. Reinicia: `pm2 restart all`
+5. **Google OAuth** (si usas "Continuar con Google"): Ver `docs/CORREGIR_GOOGLE_OAUTH_INVALID_CLIENT.md`
+
+6. **Cloudinary** (subidas de imágenes/videos): Ver sección abajo
+
+7. Reinicia: `pm2 restart all`
+
+---
+
+## 📤 Cloudinary (Subidas de imágenes y videos)
+
+Si las subidas no funcionan en el dominio, verifica:
+
+### 1. Variables en el backend
+
+```bash
+nano /var/www/amva-production/backend/.env
+```
+
+```env
+CLOUDINARY_CLOUD_NAME=dza5pmwmj
+CLOUDINARY_API_KEY=241669988415197
+CLOUDINARY_API_SECRET=0Lnrv5IPd36xYDjzsVthdAltArE
+```
+
+### 2. Nginx: límite de subida y ruta /uploads
+
+Edita la config de Nginx y asegúrate de tener:
+
+```nginx
+# Dentro del server { ... }
+client_max_body_size 100M;
+
+# Después del bloque location /api { ... }
+location /uploads {
+    proxy_pass http://localhost:4000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+```
+
+Si usas SSL (certbot), el archivo puede estar en `/etc/nginx/sites-available/amva`. Añade `client_max_body_size` y `location /uploads` en **cada** bloque `server` (HTTP y HTTPS).
+
+```bash
+nginx -t
+systemctl reload nginx
+```
+
+### 3. Reiniciar backend
+
+```bash
+pm2 restart amva-backend
+```
+
+### 4. Verificar en logs
+
+Al subir un archivo, en los logs deberías ver:
+
+```
+Cloudinary configurado:
+   - Cloud Name: dza5pmwmj
+```
+
+Si ves "Cloudinary NO configurado", las variables no están cargadas. Si ves "Error de Cloudinary", revisa las credenciales en https://cloudinary.com/console.
 
 ---
 

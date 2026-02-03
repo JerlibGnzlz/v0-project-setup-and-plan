@@ -15,7 +15,7 @@ export interface UploadResult {
 export class UploadService {
   private readonly logger = new Logger(UploadService.name)
 
-  constructor(private readonly fileValidator: FileValidatorService) {}
+  constructor(private readonly fileValidator: FileValidatorService) { }
 
   private isCloudinaryConfigured(): boolean {
     return !!(
@@ -107,9 +107,11 @@ export class UploadService {
     // Guardar archivo
     fs.writeFileSync(filepath, file.buffer)
 
-    // Retornar URL local
+    // Retornar URL local (usar BACKEND_URL en producción)
     const publicId = `${folder}/${filename}`
-    const url = `http://localhost:4000/uploads/${folder}/${filename}`
+    const baseUrl =
+      process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
+    const url = `${baseUrl.replace(/\/$/, '')}/uploads/${folder}/${filename}`
 
     this.logger.debug(`Imagen guardada localmente: ${filepath}`)
     this.logger.debug(`URL: ${url}`)
@@ -186,13 +188,13 @@ export class UploadService {
           resource_type: 'video',
           eager: hasTrim
             ? [
-                {
-                  start_offset: trimOptions.startTime.toFixed(1),
-                  end_offset: trimOptions.endTime.toFixed(1),
-                  quality: 'auto',
-                  format: 'mp4',
-                },
-              ]
+              {
+                start_offset: trimOptions.startTime.toFixed(1),
+                end_offset: trimOptions.endTime.toFixed(1),
+                quality: 'auto',
+                format: 'mp4',
+              },
+            ]
             : undefined,
           eager_async: false, // Esperar a que se procese el recorte
         },
@@ -252,9 +254,11 @@ export class UploadService {
     // Guardar archivo
     fs.writeFileSync(filepath, file.buffer)
 
-    // Retornar URL local
+    // Retornar URL local (usar BACKEND_URL en producción)
     const publicId = `${folder}/${filename}`
-    const url = `http://localhost:4000/uploads/${folder}/${filename}`
+    const baseUrl =
+      process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:4000'
+    const url = `${baseUrl.replace(/\/$/, '')}/uploads/${folder}/${filename}`
 
     this.logger.debug(`Video guardado localmente: ${filepath}`)
     this.logger.debug(`URL: ${url}`)

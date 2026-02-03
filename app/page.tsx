@@ -167,17 +167,6 @@ function HomePageContent() {
 }
 
 export default function HomePage() {
-  // Agregar error boundary para capturar errores del cliente
-  if (typeof window !== 'undefined') {
-    window.addEventListener('error', (event) => {
-      console.error('[HomePage] Error capturado:', event.error)
-    })
-
-    window.addEventListener('unhandledrejection', (event) => {
-      console.error('[HomePage] Promise rechazada:', event.reason)
-    })
-  }
-
   return (
     <QueryProvider>
       <InscripcionSuccessHandler />
