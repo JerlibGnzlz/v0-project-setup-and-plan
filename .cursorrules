@@ -321,8 +321,13 @@ Este es un monorepo con:
    - ✅ SIEMPRE ejecutar `git push origin main` después del commit
    - ✅ Hacer esto automáticamente después de cualquier modificación de código
    - ✅ El mensaje de commit debe ser descriptivo y claro
+9. **Despliegue en Digital Ocean** (tras push exitoso):
+   - ✅ Conectar por SSH: `ssh root@64.225.115.122` (o la IP del droplet)
+   - ✅ Ejecutar deploy: `cd /var/www/amva-production && ./deploy.sh`
+   - ✅ El script hace: git pull, npm ci, prisma migrate, build, pm2 restart
+   - ✅ Ver docs: `docs/SETUP_DIGITAL_OCEAN_DROPLET.md`
 
-9. **NO modificar archivos auto-generados que aparecen como cambios pendientes**:
+10. **NO modificar archivos auto-generados que aparecen como cambios pendientes**:
    - ❌ NUNCA modificar archivos como `*.tsbuildinfo`, `tsconfig.tsbuildinfo`, `.next/`, `dist/`, `build/`
    - ❌ NUNCA hacer commit de archivos que se generan automáticamente
    - ✅ Si aparecen cambios en archivos auto-generados, ignorarlos (están en `.gitignore`)
@@ -335,7 +340,7 @@ Este es un monorepo con:
      - `*.log` (Logs)
      - `.cache/`, `.tmp/` (Archivos temporales)
 
-10. **Manejar cambios menores pero importantes**:
+11. **Manejar cambios menores pero importantes**:
    - ✅ SIEMPRE hacer commit y push de cambios menores pero importantes (correcciones de tipos, imports, formato crítico)
    - ✅ Cambios menores importantes incluyen:
      - Correcciones de tipos TypeScript
@@ -348,7 +353,7 @@ Este es un monorepo con:
    - ✅ Verificar con `git diff` antes de descartar cambios
    - ✅ Si hay dudas, hacer commit en lugar de descartar
 
-11. **Mantener estado limpio al cerrar/abrir Cursor**:
+12. **Mantener estado limpio al cerrar/abrir Cursor**:
    - ✅ SIEMPRE hacer `git add .`, `git commit` y `git push` antes de cerrar Cursor si hay cambios legítimos
    - ✅ Al abrir Cursor después de cerrarlo, NO deberían aparecer cambios pendientes si previamente se hicieron todos los commits y push
    - ✅ Si aparecen cambios pendientes al abrir Cursor después de hacer commit y push:

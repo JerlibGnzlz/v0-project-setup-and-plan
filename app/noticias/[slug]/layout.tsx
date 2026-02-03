@@ -6,7 +6,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://vidaabundante.org'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://amva.org.es'
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
 
   // Fetch noticia data para metadata
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description:
           noticia.extracto ||
           noticia.contenido?.substring(0, 160) ||
-          'Lee la noticia completa en Vida Abundante',
+          'Lee la noticia completa en AMVA',
         openGraph: {
           title: noticia.titulo,
           description: noticia.extracto || noticia.contenido?.substring(0, 160),
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: 'Noticia',
-    description: 'Lee la noticia completa en Vida Abundante',
+    description: 'Lee la noticia completa en AMVA',
   }
 }
 

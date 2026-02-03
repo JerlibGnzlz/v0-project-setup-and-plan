@@ -10,27 +10,33 @@ import { Toaster } from '@/components/ui/sonner'
 const _inter = Inter({ subsets: ['latin'] })
 const _montserrat = Montserrat({ subsets: ['latin'] })
 
+// URL canónica: usar amva.org.es sin www para consistencia SEO
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://amva.org.es'
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://vidaabundante.org'),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Vida Abundante - Ministerio Misionero Internacional',
-    template: '%s | Vida Abundante',
+    default: 'AMVA - Asociación Misionera Vida Abundante | Ministerio Internacional',
+    template: '%s | AMVA',
   },
   description:
-    'Organización misionera dedicada a la formación pastoral y el alcance global del evangelio. Formamos pastores, establecemos iglesias y llevamos el mensaje de esperanza a todo el mundo.',
+    'Asociación Misionera Vida Abundante (AMVA). Formación pastoral, convenciones, instituto bíblico y escuela de capellanía. Ministerio misionero con alcance global.',
   keywords: [
+    'AMVA',
+    'Asociación Misionera Vida Abundante',
     'ministerio misionero',
     'formación pastoral',
+    'convenciones',
+    'instituto bíblico',
+    'escuela de capellanía',
     'iglesias',
     'evangelio',
     'misiones internacionales',
-    'vida abundante',
     'pastores',
     'ministerio',
     'cristianismo',
-    'fe',
   ],
-  authors: [{ name: 'Asociación Misionera Vida Abundante' }],
+  authors: [{ name: 'Asociación Misionera Vida Abundante', url: SITE_URL }],
   creator: 'Asociación Misionera Vida Abundante',
   publisher: 'Asociación Misionera Vida Abundante',
   formatDetection: {
@@ -41,26 +47,26 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'es_ES',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://vidaabundante.org',
-    siteName: 'Vida Abundante',
-    title: 'Vida Abundante - Ministerio Misionero Internacional',
+    url: SITE_URL,
+    siteName: 'AMVA - Asociación Misionera Vida Abundante',
+    title: 'AMVA - Asociación Misionera Vida Abundante | Ministerio Internacional',
     description:
-      'Organización misionera dedicada a la formación pastoral y el alcance global del evangelio',
+      'Formación pastoral, convenciones, instituto bíblico y escuela de capellanía. Ministerio misionero con alcance global.',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/mundo.png',
         width: 1200,
         height: 630,
-        alt: 'Vida Abundante - Ministerio Misionero Internacional',
+        alt: 'AMVA - Asociación Misionera Vida Abundante',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Vida Abundante - Ministerio Misionero Internacional',
+    title: 'AMVA - Asociación Misionera Vida Abundante | Ministerio Internacional',
     description:
-      'Organización misionera dedicada a la formación pastoral y el alcance global del evangelio',
-    images: ['/og-image.jpg'],
+      'Formación pastoral, convenciones, instituto bíblico y escuela de capellanía. Ministerio misionero con alcance global.',
+    images: ['/mundo.png'],
   },
   robots: {
     index: true,
@@ -74,13 +80,12 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    // Agregar cuando tengas los códigos de verificación
-    // google: 'google-site-verification-code',
-    // yandex: 'yandex-verification-code',
+    // Agregar cuando tengas los códigos: google: 'xxx', yandex: 'xxx'
   },
   alternates: {
-    canonical: process.env.NEXT_PUBLIC_SITE_URL || 'https://vidaabundante.org',
+    canonical: SITE_URL, // Homepage - otras páginas sobrescriben en sus layouts
   },
+  category: 'religion',
 }
 
 export default function RootLayout({
@@ -88,21 +93,32 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://vidaabundante.org'
-
   // Structured Data (JSON-LD) para SEO
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'Asociación Misionera Vida Abundante',
-    alternateName: 'Vida Abundante',
-    url: baseUrl,
-    logo: `${baseUrl}/mundo.png`,
+    alternateName: ['AMVA', 'Vida Abundante'],
+    url: SITE_URL,
+    logo: `${SITE_URL}/mundo.png`,
+    image: `${SITE_URL}/mundo.png`,
     description:
       'Organización misionera dedicada a la formación pastoral y el alcance global del evangelio',
-    sameAs: [
-      // Agregar redes sociales cuando estén disponibles
-    ],
+    sameAs: [],
+  }
+
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'AMVA - Asociación Misionera Vida Abundante',
+    url: SITE_URL,
+    description: 'Sitio oficial de la Asociación Misionera Vida Abundante',
+    publisher: {
+      '@type': 'Organization',
+      name: 'Asociación Misionera Vida Abundante',
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/mundo.png` },
+    },
+    inLanguage: 'es-ES',
   }
 
   return (
@@ -111,6 +127,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
       </head>
       <body className={`font-sans antialiased bg-background text-foreground`}>

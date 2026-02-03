@@ -382,6 +382,7 @@ BACKEND_URL=https://amva.org.es
 
 **Frontend** (`/var/www/amva-production/.env.local`):
 ```env
+NEXT_PUBLIC_SITE_URL=https://amva.org.es
 NEXT_PUBLIC_API_URL=https://amva.org.es/api
 ```
 
