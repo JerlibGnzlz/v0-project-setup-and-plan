@@ -122,7 +122,7 @@ nano /var/www/amva-production/.env.local
 
 ```env
 NEXT_PUBLIC_API_URL=http://64.225.115.122/api
-NEXT_PUBLIC_APK_DOWNLOAD_URL=https://expo.dev/artifacts/eas/xxxxx.apk
+NEXT_PUBLIC_APK_DOWNLOAD_URL=https://expo.dev/artifacts/eas/pPV1ZAU6ye7cwd3ry5qiZb.apk
 ```
 
 ---

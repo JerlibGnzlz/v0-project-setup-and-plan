@@ -5,10 +5,11 @@ import { Smartphone, Download } from 'lucide-react'
 
 /**
  * URL del APK para descarga directa (modo prueba).
- * Configurar en .env.local: NEXT_PUBLIC_APK_DOWNLOAD_URL=https://tu-url.com/amva.apk
- * Ejemplos: Expo EAS, Google Drive, Dropbox, o tu servidor.
+ * Configurar en .env.local: NEXT_PUBLIC_APK_DOWNLOAD_URL=https://expo.dev/artifacts/eas/xxx.apk
+ * Actualizar DEFAULT_APK_URL cuando generes un nuevo build (los artefactos expiran ~30 días).
  */
-const APK_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || ''
+const DEFAULT_APK_URL = 'https://expo.dev/artifacts/eas/pPV1ZAU6ye7cwd3ry5qiZb.apk'
+const APK_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || DEFAULT_APK_URL
 
 interface DownloadAppButtonProps {
   /** URL alternativa del APK (sobrescribe la variable de entorno si se pasa) */
