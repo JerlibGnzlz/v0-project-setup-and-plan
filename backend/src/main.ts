@@ -300,11 +300,18 @@ async function bootstrap() {
   configureCloudinary(logger)
 
   // CORS - Configurado para web y mobile
+  const frontendUrl = process.env.FRONTEND_URL
+  const wwwVariant =
+    frontendUrl && !frontendUrl.includes('www.')
+      ? frontendUrl.replace(/^(https?:\/\/)([^/]+)/, (_, protocol, host) =>
+        `${protocol}www.${host}`
+      )
+      : null
   const allowedOrigins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    process.env.FRONTEND_URL,
-    // Mobile apps no tienen origin, se permite si no hay origin
+    frontendUrl,
+    wwwVariant,
   ].filter(Boolean) as string[]
 
   app.enableCors({
