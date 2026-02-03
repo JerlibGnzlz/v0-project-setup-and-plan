@@ -37,8 +37,8 @@ export function DownloadAppButton({ apkUrl }: DownloadAppButtonProps) {
       href={downloadUrl}
       target="_blank"
       rel="noopener noreferrer"
-      download
       className="block w-full"
+      aria-label="Descargar AMVA Móvil para Android"
     >
       <Button
         className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group"

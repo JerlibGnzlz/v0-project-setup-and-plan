@@ -104,7 +104,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
     if (token && isGoogle === 'true' && !googleAuthProcessed.current) {
       // Marcar como procesado inmediatamente para evitar múltiples ejecuciones
       googleAuthProcessed.current = true
-      
+
       // Guardar tokens
       if (typeof window !== 'undefined') {
         localStorage.setItem('invitado_token', token)
@@ -160,9 +160,9 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
             console.error('[Step1Auth] Error obteniendo perfil después del callback:', error)
             const errorDetails = error && typeof error === 'object' && 'response' in error
               ? {
-                  status: (error as { response?: { status?: number } }).response?.status,
-                  data: (error as { response?: { data?: unknown } }).response?.data,
-                }
+                status: (error as { response?: { status?: number } }).response?.status,
+                data: (error as { response?: { data?: unknown } }).response?.data,
+              }
               : {}
             console.error('[Step1Auth] Error details:', errorDetails)
 
@@ -190,7 +190,7 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
         processGoogleAuth()
       }
     }
-    
+
     // Resetear el flag si no hay token de Google en la URL (para permitir nuevo login)
     if (!token || isGoogle !== 'true') {
       googleAuthProcessed.current = false
@@ -199,7 +199,15 @@ export function Step1Auth({ onComplete, onBack }: Step1AuthProps) {
 
   const handleGoogleAuth = () => {
     setIsLoadingGoogle(true)
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
+    // API URL: env > derivar de SITE_URL > derivar de origin > localhost
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || ''
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+    const backendUrl =
+      apiUrl ||
+      (siteUrl ? `${siteUrl.replace(/\/$/, '')}/api` : '') ||
+      (origin && !origin.includes('localhost') ? `${origin}/api` : '') ||
+      'http://localhost:4000/api'
     // Pequeño delay para mostrar el estado de carga antes de redirigir
     setTimeout(() => {
       window.location.href = `${backendUrl}/auth/invitado/google`
