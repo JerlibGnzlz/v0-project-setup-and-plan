@@ -86,6 +86,11 @@ export const metadata: Metadata = {
     canonical: SITE_URL, // Homepage - otras páginas sobrescriben en sus layouts
   },
   category: 'religion',
+  icons: {
+    icon: '/mundo.png',
+    shortcut: '/mundo.png',
+    apple: '/mundo.png',
+  },
 }
 
 export default function RootLayout({
