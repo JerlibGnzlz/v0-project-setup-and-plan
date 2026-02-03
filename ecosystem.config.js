@@ -15,6 +15,10 @@ module.exports = {
       merge_logs: true,
       autorestart: true,
       max_memory_restart: '500M',
+      max_restarts: 15,
+      min_uptime: '10s',
+      listen_timeout: 15000,
+      kill_timeout: 5000,
     },
     {
       name: 'amva-frontend',
@@ -27,6 +31,10 @@ module.exports = {
       merge_logs: true,
       autorestart: true,
       max_memory_restart: '500M',
+      max_restarts: 15,
+      min_uptime: '10s',
+      listen_timeout: 15000,
+      kill_timeout: 5000,
     },
   ],
 }
