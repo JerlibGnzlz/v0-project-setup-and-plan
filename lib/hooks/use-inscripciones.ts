@@ -148,7 +148,7 @@ export function useEnviarRecordatorios() {
     mutationFn: (convencionId?: string) => inscripcionesApi.enviarRecordatorios(convencionId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["inscripciones"] })
-      
+
       if (data.enviados > 0 && data.fallidos === 0) {
         toast.success(`✅ Recordatorios enviados exitosamente`, {
           description: `Se enviaron ${data.enviados} email${data.enviados > 1 ? 's' : ''} a usuarios con pagos pendientes`,
@@ -161,7 +161,7 @@ export function useEnviarRecordatorios() {
         })
       } else if (data.enviados === 0 && data.fallidos > 0) {
         toast.error(`❌ No se pudieron enviar los recordatorios`, {
-          description: `Todos los ${data.fallidos} intentos fallaron. Verifica la configuración de email (SMTP_USER, SMTP_PASSWORD)`,
+          description: `Todos los ${data.fallidos} intentos fallaron. Verifica en el servidor: Resend (RESEND_API_KEY, RESEND_FROM_EMAIL verificado) o SendGrid (SENDGRID_API_KEY, SENDGRID_FROM_EMAIL). Revisa los logs del backend.`,
           duration: 8000,
         })
       } else {
@@ -172,11 +172,11 @@ export function useEnviarRecordatorios() {
       }
     },
     onError: (error: unknown) => {
-      const errorMessage = 
+      const errorMessage =
         (error as { response?: { data?: { error?: { message?: string }; message?: string } } })?.response?.data?.error?.message ||
         (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         (error instanceof Error ? error.message : 'Error desconocido')
-      
+
       toast.error("❌ Error al enviar recordatorios", {
         description: errorMessage || "Verifica que el backend esté funcionando y que las variables de entorno estén configuradas",
         duration: 8000,

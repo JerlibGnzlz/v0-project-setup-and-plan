@@ -103,7 +103,16 @@ REDIS_DB=0
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
+
+# Email - Resend (OBLIGATORIO para recordatorios de pago)
+# Gmail SMTP falla desde Digital Ocean. Usa Resend: https://resend.com
+EMAIL_PROVIDER=resend
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+RESEND_FROM_EMAIL=tu_email@gmail.com
+RESEND_FROM_NAME=AMVA Digital
 ```
+
+**Importante:** El archivo `.env` NO se sube por git. Debes crearlo/editar manualmente en el servidor.
 
 ### Frontend (`/var/www/amva-production/.env.local`)
 
@@ -250,6 +259,10 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        # Timeout 5 min para operaciones largas (recordatorios, envío de emails)
+        proxy_connect_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
     }
 }
 ```
@@ -281,6 +294,56 @@ ufw --force enable
 
 ---
 
+## 📧 Paso 13: Configurar Resend (Recordatorios de Pago)
+
+Los recordatorios de pago fallan si no hay proveedor de email configurado. **Gmail SMTP no funciona** desde Digital Ocean.
+
+### 13.1 Crear cuenta en Resend
+
+1. Ve a **https://resend.com** → Sign up
+2. Verifica tu email (ej: `jerlibgnzlz@gmail.com`)
+3. En **Emails** → **Add Email** → Verifica el email que usarás como remitente
+4. En **API Keys** → **Create API Key** → Copia la clave (empieza con `re_`)
+
+### 13.2 Añadir variables al backend en el servidor
+
+```bash
+nano /var/www/amva-production/backend/.env
+```
+
+Añade o verifica estas líneas:
+
+```env
+EMAIL_PROVIDER=resend
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+RESEND_FROM_EMAIL=jerlibgnzlz@gmail.com
+RESEND_FROM_NAME=AMVA Digital
+```
+
+### 13.3 Reiniciar backend
+
+```bash
+pm2 restart amva-backend
+```
+
+### 13.4 Verificar en logs
+
+```bash
+pm2 logs amva-backend --lines 50
+```
+
+Deberías ver algo como: `✅ Servicio de email configurado (Resend)`
+
+### 13.5 Probar recordatorios
+
+1. Ve a **https://amva.org.es/admin/inscripciones**
+2. Clic en **Recordatorios**
+3. Confirma el envío
+
+Si falla, revisa `pm2 logs amva-backend` para el error específico.
+
+---
+
 ## 📝 Comandos útiles
 
 ```bash
@@ -292,14 +355,26 @@ cd /var/www/amva-production && ./deploy.sh
 
 ---
 
-## 🔐 Con dominio propio (opcional)
+## 🔐 Con dominio propio (ej: amva.org.es)
 
-Cuando tengas dominio (ej: amvadigital.com):
+Cuando tengas dominio configurado:
 
-1. Apunta el DNS a 64.225.115.122
+1. Apunta el DNS a la IP del droplet (ej: `64.225.115.122`)
 2. Instala Certbot: `apt install certbot python3-certbot-nginx`
-3. Obtén SSL: `certbot --nginx -d amvadigital.com -d www.amvadigital.com -d api.amvadigital.com`
-4. Actualiza `FRONTEND_URL` y `NEXT_PUBLIC_API_URL` con el dominio
+3. Obtén SSL: `certbot --nginx -d amva.org.es -d www.amva.org.es`
+4. Actualiza variables en el servidor:
+
+**Backend** (`/var/www/amva-production/backend/.env`):
+```env
+FRONTEND_URL=https://amva.org.es
+```
+
+**Frontend** (`/var/www/amva-production/.env.local`):
+```env
+NEXT_PUBLIC_API_URL=https://amva.org.es/api
+```
+
+5. Reinicia: `pm2 restart all`
 
 ---
 
