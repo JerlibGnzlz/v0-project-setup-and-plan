@@ -8,7 +8,7 @@ import { Smartphone, Download } from 'lucide-react'
  * Configurar en .env.local: NEXT_PUBLIC_APK_DOWNLOAD_URL=https://expo.dev/artifacts/eas/xxx.apk
  * Actualizar DEFAULT_APK_URL cuando generes un nuevo build (los artefactos expiran ~30 días).
  */
-const DEFAULT_APK_URL = 'https://expo.dev/artifacts/eas/pPV1ZAU6ye7cwd3ry5qiZb.apk'
+const DEFAULT_APK_URL = 'https://expo.dev/artifacts/eas/7Xxukswo66NKk1gfFbDpvw.apk'
 const APK_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || DEFAULT_APK_URL
 
 interface DownloadAppButtonProps {

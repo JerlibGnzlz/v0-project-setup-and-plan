@@ -74,6 +74,9 @@ backend/prisma/migrations/
 backend/uploads/*
 !backend/uploads/.gitkeep
 
+# APK (se sube manualmente al servidor)
+public/amva.apk
+
 # Cursor/IDE
 .cursor/
 .vscode/
