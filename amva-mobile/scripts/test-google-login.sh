@@ -14,7 +14,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Variables
-API_URL="https://ministerio-backend-wdbj.onrender.com"
+API_URL="https://amva.org.es"
 PRIVACY_POLICY_URL="${API_URL}/privacy-policy"
 TERMS_URL="${API_URL}/terms-of-service"
 GOOGLE_AUTH_ENDPOINT="${API_URL}/api/auth/invitado/google/mobile"

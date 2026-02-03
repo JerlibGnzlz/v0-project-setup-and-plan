@@ -19,7 +19,7 @@ const getApiUrl = () => {
     return EXPO_PUBLIC_API_URL.replace('/api', '')
   }
   // Producción por defecto (sin /api)
-  return 'https://ministerio-backend-wdbj.onrender.com'
+  return 'https://amva.org.es'
 }
 
 const SERVER_URL = getApiUrl()
@@ -134,7 +134,7 @@ export function useWebSocketSync() {
       // Evento: Error de autenticación
       socket.on('error', (error: { type: string; message: string }) => {
         console.error('❌ Error en WebSocket:', error)
-        
+
         if (error.type === 'TOKEN_EXPIRED' || error.type === 'INVALID_TOKEN') {
           console.log('🔄 Token inválido, intentando refrescar...')
           // El interceptor de axios manejará el refresh automáticamente
@@ -149,7 +149,7 @@ export function useWebSocketSync() {
       // Evento: Desconexión
       socket.on('disconnect', (reason: string) => {
         console.log('🔌 WebSocket desconectado:', reason)
-        
+
         // Si fue desconexión forzada del servidor, intentar reconectar
         if (reason === 'io server disconnect') {
           console.log('🔄 Servidor desconectó, reconectando...')
@@ -161,7 +161,7 @@ export function useWebSocketSync() {
       socket.on('connect_error', (error: Error) => {
         reconnectAttemptsRef.current += 1
         console.error('❌ Error de conexión WebSocket:', error.message)
-        
+
         if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
           console.error('❌ Máximo de intentos de reconexión alcanzado')
           disconnect()
@@ -197,13 +197,13 @@ export function useWebSocketSync() {
     const checkTokenAndReconnect = async () => {
       const invitadoToken = await SecureStore.getItemAsync('invitado_token')
       const pastorToken = await SecureStore.getItemAsync('access_token')
-      
+
       // Si hay token y no hay conexión, conectar
       if ((invitadoToken || pastorToken) && !socketRef.current?.connected) {
         console.log('🔄 Token disponible, reconectando WebSocket...')
         connect()
       }
-      
+
       // Si no hay token y hay conexión, desconectar
       if (!invitadoToken && !pastorToken && socketRef.current?.connected) {
         console.log('🔄 No hay token, desconectando WebSocket...')

@@ -62,12 +62,16 @@ Error 401: invalid_client
    http://localhost:3000
    ```
 
-5. **Authorized redirect URIs** - Agregar:
+5. **Authorized redirect URIs** - Agregar (todos son necesarios):
    ```
    https://amva.org.es/api/auth/invitado/google/callback
+   https://amva.org.es/api/auth/invitado/google/callback-proxy
    https://www.amva.org.es/api/auth/invitado/google/callback
+   https://www.amva.org.es/api/auth/invitado/google/callback-proxy
    http://localhost:4000/api/auth/invitado/google/callback
+   http://localhost:4000/api/auth/invitado/google/callback-proxy
    ```
+   **Importante:** `callback` es para la web; `callback-proxy` es para la **app móvil**.
 
 6. Haz clic en **"CREATE"**
 

@@ -41,7 +41,7 @@ export function useGoogleAuthProxy(): UseGoogleAuthProxyReturn {
       Constants?.expoConfig?.extra?.apiUrl ||
       Constants?.manifest?.extra?.apiUrl ||
       process.env.EXPO_PUBLIC_API_URL ||
-      'https://ministerio-backend-wdbj.onrender.com/api'
+      'https://amva.org.es/api'
     )
   }
 

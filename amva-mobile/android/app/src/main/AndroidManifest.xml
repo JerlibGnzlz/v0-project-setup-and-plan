@@ -32,7 +32,8 @@
       <intent-filter data-generated="true">
         <action android:name="android.intent.action.VIEW"/>
         <data android:scheme="amva-app"/>
-        <data android:scheme="https" android:host="vidaabundante.org"/>
+        <data android:scheme="https" android:host="amva.org.es"/>
+        <data android:scheme="https" android:host="www.amva.org.es"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>

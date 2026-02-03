@@ -43,7 +43,7 @@ const getApiUrl = () => {
   // ============================================
   // El backend está desplegado en Render.com
   // Usar producción por defecto tanto en desarrollo como en producción
-  const PRODUCTION_API_URL = 'https://ministerio-backend-wdbj.onrender.com/api'
+  const PRODUCTION_API_URL = 'https://amva.org.es/api'
   console.log('🌐 Usando API de producción (Render):', PRODUCTION_API_URL)
   return PRODUCTION_API_URL
 
@@ -86,9 +86,9 @@ export const diagnoseConnection = () => {
   console.log('🌐 Modo:', __DEV__ ? 'DESARROLLO' : 'PRODUCCIÓN')
   console.log('💡 Variable de entorno EXPO_PUBLIC_API_URL:', EXPO_PUBLIC_API_URL || 'No configurada')
   console.log('💡 Para verificar:')
-  console.log('   1. La API está en producción: https://ministerio-backend-wdbj.onrender.com/api')
+  console.log('   1. La API está en producción: https://amva.org.es/api')
   console.log('   2. Si necesitas usar backend local, configura EXPO_PUBLIC_API_URL en .env')
-  console.log('   3. Verifica conectividad: curl https://ministerio-backend-wdbj.onrender.com/api/noticias/publicadas')
+  console.log('   3. Verifica conectividad: curl https://amva.org.es/api/noticias/publicadas')
 }
 
 export const apiClient = axios.create({
@@ -150,7 +150,7 @@ apiClient.interceptors.request.use(
       // Detectar si es un endpoint de invitados o inscripciones (que también usa invitados)
       // NOTA: POST /inscripciones es público (no requiere autenticación)
       const isPublicInscripcionPost = config.url === '/inscripciones' && config.method === 'post'
-      
+
       const isInvitadoEndpoint =
         config.url?.includes('/auth/invitado') ||
         config.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
@@ -183,13 +183,13 @@ apiClient.interceptors.request.use(
                 Accept: 'application/json',
               },
             })
-            
+
             const refreshResponse = await refreshAxios.post('/auth/invitado/refresh', {
               refreshToken: invitadoRefreshToken,
             })
-            
+
             const { access_token, refresh_token: newRefreshToken } = refreshResponse.data
-            
+
             if (access_token) {
               await SecureStore.setItemAsync('invitado_token', access_token)
               if (newRefreshToken) {
@@ -202,8 +202,8 @@ apiClient.interceptors.request.use(
             const refreshErrorMessage = refreshError instanceof Error ? refreshError.message : 'Error desconocido'
             console.error('❌ Error al refrescar token:', refreshErrorMessage)
             // Limpiar tokens inválidos
-            await SecureStore.deleteItemAsync('invitado_token').catch(() => {})
-            await SecureStore.deleteItemAsync('invitado_refresh_token').catch(() => {})
+            await SecureStore.deleteItemAsync('invitado_token').catch(() => { })
+            await SecureStore.deleteItemAsync('invitado_refresh_token').catch(() => { })
           }
         }
 
@@ -307,7 +307,7 @@ apiClient.interceptors.response.use(
       const fullUrl = originalRequest?.url
         ? `${apiClient.defaults.baseURL}${originalRequest.url}`
         : 'URL desconocida'
-      
+
       console.error('❌ Error de red detectado:', {
         code: errorCode,
         message: errorMessage,
@@ -316,7 +316,7 @@ apiClient.interceptors.response.use(
         baseURL: apiClient.defaults.baseURL,
         method: originalRequest?.method?.toUpperCase(),
       })
-      
+
       console.error('🔍 Diagnóstico de conexión:')
       console.error('   - Base URL:', apiClient.defaults.baseURL)
       console.error('   - Endpoint:', originalRequest?.url)
@@ -345,7 +345,7 @@ apiClient.interceptors.response.use(
       const retryCount = (originalRequest._retryCount || 0) + 1
       if (retryCount > 1) {
         console.error('❌ Máximo de reintentos alcanzado, rechazando request:', originalRequest.url)
-        
+
         // Detectar si es un endpoint de invitados para limpiar los tokens correctos
         const isInvitadoEndpoint =
           originalRequest.url?.includes('/auth/invitado/me') ||
@@ -356,7 +356,7 @@ apiClient.interceptors.response.use(
           originalRequest.url?.includes('/credenciales-capellania/consultar/') ||
           originalRequest.url?.includes('/inscripciones/my') ||
           originalRequest.url?.includes('/solicitudes-credenciales')
-        
+
         // Limpiar tokens cuando se alcanza el máximo de reintentos
         if (isInvitadoEndpoint) {
           console.log('🧹 Limpiando tokens de invitado después de máximo de reintentos')
@@ -377,7 +377,7 @@ apiClient.interceptors.response.use(
             console.error('❌ Error limpiando tokens:', cleanError)
           }
         }
-        
+
         return Promise.reject(error)
       }
 
@@ -496,7 +496,7 @@ apiClient.interceptors.response.use(
           originalRequest.headers = {}
         }
         originalRequest.headers.Authorization = `Bearer ${access_token}`
-        
+
         // Limpiar el flag _retry para permitir reintentos si es necesario
         // Pero mantener _retryCount para evitar loops infinitos
         delete originalRequest._retry

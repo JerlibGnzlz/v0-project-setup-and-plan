@@ -68,7 +68,11 @@
             },
             {
               "scheme": "https",
-              "host": "vidaabundante.org"
+              "host": "amva.org.es"
+            },
+            {
+              "scheme": "https",
+              "host": "www.amva.org.es"
             }
           ],
           "category": [
@@ -83,6 +87,7 @@
       "eas": {
         "projectId": "89b63cb9-113c-4901-bfb6-c1622478bc56"
       },
+      "apiUrl": "https://amva.org.es/api",
       "googleClientId": "378853205278-slllh10l32onum338rg1776g8itekvco.apps.googleusercontent.com",
       "googleAndroidClientId": "378853205278-c2e1gcjn06mg857rcvprns01fu8pduat.apps.googleusercontent.com"
     },
