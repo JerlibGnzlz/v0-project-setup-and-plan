@@ -1,31 +1,66 @@
 import { Injectable, Logger } from '@nestjs/common'
 import * as nodemailer from 'nodemailer'
+import {
+  TransactionalEmailsApi,
+  TransactionalEmailsApiApiKeys,
+  SendSmtpEmail,
+} from '@getbrevo/brevo'
 import { NotificationData } from './types/notification.types'
 
-type EmailProvider = 'gmail' | 'smtp'
+type EmailProvider = 'gmail' | 'smtp' | 'brevo-api'
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name)
   private transporter: nodemailer.Transporter | null = null
-  private emailProvider: EmailProvider = 'gmail'
+  private brevoApi: TransactionalEmailsApi | null = null
+  private emailProvider: EmailProvider = 'smtp'
 
   constructor() {
     const providerEnv = (process.env.EMAIL_PROVIDER || 'smtp').toLowerCase()
 
-    if (providerEnv === 'gmail' || providerEnv === 'smtp') {
-      this.emailProvider = providerEnv
+    // Brevo API usa HTTPS (puerto 443) - funciona en Digital Ocean donde SMTP está bloqueado
+    if (providerEnv === 'brevo-api' || process.env.BREVO_API_KEY) {
+      this.emailProvider = 'brevo-api'
+      this.configureBrevoApi()
     }
 
-    this.logger.log(`📧 Inicializando EmailService con proveedor: ${this.emailProvider}`)
-    this.configureSMTP()
+    if (this.emailProvider !== 'brevo-api') {
+      if (providerEnv === 'gmail' || providerEnv === 'smtp') {
+        this.emailProvider = providerEnv
+      }
+      this.configureSMTP()
+    }
 
-    if (!this.transporter) {
+    if (!this.brevoApi && !this.transporter) {
       this.logger.error('❌ No se pudo configurar el proveedor de email')
-      this.logger.error('   Configura SMTP_USER y SMTP_PASSWORD en .env')
-      this.logger.error('   Para Brevo: usa clave SMTP (xsmtpsib-), NO la API key (xkeysib-)')
+      this.logger.error('   Opción 1 (recomendado para Digital Ocean): EMAIL_PROVIDER=brevo-api, BREVO_API_KEY=xkeysib-...')
+      this.logger.error('   Opción 2: SMTP_USER y SMTP_PASSWORD (Brevo: clave xsmtpsib-)')
     } else {
-      this.logger.log('✅ EmailService configurado correctamente con SMTP')
+      const provider = this.brevoApi ? 'Brevo API' : 'SMTP'
+      this.logger.log(`✅ EmailService configurado con ${provider}`)
+    }
+  }
+
+  /**
+   * Configura Brevo API (HTTPS - no bloqueado en Digital Ocean)
+   */
+  private configureBrevoApi(): void {
+    const apiKey = process.env.BREVO_API_KEY
+    if (!apiKey || !apiKey.startsWith('xkeysib-')) {
+      this.logger.warn('⚠️ BREVO_API_KEY no configurada o formato incorrecto (debe empezar con xkeysib-)')
+      return
+    }
+
+    try {
+      const apiInstance = new TransactionalEmailsApi()
+      apiInstance.setApiKey(TransactionalEmailsApiApiKeys.apiKey, apiKey)
+      this.brevoApi = apiInstance
+      this.logger.log('✅ Brevo API configurada (HTTPS - compatible con Digital Ocean)')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error configurando Brevo API: ${errorMessage}`)
+      this.brevoApi = null
     }
   }
 
@@ -55,11 +90,14 @@ export class EmailService {
     }
 
     try {
+      // Puerto 2525 y 587 usan STARTTLS (Digital Ocean bloquea 587, 2525 está abierto)
+      const useTLS = emailConfig.port === 587 || emailConfig.port === 2525
+
       const smtpConfig = {
         host: emailConfig.host,
         port: emailConfig.port,
         secure: emailConfig.secure,
-        requireTLS: emailConfig.port === 587,
+        requireTLS: useTLS,
         auth: {
           user: emailConfig.auth.user,
           pass: cleanPassword,
@@ -88,7 +126,6 @@ export class EmailService {
       if (this.transporter) {
         this.logger.log('✅ SMTP configurado correctamente')
         this.logger.log(`📧 SMTP: ${emailConfig.host}:${emailConfig.port}`)
-        this.logger.log(`👤 Usuario: ${emailConfig.auth.user}`)
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
@@ -98,7 +135,7 @@ export class EmailService {
   }
 
   /**
-   * Envía un email de notificación usando SMTP
+   * Envía un email de notificación
    */
   async sendNotificationEmail(
     to: string,
@@ -111,12 +148,65 @@ export class EmailService {
       return false
     }
 
-    if (!this.transporter) {
-      this.logger.error('❌ SMTP no está configurado. Verifica SMTP_USER y SMTP_PASSWORD')
-      return false
+    // Prioridad: Brevo API (funciona en Digital Ocean)
+    if (this.brevoApi) {
+      const result = await this.sendWithBrevoApi(to, title, body, data)
+      if (result) return true
+      this.logger.warn('⚠️ Brevo API falló, intentando SMTP...')
     }
 
-    return this.sendWithSMTP(to, title, body, data)
+    // Fallback: SMTP
+    if (this.transporter) {
+      return this.sendWithSMTP(to, title, body, data)
+    }
+
+    this.logger.error('❌ No hay proveedor de email configurado')
+    return false
+  }
+
+  /**
+   * Envía email usando Brevo API (HTTPS - no bloqueado)
+   */
+  private async sendWithBrevoApi(
+    to: string,
+    title: string,
+    body: string,
+    data?: NotificationData
+  ): Promise<boolean> {
+    if (!this.brevoApi) return false
+
+    try {
+      const htmlContent = body.trim().startsWith('<!DOCTYPE')
+        ? body
+        : this.buildEmailTemplate(title, body, data)
+
+      const textContent = body.replace(/<[^>]*>/g, '').trim() || title
+      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.BREVO_FROM_EMAIL || 'noreply@amva.org.es'
+      const fromName = process.env.SMTP_FROM_NAME || process.env.BREVO_FROM_NAME || 'AMVA Digital'
+
+      const sendSmtpEmail = new SendSmtpEmail()
+      sendSmtpEmail.subject = title
+      sendSmtpEmail.htmlContent = htmlContent
+      sendSmtpEmail.textContent = textContent
+      sendSmtpEmail.sender = { name: fromName, email: fromEmail }
+      sendSmtpEmail.to = [{ email: to }]
+
+      this.logger.log(`📧 Enviando email a ${to} (Brevo API)...`)
+
+      const response = await this.brevoApi.sendTransacEmail(sendSmtpEmail)
+
+      if (response.body?.messageId) {
+        this.logger.log(`✅ Email enviado exitosamente a ${to} (Brevo API)`)
+        return true
+      }
+
+      this.logger.warn(`⚠️ Brevo API respuesta inesperada: ${JSON.stringify(response.body)}`)
+      return false
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      this.logger.error(`❌ Error Brevo API a ${to}:`, { message: errorMessage })
+      return false
+    }
   }
 
   /**
@@ -150,7 +240,7 @@ export class EmailService {
 
       this.logger.log(`📧 Enviando email a ${to} desde ${fromEmail} (SMTP)...`)
 
-      const sendPromise = this.transporter.sendMail(mailOptions)
+      const sendPromise = this.transporter!.sendMail(mailOptions)
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Timeout: El envío SMTP tardó más de 60 segundos')), 60000)
       })
@@ -170,12 +260,11 @@ export class EmailService {
       })
 
       if (errorCode === 'ETIMEDOUT' || String(errorMessage).includes('Timeout')) {
-        this.logger.error('   ⚠️ Timeout de conexión SMTP. Prueba SMTP_PORT=2525 o verifica firewall')
+        this.logger.error('   ⚠️ Timeout SMTP. Digital Ocean bloquea puertos 587/465. Usa EMAIL_PROVIDER=brevo-api con BREVO_API_KEY')
       } else if (errorCode === 'EAUTH') {
-        this.logger.error('   ⚠️ Error de autenticación. Verifica SMTP_USER y SMTP_PASSWORD')
-        this.logger.error('   💡 Brevo: usa clave SMTP (xsmtpsib-), NO la API key (xkeysib-)')
+        this.logger.error('   ⚠️ Error de autenticación. Brevo: usa clave SMTP (xsmtpsib-), NO API key')
       } else if (errorCode === 'ECONNECTION') {
-        this.logger.error('   ⚠️ Error de conexión. Verifica SMTP_HOST y SMTP_PORT')
+        this.logger.error('   ⚠️ Error de conexión. Usa EMAIL_PROVIDER=brevo-api (HTTPS)')
       }
 
       return false
