@@ -328,6 +328,21 @@ export class EmailService {
     this.logger.log(`   SMTP configurado: ${this.transporter ? 'Sí' : 'No'}`)
     this.logger.log(`   Proveedor activo: ${this.emailProvider}`)
 
+    // Si EMAIL_PROVIDER está explícitamente configurado, usar SOLO ese proveedor
+    // Evita que Resend/SendGrid (con credenciales antiguas) se intenten primero y cuelguen
+    if (this.emailProvider === 'smtp' && this.transporter) {
+      this.logger.log(`📧 [EmailService] Usando solo SMTP (EMAIL_PROVIDER=smtp)`)
+      return this.sendWithSMTP(to, title, body, data)
+    }
+    if (this.emailProvider === 'sendgrid' && this.sendgridConfigured) {
+      this.logger.log(`📧 [EmailService] Usando solo SendGrid (EMAIL_PROVIDER=sendgrid)`)
+      return this.sendWithSendGrid(to, title, body, data)
+    }
+    if (this.emailProvider === 'resend' && this.resendConfigured) {
+      this.logger.log(`📧 [EmailService] Usando solo Resend (EMAIL_PROVIDER=resend)`)
+      return this.sendWithResend(to, title, body, data)
+    }
+
     // Intentar envío con proveedores en orden de prioridad (mejor a peor)
     // 1. SendGrid (mejor para producción)
     if (this.sendgridConfigured) {
@@ -732,8 +747,8 @@ export class EmailService {
       // Agregar timeout adicional para la operación completa (aumentado a 90 segundos)
       // También agregar reintentos para manejar timeouts temporales
       let lastError: unknown = null
-      const maxRetries = 3
-      const retryDelay = 2000 // 2 segundos entre reintentos
+      const maxRetries = 1 // Sin reintentos para fallar rápido (Brevo/SMTP)
+      const retryDelay = 2000
 
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
@@ -744,7 +759,7 @@ export class EmailService {
 
           const sendPromise = this.transporter!.sendMail(mailOptions)
           const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error('Timeout: El envío de email tardó más de 90 segundos')), 90000)
+            setTimeout(() => reject(new Error('Timeout: El envío SMTP tardó más de 25 segundos')), 25000)
           })
 
           const info = await Promise.race([sendPromise, timeoutPromise])
@@ -793,6 +808,7 @@ export class EmailService {
         this.logger.error('   💡 SOLUCIÓN: Configura SendGrid o Resend (ver logs anteriores para instrucciones)')
       } else if (errorCode === 'EAUTH') {
         this.logger.error('   ⚠️ Error de autenticación SMTP. Verifica SMTP_USER y SMTP_PASSWORD')
+        this.logger.error('   💡 Brevo: usa clave SMTP (xsmtpsib-), NO la API key (xkeysib-)')
       } else if (errorCode === 'ECONNECTION') {
         this.logger.error('   ⚠️ Error de conexión SMTP. Verifica SMTP_HOST y SMTP_PORT')
       }
