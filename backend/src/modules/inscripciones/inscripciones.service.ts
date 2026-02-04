@@ -94,6 +94,70 @@ export class InscripcionesService {
     // ==================== INSCRIPCIONES ====================
 
     /**
+     * Construye el objeto where para filtros de inscripciones (reutilizable)
+     */
+    private buildInscripcionWhere(filters?: InscripcionFilterDto): Prisma.InscripcionWhereInput {
+        const where: Prisma.InscripcionWhereInput = {}
+
+        if (filters?.estado && filters.estado !== 'todos') {
+            where.estado = filters.estado
+        }
+        if (filters?.origen && filters.origen !== 'todos') {
+            where.origenRegistro = filters.origen
+        }
+        if (filters?.convencionId) {
+            where.convencionId = filters.convencionId
+        }
+        if (filters?.search || filters?.q) {
+            const searchTerm = (filters.search || filters.q || '').trim()
+            if (searchTerm) {
+                where.OR = [
+                    { nombre: { contains: searchTerm, mode: 'insensitive' } },
+                    { apellido: { contains: searchTerm, mode: 'insensitive' } },
+                    { email: { contains: searchTerm, mode: 'insensitive' } },
+                    { sede: { contains: searchTerm, mode: 'insensitive' } },
+                    { telefono: { contains: searchTerm, mode: 'insensitive' } },
+                ]
+            }
+        }
+        return where
+    }
+
+    /**
+     * Obtiene estadísticas agregadas de inscripciones (total real con filtros)
+     */
+    async getInscripcionesStats(filters?: InscripcionFilterDto): Promise<{
+        total: number
+        nuevas: number
+        hoy: number
+        pendientes: number
+        confirmadas: number
+    }> {
+        const baseWhere = this.buildInscripcionWhere(filters)
+        const ahora = new Date()
+        const hace24Horas = new Date(ahora.getTime() - 24 * 60 * 60 * 1000)
+        const inicioHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate())
+
+        const [total, nuevas, hoy, pendientes, confirmadas] = await Promise.all([
+            this.prisma.inscripcion.count({ where: baseWhere }),
+            this.prisma.inscripcion.count({
+                where: { ...baseWhere, fechaInscripcion: { gte: hace24Horas } },
+            }),
+            this.prisma.inscripcion.count({
+                where: { ...baseWhere, fechaInscripcion: { gte: inicioHoy } },
+            }),
+            this.prisma.inscripcion.count({
+                where: { ...baseWhere, estado: 'pendiente' },
+            }),
+            this.prisma.inscripcion.count({
+                where: { ...baseWhere, estado: 'confirmado' },
+            }),
+        ])
+
+        return { total, nuevas, hoy, pendientes, confirmadas }
+    }
+
+    /**
      * Obtiene todas las inscripciones con relaciones (paginado)
      */
     async findAllInscripciones(
@@ -113,38 +177,7 @@ export class InscripcionesService {
     }> {
         const skip = (page - 1) * limit
         const take = limit
-
-        // Construir condiciones WHERE
-        const where: Prisma.InscripcionWhereInput = {}
-
-        // Aplicar filtro de estado
-        if (filters?.estado && filters.estado !== 'todos') {
-            where.estado = filters.estado
-        }
-
-        // Aplicar filtro de origen
-        if (filters?.origen && filters.origen !== 'todos') {
-            where.origenRegistro = filters.origen
-        }
-
-        // Aplicar filtro de convención
-        if (filters?.convencionId) {
-            where.convencionId = filters.convencionId
-        }
-
-        // Aplicar búsqueda (busca en nombre, apellido, email, sede)
-        if (filters?.search || filters?.q) {
-            const searchTerm = (filters.search || filters.q || '').trim()
-            if (searchTerm) {
-                where.OR = [
-                    { nombre: { contains: searchTerm, mode: 'insensitive' } },
-                    { apellido: { contains: searchTerm, mode: 'insensitive' } },
-                    { email: { contains: searchTerm, mode: 'insensitive' } },
-                    { sede: { contains: searchTerm, mode: 'insensitive' } },
-                    { telefono: { contains: searchTerm, mode: 'insensitive' } },
-                ]
-            }
-        }
+        const where = this.buildInscripcionWhere(filters)
 
         const [data, total] = await Promise.all([
             this.prisma.inscripcion.findMany({
@@ -209,7 +242,7 @@ export class InscripcionesService {
      */
     async findInscripcionesByInvitadoId(invitadoId: string): Promise<InscripcionWithRelations[]> {
         this.logger.log(`Buscando inscripciones para invitado: ${invitadoId}`)
-        
+
         const inscripciones = await this.prisma.inscripcion.findMany({
             where: {
                 invitadoId,
@@ -2684,9 +2717,9 @@ export class InscripcionesService {
                     // Esto asegura que el email se envíe usando Nodemailer (SMTP) correctamente configurado
                     // No depender de eventos o colas para garantizar el envío
                     this.logger.log(`📧 [${i + 1}/${inscripciones.length}] Enviando email de recordatorio directamente a ${inscripcion.email}...`)
-                    
+
                     let emailEnviado = false
-                    
+
                     try {
                         // Verificar que NotificationsService esté disponible
                         if (!this.notificationsService) {
@@ -2701,7 +2734,7 @@ export class InscripcionesService {
                                 montoPendiente,
                                 convencion
                             )
-                            
+
                             // Si el email se envió exitosamente, también emitir evento (opcional, para notificaciones push)
                             if (emailEnviado && this.eventEmitter) {
                                 try {
@@ -2723,7 +2756,7 @@ export class InscripcionesService {
                                 }
                             }
                         }
-                        
+
                         // Pequeño delay entre emails para evitar saturar el servidor SMTP
                         if (i < inscripciones.length - 1) {
                             await new Promise(resolve => setTimeout(resolve, 500)) // 500ms entre emails
@@ -2817,7 +2850,7 @@ export class InscripcionesService {
             // Obtener template de email
             this.logger.log(`📧 [Recordatorio] Obteniendo template de email...`)
             const { getEmailTemplate } = await import('../notifications/templates/email.templates')
-            
+
             const templateData = {
                 inscripcionId: inscripcion.id,
                 cuotasPendientes,
@@ -2827,7 +2860,7 @@ export class InscripcionesService {
                 apellido: inscripcion.apellido || '',
                 inscripcionNombre: `${inscripcion.nombre} ${inscripcion.apellido || ''}`.trim(),
             }
-            
+
             this.logger.log(`📧 [Recordatorio] Datos del template:`, {
                 cuotasPendientes,
                 montoPendiente,

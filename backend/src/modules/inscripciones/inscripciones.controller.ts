@@ -34,7 +34,7 @@ import { ForbiddenException } from '@nestjs/common'
 export class InscripcionesController {
   private readonly logger = new Logger(InscripcionesController.name)
 
-  constructor(private inscripcionesService: InscripcionesService) {}
+  constructor(private inscripcionesService: InscripcionesService) { }
 
   @Get()
   findAll(@Query() query: PaginationDto & InscripcionFilterDto) {
@@ -42,11 +42,11 @@ export class InscripcionesController {
     // Los query params siempre vienen como strings, necesitamos convertirlos
     const page = query.page ? Number(query.page) : 1
     const limit = query.limit ? Number(query.limit) : 20
-    
+
     // Validar que sean números válidos
     const pageNum = Number.isNaN(page) || page < 1 ? 1 : page
     const limitNum = Number.isNaN(limit) || limit < 1 ? 20 : limit > 100 ? 100 : limit
-    
+
     const filters: InscripcionFilterDto = {
       search: query.search,
       q: query.q,
@@ -147,6 +147,19 @@ export class InscripcionesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('stats/inscripciones')
+  getInscripcionesStats(@Query() query: InscripcionFilterDto) {
+    const filters: InscripcionFilterDto = {
+      search: query.search,
+      q: query.q,
+      estado: query.estado,
+      origen: query.origen,
+      convencionId: query.convencionId,
+    }
+    return this.inscripcionesService.getInscripcionesStats(filters)
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('export/csv')
   async exportToCSV(@Query() query: InscripcionFilterDto, @Res() res: Response) {
     // Obtener todas las inscripciones (sin paginación para exportación completa)
@@ -214,7 +227,7 @@ export class InscripcionesController {
 export class PagosController {
   private readonly logger = new Logger(PagosController.name)
 
-  constructor(private inscripcionesService: InscripcionesService) {}
+  constructor(private inscripcionesService: InscripcionesService) { }
 
   @UseGuards(JwtAuthGuard)
   @Get()

@@ -99,17 +99,17 @@ export const inscripcionesApi = {
       console.error('[inscripcionesApi] Error response statusText:', error.response?.statusText)
       console.error('[inscripcionesApi] Error message:', error.message)
       console.error('[inscripcionesApi] Error code:', error.code)
-      
+
       // Si es un error de red (sin respuesta del servidor)
       if (!error.response) {
         console.error('[inscripcionesApi] Error de red - El servidor no está respondiendo')
         throw new Error('No se pudo conectar con el servidor. Por favor, verifica que el backend esté corriendo.')
       }
-      
+
       // Si es un error 400, intentar extraer el mensaje de validación
       if (error.response.status === 400) {
         const responseData = error.response.data
-        
+
         // Extraer mensaje de error de forma segura sin serializar objetos complejos
         let errorMessage = 'Error de validación'
         if (responseData?.error?.message) {
@@ -118,46 +118,46 @@ export const inscripcionesApi = {
           errorMessage = responseData.message
         }
         console.error('[inscripcionesApi] Error 400:', errorMessage)
-        
+
         // El GlobalExceptionFilter devuelve errores en formato ErrorResponse
         // { success: false, error: { message, statusCode, error, details: { validationErrors: [...] } } }
         if (responseData?.error?.details?.validationErrors && Array.isArray(responseData.error.details.validationErrors)) {
-          const validationErrors = responseData.error.details.validationErrors.map((err: any) => 
+          const validationErrors = responseData.error.details.validationErrors.map((err: any) =>
             typeof err === 'string' ? err : `${err.field || 'campo'}: ${err.message || err}`
           ).join(', ')
           console.error('[inscripcionesApi] Errores de validación:', validationErrors)
           const validationError = new Error(validationErrors)
-          ;(validationError as any).response = error.response
+            ; (validationError as any).response = error.response
           throw validationError
         } else if (typeof responseData === 'object' && Object.keys(responseData).length === 0) {
           // Si responseData está vacío, puede ser un problema de validación silencioso
           console.error('[inscripcionesApi] Error 400 sin detalles - posible problema de validación')
           const validationError = new Error('Error de validación. Por favor, verifica que todos los campos estén completos y sean válidos.')
-          ;(validationError as any).response = error.response
+            ; (validationError as any).response = error.response
           throw validationError
         } else {
           const serverError = new Error(errorMessage)
-          ;(serverError as any).response = error.response
+            ; (serverError as any).response = error.response
           throw serverError
         }
       }
-      
+
       // Manejar error 409 (ConflictException - email duplicado)
       if (error.response.status === 409) {
         const responseData = error.response.data
         let errorMessage = 'Este correo electrónico ya está registrado para esta convención.'
-        
+
         if (responseData?.error?.message) {
           errorMessage = responseData.error.message
         } else if (responseData?.message) {
           errorMessage = responseData.message
         }
-        
+
         const conflictError = new Error(errorMessage)
-        ;(conflictError as any).response = error.response
+          ; (conflictError as any).response = error.response
         throw conflictError
       }
-      
+
       throw error
     }
   },
@@ -192,6 +192,25 @@ export const inscripcionesApi = {
 
   rehabilitarInscripcion: async (id: string): Promise<Inscripcion> => {
     const response = await apiClient.post<Inscripcion>(`/inscripciones/${id}/rehabilitar`)
+    return response.data
+  },
+
+  getInscripcionesStats: async (filters?: {
+    search?: string
+    estado?: 'todos' | 'pendiente' | 'confirmado' | 'cancelado'
+    convencionId?: string
+  }): Promise<{
+    total: number
+    nuevas: number
+    hoy: number
+    pendientes: number
+    confirmadas: number
+  }> => {
+    const params: Record<string, string> = {}
+    if (filters?.search) params.search = filters.search
+    if (filters?.estado && filters.estado !== 'todos') params.estado = filters.estado
+    if (filters?.convencionId) params.convencionId = filters.convencionId
+    const response = await apiClient.get('/inscripciones/stats/inscripciones', { params })
     return response.data
   },
 

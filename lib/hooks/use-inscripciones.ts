@@ -43,6 +43,26 @@ export function useInscripciones(
   })
 }
 
+export function useInscripcionesStats(filters?: {
+  search?: string
+  estado?: 'todos' | 'pendiente' | 'confirmado' | 'cancelado'
+  convencionId?: string
+}) {
+  useSmartSync()
+  const queryKey = ["inscripciones", "stats", filters ? JSON.stringify(filters) : undefined].filter(Boolean) as string[]
+  const pollingInterval = useSmartPolling(queryKey, 30000)
+
+  return useQuery({
+    queryKey: ["inscripciones", "stats", filters],
+    queryFn: () => inscripcionesApi.getInscripcionesStats(filters),
+    refetchOnWindowFocus: true,
+    refetchInterval: pollingInterval,
+    placeholderData: (previousData) => previousData,
+    retry: 2,
+    retryDelay: 1000,
+  })
+}
+
 export function useInscripcion(id: string) {
   return useQuery({
     queryKey: ["inscripcion", id],

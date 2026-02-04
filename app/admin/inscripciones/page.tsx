@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useInscripciones, useCreateInscripcion, useCancelarInscripcion, useRehabilitarInscripcion, useReporteIngresos, useEnviarRecordatorios, useUpdateInscripcion } from '@/lib/hooks/use-inscripciones'
+import { useInscripciones, useInscripcionesStats, useCreateInscripcion, useCancelarInscripcion, useRehabilitarInscripcion, useReporteIngresos, useEnviarRecordatorios, useUpdateInscripcion } from '@/lib/hooks/use-inscripciones'
 import { useCreatePago, useUpdatePago } from '@/lib/hooks/use-pagos'
 import { useConvenciones } from '@/lib/hooks/use-convencion'
 import { useSmartSync, useSmartPolling } from '@/lib/hooks/use-smart-sync'
@@ -47,10 +47,11 @@ import { ScrollReveal } from '@/components/scroll-reveal'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
+import { escapeHtml } from '@/lib/utils/escape-html'
 
 export default function InscripcionesPage() {
     const [searchTerm, setSearchTerm] = useState('')
-    const [estadoFilter, setEstadoFilter] = useState('todos')
+    const [estadoFilter, setEstadoFilter] = useState<'todos' | 'pendiente' | 'confirmado' | 'cancelado'>('todos')
     const [convencionFilter, setConvencionFilter] = useState('todos')
     const [pagoCompletoFilter, setPagoCompletoFilter] = useState('todos')
     const [currentPage, setCurrentPage] = useState(1)
@@ -58,7 +59,7 @@ export default function InscripcionesPage() {
 
     // Debounce para búsqueda
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
-    
+
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearchTerm(searchTerm)
@@ -75,7 +76,7 @@ export default function InscripcionesPage() {
         notas: '',
     })
     const [isUploadingComprobante, setIsUploadingComprobante] = useState(false)
-    
+
     // Estado para diálogo de nueva inscripción manual
     const [showNuevaInscripcionDialog, setShowNuevaInscripcionDialog] = useState(false)
     const [nuevaInscripcionForm, setNuevaInscripcionForm] = useState({
@@ -93,7 +94,7 @@ export default function InscripcionesPage() {
     useSmartSync()
 
     // Polling inteligente cada 30 segundos (solo cuando la pestaña está visible)
-    useSmartPolling(["inscripciones", currentPage, pageSize], 30000)
+    useSmartPolling([`inscripciones`, `${currentPage}`, `${pageSize}`], 30000)
 
     const { data: convenciones = [] } = useConvenciones()
 
@@ -108,13 +109,18 @@ export default function InscripcionesPage() {
     }
 
     const { data: inscripcionesResponse, isLoading } = useInscripciones(currentPage, pageSize, filters)
+    const { data: statsData } = useInscripcionesStats({
+        search: debouncedSearchTerm || undefined,
+        estado: estadoFilter !== 'todos' ? estadoFilter : undefined,
+        convencionId: convencionSeleccionada?.id || undefined,
+    })
     // Manejar respuesta paginada o array directo (compatibilidad)
-    const inscripciones = Array.isArray(inscripcionesResponse) 
-      ? inscripcionesResponse 
-      : inscripcionesResponse?.data || []
-    const paginationMeta = Array.isArray(inscripcionesResponse) 
-      ? null 
-      : inscripcionesResponse?.meta
+    const inscripciones = Array.isArray(inscripcionesResponse)
+        ? inscripcionesResponse
+        : inscripcionesResponse?.data || []
+    const paginationMeta = Array.isArray(inscripcionesResponse)
+        ? null
+        : inscripcionesResponse?.meta
     const { data: reporteIngresos } = useReporteIngresos()
     const createPagoMutation = useCreatePago()
     const updatePagoMutation = useUpdatePago()
@@ -123,7 +129,7 @@ export default function InscripcionesPage() {
     const rehabilitarInscripcionMutation = useRehabilitarInscripcion()
     const enviarRecordatoriosMutation = useEnviarRecordatorios()
     const updateInscripcionMutation = useUpdateInscripcion()
-    
+
     // Estados para diálogos
     const [showReporteDialog, setShowReporteDialog] = useState(false)
     const [showRecordatoriosDialog, setShowRecordatoriosDialog] = useState(false)
@@ -131,7 +137,7 @@ export default function InscripcionesPage() {
     const [inscripcionACancelar, setInscripcionACancelar] = useState<any>(null)
     const [motivoCancelacion, setMotivoCancelacion] = useState('')
     const [resultadoRecordatorios, setResultadoRecordatorios] = useState<any>(null)
-    
+
     // Estados para editar inscripción
     const [showEditarDialog, setShowEditarDialog] = useState(false)
     const [inscripcionAEditar, setInscripcionAEditar] = useState<any>(null)
@@ -199,27 +205,15 @@ export default function InscripcionesPage() {
         return matchPagoCompleto
     })
 
-    // Calcular estadísticas
+    // Estadísticas del servidor (total real con filtros aplicados)
     const ahora = new Date()
     const hace24Horas = new Date(ahora.getTime() - 24 * 60 * 60 * 1000)
-    const hoy = new Date(ahora.setHours(0, 0, 0, 0))
-
     const estadisticas = {
-        total: inscripciones.length,
-        nuevas: inscripciones.filter((insc: any) => {
-            const fechaInsc = new Date(insc.fechaInscripcion)
-            return fechaInsc >= hace24Horas
-        }).length,
-        hoy: inscripciones.filter((insc: any) => {
-            const fechaInsc = new Date(insc.fechaInscripcion)
-            return fechaInsc >= hoy
-        }).length,
-        pendientes: inscripciones.filter((insc: any) => insc.estado === 'pendiente').length,
-        confirmadas: inscripciones.filter((insc: any) => insc.estado === 'confirmado').length,
-        conPagoCompleto: inscripciones.filter((insc: any) => {
-            const pagosInfo = getPagosInfo(insc)
-            return pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
-        }).length,
+        total: statsData?.total ?? inscripciones.length,
+        nuevas: statsData?.nuevas ?? 0,
+        hoy: statsData?.hoy ?? 0,
+        pendientes: statsData?.pendientes ?? 0,
+        confirmadas: statsData?.confirmadas ?? 0,
     }
 
     // Función para verificar si una inscripción es nueva (últimas 24 horas)
@@ -300,7 +294,7 @@ export default function InscripcionesPage() {
             toast.error('El email es requerido')
             return
         }
-        
+
         // Validar formato de email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(nuevaInscripcionForm.email)) {
@@ -341,7 +335,7 @@ export default function InscripcionesPage() {
                 numeroCuotas: 3,
                 notas: '',
             })
-            
+
             toast.success('Inscripción creada exitosamente', {
                 description: `${nuevaInscripcionForm.nombre} ${nuevaInscripcionForm.apellido} ha sido inscrito a la convención`,
             })
@@ -354,13 +348,13 @@ export default function InscripcionesPage() {
     // Función para cancelar inscripción
     const handleCancelarInscripcion = async () => {
         if (!inscripcionACancelar) return
-        
+
         try {
             await cancelarInscripcionMutation.mutateAsync({
                 id: inscripcionACancelar.id,
                 motivo: motivoCancelacion || undefined,
             })
-            
+
             setShowCancelarDialog(false)
             setInscripcionACancelar(null)
             setMotivoCancelacion('')
@@ -382,28 +376,22 @@ export default function InscripcionesPage() {
         try {
             // Limpiar resultado anterior
             setResultadoRecordatorios(null)
-            
+
             // Mostrar toast de inicio
             toast.info('📧 Enviando recordatorios...', {
                 description: 'Esto puede tardar unos segundos',
                 duration: 3000,
             })
-            
-            const resultado = await enviarRecordatoriosMutation.mutateAsync()
+
+            // Pasar convencionId si hay filtro de convención seleccionado
+            const convencionId = convencionSeleccionada?.id
+            const resultado = await enviarRecordatoriosMutation.mutateAsync(convencionId)
             setResultadoRecordatorios(resultado)
-            
+
             // El toast de éxito/error ya se maneja en el hook useEnviarRecordatorios
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
             console.error('Error al enviar recordatorios:', error)
-            
-            // El toast de error ya se maneja en el hook, pero agregamos uno adicional si es necesario
-            toast.error('Error al enviar recordatorios', {
-                description: errorMessage,
-                duration: 6000,
-            })
-            
-            // Establecer resultado con error para mostrar en el diálogo
+            // El toast de error ya se maneja en useEnviarRecordatorios (onError)
             setResultadoRecordatorios({
                 enviados: 0,
                 fallidos: 0,
@@ -434,7 +422,7 @@ export default function InscripcionesPage() {
         try {
             // Filtrar campos vacíos y convertir a undefined para que el validador los ignore
             const dataToUpdate: any = {}
-            
+
             if (editarForm.nombre && editarForm.nombre.trim()) {
                 dataToUpdate.nombre = editarForm.nombre.trim()
             }
@@ -483,8 +471,22 @@ export default function InscripcionesPage() {
 
     // Función para exportar/imprimir lista de inscripciones
     const handleExportInscripciones = () => {
+        if (filteredInscripciones.length === 0) {
+            toast.info('No hay inscripciones para imprimir', {
+                description: 'Agrega inscripciones o ajusta los filtros.',
+                duration: 4000,
+            })
+            return
+        }
+
         const printWindow = window.open('', '_blank')
-        if (!printWindow) return
+        if (!printWindow) {
+            toast.error('No se pudo abrir la ventana de impresión', {
+                description: 'Permite las ventanas emergentes para este sitio o usa Ctrl+P para imprimir la página actual.',
+                duration: 6000,
+            })
+            return
+        }
 
         const convencionActiva = convenciones.find((c: any) => c.activa) || convenciones[0]
         const fechaExport = format(new Date(), "d 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })
@@ -494,7 +496,7 @@ export default function InscripcionesPage() {
       <html>
         <head>
           <meta charset="UTF-8">
-          <title>Lista de Inscripciones - ${convencionActiva?.titulo || 'Convención'}</title>
+          <title>Lista de Inscripciones - ${escapeHtml(convencionActiva?.titulo || 'Convención')}</title>
           <style>
             @media print {
               @page { margin: 1cm; }
@@ -574,7 +576,7 @@ export default function InscripcionesPage() {
         <body>
           <div class="header">
             <h1>Lista de Inscripciones</h1>
-            <p><strong>${convencionActiva?.titulo || 'Convención'}</strong></p>
+            <p><strong>${escapeHtml(convencionActiva?.titulo || 'Convención')}</strong></p>
             <p>Exportado el ${fechaExport}</p>
           </div>
           
@@ -583,7 +585,7 @@ export default function InscripcionesPage() {
               <strong>Total de Inscripciones:</strong> ${filteredInscripciones.length}
             </div>
             <div>
-              <strong>Convención:</strong> ${convencionActiva?.titulo || 'N/A'}
+              <strong>Convención:</strong> ${escapeHtml(convencionActiva?.titulo || 'N/A')}
             </div>
             <div>
               <strong>Fecha:</strong> ${convencionActiva?.fechaInicio ? format(new Date(convencionActiva.fechaInicio), "d 'de' MMMM, yyyy", { locale: es }) : 'N/A'}
@@ -630,19 +632,19 @@ export default function InscripcionesPage() {
             return `
                   <tr>
                     <td>${index + 1}</td>
-                    <td><strong>${insc.nombre} ${insc.apellido}</strong></td>
-                    <td>${insc.email}</td>
-                    <td>${insc.telefono || '-'}</td>
-                    <td>${sedeNombre}</td>
-                    <td>${pais}</td>
-                    <td><strong style="font-family: monospace;">${insc.codigoReferencia || '-'}</strong></td>
+                    <td><strong>${escapeHtml(insc.nombre)} ${escapeHtml(insc.apellido)}</strong></td>
+                    <td>${escapeHtml(insc.email)}</td>
+                    <td>${escapeHtml(insc.telefono || '-')}</td>
+                    <td>${escapeHtml(sedeNombre)}</td>
+                    <td>${escapeHtml(pais)}</td>
+                    <td><strong style="font-family: monospace;">${escapeHtml(insc.codigoReferencia || '-')}</strong></td>
                     <td>${pagosInfo.cuotasPagadas}/${pagosInfo.numeroCuotas}</td>
                     <td>
                       <span class="badge ${pagoCompleto ? 'badge-completo' : 'badge-pendiente'}">
                         ${pagoCompleto ? 'Completo' : 'Pendiente'}
                       </span>
                     </td>
-                    <td>${insc.estado}</td>
+                    <td>${escapeHtml(insc.estado)}</td>
                   </tr>
                 `
         }).join('')}
@@ -657,12 +659,21 @@ export default function InscripcionesPage() {
       </html>
     `
 
-        printWindow.document.write(htmlContent)
-        printWindow.document.close()
-        printWindow.focus()
-        setTimeout(() => {
-            printWindow.print()
-        }, 250)
+        try {
+            printWindow.document.write(htmlContent)
+            printWindow.document.close()
+            printWindow.focus()
+            setTimeout(() => {
+                printWindow.print()
+                printWindow.onafterprint = () => printWindow.close()
+            }, 250)
+        } catch (err) {
+            printWindow.close()
+            toast.error('Error al generar la vista de impresión', {
+                description: 'Intenta exportar a CSV como alternativa.',
+                duration: 5000,
+            })
+        }
     }
 
     // Función para exportar a CSV
@@ -725,7 +736,9 @@ export default function InscripcionesPage() {
 
         const csvContent = [
             headers.join(','),
-            ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ...rows.map(row =>
+                row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+            ),
         ].join('\n')
 
         const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -852,6 +865,7 @@ export default function InscripcionesPage() {
                                     Agregar
                                 </Button>
                                 <Button
+                                    type="button"
                                     size="sm"
                                     variant="outline"
                                     onClick={() => setShowRecordatoriosDialog(true)}
@@ -870,6 +884,7 @@ export default function InscripcionesPage() {
                                     Reporte
                                 </Button>
                                 <Button
+                                    type="button"
                                     variant="outline"
                                     size="sm"
                                     onClick={handleExportInscripciones}
@@ -893,7 +908,12 @@ export default function InscripcionesPage() {
                                     className="pl-10"
                                 />
                             </div>
-                            <Select value={estadoFilter} onValueChange={setEstadoFilter}>
+                            <Select
+                                value={estadoFilter}
+                                onValueChange={(v) =>
+                                    setEstadoFilter(v as 'todos' | 'pendiente' | 'confirmado' | 'cancelado')
+                                }
+                            >
                                 <SelectTrigger className="w-full sm:w-[180px]">
                                     <SelectValue placeholder="Estado" />
                                 </SelectTrigger>
@@ -960,8 +980,8 @@ export default function InscripcionesPage() {
                                                                 </h3>
                                                                 {/* Badge de origen de inscripción */}
                                                                 {insc.origenRegistro === 'mobile' ? (
-                                                                    <Badge 
-                                                                        variant="outline" 
+                                                                    <Badge
+                                                                        variant="outline"
                                                                         className="bg-purple-50 dark:bg-purple-950/30 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 text-xs"
                                                                         title="Pastor registrado - Inscrito desde la app móvil (requiere cuenta)"
                                                                     >
@@ -969,8 +989,8 @@ export default function InscripcionesPage() {
                                                                         Pastor App
                                                                     </Badge>
                                                                 ) : insc.origenRegistro === 'dashboard' ? (
-                                                                    <Badge 
-                                                                        variant="outline" 
+                                                                    <Badge
+                                                                        variant="outline"
                                                                         className="bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 text-xs"
                                                                         title="Inscrito manualmente desde el dashboard de administración"
                                                                     >
@@ -978,8 +998,8 @@ export default function InscripcionesPage() {
                                                                         Admin
                                                                     </Badge>
                                                                 ) : (
-                                                                    <Badge 
-                                                                        variant="outline" 
+                                                                    <Badge
+                                                                        variant="outline"
                                                                         className="bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-xs"
                                                                         title="Inscrito desde el formulario web"
                                                                     >
@@ -989,8 +1009,8 @@ export default function InscripcionesPage() {
                                                                 )}
                                                                 {/* Badge de tipo de inscripción para invitados */}
                                                                 {insc.tipoInscripcion === 'invitado' && (
-                                                                    <Badge 
-                                                                        variant="outline" 
+                                                                    <Badge
+                                                                        variant="outline"
                                                                         className="bg-yellow-50 dark:bg-yellow-950/30 border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-300 text-xs"
                                                                         title="Invitado especial"
                                                                     >
@@ -1107,7 +1127,7 @@ export default function InscripcionesPage() {
                                                                 const todosPagosCompletados = pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
                                                                 const estaConfirmada = insc.estado === 'confirmado'
                                                                 const deshabilitado = todosPagosCompletados || estaConfirmada
-                                                                
+
                                                                 return (
                                                                     <Button
                                                                         variant="ghost"
@@ -1455,7 +1475,7 @@ export default function InscripcionesPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-            
+
             {/* Diálogo para crear inscripción manual */}
             <Dialog open={showNuevaInscripcionDialog} onOpenChange={setShowNuevaInscripcionDialog}>
                 <DialogContent className="max-w-lg">
@@ -1470,7 +1490,7 @@ export default function InscripcionesPage() {
                             Inscribe manualmente a un invitado, pastor o miembro a la convención activa.
                         </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="space-y-4 py-4">
                         {/* Convención activa info */}
                         {convenciones.find((c: any) => c.activa) && (
@@ -1483,7 +1503,7 @@ export default function InscripcionesPage() {
                                 </p>
                             </div>
                         )}
-                        
+
                         {/* Nombre y Apellido */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
@@ -1509,7 +1529,7 @@ export default function InscripcionesPage() {
                                 />
                             </div>
                         </div>
-                        
+
                         {/* Email */}
                         <div className="space-y-2">
                             <Label htmlFor="email">
@@ -1523,7 +1543,7 @@ export default function InscripcionesPage() {
                                 onChange={(e) => setNuevaInscripcionForm({ ...nuevaInscripcionForm, email: e.target.value })}
                             />
                         </div>
-                        
+
                         {/* Teléfono */}
                         <div className="space-y-2">
                             <Label htmlFor="telefono">Teléfono (Opcional)</Label>
@@ -1534,7 +1554,7 @@ export default function InscripcionesPage() {
                                 onChange={(e) => setNuevaInscripcionForm({ ...nuevaInscripcionForm, telefono: e.target.value })}
                             />
                         </div>
-                        
+
                         {/* Sede */}
                         <div className="space-y-2">
                             <Label htmlFor="sede">Iglesia / Sede (Opcional)</Label>
@@ -1545,7 +1565,7 @@ export default function InscripcionesPage() {
                                 onChange={(e) => setNuevaInscripcionForm({ ...nuevaInscripcionForm, sede: e.target.value })}
                             />
                         </div>
-                        
+
                         {/* Tipo de Inscripción */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
@@ -1587,7 +1607,7 @@ export default function InscripcionesPage() {
                                 </Select>
                             </div>
                         </div>
-                        
+
                         {/* Notas */}
                         <div className="space-y-2">
                             <Label htmlFor="notas">Notas (Opcional)</Label>
@@ -1599,7 +1619,7 @@ export default function InscripcionesPage() {
                                 onChange={(e) => setNuevaInscripcionForm({ ...nuevaInscripcionForm, notas: e.target.value })}
                             />
                         </div>
-                        
+
                         {/* Info */}
                         <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
                             <p className="text-xs text-blue-700 dark:text-blue-300">
@@ -1607,7 +1627,7 @@ export default function InscripcionesPage() {
                             </p>
                         </div>
                     </div>
-                    
+
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setShowNuevaInscripcionDialog(false)}>
                             Cancelar
@@ -1735,8 +1755,12 @@ export default function InscripcionesPage() {
                             </div>
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setShowRecordatoriosDialog(false)}>Cancelar</Button>
-                                <Button onClick={handleEnviarRecordatorios} disabled={enviarRecordatoriosMutation.isPending}
-                                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600">
+                                <Button
+                                    type="button"
+                                    onClick={handleEnviarRecordatorios}
+                                    disabled={enviarRecordatoriosMutation.isPending}
+                                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                                >
                                     {enviarRecordatoriosMutation.isPending ? (<><Loader2 className="size-4 mr-2 animate-spin" />Enviando...</>) : (<><Mail className="size-4 mr-2" />Enviar Recordatorios</>)}
                                 </Button>
                             </DialogFooter>
@@ -1850,25 +1874,25 @@ export default function InscripcionesPage() {
                                     onChange={(e) => setEditarForm({ ...editarForm, apellido: e.target.value })} />
                             </div>
                         </div>
-                        
+
                         <div className="space-y-2">
                             <Label htmlFor="edit-email">Correo Electrónico</Label>
                             <Input id="edit-email" type="email" value={editarForm.email}
                                 onChange={(e) => setEditarForm({ ...editarForm, email: e.target.value })} />
                         </div>
-                        
+
                         <div className="space-y-2">
                             <Label htmlFor="edit-telefono">Teléfono</Label>
                             <Input id="edit-telefono" value={editarForm.telefono}
                                 onChange={(e) => setEditarForm({ ...editarForm, telefono: e.target.value })} />
                         </div>
-                        
+
                         <div className="space-y-2">
                             <Label htmlFor="edit-sede">Iglesia / Sede</Label>
                             <Input id="edit-sede" value={editarForm.sede}
                                 onChange={(e) => setEditarForm({ ...editarForm, sede: e.target.value })} />
                         </div>
-                        
+
                         <div className="space-y-2">
                             <Label>Tipo de Inscripción</Label>
                             <Select value={editarForm.tipoInscripcion}
