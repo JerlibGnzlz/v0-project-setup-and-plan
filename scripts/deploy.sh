@@ -41,11 +41,9 @@ git reset --hard origin/$GIT_BRANCH
 # Install dependencies
 echo "📦 Instalando dependencias..."
 
-# Frontend
-echo "  → Frontend..."
-cd frontend
+# Frontend (Next.js en raíz)
+echo "  → Frontend (raíz)..."
 npm ci --legacy-peer-deps --production=false
-cd ..
 
 # Backend
 echo "  → Backend..."
@@ -68,11 +66,9 @@ cd ..
 # Build applications
 echo "🏗️  Construyendo aplicaciones..."
 
-# Build Frontend
+# Build Frontend (Next.js en raíz)
 echo "  → Frontend..."
-cd frontend
 npm run build
-cd ..
 
 # Build Backend
 echo "  → Backend..."
@@ -83,6 +79,13 @@ cd ..
 # Restart PM2
 echo "🔄 Reiniciando servicios con PM2..."
 pm2 restart ecosystem.config.js --update-env || pm2 start ecosystem.config.js
+
+# Actualizar Nginx si existe config
+if [ -f "nginx/amva.conf" ]; then
+  echo "🌐 Actualizando configuración Nginx..."
+  sudo cp nginx/amva.conf /etc/nginx/sites-available/amva 2>/dev/null || true
+  sudo nginx -t 2>/dev/null && sudo systemctl reload nginx 2>/dev/null || echo "⚠️  Nginx: verificar manualmente"
+fi
 
 echo "✅ Deployment completado!"
 echo ""
