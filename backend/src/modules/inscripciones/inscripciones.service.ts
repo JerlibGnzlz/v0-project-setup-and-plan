@@ -633,7 +633,7 @@ export class InscripcionesService {
                 })
 
                 // Enviar email directamente usando sendEmailToUser
-                // Este método usa EmailService correctamente configurado (SendGrid, Resend, o SMTP)
+                // Este método usa EmailService configurado con SMTP (Brevo, Gmail, etc.)
                 const emailSent = await this.notificationsService.sendEmailToUser(
                     inscripcion.email,
                     template.title,
@@ -657,7 +657,7 @@ export class InscripcionesService {
                     this.logger.error(`❌ CRÍTICO: No se pudo enviar email de inscripción a ${inscripcion.email}`)
                     this.logger.error(`   Origen: ${origenRegistro}`)
                     this.logger.error(`   Verifica la configuración de EmailService y los logs anteriores`)
-                    this.logger.error(`   Revisa que EmailService esté configurado correctamente (SendGrid/Resend/SMTP)`)
+                    this.logger.error(`   Revisa que EmailService esté configurado correctamente (SMTP_USER, SMTP_PASSWORD)`)
                 }
             }
 

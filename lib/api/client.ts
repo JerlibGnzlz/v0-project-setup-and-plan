@@ -2,6 +2,9 @@ import axios from 'axios'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
 
+// Lock para evitar múltiples refresh simultáneos (evita 429 cuando muchos requests fallan con 401)
+let refreshPromise: Promise<{ access_token: string; refresh_token?: string }> | null = null
+
 export const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
@@ -58,7 +61,7 @@ apiClient.interceptors.request.use((config: any) => {
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
-      
+
       // Log para debugging (solo en desarrollo o cuando hay errores 403)
       if (process.env.NODE_ENV === 'development' || requestUrl.includes('/usuarios')) {
         try {
@@ -110,13 +113,13 @@ apiClient.interceptors.response.use(
       // El componente puede manejar el error según sea necesario
       const networkError = new Error(
         `Error de conexión: No se pudo conectar con el servidor en ${API_URL}. ` +
-          `Verifica que el backend esté corriendo y accesible. ` +
-          `(${errorMessage})`
+        `Verifica que el backend esté corriendo y accesible. ` +
+        `(${errorMessage})`
       )
-      ;(networkError as any).isNetworkError = true
-      ;(networkError as any).code = errorCode
-      ;(networkError as any).requestUrl = requestUrl
-      ;(networkError as any).requestMethod = requestMethod
+        ; (networkError as any).isNetworkError = true
+        ; (networkError as any).code = errorCode
+        ; (networkError as any).requestUrl = requestUrl
+        ; (networkError as any).requestMethod = requestMethod
 
       return Promise.reject(networkError)
     }
@@ -126,14 +129,14 @@ apiClient.interceptors.response.use(
       const currentPath = window.location.pathname
       const requestUrl = error.config?.url || ''
       const requestMethod = error.config?.method?.toUpperCase() || 'UNKNOWN'
-      
+
       // Log detallado para debugging
       console.error('[apiClient] ❌ Error 403 (Forbidden) detectado')
       console.error('[apiClient] Path actual:', currentPath)
       console.error('[apiClient] Request URL:', requestUrl)
       console.error('[apiClient] Request Method:', requestMethod)
       console.error('[apiClient] Response data:', error.response?.data)
-      
+
       // Verificar token en storage
       const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
       console.error('[apiClient] Token presente:', !!token)
@@ -153,26 +156,26 @@ apiClient.interceptors.response.use(
       } else {
         console.error('[apiClient] ⚠️ No hay token en storage')
       }
-      
+
       // Si es una ruta de admin y el error es 403, probablemente el token tiene rol antiguo o falta permisos
       if (currentPath.startsWith('/admin')) {
         const errorData = error.response?.data
         let errorMessage = 'No tienes permisos para realizar esta acción'
-        
+
         if (errorData && typeof errorData === 'object' && 'message' in errorData) {
           errorMessage = String(errorData.message)
         }
-        
+
         console.warn('[apiClient] Error 403:', errorMessage)
         console.warn('[apiClient] 💡 Solución: Si acabas de cambiar tu rol, cierra sesión y vuelve a iniciar sesión para obtener un nuevo token.')
-        
+
         // Crear un error más descriptivo
         const forbiddenError = new Error(errorMessage)
-        ;(forbiddenError as any).status = 403
-        ;(forbiddenError as any).response = error.response
+          ; (forbiddenError as any).status = 403
+          ; (forbiddenError as any).response = error.response
         return Promise.reject(forbiddenError)
       }
-      
+
       return Promise.reject(error)
     }
 
@@ -180,7 +183,7 @@ apiClient.interceptors.response.use(
     if (typeof window !== 'undefined' && error.response?.status === 401) {
       const currentPath = window.location.pathname
       const requestUrl = error.config?.url || ''
-      
+
       // Intentar refrescar token solo para admin (no para refresh endpoint ni login)
       if (
         currentPath.startsWith('/admin') &&
@@ -193,12 +196,14 @@ apiClient.interceptors.response.use(
           sessionStorage.getItem('auth_refresh_token')
 
         if (refreshToken && error.config) {
-          // Usar función async para manejar la promesa
           const refreshAndRetry = async () => {
             try {
-              // Importar dinámicamente para evitar dependencias circulares
-              const { authApi } = await import('./auth')
-              const response = await authApi.refreshToken(refreshToken)
+              // Si ya hay un refresh en curso, esperar a que termine (evita 429 por múltiples refresh)
+              if (!refreshPromise) {
+                const { authApi } = await import('./auth')
+                refreshPromise = authApi.refreshToken(refreshToken)
+              }
+              const response = await refreshPromise
 
               // Guardar nuevos tokens
               const storage = localStorage.getItem('auth_token')
@@ -215,13 +220,14 @@ apiClient.interceptors.response.use(
                 return apiClient.request(error.config)
               }
             } catch (refreshError) {
+              refreshPromise = null
               console.error('[apiClient] Error al refrescar token:', refreshError)
-              // Si falla el refresh, continuar con el logout
               throw refreshError
+            } finally {
+              refreshPromise = null
             }
           }
 
-          // Retornar la promesa para que axios la maneje
           return refreshAndRetry().catch(() => {
             // Si falla, continuar con el flujo normal de logout
           })

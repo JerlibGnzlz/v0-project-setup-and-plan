@@ -1803,8 +1803,7 @@ export default function InscripcionesPage() {
                                             <ul className="text-xs text-amber-700 dark:text-amber-300 mt-1 ml-4 list-disc space-y-0.5">
                                                 <li><strong>Brevo SMTP:</strong> Usa clave SMTP (xsmtpsib-), NO la API key (xkeysib-)</li>
                                                 <li><strong>Dominio:</strong> Verifica tu dominio en Brevo y usa noreply@tudominio.com en SMTP_USER</li>
-                                                <li>SendGrid/Resend: sin créditos o email/dominio no verificado</li>
-                                                <li>Variables de entorno incorrectas en el servidor</li>
+                                                <li>Variables de entorno incorrectas en el servidor (SMTP_USER, SMTP_PASSWORD)</li>
                                             </ul>
                                             <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
                                                 💡 Revisa los logs del backend para más detalles específicos.

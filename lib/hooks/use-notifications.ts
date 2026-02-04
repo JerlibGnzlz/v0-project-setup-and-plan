@@ -56,10 +56,7 @@ export function useUnreadCount() {
     queryFn: async () => {
       try {
         const count = await notificationsApi.getUnreadCount()
-        // Asegurar que siempre retorne un número válido
-        const safeCount = typeof count === 'number' ? count : 0
-        console.log('[useUnreadCount] Conteo obtenido:', safeCount)
-        return safeCount
+        return typeof count === 'number' ? count : 0
       } catch (error) {
         console.error('[useUnreadCount] Error obteniendo conteo:', error)
         return 0

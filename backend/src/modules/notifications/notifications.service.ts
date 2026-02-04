@@ -51,12 +51,8 @@ export class NotificationsService {
       this.logger.log(`📧 [NotificationsService] Enviando email a ${email}`)
       this.logger.log(`📧 [NotificationsService] Título: ${title}`)
       this.logger.log(`📧 [NotificationsService] Body length: ${body.length} caracteres`)
-      this.logger.log(`📧 [NotificationsService] Email Provider configurado: ${process.env.EMAIL_PROVIDER || 'auto'}`)
-      this.logger.log(`📧 [NotificationsService] SendGrid API Key configurado: ${process.env.SENDGRID_API_KEY ? 'Sí' : 'No'}`)
-      this.logger.log(`📧 [NotificationsService] SendGrid FROM Email configurado: ${process.env.SENDGRID_FROM_EMAIL ? 'Sí' : 'No'}`)
-      if (process.env.SENDGRID_FROM_EMAIL) {
-        this.logger.log(`📧 [NotificationsService] SendGrid FROM Email: ${process.env.SENDGRID_FROM_EMAIL}`)
-      }
+      this.logger.log(`📧 [NotificationsService] Email Provider: ${process.env.EMAIL_PROVIDER || 'smtp'}`)
+      this.logger.log(`📧 [NotificationsService] SMTP configurado: ${process.env.SMTP_USER ? 'Sí' : 'No'}`)
 
       const emailSent = await this.emailService.sendNotificationEmail(
         email,
@@ -321,7 +317,7 @@ export class NotificationsService {
   ): Promise<void> {
     try {
       this.logger.log(`📧 Enviando notificación a admin: ${email}`)
-      
+
       // 1. Verificar si es admin (User)
       const user = await this.prisma.user.findUnique({
         where: { email },
@@ -343,7 +339,7 @@ export class NotificationsService {
 
       // 3. Determinar pastorId para NotificationHistory
       let pastorIdForNotification: string | null = null
-      
+
       if (pastor) {
         // Si es pastor, usar su propio ID
         pastorIdForNotification = pastor.id
@@ -358,7 +354,7 @@ export class NotificationsService {
         if (!systemPastor) {
           this.logger.warn(`⚠️ No hay pastores disponibles para asociar notificación de admin: ${email}`)
           this.logger.log(`📧 Notificación para admin ${email} no se guardará en NotificationHistory (no hay pastores)`)
-          
+
           // Enviar solo email y WebSocket si es posible
           try {
             await this.sendEmailToAdmin(email, title, body, data)
@@ -366,7 +362,7 @@ export class NotificationsService {
             const emailErrorMessage = emailError instanceof Error ? emailError.message : 'Error desconocido'
             this.logger.warn(`No se pudo enviar email a admin ${email}: ${emailErrorMessage}`)
           }
-          
+
           // Intentar emitir WebSocket aunque no se guarde en BD
           if (this.notificationsGateway) {
             try {
@@ -385,7 +381,7 @@ export class NotificationsService {
               this.logger.warn(`⚠️ Error emitiendo WebSocket para admin ${email}: ${wsErrorMessage}`)
             }
           }
-          
+
           return
         }
 
@@ -420,7 +416,7 @@ export class NotificationsService {
         if (dbErrorStack) {
           this.logger.error(`Stack trace: ${dbErrorStack}`)
         }
-        
+
         // Intentar enviar solo email y WebSocket
         try {
           await this.sendEmailToAdmin(email, title, body, data)
@@ -428,7 +424,7 @@ export class NotificationsService {
           const emailErrorMessage = emailError instanceof Error ? emailError.message : 'Error desconocido'
           this.logger.warn(`No se pudo enviar email a admin ${email}: ${emailErrorMessage}`)
         }
-        
+
         // Intentar emitir WebSocket aunque no se guarde en BD
         if (this.notificationsGateway) {
           try {
@@ -447,7 +443,7 @@ export class NotificationsService {
             this.logger.warn(`⚠️ Error emitiendo WebSocket para admin ${email}: ${wsErrorMessage}`)
           }
         }
-        
+
         return
       }
 
@@ -1299,8 +1295,8 @@ export class NotificationsService {
             : tipo === 'por_vencer'
               ? { fechaVencimiento: { gte: hoy, lte: en30Dias } }
               : {
-                  OR: [{ fechaVencimiento: { lt: hoy } }, { fechaVencimiento: { gte: hoy, lte: en30Dias } }],
-                }),
+                OR: [{ fechaVencimiento: { lt: hoy } }, { fechaVencimiento: { gte: hoy, lte: en30Dias } }],
+              }),
         },
         include: {
           invitado: {
@@ -1415,8 +1411,8 @@ export class NotificationsService {
             : tipo === 'por_vencer'
               ? { fechaVencimiento: { gte: hoy, lte: en30Dias } }
               : {
-                  OR: [{ fechaVencimiento: { lt: hoy } }, { fechaVencimiento: { gte: hoy, lte: en30Dias } }],
-                }),
+                OR: [{ fechaVencimiento: { lt: hoy } }, { fechaVencimiento: { gte: hoy, lte: en30Dias } }],
+              }),
         },
         include: {
           invitado: {
@@ -1543,10 +1539,10 @@ export class NotificationsService {
       for (const usuario of usuariosUnicos) {
         try {
           const estadoTexto = usuario.estado === 'vencida' ? 'vencida' : 'por vencer'
-          const diasTexto = usuario.estado === 'vencida' 
-            ? `hace ${usuario.diasRestantes} días` 
+          const diasTexto = usuario.estado === 'vencida'
+            ? `hace ${usuario.diasRestantes} días`
             : `en ${usuario.diasRestantes} días`
-          
+
           const titulo = `Credencial ${estadoTexto.charAt(0).toUpperCase() + estadoTexto.slice(1)}`
           const mensaje = `Tu credencial ${usuario.tipoCredencial === 'ministerial' ? 'ministerial' : 'de capellanía'} está ${estadoTexto} (vence ${diasTexto}). Por favor, renueva tu credencial.`
 

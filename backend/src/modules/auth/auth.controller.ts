@@ -1,4 +1,14 @@
-import { Controller, Post, UseGuards, Get, Request, Body, HttpCode, HttpStatus } from '@nestjs/common'
+import {
+  Controller,
+  Post,
+  UseGuards,
+  Get,
+  Request,
+  Body,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common'
+import { SkipThrottle } from '@nestjs/throttler'
 import { AuthService } from './auth.service'
 import { UnifiedAuthService } from './unified-auth.service'
 import { LoginDto, RegisterDto, RefreshTokenDto, RegisterDeviceDto, ForgotPasswordDto, ResetPasswordDto, ChangePasswordDto } from './dto/auth.dto'
@@ -15,7 +25,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private unifiedAuthService: UnifiedAuthService
-  ) {}
+  ) { }
 
   @ThrottleRegister()
   @Post('register')
@@ -27,8 +37,8 @@ export class AuthController {
   @Post('login')
   async login(@Body() dto: LoginDto, @Request() req: { ip?: string; headers: Record<string, string | string[] | undefined> }) {
     // Obtener IP del cliente para logs de seguridad
-    const forwardedFor = Array.isArray(req.headers['x-forwarded-for']) 
-      ? req.headers['x-forwarded-for'][0] 
+    const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
+      ? req.headers['x-forwarded-for'][0]
       : req.headers['x-forwarded-for']
     const clientIp = req.ip || forwardedFor || ''
     return this.authService.login(dto, clientIp)
@@ -56,7 +66,9 @@ export class AuthController {
     return this.authService.loginMobile(dto)
   }
 
-  // Endpoint para refresh token (mobile)
+  // Endpoint para refresh token - excluido de rate limiting para evitar 429
+  // cuando múltiples requests con token expirado intentan refrescar simultáneamente
+  @SkipThrottle()
   @Post('refresh')
   async refreshToken(@Body() dto: RefreshTokenDto) {
     return this.authService.refreshAccessToken(dto.refreshToken)
