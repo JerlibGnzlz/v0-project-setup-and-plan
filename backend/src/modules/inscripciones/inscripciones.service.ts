@@ -2873,9 +2873,10 @@ export class InscripcionesService {
             this.logger.log(`✅ [Recordatorio] Template obtenido exitosamente`)
             this.logger.log(`   📧 Título: ${template.title}`)
             this.logger.log(`   📧 Body length: ${template.body.length} caracteres`)
-            this.logger.log(`   📧 Email Provider configurado: ${process.env.EMAIL_PROVIDER || 'gmail'}`)
-            this.logger.log(`   📧 SMTP_USER configurado: ${process.env.SMTP_USER ? 'Sí' : 'No'}`)
-            this.logger.log(`   📧 SMTP_PASSWORD configurado: ${process.env.SMTP_PASSWORD ? 'Sí' : 'No'}`)
+            this.logger.log(`   📧 EMAIL_PROVIDER: ${process.env.EMAIL_PROVIDER || '(no definido)'}`)
+            this.logger.log(`   📧 BREVO_API_KEY: ${process.env.BREVO_API_KEY ? 'Configurada' : 'NO configurada'}`)
+            this.logger.log(`   📧 SMTP_USER: ${process.env.SMTP_USER ? 'Configurado' : 'No'}`)
+            this.logger.log(`   📧 SMTP_PASSWORD: ${process.env.SMTP_PASSWORD ? 'Configurado' : 'No'}`)
 
             // Enviar email usando sendEmailToUser (usa EmailService correctamente configurado)
             // Si EMAIL_PROVIDER=gmail o EMAIL_PROVIDER=smtp, usará Nodemailer automáticamente
@@ -2899,9 +2900,10 @@ export class InscripcionesService {
             if (resultado) {
                 this.logger.log(`✅ [Recordatorio] Email enviado EXITOSAMENTE a ${inscripcion.email}`)
             } else {
-                // Error más conciso (los detalles ya están en EmailService)
                 this.logger.error(`❌ [Recordatorio] No se pudo enviar email a ${inscripcion.email}`)
-                this.logger.error(`   💡 Brevo SMTP: verifica SMTP_USER, SMTP_PASSWORD (xsmtpsib-), o prueba SMTP_PORT=2525`)
+                this.logger.error(`   💡 Si usas brevo-api: verifica BREVO_API_KEY=xkeysib-... en .env`)
+                this.logger.error(`   💡 Si usas SMTP: verifica SMTP_USER, SMTP_PASSWORD (xsmtpsib-), SMTP_PORT=2525`)
+                this.logger.error(`   💡 Revisa los logs de EmailService/NotificationsService arriba para el error exacto`)
             }
 
             return resultado
@@ -2915,10 +2917,8 @@ export class InscripcionesService {
                 message: errorMessage,
                 stack: errorStack,
             })
-            this.logger.error(`   ⚠️ Verifica que EMAIL_PROVIDER=gmail o EMAIL_PROVIDER=smtp esté configurado`)
-            this.logger.error(`   ⚠️ Verifica que SMTP_USER y SMTP_PASSWORD estén configurados correctamente`)
-            this.logger.error(`   ⚠️ Verifica que SMTP_HOST y SMTP_PORT sean correctos`)
-            this.logger.error(`   ⚠️ Para Gmail, necesitas una App Password: https://myaccount.google.com/apppasswords`)
+            this.logger.error(`   ⚠️ brevo-api: EMAIL_PROVIDER=brevo-api + BREVO_API_KEY=xkeysib-...`)
+            this.logger.error(`   ⚠️ SMTP: SMTP_USER, SMTP_PASSWORD (xsmtpsib-), SMTP_HOST, SMTP_PORT=2525`)
             this.logger.error(`❌ [Recordatorio] ========================================`)
             return false
         }

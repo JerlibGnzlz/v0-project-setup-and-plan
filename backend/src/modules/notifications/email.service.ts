@@ -25,20 +25,23 @@ export class EmailService {
       this.configureBrevoApi()
     }
 
-    if (this.emailProvider !== 'brevo-api') {
-      if (providerEnv === 'gmail' || providerEnv === 'smtp') {
-        this.emailProvider = providerEnv
-      }
-      this.configureSMTP()
+    if (providerEnv === 'gmail' || providerEnv === 'smtp') {
+      this.emailProvider = providerEnv
     }
+
+    // Siempre configurar SMTP como fallback si hay credenciales (por si Brevo API no está configurada)
+    this.configureSMTP()
 
     if (!this.brevoApi && !this.transporter) {
       this.logger.error('❌ No se pudo configurar el proveedor de email')
-      this.logger.error('   Opción 1 (recomendado para Digital Ocean): EMAIL_PROVIDER=brevo-api, BREVO_API_KEY=xkeysib-...')
-      this.logger.error('   Opción 2: SMTP_USER y SMTP_PASSWORD (Brevo: clave xsmtpsib-)')
+      this.logger.error('   Opción 1 (recomendado): EMAIL_PROVIDER=brevo-api + BREVO_API_KEY=xkeysib-...')
+      this.logger.error('   Opción 2: SMTP_USER + SMTP_PASSWORD (Brevo SMTP: clave xsmtpsib-, puerto 2525)')
     } else {
       const provider = this.brevoApi ? 'Brevo API' : 'SMTP'
       this.logger.log(`✅ EmailService configurado con ${provider}`)
+      this.logger.log(`   📋 EMAIL_PROVIDER=${process.env.EMAIL_PROVIDER || '(no definido)'}`)
+      this.logger.log(`   📋 BREVO_API_KEY: ${process.env.BREVO_API_KEY ? 'Configurada' : 'NO configurada'}`)
+      this.logger.log(`   📋 SMTP_USER: ${process.env.SMTP_USER ? 'Configurado' : 'NO configurado'}`)
     }
   }
 
@@ -46,7 +49,12 @@ export class EmailService {
    * Configura Brevo API (HTTPS - no bloqueado en Digital Ocean)
    */
   private configureBrevoApi(): void {
-    const apiKey = process.env.BREVO_API_KEY
+    // BREVO_API_KEY tiene prioridad; fallback: SMTP_PASSWORD si es xkeysib- (API key)
+    let apiKey = process.env.BREVO_API_KEY
+    if (!apiKey && process.env.SMTP_PASSWORD?.startsWith('xkeysib-')) {
+      this.logger.warn('⚠️ Usando SMTP_PASSWORD como BREVO_API_KEY (deberías usar BREVO_API_KEY en .env)')
+      apiKey = process.env.SMTP_PASSWORD
+    }
     if (!apiKey || !apiKey.startsWith('xkeysib-')) {
       this.logger.warn('⚠️ BREVO_API_KEY no configurada o formato incorrecto (debe empezar con xkeysib-)')
       return
@@ -68,9 +76,13 @@ export class EmailService {
    * Configura SMTP (Brevo, Gmail, etc.)
    */
   private configureSMTP(): void {
+    const isBrevo = (process.env.SMTP_HOST || '').includes('brevo')
+    const defaultHost = isBrevo ? 'smtp-relay.brevo.com' : 'smtp.gmail.com'
+    const defaultPort = isBrevo ? '2525' : '587'
+
     const emailConfig = {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
+      host: process.env.SMTP_HOST || defaultHost,
+      port: parseInt(process.env.SMTP_PORT || defaultPort),
       secure: process.env.SMTP_SECURE === 'true',
       auth: {
         user: process.env.SMTP_USER,
@@ -86,6 +98,14 @@ export class EmailService {
     const cleanPassword = String(emailConfig.auth.pass).replace(/\s/g, '')
     if (!cleanPassword || cleanPassword.length === 0) {
       this.logger.error('❌ SMTP_PASSWORD está vacío o solo contiene espacios')
+      return
+    }
+
+    // Brevo SMTP: debe usar clave SMTP (xsmtpsib-), NO API key (xkeysib-)
+    if (emailConfig.host.includes('brevo') && cleanPassword.startsWith('xkeysib-')) {
+      this.logger.error('❌ Brevo SMTP: SMTP_PASSWORD debe ser la clave SMTP (xsmtpsib-), NO la API key (xkeysib-)')
+      this.logger.error('   Opción 1: Usa EMAIL_PROVIDER=brevo-api con BREVO_API_KEY=xkeysib-... (recomendado para Digital Ocean)')
+      this.logger.error('   Opción 2: Obtén la clave SMTP en Brevo → SMTP & API → Claves SMTP')
       return
     }
 
@@ -126,6 +146,9 @@ export class EmailService {
       if (this.transporter) {
         this.logger.log('✅ SMTP configurado correctamente')
         this.logger.log(`📧 SMTP: ${emailConfig.host}:${emailConfig.port}`)
+        if (emailConfig.host.includes('brevo')) {
+          this.logger.log('   Brevo: Verifica tu dominio en Brevo y usa noreply@tudominio.com en SMTP_USER')
+        }
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
@@ -150,6 +173,7 @@ export class EmailService {
 
     // Prioridad: Brevo API (funciona en Digital Ocean)
     if (this.brevoApi) {
+      this.logger.log(`📧 [EmailService] Usando Brevo API para enviar a ${to}`)
       const result = await this.sendWithBrevoApi(to, title, body, data)
       if (result) return true
       this.logger.warn('⚠️ Brevo API falló, intentando SMTP...')
@@ -157,6 +181,7 @@ export class EmailService {
 
     // Fallback: SMTP
     if (this.transporter) {
+      this.logger.log(`📧 [EmailService] Usando SMTP para enviar a ${to}`)
       return this.sendWithSMTP(to, title, body, data)
     }
 
@@ -204,7 +229,15 @@ export class EmailService {
       return false
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const err = error as { response?: { status?: number; data?: unknown; body?: unknown } }
       this.logger.error(`❌ Error Brevo API a ${to}:`, { message: errorMessage })
+      if (err.response) {
+        this.logger.error(`   📋 Brevo API HTTP status: ${err.response.status}`)
+        this.logger.error(`   📋 Brevo API response: ${JSON.stringify(err.response.data || err.response.body || {})}`)
+      }
+      if (error instanceof Error && error.stack) {
+        this.logger.log(`   📋 Stack: ${error.stack.split('\n').slice(0, 3).join(' | ')}`)
+      }
       return false
     }
   }

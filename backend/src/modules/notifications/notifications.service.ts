@@ -67,7 +67,10 @@ export class NotificationsService {
         return true
       } else {
         this.logger.error(`❌ [NotificationsService] No se pudo enviar email a ${email}`)
-        this.logger.error(`📧 [NotificationsService] Verifica los logs de EmailService para más detalles`)
+        this.logger.error(`   📋 EMAIL_PROVIDER=${process.env.EMAIL_PROVIDER || '(no definido)'}`)
+        this.logger.error(`   📋 BREVO_API_KEY: ${process.env.BREVO_API_KEY ? 'Configurada' : 'NO configurada (requerida si EMAIL_PROVIDER=brevo-api)'}`)
+        this.logger.error(`   📋 SMTP_USER: ${process.env.SMTP_USER ? 'Configurado' : 'NO configurado'}`)
+        this.logger.error(`📧 [NotificationsService] Verifica los logs de EmailService arriba para el error específico`)
         this.logger.error(`📧 [NotificationsService] ========================================`)
         return false
       }

@@ -1801,12 +1801,13 @@ export default function InscripcionesPage() {
                                                 Los emails fallidos pueden deberse a:
                                             </p>
                                             <ul className="text-xs text-amber-700 dark:text-amber-300 mt-1 ml-4 list-disc space-y-0.5">
+                                                <li><strong>Recomendado (Digital Ocean):</strong> EMAIL_PROVIDER=brevo-api + BREVO_API_KEY=xkeysib-...</li>
                                                 <li><strong>Brevo SMTP:</strong> Usa clave SMTP (xsmtpsib-), NO la API key (xkeysib-)</li>
-                                                <li><strong>Dominio:</strong> Verifica tu dominio en Brevo y usa noreply@tudominio.com en SMTP_USER</li>
-                                                <li>Variables de entorno incorrectas en el servidor (SMTP_USER, SMTP_PASSWORD)</li>
+                                                <li><strong>Dominio:</strong> Verifica tu dominio en Brevo y usa noreply@tudominio.com</li>
+                                                <li>Variables incorrectas en el servidor (SMTP_USER, SMTP_PASSWORD, BREVO_API_KEY)</li>
                                             </ul>
                                             <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
-                                                💡 Revisa los logs del backend para más detalles específicos.
+                                                💡 Revisa los logs del backend (pm2 logs) para el error específico.
                                             </p>
                                         </div>
                                     )}
