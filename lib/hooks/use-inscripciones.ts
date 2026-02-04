@@ -181,7 +181,7 @@ export function useEnviarRecordatorios() {
         })
       } else if (data.enviados === 0 && data.fallidos > 0) {
         toast.error(`❌ No se pudieron enviar los recordatorios`, {
-          description: `Todos los ${data.fallidos} intentos fallaron. Verifica en el servidor: Resend (RESEND_API_KEY, RESEND_FROM_EMAIL verificado) o SendGrid (SENDGRID_API_KEY, SENDGRID_FROM_EMAIL). Revisa los logs del backend.`,
+          description: `Todos los ${data.fallidos} intentos fallaron. Verifica en el servidor: Brevo SMTP (EMAIL_PROVIDER=smtp, SMTP_USER, SMTP_PASSWORD con clave xsmtpsib-), o dominio verificado en Brevo. Revisa los logs del backend.`,
           duration: 8000,
         })
       } else {

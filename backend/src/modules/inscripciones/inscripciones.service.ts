@@ -2901,7 +2901,7 @@ export class InscripcionesService {
             } else {
                 // Error más conciso (los detalles ya están en EmailService)
                 this.logger.error(`❌ [Recordatorio] No se pudo enviar email a ${inscripcion.email}`)
-                this.logger.error(`   💡 Si usas Gmail SMTP desde Render, configura SendGrid o Resend para producción`)
+                this.logger.error(`   💡 Brevo SMTP: verifica SMTP_USER, SMTP_PASSWORD (xsmtpsib-), o prueba SMTP_PORT=2525`)
             }
 
             return resultado

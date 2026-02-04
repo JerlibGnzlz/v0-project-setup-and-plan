@@ -32,7 +32,28 @@ Si usas `RESEND_FROM_EMAIL=jerlibgnzlz@gmail.com`, **debes verificar ese email e
 
 **Guía detallada:** `docs/VERIFICAR_EMAIL_RESEND.md`
 
-## Solución 2: Usar SendGrid como Alternativa
+## Solución 2: Brevo SMTP con Dominio (Recomendado si tienes dominio)
+
+Si tienes un dominio (ej: amva.org.es) verificado en Brevo:
+
+```bash
+# En el servidor (/var/www/amva-production/backend/.env)
+EMAIL_PROVIDER=smtp
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+# Si 587 da timeout, prueba: SMTP_PORT=2525 (alternativa Brevo)
+SMTP_USER=noreply@amva.org.es
+SMTP_PASSWORD=xsmtpsib-xxxxxxxxxxxxxxxx   # Clave SMTP, NO la API key (xkeysib-)
+SMTP_FROM_EMAIL=noreply@amva.org.es       # Opcional, por defecto usa SMTP_USER
+SMTP_FROM_NAME=AMVA Digital
+```
+
+**Importante:** Usa la **clave SMTP** (empieza con `xsmtpsib-`), no la API key (`xkeysib-`).
+- Brevo → Configuración → SMTP & API → Generar nueva clave SMTP
+
+**Con dominio verificado:** El email remitente debe ser del dominio (noreply@amva.org.es).
+
+## Solución 3: Usar SendGrid como Alternativa
 
 Si Resend sigue fallando, configura SendGrid en el servidor:
 
@@ -77,8 +98,10 @@ Con el cambio en el código, si tienes **ambos** Resend y SendGrid configurados:
 
 ## Checklist Rápido
 
-- [ ] Email verificado en Resend (si usas Resend)
-- [ ] O SendGrid configurado (SENDGRID_API_KEY, SENDGRID_FROM_EMAIL)
+- [ ] **Brevo SMTP:** EMAIL_PROVIDER=smtp, SMTP_USER, SMTP_PASSWORD (clave xsmtpsib-)
+- [ ] **Dominio:** Verificado en Brevo, usar noreply@tudominio.com
+- [ ] O Resend: email/dominio verificado
+- [ ] O SendGrid: SENDGRID_API_KEY, SENDGRID_FROM_EMAIL
 - [ ] Variables en `.env` del servidor (no solo local)
 - [ ] Backend reiniciado después de cambiar `.env`
 - [ ] Probar botón de recordatorios

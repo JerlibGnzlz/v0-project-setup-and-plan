@@ -243,14 +243,14 @@ export class EmailService {
           host: emailConfig.host,
           port: emailConfig.port,
           secure: emailConfig.secure,
+          requireTLS: emailConfig.port === 587, // STARTTLS para puerto 587 (Brevo)
           auth: {
             user: emailConfig.auth.user,
             pass: cleanPassword,
           },
-          // Configuración de timeouts más robusta para evitar ETIMEDOUT
-          connectionTimeout: 60000, // 60 segundos para establecer conexión (aumentado)
-          greetingTimeout: 60000, // 60 segundos para recibir saludo del servidor (aumentado)
-          socketTimeout: 60000, // 60 segundos para operaciones de socket (aumentado)
+          connectionTimeout: 30000, // 30 segundos para conectar
+          greetingTimeout: 30000,
+          socketTimeout: 60000, // 60 segundos para envío completo
           // Opciones adicionales para mejorar la conexión
           pool: false, // Deshabilitar pool para evitar problemas de conexión persistente
           maxConnections: 1, // Una conexión a la vez
@@ -734,15 +734,19 @@ export class EmailService {
       // Extraer texto plano del HTML para la versión de texto
       const textContent = body.replace(/<[^>]*>/g, '').trim() || title
 
+      // SMTP_FROM_EMAIL permite usar dominio (ej: noreply@amva.org.es) cuando está verificado en Brevo
+      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER
+      const fromName = process.env.SMTP_FROM_NAME || 'AMVA Digital'
+
       const mailOptions = {
-        from: `"AMVA Digital" <${process.env.SMTP_USER}>`,
+        from: `"${fromName}" <${fromEmail}>`,
         to,
         subject: title,
         html: htmlContent,
         text: textContent,
       }
 
-      this.logger.log(`📧 Enviando email a ${to} desde ${process.env.SMTP_USER} (SMTP)...`)
+      this.logger.log(`📧 Enviando email a ${to} desde ${fromEmail} (SMTP)...`)
 
       // Agregar timeout adicional para la operación completa (aumentado a 90 segundos)
       // También agregar reintentos para manejar timeouts temporales
@@ -759,7 +763,7 @@ export class EmailService {
 
           const sendPromise = this.transporter!.sendMail(mailOptions)
           const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error('Timeout: El envío SMTP tardó más de 25 segundos')), 25000)
+            setTimeout(() => reject(new Error('Timeout: El envío SMTP tardó más de 60 segundos')), 60000)
           })
 
           const info = await Promise.race([sendPromise, timeoutPromise])
@@ -803,9 +807,8 @@ export class EmailService {
 
       // Mensajes de error más específicos (solo para debugging, no repetir en cada email)
       if (errorCode === 'ETIMEDOUT' || errorMessage.includes('Timeout')) {
-        // Solo mostrar el mensaje completo una vez, no en cada intento
-        this.logger.error('   ⚠️ Gmail SMTP bloqueado desde servicios cloud (común en Render/Digital Ocean)')
-        this.logger.error('   💡 SOLUCIÓN: Configura SendGrid o Resend (ver logs anteriores para instrucciones)')
+        this.logger.error('   ⚠️ Timeout de conexión SMTP (Brevo puede ser lento desde cloud)')
+        this.logger.error('   💡 Prueba SMTP_PORT=2525 en .env (alternativa a 587) o verifica firewall')
       } else if (errorCode === 'EAUTH') {
         this.logger.error('   ⚠️ Error de autenticación SMTP. Verifica SMTP_USER y SMTP_PASSWORD')
         this.logger.error('   💡 Brevo: usa clave SMTP (xsmtpsib-), NO la API key (xkeysib-)')

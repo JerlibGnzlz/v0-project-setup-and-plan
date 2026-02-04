@@ -1801,10 +1801,10 @@ export default function InscripcionesPage() {
                                                 Los emails fallidos pueden deberse a:
                                             </p>
                                             <ul className="text-xs text-amber-700 dark:text-amber-300 mt-1 ml-4 list-disc space-y-0.5">
-                                                <li>SendGrid sin créditos disponibles (límite 100/día en plan gratuito)</li>
-                                                <li>Resend sin email/dominio verificado</li>
-                                                <li>Gmail SMTP bloqueado desde servicios cloud</li>
-                                                <li>Configuración incorrecta de variables de entorno</li>
+                                                <li><strong>Brevo SMTP:</strong> Usa clave SMTP (xsmtpsib-), NO la API key (xkeysib-)</li>
+                                                <li><strong>Dominio:</strong> Verifica tu dominio en Brevo y usa noreply@tudominio.com en SMTP_USER</li>
+                                                <li>SendGrid/Resend: sin créditos o email/dominio no verificado</li>
+                                                <li>Variables de entorno incorrectas en el servidor</li>
                                             </ul>
                                             <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
                                                 💡 Revisa los logs del backend para más detalles específicos.
