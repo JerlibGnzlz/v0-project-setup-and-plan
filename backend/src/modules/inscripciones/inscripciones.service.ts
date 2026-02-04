@@ -273,11 +273,13 @@ export class InscripcionesService {
      * Si el origen es 'web' o 'mobile', crea automáticamente los pagos según numeroCuotas
      */
     async createInscripcion(dto: CreateInscripcionDto): Promise<Inscripcion> {
-        this.logger.log(
-            `📝 Creando inscripción para: ${dto.nombre} (origen: ${dto.origenRegistro || 'web'})`
-        )
-
         const origenRegistro = dto.origenRegistro || 'web'
+        this.logger.log(
+            `📝 Creando inscripción para: ${dto.nombre} (origen: ${origenRegistro})${origenRegistro === 'mobile' ? ' [APP MÓVIL]' : ''}`
+        )
+        if (origenRegistro === 'mobile') {
+            this.logger.log(`📱 [MOBILE] Email a notificar: ${dto.email}`)
+        }
 
         // Validar que el origen de registro sea válido
         if (origenRegistro && !['web', 'mobile', 'dashboard'].includes(origenRegistro)) {
@@ -577,7 +579,9 @@ export class InscripcionesService {
                 }
             }
 
-            this.logger.log(`📬 Notificaciones de nueva inscripción enviadas a ${admins.length} admin(s)`)
+            this.logger.log(
+                `📬 Notificaciones de nueva inscripción enviadas a ${admins.length} admin(s)${origenRegistro === 'mobile' ? ' [desde app móvil]' : ''}`
+            )
         } catch (error) {
             this.logger.error(`Error enviando notificaciones de nueva inscripción:`, error)
             // No fallar si la notificación falla
@@ -616,7 +620,11 @@ export class InscripcionesService {
                 this.logger.error(`   Esto puede pasar si hay problemas de inyección de dependencias`)
                 this.logger.error(`   Verifica que NotificationsModule esté importado correctamente en InscripcionesModule`)
             } else {
-                this.logger.log(`📧 Preparando email de confirmación para ${inscripcion.email}...`)
+                this.logger.log(
+                    origenRegistro === 'mobile'
+                        ? `📱 [MOBILE] Preparando email de confirmación para ${inscripcion.email}...`
+                        : `📧 Preparando email de confirmación para ${inscripcion.email}...`
+                )
                 this.logger.log(`   Origen: ${origenRegistro}`)
 
                 // Usar template centralizado (más mantenible y consistente)
@@ -652,10 +660,14 @@ export class InscripcionesService {
                 )
 
                 if (emailSent) {
-                    this.logger.log(`✅ Email de inscripción enviado exitosamente a ${inscripcion.email} (origen: ${origenRegistro})`)
+                    this.logger.log(
+                        origenRegistro === 'mobile'
+                            ? `✅ [MOBILE] Email de inscripción enviado exitosamente a ${inscripcion.email}`
+                            : `✅ Email de inscripción enviado exitosamente a ${inscripcion.email} (origen: ${origenRegistro})`
+                    )
                 } else {
                     this.logger.error(`❌ CRÍTICO: No se pudo enviar email de inscripción a ${inscripcion.email}`)
-                    this.logger.error(`   Origen: ${origenRegistro}`)
+                    this.logger.error(`   Origen: ${origenRegistro}${origenRegistro === 'mobile' ? ' (app móvil)' : ''}`)
                     this.logger.error(`   Verifica la configuración de EmailService y los logs anteriores`)
                     this.logger.error(`   Revisa que EmailService esté configurado correctamente (SMTP_USER, SMTP_PASSWORD)`)
                 }
