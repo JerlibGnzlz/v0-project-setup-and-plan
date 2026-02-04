@@ -55,7 +55,7 @@ function buildBaseTemplate(
             <td style="padding: 20px 30px; text-align: center; background-color: #f9fafb; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 Asociación Misionera Vida Abundante<br>
-                <a href="https://vidaabundante.org" style="color: ${color}; text-decoration: none;">vidaabundante.org</a>
+                <a href="https://www.amva.org.es" style="color: ${color}; text-decoration: none;">www.amva.org.es</a>
               </p>
             </td>
           </tr>
@@ -82,10 +82,10 @@ export function getPagoValidadoTemplate(data: EmailTemplateData): EmailTemplate 
   }).format(monto)
 
   // Obtener nombre completo: primero intentar inscripcionNombre, luego nombre + apellido, luego fallback
-  const nombreCompleto = 
-    data.inscripcionNombre || 
+  const nombreCompleto =
+    data.inscripcionNombre ||
     (data.nombre && data.apellido ? `${data.nombre} ${data.apellido}` : null) ||
-    data.nombre || 
+    data.nombre ||
     'Estimado/a participante'
   const convencionTitulo = data.convencionTitulo || 'Convención'
   const numeroCuota = data.numeroCuota || 'N/A'
@@ -94,15 +94,15 @@ export function getPagoValidadoTemplate(data: EmailTemplateData): EmailTemplate 
     typeof cuotasTotalesValue === 'number'
       ? cuotasTotalesValue
       : typeof cuotasTotalesValue === 'string'
-      ? parseInt(cuotasTotalesValue) || 0
-      : 0
+        ? parseInt(cuotasTotalesValue) || 0
+        : 0
   const cuotasPagadasValue = data.cuotasPagadas
   const cuotasPagadas =
     typeof cuotasPagadasValue === 'number'
       ? cuotasPagadasValue
       : typeof cuotasPagadasValue === 'string'
-      ? parseInt(cuotasPagadasValue) || 0
-      : 0
+        ? parseInt(cuotasPagadasValue) || 0
+        : 0
   const porcentajeProgreso = cuotasTotales > 0 ? Math.round((cuotasPagadas / cuotasTotales) * 100) : 0
 
   const body = `
@@ -180,10 +180,10 @@ export function getPagoValidadoTemplate(data: EmailTemplateData): EmailTemplate 
  */
 export function getPagoRechazadoTemplate(data: EmailTemplateData): EmailTemplate {
   // Obtener nombre completo: primero intentar inscripcionNombre, luego nombre + apellido, luego fallback
-  const nombreCompleto = 
-    data.inscripcionNombre || 
+  const nombreCompleto =
+    data.inscripcionNombre ||
     (data.nombre && data.apellido ? `${data.nombre} ${data.apellido}` : null) ||
-    data.nombre || 
+    data.nombre ||
     'Estimado/a participante'
   const convencionTitulo = data.convencionTitulo || 'Convención'
   const motivo = data.motivo ? String(data.motivo) : 'No se especificó un motivo'
@@ -260,10 +260,10 @@ export function getPagoRechazadoTemplate(data: EmailTemplateData): EmailTemplate
  */
 export function getPagoRehabilitadoTemplate(data: EmailTemplateData): EmailTemplate {
   // Obtener nombre completo: primero intentar inscripcionNombre, luego nombre + apellido, luego fallback
-  const nombreCompleto = 
-    data.inscripcionNombre || 
+  const nombreCompleto =
+    data.inscripcionNombre ||
     (data.nombre && data.apellido ? `${data.nombre} ${data.apellido}` : null) ||
-    data.nombre || 
+    data.nombre ||
     'Estimado/a participante'
   const convencionTitulo = data.convencionTitulo || 'Convención'
   const montoValue = data.monto
@@ -335,10 +335,10 @@ export function getPagoRehabilitadoTemplate(data: EmailTemplateData): EmailTempl
  */
 export function getPagoRecordatorioTemplate(data: EmailTemplateData): EmailTemplate {
   // Obtener nombre completo: primero intentar inscripcionNombre, luego nombre + apellido, luego fallback
-  const nombreCompleto = 
-    data.inscripcionNombre || 
+  const nombreCompleto =
+    data.inscripcionNombre ||
     (data.nombre && data.apellido ? `${data.nombre} ${data.apellido}` : null) ||
-    data.nombre || 
+    data.nombre ||
     'Estimado/a participante'
   const convencionTitulo = data.convencionTitulo || 'Convención'
   const montoPendienteValue = data.montoPendiente
@@ -346,8 +346,8 @@ export function getPagoRecordatorioTemplate(data: EmailTemplateData): EmailTempl
     typeof montoPendienteValue === 'number'
       ? montoPendienteValue
       : typeof montoPendienteValue === 'string'
-      ? parseFloat(montoPendienteValue) || 0
-      : 0
+        ? parseFloat(montoPendienteValue) || 0
+        : 0
   const montoFormateado = new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
@@ -357,11 +357,11 @@ export function getPagoRecordatorioTemplate(data: EmailTemplateData): EmailTempl
   const cuotasPendientes = data.cuotasPendientes || 0
   const fechaLimite = data.fechaLimite
     ? new Date(String(data.fechaLimite)).toLocaleDateString('es-AR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
     : null
 
   const body = `
@@ -451,10 +451,10 @@ export function getPagoRecordatorioTemplate(data: EmailTemplateData): EmailTempl
  */
 export function getInscripcionCreadaTemplate(data: EmailTemplateData): EmailTemplate {
   // Obtener nombre completo: primero intentar inscripcionNombre, luego nombre + apellido, luego fallback
-  const nombreCompleto = 
-    data.inscripcionNombre || 
+  const nombreCompleto =
+    data.inscripcionNombre ||
     (data.nombre && data.apellido ? `${data.nombre} ${data.apellido}` : null) ||
-    data.nombre || 
+    data.nombre ||
     'Estimado/a participante'
   const convencionTitulo = data.convencionTitulo || 'Convención'
   const montoTotalValue = data.montoTotal
@@ -462,8 +462,8 @@ export function getInscripcionCreadaTemplate(data: EmailTemplateData): EmailTemp
     typeof montoTotalValue === 'number'
       ? montoTotalValue
       : typeof montoTotalValue === 'string'
-      ? parseFloat(montoTotalValue) || 0
-      : 0
+        ? parseFloat(montoTotalValue) || 0
+        : 0
   const montoFormateado = new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
@@ -475,16 +475,16 @@ export function getInscripcionCreadaTemplate(data: EmailTemplateData): EmailTemp
     typeof numeroCuotasValue === 'number'
       ? numeroCuotasValue
       : typeof numeroCuotasValue === 'string'
-      ? parseInt(numeroCuotasValue) || 1
-      : 1
+        ? parseInt(numeroCuotasValue) || 1
+        : 1
   const montoPorCuota = numeroCuotas > 0 ? montoTotal / numeroCuotas : montoTotal
   const origenRegistro = data.origenRegistro || 'web'
   const origenLabel =
     origenRegistro === 'mobile'
       ? 'Aplicación Móvil'
       : origenRegistro === 'dashboard'
-      ? 'Panel Administrativo'
-      : 'Sitio Web'
+        ? 'Panel Administrativo'
+        : 'Sitio Web'
 
   const body = `
     <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px; font-weight: 700;">📝 ¡Inscripción Recibida Exitosamente!</h2>
@@ -572,46 +572,46 @@ export function getNuevaInscripcionTemplate(data: EmailTemplateData): EmailTempl
     origenRegistro === 'mobile'
       ? 'Aplicación Móvil'
       : origenRegistro === 'dashboard'
-      ? 'Panel Administrativo'
-      : 'Sitio Web'
-  
+        ? 'Panel Administrativo'
+        : 'Sitio Web'
+
   const montoTotalValue = data.montoTotal
   const montoTotal =
     typeof montoTotalValue === 'number'
       ? montoTotalValue
       : typeof montoTotalValue === 'string'
-      ? parseFloat(montoTotalValue) || 0
-      : 0
+        ? parseFloat(montoTotalValue) || 0
+        : 0
   const montoFormateado = new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(montoTotal)
-  
+
   const numeroCuotasValue = data.numeroCuotas
   const numeroCuotas =
     typeof numeroCuotasValue === 'number'
       ? numeroCuotasValue
       : typeof numeroCuotasValue === 'string'
-      ? parseInt(numeroCuotasValue) || 1
-      : 1
-  
+        ? parseInt(numeroCuotasValue) || 1
+        : 1
+
   const cuotasPendientesValue = data.cuotasPendientes
   const cuotasPendientes =
     typeof cuotasPendientesValue === 'number'
       ? cuotasPendientesValue
       : typeof cuotasPendientesValue === 'string'
-      ? parseInt(cuotasPendientesValue) || 0
-      : 0
-  
+        ? parseInt(cuotasPendientesValue) || 0
+        : 0
+
   const cuotasPagadasValue = data.cuotasPagadas
   const cuotasPagadas =
     typeof cuotasPagadasValue === 'number'
       ? cuotasPagadasValue
       : typeof cuotasPagadasValue === 'string'
-      ? parseInt(cuotasPagadasValue) || 0
-      : 0
+        ? parseInt(cuotasPagadasValue) || 0
+        : 0
 
   const inscripcionId = data.inscripcionId || 'N/A'
 
@@ -698,29 +698,29 @@ export function getNuevaInscripcionTemplate(data: EmailTemplateData): EmailTempl
  */
 export function getInscripcionConfirmadaTemplate(data: EmailTemplateData): EmailTemplate {
   // Obtener nombre completo: primero intentar inscripcionNombre, luego nombre + apellido, luego fallback
-  const nombreCompleto = 
-    data.inscripcionNombre || 
+  const nombreCompleto =
+    data.inscripcionNombre ||
     (data.nombre && data.apellido ? `${data.nombre} ${data.apellido}` : null) ||
-    data.nombre || 
+    data.nombre ||
     'Estimado/a participante'
   const convencionTitulo = data.convencionTitulo || 'Convención'
   const ubicacion = data.ubicacion || 'Por confirmar'
   const fechaInicio = data.fechaInicio
     ? new Date(String(data.fechaInicio)).toLocaleDateString('es-AR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
     : 'Por confirmar'
   const fechaInicioObj = data.fechaInicio ? new Date(String(data.fechaInicio)) : null
   const fechaFin = data.fechaFin
     ? new Date(String(data.fechaFin)).toLocaleDateString('es-AR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
     : null
 
   const body = `
@@ -847,24 +847,24 @@ export function getCredencialPorVencerTemplate(data: EmailTemplateData): EmailTe
   const numeroCredencial = data.numeroCredencial || 'N/A'
   const fechaVencimiento =
     data.fechaVencimiento &&
-    (typeof data.fechaVencimiento === 'string' ||
-      data.fechaVencimiento instanceof Date)
+      (typeof data.fechaVencimiento === 'string' ||
+        data.fechaVencimiento instanceof Date)
       ? new Date(
-          typeof data.fechaVencimiento === 'string'
-            ? data.fechaVencimiento
-            : data.fechaVencimiento
-        ).toLocaleDateString('es-AR', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
+        typeof data.fechaVencimiento === 'string'
+          ? data.fechaVencimiento
+          : data.fechaVencimiento
+      ).toLocaleDateString('es-AR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
       : 'N/A'
   const diasRestantes =
     typeof data.diasRestantes === 'number'
       ? data.diasRestantes
       : typeof data.diasRestantes === 'string'
-      ? parseInt(data.diasRestantes) || 0
-      : 0
+        ? parseInt(data.diasRestantes) || 0
+        : 0
 
   const body = `
     <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px; font-weight: 700;">⚠️ Tu Credencial Está Por Vencer</h2>

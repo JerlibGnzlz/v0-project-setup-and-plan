@@ -353,7 +353,7 @@ export class EmailService {
             <td style="padding: 20px 30px; text-align: center; background-color: #f9fafb; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 Asociación Misionera Vida Abundante<br>
-                <a href="https://www.amva.org.es" style="color: ${color}; text-decoration: none;">vidaabundante.org</a>
+                <a href="https://www.amva.org.es" style="color: ${color}; text-decoration: none;">www.amva.org.es</a>
               </p>
             </td>
           </tr>
