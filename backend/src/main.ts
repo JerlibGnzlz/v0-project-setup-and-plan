@@ -309,7 +309,9 @@ async function bootstrap() {
       : null
   const allowedOrigins = [
     'http://localhost:3000',
+    'http://localhost:3001',
     'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
     frontendUrl,
     wwwVariant,
   ].filter(Boolean) as string[]
@@ -322,12 +324,18 @@ async function bootstrap() {
         return callback(null, true)
       }
 
-      // En desarrollo, permitir todo localhost
+      // En desarrollo, permitir todo localhost (cualquier puerto: 3000, 3001, etc.)
       if (process.env.NODE_ENV !== 'production') {
         if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
           logger.debug(`✅ Origin permitido (desarrollo): ${origin}`)
           return callback(null, true)
         }
+      }
+
+      // Permitir localhost con cualquier puerto (por si NODE_ENV no es development)
+      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/.test(origin)) {
+        logger.debug(`✅ Origin permitido (localhost): ${origin}`)
+        return callback(null, true)
       }
 
       // Permitir todos los dominios de Vercel (producción y previews)

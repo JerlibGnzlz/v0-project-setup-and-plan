@@ -2,10 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Montserrat } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
-import { ScrollProgress } from '@/components/scroll-progress'
-import { BackToTop } from '@/components/back-to-top'
-import { ThemeProvider } from '@/components/theme-provider'
-import { Toaster } from '@/components/ui/sonner'
+import { AppProviders } from '@/lib/providers/app-providers'
 
 const _inter = Inter({ subsets: ['latin'] })
 const _montserrat = Montserrat({ subsets: ['latin'] })
@@ -139,17 +136,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`font-sans antialiased bg-background text-foreground`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ScrollProgress />
-          {children}
-          <BackToTop />
-          <Toaster position="top-right" richColors closeButton />
-        </ThemeProvider>
+        <AppProviders>{children}</AppProviders>
         <Analytics />
       </body>
     </html>

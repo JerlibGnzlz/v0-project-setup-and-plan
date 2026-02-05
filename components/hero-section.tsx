@@ -235,9 +235,9 @@ export function HeroSection() {
           </h1>
         </div>
 
-        {/* Subtítulo - mejor contraste con color destacado */}
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-          <p className="text-lg sm:text-xl md:text-2xl mb-10 max-w-2xl mx-auto leading-relaxed font-light drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]">
+        {/* Subtítulo - altura fija reserva espacio para el texto completo; evita que el typing empuje los botones */}
+        <div className="animate-fade-in-up h-[7rem] sm:h-[6rem] md:h-[5.5rem] flex items-center justify-center mb-10 overflow-hidden" style={{ animationDelay: '0.3s' }}>
+          <p className="text-lg sm:text-xl md:text-2xl max-w-2xl mx-auto leading-relaxed font-light drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)] text-center min-h-0">
             <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-300 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(251,191,36,0.4)]">
               <TypingEffect
                 text="Formando pastores y líderes para transformar naciones a través del poder del evangelio"
