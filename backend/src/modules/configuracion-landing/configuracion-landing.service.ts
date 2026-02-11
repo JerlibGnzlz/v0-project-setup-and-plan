@@ -36,12 +36,15 @@ export class ConfiguracionLandingService {
           titulo: 'Quiénes Somos',
           subtitulo:
             'Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino',
+          subtituloJustificacion: 'left',
           misionTitulo: 'Nuestra Misión',
           misionContenido:
             'Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.',
+          misionJustificacion: 'left',
           visionTitulo: 'Nuestra Visión',
           visionContenido:
             'Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.',
+          visionJustificacion: 'left',
         },
       })
     }
@@ -85,14 +88,17 @@ export class ConfiguracionLandingService {
           subtitulo:
             dto.subtitulo ??
             'Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino',
+          subtituloJustificacion: dto.subtituloJustificacion ?? 'left',
           misionTitulo: dto.misionTitulo ?? 'Nuestra Misión',
           misionContenido:
             dto.misionContenido ??
             'Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.',
+          misionJustificacion: dto.misionJustificacion ?? 'left',
           visionTitulo: dto.visionTitulo ?? 'Nuestra Visión',
           visionContenido:
             dto.visionContenido ??
             'Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.',
+          visionJustificacion: dto.visionJustificacion ?? 'left',
         },
       })
       this.logger.log('✅ Configuración creada exitosamente')

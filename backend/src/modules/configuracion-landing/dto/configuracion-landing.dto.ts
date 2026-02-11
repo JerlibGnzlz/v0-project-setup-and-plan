@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsOptional, Min } from 'class-validator'
+import { IsString, IsInt, IsOptional, Min, IsIn } from 'class-validator'
 
 export class UpdateConfiguracionLandingDto {
   @IsOptional()
@@ -43,6 +43,11 @@ export class UpdateConfiguracionLandingDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(['left', 'center', 'right', 'justify'])
+  subtituloJustificacion?: string
+
+  @IsOptional()
+  @IsString()
   misionTitulo?: string
 
   @IsOptional()
@@ -51,10 +56,20 @@ export class UpdateConfiguracionLandingDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(['left', 'center', 'right', 'justify'])
+  misionJustificacion?: string
+
+  @IsOptional()
+  @IsString()
   visionTitulo?: string
 
   @IsOptional()
   @IsString()
   visionContenido?: string
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['left', 'center', 'right', 'justify'])
+  visionJustificacion?: string
 }
 

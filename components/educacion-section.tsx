@@ -1,54 +1,58 @@
 'use client'
 
-import { BookOpen, GraduationCap, Users, Award, Mail, Phone, ChevronRight } from 'lucide-react'
+import { useState, useCallback } from 'react'
+import { BookOpen, GraduationCap, Users, Globe, Mail, Phone, Copy, Check } from 'lucide-react'
+import { useEducacionProgramas } from '@/lib/hooks/use-educacion-programas'
+import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
-const programs = [
-  {
-    title: 'Instituto Bíblico AMVA',
-    subtitle: 'Formación teológica integral para el ministerio',
+const CLAVE_STYLE: Record<
+  string,
+  { icon: LucideIcon; gradient: string; image: string }
+> = {
+  instituto_biblico: {
     icon: GraduationCap,
     gradient: 'from-sky-400 to-blue-500',
     image: '/biblico.png',
-    description:
-      'El Instituto Bíblico AMVA ofrece una formación teológica sólida y práctica, diseñada para equipar a pastores, líderes y obreros cristianos con las herramientas necesarias para un ministerio efectivo y transformador.',
-    areas: [
-      'Teología Sistemática y Bíblica',
-      'Homilética y Hermenéutica',
-      'Liderazgo y Administración Eclesiástica',
-      'Consejería Pastoral y Familia',
-      'Misiones y Evangelismo',
-    ],
-    modalities: [
-      { type: 'Presencial', desc: 'Clases intensivas los fines de semana' },
-      { type: 'Semi-presencial', desc: 'Combinación de clases presenciales y material en línea' },
-      { type: 'Duración', desc: '3 años (Diploma Ministerial)' },
-    ],
   },
-  {
-    title: 'Escuela de Capellanía',
-    subtitle: 'Formación especializada en cuidado pastoral y capellanía',
+  escuela_capellania: {
     icon: Users,
     gradient: 'from-emerald-500 to-teal-500',
     image: '/capellania.png',
-    description:
-      'La Escuela de Capellanía prepara a líderes cristianos para ejercer el ministerio de capellanía en diversos contextos: hospitales, cárceles, fuerzas armadas, empresas, instituciones educativas y comunidades en situación de crisis.',
-    areas: [
-      'Capellanía Hospitalaria y de Salud',
-      'Capellanía Penitenciaria',
-      'Capellanía Militar y Policial',
-      'Consejería en Crisis y Trauma',
-      'Ética Profesional del Capellán',
-    ],
-    modalities: [
-      { type: 'Formato', desc: 'Talleres prácticos y seminarios intensivos' },
-      { type: 'Certificación', desc: 'Capellán Certificado AMVA' },
-      { type: 'Duración', desc: '1 año (Certificado de Capellanía)' },
-    ],
   },
-]
+  misiones: {
+    icon: Globe,
+    gradient: 'from-amber-500 to-orange-500',
+    image: '/mundo.png',
+  },
+}
+
+function useCopyToClipboard() {
+  const [copied, setCopied] = useState<'email' | 'phone' | null>(null)
+
+  const copy = useCallback(async (text: string, kind: 'email' | 'phone') => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(kind)
+      toast.success('Copiado al portapapeles')
+      setTimeout(() => setCopied(null), 2000)
+    } catch {
+      toast.error('No se pudo copiar')
+    }
+  }, [])
+
+  return { copy, copied }
+}
 
 export function EducacionSection() {
+  const { data, isLoading } = useEducacionProgramas()
+  const { copy, copied } = useCopyToClipboard()
+  const list = (data?.programas ?? []).filter((p) => p.clave !== 'misiones')
+  const contactEmail = data?.contactEmail ?? 'educacion@vidaabundante.org'
+  const contactTelefono = data?.contactTelefono ?? '+54 11 xxxx-xxxx'
+  const telHref = contactTelefono.replace(/\s/g, '')
+
   return (
     <section id="educacion" className="relative py-24 overflow-hidden">
       {/* Background */}
@@ -89,78 +93,81 @@ export function EducacionSection() {
           </p>
         </div>
 
-        {/* Programs Grid */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto mb-16">
-          {programs.map((program, index) => {
-            const Icon = program.icon
-            return (
-              <div key={index} className="relative group">
-                {/* Glow */}
+        {/* 3 programas con campos dinámicos (modalidad, inscripción, cuota mensual) */}
+        <div className="max-w-6xl mx-auto mb-16">
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {isLoading ? (
+              Array.from({ length: 2 }).map((_, i) => (
                 <div
-                  className={`absolute -inset-1 bg-gradient-to-r ${program.gradient} rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500`}
+                  key={i}
+                  className="rounded-2xl bg-white/5 border border-white/10 h-80 animate-pulse"
                 />
-
-                <div className="relative h-full rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300">
-                  {/* Program Image */}
-                  <div className="relative h-48 sm:h-56 overflow-hidden bg-white/5 flex items-center justify-center p-4">
-                    <img
-                      src={program.image}
-                      alt={program.title}
-                      className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700"
-                    />
+              ))
+            ) : (
+              list.map((programa) => {
+                const style = CLAVE_STYLE[programa.clave] ?? CLAVE_STYLE.instituto_biblico
+                const Icon = style.icon
+                return (
+                  <div key={programa.id} className="relative group">
                     <div
-                      className={`absolute inset-0 bg-gradient-to-t from-[#0d1f35] via-transparent to-transparent opacity-70`}
+                      className={`absolute -inset-1 bg-gradient-to-r ${style.gradient} rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500`}
                     />
-                    {/* Icon badge */}
-                    <div
-                      className={`absolute bottom-4 left-6 p-3 rounded-xl bg-gradient-to-r ${program.gradient} shadow-lg`}
-                    >
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-
-                  <div className="p-6 sm:p-8">
-                    {/* Title */}
-                    <div className="mb-6">
-                      <h3 className="text-xl sm:text-2xl font-bold text-white">{program.title}</h3>
-                      <p className="text-white/60 text-sm mt-1">{program.subtitle}</p>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-white/70 leading-relaxed mb-6">{program.description}</p>
-
-                    {/* Areas */}
-                    <div className="mb-6">
-                      <h4 className="flex items-center gap-2 text-white font-semibold mb-4">
-                        <Award className="w-4 h-4 text-amber-400" />
-                        Áreas de Estudio
-                      </h4>
-                      <ul className="space-y-2">
-                        {program.areas.map((area, idx) => (
-                          <li key={idx} className="flex items-start gap-3 text-white/70 text-sm">
-                            <ChevronRight
-                              className={`w-4 h-4 flex-shrink-0 mt-0.5 bg-gradient-to-r ${program.gradient} bg-clip-text text-transparent`}
-                            />
-                            <span>{area}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Modalities */}
-                    <div className="space-y-3">
-                      {program.modalities.map((mod, idx) => (
-                        <div key={idx} className="flex gap-2 text-sm">
-                          <span className="text-white font-medium">{mod.type}:</span>
-                          <span className="text-white/60">{mod.desc}</span>
+                    <div className="relative h-full rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300 flex flex-col">
+                      <div className="relative h-36 overflow-hidden bg-white/5 flex items-center justify-center p-4">
+                        <img
+                          src={style.image}
+                          alt={programa.titulo}
+                          className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0d1f35] via-transparent to-transparent opacity-70" />
+                        <div
+                          className={`absolute bottom-3 left-4 p-2.5 rounded-xl bg-gradient-to-r ${style.gradient} shadow-lg`}
+                        >
+                          <Icon className="w-5 h-5 text-white" />
                         </div>
-                      ))}
+                      </div>
+                      <div className="p-5 flex-1 flex flex-col">
+                        <h4 className="text-lg font-bold text-white mb-4">{programa.titulo}</h4>
+
+                        <div className="space-y-4 text-sm flex-1">
+                          <div>
+                            <h5 className="font-semibold text-white mb-2">
+                              Estructura académica
+                            </h5>
+                            <p className="text-white/70">
+                              Duración: {programa.duracion ?? '2 años.'}
+                            </p>
+                            <p className="text-white/70 mt-1">
+                              <span className="font-medium text-white/90">Modalidad:</span>{' '}
+                              {programa.modalidad}
+                            </p>
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-white mb-2">Plan de inversión</h5>
+                            <p className="text-white/70">
+                              <span className="font-medium text-white/90">Inscripción:</span>{' '}
+                              {programa.inscripcion}
+                            </p>
+                            <p className="text-white/70">
+                              <span className="font-medium text-white/90">Cuota mensual:</span>{' '}
+                              {programa.cuotaMensual}
+                            </p>
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-white mb-2">Requisitos</h5>
+                            <p className="text-white/70">
+                              {programa.requisitos ??
+                                'Internet, dispositivo electrónico y compromiso con estudios, trabajos y exámenes.'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )
-          })}
+                )
+              })
+            )}
+          </div>
         </div>
 
         {/* Contact Card */}
@@ -176,20 +183,52 @@ export function EducacionSection() {
                 proceso de inscripción, contáctanos:
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <a
-                  href="mailto:educacion@vidaabundante.org"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all duration-300"
-                >
-                  <Mail className="w-4 h-4 text-sky-400" />
-                  educacion@vidaabundante.org
-                </a>
-                <a
-                  href="tel:+5411xxxxxxxx"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all duration-300"
-                >
-                  <Phone className="w-4 h-4 text-emerald-400" />
-                  +54 11 xxxx-xxxx
-                </a>
+                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10">
+                  <Mail className="w-4 h-4 text-sky-400 shrink-0" />
+                  <a
+                    href={`mailto:${contactEmail}`}
+                    className="text-white hover:underline select-all"
+                  >
+                    {contactEmail}
+                  </a>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 h-8 w-8 text-white/70 hover:text-white hover:bg-white/10"
+                    onClick={() => copy(contactEmail, 'email')}
+                    aria-label="Copiar correo"
+                  >
+                    {copied === 'email' ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10">
+                  <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <a
+                    href={`tel:${telHref}`}
+                    className="text-white hover:underline select-all"
+                  >
+                    {contactTelefono}
+                  </a>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 h-8 w-8 text-white/70 hover:text-white hover:bg-white/10"
+                    onClick={() => copy(contactTelefono, 'phone')}
+                    aria-label="Copiar teléfono"
+                  >
+                    {copied === 'phone' ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
