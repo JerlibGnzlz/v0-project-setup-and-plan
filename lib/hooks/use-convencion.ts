@@ -12,6 +12,26 @@ export function useConvenciones() {
   })
 }
 
+/** Fecha del evento activo (YYYY-MM-DD). Usar para la cuenta regresiva como fuente única. */
+export function useEventDate() {
+  useSmartSync()
+  const pollingInterval = useSmartPolling(['convencion', 'event-date'], 30000)
+  return useQuery({
+    queryKey: ['convencion', 'event-date'],
+    queryFn: convencionesApi.getEventDate,
+    staleTime: 0,
+    gcTime: 60 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchInterval:
+      typeof pollingInterval === 'number' ? Math.min(pollingInterval, 15000) : pollingInterval,
+    retry: (_, error: unknown) => {
+      const err = error as { response?: { status?: number } }
+      return err?.response?.status !== 404 && err?.response?.status !== 500
+    },
+  })
+}
+
 export function useConvencionActiva() {
   // Usar sincronización inteligente
   useSmartSync()
@@ -23,18 +43,16 @@ export function useConvencionActiva() {
     queryKey: ['convencion', 'active'],
     queryFn: convencionesApi.getActive,
     refetchOnWindowFocus: true,
-    staleTime: 30000, // Los datos son válidos por 30 segundos (reduce refetches innecesarios)
-    gcTime: 5 * 60 * 1000, // Mantener en caché por 5 minutos
-    refetchInterval: pollingInterval, // Se pausa automáticamente cuando la pestaña no está visible
-    // Mantener los datos anteriores mientras se refetch para evitar parpadeos
-    placeholderData: previousData => previousData,
+    refetchOnMount: 'always', // Siempre pedir datos frescos al abrir la landing (evita caché con fecha antigua)
+    staleTime: 0,
+    gcTime: 1 * 60 * 1000,
+    refetchInterval:
+      typeof pollingInterval === 'number' ? Math.min(pollingInterval, 15000) : pollingInterval,
+    // No usar placeholderData: si había caché con fecha equivocada (ej. 12 feb), no mostrarla; preferir refetch
     // No reintentar automáticamente si hay error 500 (problema de base de datos)
-    retry: (failureCount, error: any) => {
-      // Si es un error 500, no reintentar (probablemente problema de base de datos)
-      if (error?.response?.status === 500) {
-        return false
-      }
-      // Para otros errores, reintentar hasta 2 veces
+    retry: (failureCount, error: unknown) => {
+      const err = error as { response?: { status?: number } }
+      if (err?.response?.status === 500) return false
       return failureCount < 2
     },
     retryDelay: 2000, // Esperar 2 segundos entre reintentos
@@ -75,16 +93,12 @@ export function useUpdateConvencion() {
     mutationFn: ({ id, data }: { id: string; data: Partial<Convencion> }) =>
       convencionesApi.update(id, data),
     onSuccess: async () => {
-      // Invalidar y refetch todas las queries relacionadas con convenciones
+      queryClient.removeQueries({ queryKey: ['convencion', 'active'] })
+      queryClient.removeQueries({ queryKey: ['convencion', 'event-date'] })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['convenciones'] }),
         queryClient.invalidateQueries({ queryKey: ['convencion'] }),
       ])
-
-      // Forzar refetch de la convención activa
-      await queryClient.refetchQueries({ queryKey: ['convencion', 'active'] })
-
-      // Notificar a otras pestañas via BroadcastChannel + localStorage
       notifyChange('convencion')
     },
     onError: () => {

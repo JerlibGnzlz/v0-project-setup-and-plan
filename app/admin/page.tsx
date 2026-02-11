@@ -60,16 +60,12 @@ export default function AdminDashboard() {
     }
 
     try {
-      // Convertir el formato del formulario al formato del backend
-      // Usar fecha local para evitar problemas de zona horaria
-      // data.fecha viene en formato yyyy-MM-dd
-      const [year, month, day] = data.fecha.split('-').map(Number)
-
-      // Crear fecha de inicio a las 00:00:00 en zona horaria local
-      const fechaInicio = new Date(year, month - 1, day, 0, 0, 0)
-
-      // Crear fecha de fin 2 días después a las 23:59:59 en zona horaria local
-      const fechaFin = new Date(year, month - 1, day + 2, 23, 59, 59)
+      // Enviar fechas como YYYY-MM-DD para que el backend guarde el día correcto
+      // (toISOString() en UTC puede cambiar el día en zonas como Argentina)
+      const fechaInicioStr = data.fecha
+      const [y, m, d] = data.fecha.split('-').map(Number)
+      const fin = new Date(y, m - 1, d + 2)
+      const fechaFinStr = `${fin.getFullYear()}-${String(fin.getMonth() + 1).padStart(2, '0')}-${String(fin.getDate()).padStart(2, '0')}`
 
       await updateConvencionMutation.mutateAsync({
         id: convencionActiva.id,
@@ -77,8 +73,8 @@ export default function AdminDashboard() {
           titulo: data.nombre,
           ubicacion: data.lugar,
           costo: data.monto,
-          fechaInicio: fechaInicio.toISOString(),
-          fechaFin: fechaFin.toISOString(),
+          fechaInicio: fechaInicioStr,
+          fechaFin: fechaFinStr,
           invitadoNombre: data.invitadoNombre?.trim() || undefined,
           invitadoFotoUrl: data.invitadoFotoUrl?.trim() || undefined,
         },
@@ -149,24 +145,19 @@ export default function AdminDashboard() {
 
   const handleCreateConvencion = async (data: ConvencionFormData) => {
     try {
-      // Convertir el formato del formulario al formato del backend
-      // Usar fecha local para evitar problemas de zona horaria
-      // data.fecha viene en formato yyyy-MM-dd
-      const [year, month, day] = data.fecha.split('-').map(Number)
-
-      // Crear fecha de inicio a las 00:00:00 en zona horaria local
-      const fechaInicio = new Date(year, month - 1, day, 0, 0, 0)
-
-      // Crear fecha de fin 2 días después a las 23:59:59 en zona horaria local
-      const fechaFin = new Date(year, month - 1, day + 2, 23, 59, 59)
+      // Enviar fechas como YYYY-MM-DD para que el backend guarde el día correcto
+      const fechaInicioStr = data.fecha
+      const [y, m, d] = data.fecha.split('-').map(Number)
+      const fin = new Date(y, m - 1, d + 2)
+      const fechaFinStr = `${fin.getFullYear()}-${String(fin.getMonth() + 1).padStart(2, '0')}-${String(fin.getDate()).padStart(2, '0')}`
 
       await createConvencionMutation.mutateAsync({
         titulo: data.nombre,
         ubicacion: data.lugar,
         costo: data.monto,
         cupoMaximo: data.cuotas * 100,
-        fechaInicio: fechaInicio.toISOString(),
-        fechaFin: fechaFin.toISOString(),
+        fechaInicio: fechaInicioStr,
+        fechaFin: fechaFinStr,
         activa: true,
       })
 

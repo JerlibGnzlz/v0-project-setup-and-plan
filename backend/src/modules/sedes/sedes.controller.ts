@@ -30,6 +30,14 @@ export class SedesController {
     return this.sedesService.findAll()
   }
 
+  /**
+   * Total de sedes activas. Público para la landing (sección Misión / "X países").
+   */
+  @Get('count')
+  getTotalCount() {
+    return this.sedesService.getTotalActiveCount()
+  }
+
   // ==========================================
   // ENDPOINTS PROTEGIDOS (admin)
   // ==========================================
@@ -49,12 +57,6 @@ export class SedesController {
     }
     // Si se piden solo activas o con filtros, usar findAll normal
     return this.sedesService.findAll()
-  }
-
-  @Get('count')
-  @UseGuards(JwtAuthGuard)
-  getTotalCount() {
-    return this.sedesService.getTotalActiveCount()
   }
 
   @Get(':id')

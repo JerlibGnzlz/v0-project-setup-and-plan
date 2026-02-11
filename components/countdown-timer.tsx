@@ -1,11 +1,20 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useMemo, useId } from 'react'
 import { cn } from '@/lib/utils'
+import { dateOnlyToMidnightLocal } from '@/lib/utils/event-date'
+
+/**
+ * La cuenta regresiva usa solo YYYY-MM-DD y medianoche local (dateOnlyToMidnightLocal).
+ * Los números (días, horas, etc.) vienen de ese cálculo; el CSS solo afecta la presentación visual.
+ */
 
 interface CountdownTimerProps {
-  targetDate: Date
+  /** Día del evento en YYYY-MM-DD. Única fuente para el cálculo (medianoche en hora local). Funciona correctamente todos los meses. */
+  targetDateOnly: string
   title?: string
+  /** Mensaje cuando la cuenta regresiva llegó a cero (opcional) */
+  messageOnReachZero?: string
 }
 
 interface TimeLeft {
@@ -98,7 +107,7 @@ function AnimatedDigit({ digit, prevDigit }: { digit: string; prevDigit: string 
   )
 }
 
-// Circular time card component
+// Circular time card component (soporta 2 o 3+ dígitos, ej. días 145)
 function CircularTimeCard({
   value,
   label,
@@ -106,6 +115,7 @@ function CircularTimeCard({
   gradientId,
   gradientColors,
   size = 120,
+  minDigits = 2,
 }: {
   value: number
   label: string
@@ -113,15 +123,22 @@ function CircularTimeCard({
   gradientId: string
   gradientColors: { start: string; end: string }
   size?: number
+  /** Mínimo de dígitos (2 = 01, 02; 0 = sin rellenar para días 9, 15, 145) */
+  minDigits?: number
 }) {
   const [prevValue, setPrevValue] = useState(value)
-  const valueStr = value.toString().padStart(2, '0')
-  const prevValueStr = prevValue.toString().padStart(2, '0')
+  const valueStr =
+    minDigits > 0 ? value.toString().padStart(minDigits, '0') : value.toString()
+  const prevValueStr =
+    minDigits > 0 ? prevValue.toString().padStart(minDigits, '0') : prevValue.toString()
 
   useEffect(() => {
     const timer = setTimeout(() => setPrevValue(value), 200)
     return () => clearTimeout(timer)
   }, [value])
+
+  const digits = valueStr.split('')
+  const prevDigits = prevValueStr.split('')
 
   return (
     <div className="relative group">
@@ -160,11 +177,16 @@ function CircularTimeCard({
 
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center justify-center">
-          {/* Number */}
+          {/* Number: uno o más dígitos según el valor (15 → 2, 145 → 3) */}
           <div className="font-bold tabular-nums leading-none text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
-            <span className="inline-flex">
-              <AnimatedDigit digit={valueStr[0]} prevDigit={prevValueStr[0]} />
-              <AnimatedDigit digit={valueStr[1]} prevDigit={prevValueStr[1]} />
+            <span className="inline-flex items-center justify-center min-w-0">
+              {digits.map((d, i) => (
+                <AnimatedDigit
+                  key={i}
+                  digit={d}
+                  prevDigit={prevDigits[i] ?? '0'}
+                />
+              ))}
             </span>
           </div>
 
@@ -178,7 +200,12 @@ function CircularTimeCard({
   )
 }
 
-export function CountdownTimer({ targetDate, title = 'Próximo Evento' }: CountdownTimerProps) {
+export function CountdownTimer({
+  targetDateOnly,
+  title = 'Próximo Evento',
+  messageOnReachZero = '¡Hoy es el gran día!',
+}: CountdownTimerProps) {
+  const id = useId()
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
     hours: 0,
@@ -186,71 +213,117 @@ export function CountdownTimer({ targetDate, title = 'Próximo Evento' }: Countd
     seconds: 0,
   })
   const [mounted, setMounted] = useState(false)
+  const [hasReachedZero, setHasReachedZero] = useState(false)
+
+  const dateOnlyNormalized = typeof targetDateOnly === 'string' ? targetDateOnly.trim() : ''
+  const targetTime =
+    dateOnlyNormalized.length >= 10 ? dateOnlyToMidnightLocal(dateOnlyNormalized) ?? 0 : 0
+  const hasValidTarget = targetTime > 0
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
-    const calculateTimeLeft = () => {
-      const difference = targetDate.getTime() - new Date().getTime()
+    setHasReachedZero(false)
+  }, [targetTime])
 
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60),
-        })
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Cálculo: "días" = días naturales (calendario) hasta el evento. Ej: 11 feb 2026 → 11 feb 2027 = 365 días + h/m/s.
+  useLayoutEffect(() => {
+    if (!hasValidTarget) {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+      return
+    }
+    const MS_PER_DAY = 1000 * 60 * 60 * 24
+    const calculateTimeLeft = (): void => {
+      const now = Date.now()
+      const difference = targetTime - now
+
+      if (difference < 1000) {
+        setHasReachedZero(true)
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current)
+          intervalRef.current = null
+        }
+        return
       }
+
+      const todayStart = new Date()
+      todayStart.setHours(0, 0, 0, 0)
+      const todayStartMs = todayStart.getTime()
+      const daysCalendar = Math.max(
+        0,
+        Math.round((targetTime - todayStartMs) / MS_PER_DAY)
+      )
+      const remainderMs = difference - Math.max(0, daysCalendar - 1) * MS_PER_DAY
+      const remainder = Math.max(0, remainderMs)
+      const hours = Math.floor(remainder / (1000 * 60 * 60)) % 24
+      const minutes = Math.floor((remainder % (1000 * 60 * 60)) / (1000 * 60)) % 60
+      const seconds = Math.floor((remainder % (1000 * 60)) / 1000) % 60
+
+      setTimeLeft({
+        days: daysCalendar,
+        hours,
+        minutes,
+        seconds,
+      })
     }
 
     calculateTimeLeft()
-    const timer = setInterval(calculateTimeLeft, 1000)
+    intervalRef.current = setInterval(calculateTimeLeft, 1000)
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    }
+  }, [targetTime, hasValidTarget])
 
-    return () => clearInterval(timer)
-  }, [targetDate])
-
-  // Calculate progress for each unit (inverted: 100% when full, 0% when empty)
-  const daysInYear = 365
-  const maxDays = 30 // Show progress based on 30 days max
-
+  // Escala del anillo de días: hasta 365 para muchos días (ej. feb–jul ≈ 145 días)
+  const maxDaysForProgress = 365
   const timeUnits = useMemo(
     () => [
       {
         key: 'days',
         value: timeLeft.days,
         label: 'Días',
-        progress: Math.min((timeLeft.days / maxDays) * 100, 100),
-        gradientId: 'days-gradient',
-        gradientColors: { start: '#38bdf8', end: '#0ea5e9' }, // Sky
+        progress: Math.min((timeLeft.days / maxDaysForProgress) * 100, 100),
+        gradientId: `days-${id}`.replace(/:/g, ''),
+        gradientColors: { start: '#38bdf8', end: '#0ea5e9' },
+        minDigits: 0 as number,
       },
       {
         key: 'hours',
         value: timeLeft.hours,
         label: 'Horas',
         progress: (timeLeft.hours / 24) * 100,
-        gradientId: 'hours-gradient',
-        gradientColors: { start: '#34d399', end: '#10b981' }, // Emerald
+        gradientId: `hours-${id}`.replace(/:/g, ''),
+        gradientColors: { start: '#34d399', end: '#10b981' },
+        minDigits: 2,
       },
       {
         key: 'minutes',
         value: timeLeft.minutes,
         label: 'Minutos',
         progress: (timeLeft.minutes / 60) * 100,
-        gradientId: 'minutes-gradient',
-        gradientColors: { start: '#fbbf24', end: '#f59e0b' }, // Amber
+        gradientId: `minutes-${id}`.replace(/:/g, ''),
+        gradientColors: { start: '#fbbf24', end: '#f59e0b' },
+        minDigits: 2,
       },
       {
         key: 'seconds',
         value: timeLeft.seconds,
         label: 'Segundos',
         progress: (timeLeft.seconds / 60) * 100,
-        gradientId: 'seconds-gradient',
-        gradientColors: { start: '#f97316', end: '#ea580c' }, // Orange (accent)
+        gradientId: `seconds-${id}`.replace(/:/g, ''),
+        gradientColors: { start: '#f97316', end: '#ea580c' },
+        minDigits: 2,
       },
     ],
-    [timeLeft]
+    [timeLeft, id]
   )
 
   // Responsive size based on screen
@@ -280,7 +353,7 @@ export function CountdownTimer({ targetDate, title = 'Próximo Evento' }: Countd
       <div className="text-center py-8">
         <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-8 text-white/90">{title}</h3>
         <div className="flex items-center justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8">
-          {timeUnits.map(({ key, label, gradientId, gradientColors }) => (
+          {timeUnits.map(({ key, label, gradientId, gradientColors, minDigits }) => (
             <CircularTimeCard
               key={key}
               value={0}
@@ -289,6 +362,7 @@ export function CountdownTimer({ targetDate, title = 'Próximo Evento' }: Countd
               gradientId={gradientId}
               gradientColors={gradientColors}
               size={circleSize}
+              minDigits={minDigits}
             />
           ))}
         </div>
@@ -296,8 +370,20 @@ export function CountdownTimer({ targetDate, title = 'Próximo Evento' }: Countd
     )
   }
 
+  if (hasReachedZero) {
+    return (
+      <div className="text-center py-4 sm:py-6 md:py-8">
+        <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-6 text-white/90">{title}</h3>
+        <div className="rounded-2xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/30 px-6 py-8">
+          <p className="text-lg sm:text-xl font-semibold text-amber-200">{messageOnReachZero}</p>
+          <p className="mt-2 text-sm text-white/60">¡Gracias por ser parte!</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="text-center py-4 sm:py-6 md:py-8">
+    <div className="text-center py-4 sm:py-6 md:py-8" role="timer" aria-live="polite">
       {/* Title */}
       <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-6 sm:mb-8 md:mb-10 text-white/90">
         {title}
@@ -305,17 +391,20 @@ export function CountdownTimer({ targetDate, title = 'Próximo Evento' }: Countd
 
       {/* Countdown circles */}
       <div className="flex items-center justify-center gap-2 sm:gap-4 md:gap-6 lg:gap-8 flex-wrap">
-        {timeUnits.map(({ key, value, label, progress, gradientId, gradientColors }) => (
-          <CircularTimeCard
-            key={key}
-            value={value}
-            label={label}
-            progress={progress}
-            gradientId={gradientId}
-            gradientColors={gradientColors}
-            size={circleSize}
-          />
-        ))}
+        {timeUnits.map(
+          ({ key, value, label, progress, gradientId, gradientColors, minDigits }) => (
+            <CircularTimeCard
+              key={key}
+              value={value}
+              label={label}
+              progress={progress}
+              gradientId={gradientId}
+              gradientColors={gradientColors}
+              size={circleSize}
+              minDigits={minDigits}
+            />
+          )
+        )}
       </div>
 
       {/* Message */}

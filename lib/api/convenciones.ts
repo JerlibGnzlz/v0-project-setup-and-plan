@@ -5,6 +5,8 @@ export interface Convencion {
   titulo: string
   descripcion?: string
   fechaInicio: string
+  /** Día del evento en formato YYYY-MM-DD (sin hora) para cuenta regresiva sin ambigüedad de zona horaria */
+  fechaInicioDateOnly?: string
   fechaFin: string
   ubicacion: string
   costo?: number
@@ -30,25 +32,55 @@ export const convencionesApi = {
     return response.data
   },
 
+  /** Fecha del evento activo (YYYY-MM-DD). Fuente única para la cuenta regresiva. */
+  getEventDate: async (): Promise<{ dateOnly: string } | null> => {
+    try {
+      const response = await apiClient.get<{ dateOnly: string }>('/convenciones/event-date')
+      if (response.data?.dateOnly && /^\d{4}-\d{2}-\d{2}$/.test(response.data.dateOnly)) {
+        return { dateOnly: response.data.dateOnly }
+      }
+      return null
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number } }
+      if (err.response?.status === 404) return null
+      return null
+    }
+  },
+
+  /**
+   * Normaliza la convención activa: el backend puede enviar fechaInicio (ISO) y/o fechaInicioDateOnly (YYYY-MM-DD).
+   * Aseguramos que tengamos fechaInicioDateOnly para la cuenta regresiva.
+   */
   getActive: async (): Promise<Convencion | null> => {
     try {
       const response = await apiClient.get<Convencion>('/convenciones/active')
-      // Verificar que realmente tenemos datos válidos
-      if (!response.data || !response.data.id) {
+      const raw = response.data
+      if (!raw || !raw.id) {
         return null
       }
-      return response.data
-    } catch (error: any) {
+      const fechaInicio = raw.fechaInicio != null ? String(raw.fechaInicio).trim() : ''
+      const fromDateOnly =
+        raw.fechaInicioDateOnly && /^\d{4}-\d{2}-\d{2}$/.test(String(raw.fechaInicioDateOnly).trim())
+          ? String(raw.fechaInicioDateOnly).trim()
+          : null
+      const fechaInicioDateOnly = fromDateOnly ?? (fechaInicio.length >= 10 ? fechaInicio.slice(0, 10) : undefined)
+      return {
+        ...raw,
+        fechaInicio: fechaInicio || raw.fechaInicio,
+        ...(fechaInicioDateOnly && { fechaInicioDateOnly }),
+      } as Convencion
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number; data?: { message?: string } }; message?: string }
       // 404 significa que no hay convención activa
-      if (error.response?.status === 404) {
+      if (err.response?.status === 404) {
         console.log('📭 No hay convención activa')
         return null
       }
       // 500 generalmente significa problema de base de datos
-      if (error.response?.status === 500) {
+      if (err.response?.status === 500) {
         console.error(
           '❌ Error de servidor (posible problema de base de datos):',
-          error.response?.data?.message || error.message
+          err.response?.data?.message || err.message
         )
         // Retornar null en lugar de lanzar error para que el frontend pueda manejar esto
         return null

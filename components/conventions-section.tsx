@@ -14,12 +14,13 @@ import {
   Star,
 } from 'lucide-react'
 import { CountdownTimer } from './countdown-timer'
-import { useConvencionActiva } from '@/lib/hooks/use-convencion'
-import { useEffect, useState } from 'react'
+import { useConvencionActiva, useEventDate } from '@/lib/hooks/use-convencion'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import type { Convencion } from '@/lib/api/convenciones'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { getEventDate } from '@/lib/utils/event-date'
 
 // Decorative corner component for invitation
 function DecorativeCorner({
@@ -501,6 +502,7 @@ function HorizontalInvitationCard({
 
 export function ConventionsSection() {
   const { data: convencion, isLoading, isFetching } = useConvencionActiva()
+  const { data: eventDateApi } = useEventDate()
   const [isVisible, setIsVisible] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
 
@@ -524,16 +526,47 @@ export function ConventionsSection() {
     }
   }, [convencion?.activa])
 
+  const eventDate = useMemo(
+    () => getEventDate(convencion ?? null, (d) => format(d, 'dd/MM/yyyy', { locale: es })),
+    [convencion]
+  )
+  const dateOnlyFallback = useMemo(() => {
+    if (!convencion?.fechaInicio) return ''
+    const raw = convencion.fechaInicio
+    const str = typeof raw === 'string' ? raw.trim() : ''
+    const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/)
+    return match ? match[0] : ''
+  }, [convencion?.fechaInicio])
+  const dateOnly = eventDate?.dateOnly ?? eventDateApi?.dateOnly ?? dateOnlyFallback ?? ''
+  const fechaFormateada = useMemo(() => {
+    if (dateOnly.length === 10) {
+      const [y, m, d] = dateOnly.split('-').map(Number)
+      return format(new Date(y, m - 1, d), 'dd/MM/yyyy', { locale: es })
+    }
+    return eventDate?.formatted ?? ''
+  }, [dateOnly, eventDate?.formatted])
+  const fechaConvencion =
+    dateOnly.length === 10
+      ? (() => {
+          const [y, m, d] = dateOnly.split('-').map(Number)
+          return new Date(y, m - 1, d, 0, 0, 0)
+        })()
+      : new Date(0)
+  const hasValidDate = dateOnly.length === 10
+
   if (isLoading) {
-    return null
+    return (
+      <section id="convenciones" className="relative py-16 sm:py-20 lg:py-24 overflow-hidden">
+        <div className="container mx-auto px-4 text-center">
+          <div className="animate-pulse text-white/50">Cargando próxima convención...</div>
+        </div>
+      </section>
+    )
   }
 
   if (!convencion || convencion.activa === false) {
     return <ComingSoonAnnouncement />
   }
-
-  const fechaConvencion = new Date(convencion.fechaInicio)
-  const fechaFormateada = format(fechaConvencion, 'dd/MM/yyyy', { locale: es })
 
   return (
     <section
@@ -595,8 +628,32 @@ export function ConventionsSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch max-w-6xl mx-auto">
           {/* Countdown Section */}
           <div className="lg:col-span-7 flex flex-col">
-            <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 p-6 sm:p-8 flex-grow flex flex-col justify-center">
-              <CountdownTimer targetDate={fechaConvencion} title={convencion.titulo} />
+            <div
+              className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 p-6 sm:p-8 flex-grow flex flex-col justify-center"
+              data-countdown-date-only={dateOnly || undefined}
+              data-countdown-target-ts={hasValidDate ? String(fechaConvencion.getTime()) : undefined}
+              title={hasValidDate ? `Cuenta regresiva hacia ${fechaFormateada} (fecha: ${dateOnly})` : undefined}
+            >
+              {hasValidDate && dateOnly ? (
+                <>
+                  <CountdownTimer
+                    key={dateOnly}
+                    targetDateOnly={dateOnly}
+                    title={convencion.titulo}
+                  />
+                  <p className="mt-2 text-xs text-white/50" aria-hidden>
+                    Hacia el {fechaFormateada}
+                  </p>
+                </>
+              ) : (
+                <div className="text-center py-6">
+                  <h3 className="text-lg font-bold text-white/90 mb-4">{convencion.titulo}</h3>
+                  <p className="text-sm text-white/50">Cargando cuenta regresiva...</p>
+                  <p className="mt-2 text-xs text-white/40">
+                    Si tarda, verifica que el backend esté en marcha y que la convención tenga fecha guardada.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

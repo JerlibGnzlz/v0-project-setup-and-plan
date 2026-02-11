@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { CreateConvencionDto, UpdateConvencionDto } from './dto/convencion.dto'
 import { ConvencionRepository } from './repositories/convencion.repository'
 import { Convencion, Prisma } from '@prisma/client'
@@ -17,6 +17,21 @@ import { DataSyncGateway } from '../data-sync/data-sync.gateway'
  * - O: Abierto para extensión (métodos pueden añadirse)
  * - D: Depende de la abstracción (repositorio), no de Prisma
  */
+/** Parsea solo YYYY-MM-DD (o ISO que empiece así) a Date en UTC mediodía. Así todos los meses coinciden con la cuenta regresiva. */
+function parseFechaUnica(iso: string): Date {
+  const str = String(iso).trim()
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (match) {
+    const [, y, m, d] = match.map(Number)
+    if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      return new Date(Date.UTC(y, m - 1, d, 12, 0, 0))
+    }
+  }
+  throw new BadRequestException(
+    'fechaInicio y fechaFin deben estar en formato YYYY-MM-DD (ej: 2026-07-12)'
+  )
+}
+
 @Injectable()
 export class ConvencionesService {
   private readonly logger = new Logger(ConvencionesService.name)
@@ -41,7 +56,9 @@ export class ConvencionesService {
   }
 
   /**
-   * Encuentra la convención activa actual
+   * Encuentra la convención activa actual.
+   * fechaInicio/fechaFin se guardan como DateTime (ISO) y el controller las serializa
+   * a ISO string; el frontend usa el día (YYYY-MM-DD) en hora local para la cuenta regresiva.
    */
   async findActive(): Promise<Convencion | null> {
     const convencion = await this.repository.findActive()
@@ -62,8 +79,8 @@ export class ConvencionesService {
     const data: Prisma.ConvencionCreateInput = {
       titulo: dto.titulo,
       descripcion: dto.descripcion || null,
-      fechaInicio: new Date(dto.fechaInicio),
-      fechaFin: new Date(dto.fechaFin),
+      fechaInicio: parseFechaUnica(dto.fechaInicio),
+      fechaFin: parseFechaUnica(dto.fechaFin),
       ubicacion: dto.ubicacion,
       costo: dto.costo !== undefined ? new Prisma.Decimal(dto.costo) : undefined,
       cupoMaximo: dto.cupoMaximo,
@@ -91,8 +108,8 @@ export class ConvencionesService {
 
     if (dto.titulo !== undefined) data.titulo = dto.titulo
     if (dto.descripcion !== undefined) data.descripcion = dto.descripcion
-    if (dto.fechaInicio !== undefined) data.fechaInicio = new Date(dto.fechaInicio)
-    if (dto.fechaFin !== undefined) data.fechaFin = new Date(dto.fechaFin)
+    if (dto.fechaInicio !== undefined) data.fechaInicio = parseFechaUnica(dto.fechaInicio)
+    if (dto.fechaFin !== undefined) data.fechaFin = parseFechaUnica(dto.fechaFin)
     if (dto.ubicacion !== undefined) data.ubicacion = dto.ubicacion
     if (dto.costo !== undefined) data.costo = new Prisma.Decimal(dto.costo)
     if (dto.cupoMaximo !== undefined) data.cupoMaximo = dto.cupoMaximo
