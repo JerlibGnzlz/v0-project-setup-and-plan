@@ -1,12 +1,12 @@
 import { Calendar } from 'lucide-react'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { formatConvencionFechaDisplay } from '@/lib/utils/event-date'
 
 interface DashboardHeaderProps {
   convencionActiva: {
     titulo?: string
     ubicacion?: string
     fechaInicio?: string | Date
+    fechaInicioDateOnly?: string
   } | null
 }
 
@@ -26,9 +26,13 @@ export function DashboardHeader({ convencionActiva }: DashboardHeaderProps) {
             <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
               <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 animate-pulse" />
               {convencionActiva?.ubicacion || ''} •{' '}
-              {convencionActiva?.fechaInicio
-                ? format(new Date(convencionActiva.fechaInicio), 'dd/MM/yyyy', { locale: es })
-                : ''}
+              {(() => {
+                const f = formatConvencionFechaDisplay(
+                  convencionActiva?.fechaInicio,
+                  convencionActiva?.fechaInicioDateOnly
+                )
+                return f !== '-' ? f : ''
+              })()}
             </p>
           </div>
           <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-sky-50 to-emerald-50 dark:from-sky-950/30 dark:to-emerald-950/30 border border-sky-200/50 dark:border-sky-500/20">

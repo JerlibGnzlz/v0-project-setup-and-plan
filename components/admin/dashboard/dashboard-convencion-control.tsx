@@ -8,14 +8,14 @@ import { ScrollReveal } from '@/components/scroll-reveal'
 import { Calendar, Clock, Edit } from 'lucide-react'
 import { ConvencionEditDialog } from './convencion-edit-dialog'
 import type { ConvencionFormData } from '@/lib/validations/convencion'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { formatConvencionFechaDisplay } from '@/lib/utils/event-date'
 
 interface DashboardConvencionControlProps {
   convencionActiva: {
     id: string
     titulo?: string
     fechaInicio?: string | Date
+    fechaInicioDateOnly?: string
     ubicacion?: string
     costo?: number | string
     activa?: boolean
@@ -85,9 +85,10 @@ export function DashboardConvencionControl({
                 Fecha:
               </span>
               <span className="text-sm font-semibold">
-                {convencionActiva?.fechaInicio
-                  ? format(new Date(convencionActiva.fechaInicio), 'dd/MM/yyyy', { locale: es })
-                  : '-'}
+                {formatConvencionFechaDisplay(
+                  convencionActiva?.fechaInicio,
+                  convencionActiva?.fechaInicioDateOnly
+                )}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -149,9 +150,10 @@ export function DashboardConvencionControl({
                 La cuenta regresiva se mostrará automáticamente cuando la convención esté visible
                 en la landing page. Fecha objetivo:{' '}
                 <span className="font-semibold">
-                  {convencionActiva?.fechaInicio
-                    ? format(new Date(convencionActiva.fechaInicio), 'dd/MM/yyyy', { locale: es })
-                    : '-'}
+                  {formatConvencionFechaDisplay(
+                    convencionActiva?.fechaInicio,
+                    convencionActiva?.fechaInicioDateOnly
+                  )}
                 </span>
               </p>
             </div>

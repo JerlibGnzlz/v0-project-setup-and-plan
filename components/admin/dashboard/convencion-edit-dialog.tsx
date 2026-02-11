@@ -19,24 +19,24 @@ import { convencionSchema, type ConvencionFormData } from '@/lib/validations/con
 import { useEffect } from 'react'
 import { format } from 'date-fns'
 
-// Función helper para convertir fecha ISO a formato local yyyy-MM-dd sin problemas de zona horaria
+const DATE_ONLY_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/
+
+/** Siempre devuelve YYYY-MM-DD. Usa solo el string (slice) para que todos los meses coincidan con la cuenta regresiva. */
 function formatDateToLocal(dateString: string | Date): string {
   if (!dateString) return ''
-
-  let date: Date
   if (typeof dateString === 'string') {
-    // Si es string ISO, crear Date y usar métodos locales para evitar problemas de zona horaria
-    date = new Date(dateString)
-  } else {
-    date = dateString
+    const trimmed = dateString.trim()
+    if (trimmed.length >= 10 && DATE_ONLY_REGEX.test(trimmed.slice(0, 10))) {
+      return trimmed.slice(0, 10)
+    }
   }
-
-  // Usar métodos locales para obtener año, mes y día sin problemas de zona horaria
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-
-  return `${year}-${month}-${day}`
+  if (dateString instanceof Date) {
+    const y = dateString.getFullYear()
+    const m = String(dateString.getMonth() + 1).padStart(2, '0')
+    const d = String(dateString.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }
+  return ''
 }
 
 interface ConvencionEditDialogProps {

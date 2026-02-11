@@ -29,7 +29,8 @@
     "cleanup:pastor-admin": "ts-node scripts/eliminar-pastor-admin.ts",
     "create:user": "ts-node scripts/create-user.ts",
     "check:user": "ts-node scripts/check-user.ts",
-    "ensure:admin": "ts-node scripts/ensure-admin.ts"
+    "ensure:admin": "ts-node scripts/ensure-admin.ts",
+    "check:convencion-activa": "ts-node scripts/check-convencion-activa.ts"
   },
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",

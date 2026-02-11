@@ -61,9 +61,7 @@ apiClient.interceptors.request.use((config: any) => {
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
-
-      // Log para debugging (solo en desarrollo o cuando hay errores 403)
-      if (process.env.NODE_ENV === 'development' || requestUrl.includes('/usuarios')) {
+      if (process.env.NODE_ENV === 'development' && requestUrl.includes('/usuarios')) {
         try {
           const payload = JSON.parse(atob(token.split('.')[1]))
           console.log('[apiClient] Token enviado:', {
@@ -72,11 +70,11 @@ apiClient.interceptors.request.use((config: any) => {
             rol: payload.rol,
             email: payload.email,
           })
-        } catch (e) {
+        } catch {
           // Ignorar errores al decodificar token
         }
       }
-    } else {
+    } else if (process.env.NODE_ENV === 'development') {
       console.warn('[apiClient] No hay token disponible para:', requestUrl)
     }
   }
@@ -100,16 +98,7 @@ apiClient.interceptors.response.use(
         ? String(`${error.config.baseURL || API_URL}${error.config.url}`)
         : String(API_URL)
 
-      // Log detallado pero serializable - usar múltiples console.error para evitar problemas de serialización
-      console.error('[apiClient] Error de red detectado')
-      console.error('[apiClient] Mensaje:', errorMessage)
-      console.error('[apiClient] Código:', errorCode)
-      console.error('[apiClient] API URL:', API_URL)
-      console.error('[apiClient] Request URL:', requestUrl)
-      console.error('[apiClient] Método:', requestMethod)
-      console.error('[apiClient] URL completa:', fullUrl)
-
-      // Solo mostrar el error en consola, no lanzar excepción para evitar interrumpir el flujo
+      // El error se propaga con mensaje descriptivo; el componente puede mostrarlo (toast, etc.)
       // El componente puede manejar el error según sea necesario
       const networkError = new Error(
         `Error de conexión: No se pudo conectar con el servidor en ${API_URL}. ` +
@@ -128,33 +117,10 @@ apiClient.interceptors.response.use(
     if (typeof window !== 'undefined' && error.response?.status === 403) {
       const currentPath = window.location.pathname
       const requestUrl = error.config?.url || ''
-      const requestMethod = error.config?.method?.toUpperCase() || 'UNKNOWN'
 
-      // Log detallado para debugging
-      console.error('[apiClient] ❌ Error 403 (Forbidden) detectado')
-      console.error('[apiClient] Path actual:', currentPath)
-      console.error('[apiClient] Request URL:', requestUrl)
-      console.error('[apiClient] Request Method:', requestMethod)
-      console.error('[apiClient] Response data:', error.response?.data)
-
-      // Verificar token en storage
-      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
-      console.error('[apiClient] Token presente:', !!token)
-      if (token) {
-        try {
-          // Decodificar token JWT (sin verificar firma, solo para ver el payload)
-          const payload = JSON.parse(atob(token.split('.')[1]))
-          console.error('[apiClient] Token payload:', {
-            email: payload.email,
-            rol: payload.rol,
-            sub: payload.sub,
-            exp: new Date(payload.exp * 1000).toISOString(),
-          })
-        } catch (e) {
-          console.error('[apiClient] No se pudo decodificar token:', e)
-        }
-      } else {
-        console.error('[apiClient] ⚠️ No hay token en storage')
+      if (process.env.NODE_ENV === 'development') {
+        const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+        console.warn('[apiClient] 403 Forbidden:', requestUrl, { tokenPresent: !!token })
       }
 
       // Si es una ruta de admin y el error es 403, probablemente el token tiene rol antiguo o falta permisos
@@ -166,8 +132,9 @@ apiClient.interceptors.response.use(
           errorMessage = String(errorData.message)
         }
 
-        console.warn('[apiClient] Error 403:', errorMessage)
-        console.warn('[apiClient] 💡 Solución: Si acabas de cambiar tu rol, cierra sesión y vuelve a iniciar sesión para obtener un nuevo token.')
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[apiClient] 💡 Si cambiaste tu rol, cierra sesión y vuelve a iniciar.')
+        }
 
         // Crear un error más descriptivo
         const forbiddenError = new Error(errorMessage)
@@ -221,7 +188,9 @@ apiClient.interceptors.response.use(
               }
             } catch (refreshError) {
               refreshPromise = null
-              console.error('[apiClient] Error al refrescar token:', refreshError)
+              if (process.env.NODE_ENV === 'development') {
+                console.error('[apiClient] Error al refrescar token:', refreshError)
+              }
               throw refreshError
             } finally {
               refreshPromise = null

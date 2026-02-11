@@ -1,8 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
@@ -45,21 +43,17 @@ export function DatePickerSimple({
     return new Date(year, month - 1, day)
   }
 
-  // Convertir value a string para el input
+  // Valor del input: siempre YYYY-MM-DD para que todos los meses se sincronicen con la cuenta regresiva.
+  // Si viene string tipo ISO, usar solo los primeros 10 caracteres (nunca new Date(str) para el día).
   const inputValue = React.useMemo(() => {
     if (!value) return ''
     if (value instanceof Date) {
       return formatDateToString(value)
     }
     if (typeof value === 'string') {
-      // Si ya es formato yyyy-MM-dd, devolverlo tal cual
-      if (value.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        return value
-      }
-      // Si es otro formato, convertir a Date y luego a string
-      const date = new Date(value)
-      if (!isNaN(date.getTime())) {
-        return formatDateToString(date)
+      const trimmed = value.trim()
+      if (trimmed.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(trimmed.slice(0, 10))) {
+        return trimmed.slice(0, 10)
       }
     }
     return ''
