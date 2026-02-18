@@ -1126,6 +1126,31 @@ export class InscripcionesService {
     }
 
     /**
+     * Verifica que todas las cuotas anteriores estén completadas antes de subir comprobante o validar.
+     * Orden obligatorio: no se puede pagar la cuota N sin haber pagado la cuota N-1.
+     */
+    private async assertCuotasAnterioresCompletadas(
+        inscripcionId: string,
+        numeroCuotaActual: number | null
+    ): Promise<void> {
+        if (numeroCuotaActual == null || numeroCuotaActual <= 1) {
+            return
+        }
+        const pagosInscripcion = await this.prisma.pago.findMany({
+            where: { inscripcionId },
+            select: { numeroCuota: true, estado: true },
+        })
+        for (let n = 1; n < numeroCuotaActual; n++) {
+            const pagoAnterior = pagosInscripcion.find(p => p.numeroCuota === n)
+            if (!pagoAnterior || pagoAnterior.estado !== EstadoPago.COMPLETADO) {
+                throw new BadRequestException(
+                    `Debes tener la cuota ${n} pagada y validada antes de poder subir comprobante o validar la cuota ${numeroCuotaActual}. Paga primero la cuota ${n}.`
+                )
+            }
+        }
+    }
+
+    /**
      * Crea un nuevo pago
      */
     async createPago(dto: CreatePagoDto): Promise<Pago> {
@@ -1310,6 +1335,14 @@ export class InscripcionesService {
         userId?: string
     ): Promise<Pago & { advertenciaMonto?: string }> {
         const pago = await this.findOnePago(id) // Verifica existencia
+
+        // Orden de cuotas: no permitir subir comprobante o validar cuota N sin tener 1..N-1 pagadas
+        if (dto.comprobanteUrl !== undefined || dto.estado === EstadoPago.COMPLETADO) {
+            await this.assertCuotasAnterioresCompletadas(
+                pago.inscripcionId,
+                pago.numeroCuota ?? null
+            )
+        }
 
         const data: Prisma.PagoUpdateInput = { ...dto }
         if (dto.monto) {
