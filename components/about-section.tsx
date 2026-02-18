@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { Target, Eye, Sparkles } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { AnimatedCounter } from './animated-counter'
+import { SectionFormatBar, sectionTitleGradientClass } from './section-format-bar'
 import { useSedesCount } from '@/lib/hooks/use-sedes'
 import { useConfiguracionLanding } from '@/lib/hooks/use-configuracion-landing'
 
@@ -84,6 +86,15 @@ export function AboutSection() {
     ]
   }, [configuracion, totalPaises, isLoadingConfig])
 
+  const getJustificacionClass = (
+    value: string | undefined
+  ): 'text-left' | 'text-center' | 'text-right' | 'text-justify' => {
+    if (value === 'center') return 'text-center'
+    if (value === 'right') return 'text-right'
+    if (value === 'justify') return 'text-justify'
+    return 'text-left'
+  }
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({
@@ -123,40 +134,36 @@ export function AboutSection() {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <span className="text-sm text-white/80 font-medium">Nuestra Identidad</span>
-          </div>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
-            {configuracion?.titulo
+        <SectionFormatBar
+          badgeIcon={Sparkles}
+          badgeLabel="Nuestra Identidad"
+          title={
+            configuracion?.titulo
               ?.split(' ')
               .map((word, index) => {
                 if (index === 0) return word
                 return (
-                  <span
-                    key={index}
-                    className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent"
-                  >
+                  <span key={index} className={sectionTitleGradientClass}>
                     {' '}
                     {word}
                   </span>
                 )
-              }) || (
-              <>
-                Quiénes{' '}
-                <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
-                  Somos
-                </span>
-              </>
-            )}
-          </h2>
-          <p className="text-lg text-white/60 max-w-3xl mx-auto leading-relaxed">
-            {configuracion?.subtitulo ||
-              'Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino'}
-          </p>
-        </div>
+              }) ?? (
+                <>
+                  Quiénes{' '}
+                  <span className={sectionTitleGradientClass}>Somos</span>
+                </>
+              )
+          }
+          subtitle={
+            configuracion?.subtitulo ||
+            'Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino'
+          }
+          subtitleClassName={cn(
+            'leading-relaxed',
+            getJustificacionClass(configuracion?.subtituloJustificacion)
+          )}
+        />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-20 max-w-5xl mx-auto">
@@ -192,7 +199,12 @@ export function AboutSection() {
                   {configuracion?.misionTitulo || 'Nuestra Misión'}
                 </h3>
               </div>
-              <p className="text-white/70 leading-relaxed">
+              <p
+                className={cn(
+                  'text-white/70 leading-relaxed',
+                  getJustificacionClass(configuracion?.misionJustificacion)
+                )}
+              >
                 {configuracion?.misionContenido ||
                   'Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.'}
               </p>
@@ -211,7 +223,12 @@ export function AboutSection() {
                   {configuracion?.visionTitulo || 'Nuestra Visión'}
                 </h3>
               </div>
-              <p className="text-white/70 leading-relaxed">
+              <p
+                className={cn(
+                  'text-white/70 leading-relaxed',
+                  getJustificacionClass(configuracion?.visionJustificacion)
+                )}
+              >
                 {configuracion?.visionContenido ||
                   'Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.'}
               </p>

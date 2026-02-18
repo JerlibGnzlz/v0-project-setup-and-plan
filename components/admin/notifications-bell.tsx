@@ -293,7 +293,7 @@ export function NotificationsBell() {
                           <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0 animate-pulse" />
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                      <p className="text-xs text-muted-foreground mb-2 whitespace-pre-wrap break-words">
                         {notification.body}
                       </p>
 

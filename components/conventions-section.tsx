@@ -635,16 +635,11 @@ export function ConventionsSection() {
               title={hasValidDate ? `Cuenta regresiva hacia ${fechaFormateada} (fecha: ${dateOnly})` : undefined}
             >
               {hasValidDate && dateOnly ? (
-                <>
-                  <CountdownTimer
-                    key={dateOnly}
-                    targetDateOnly={dateOnly}
-                    title={convencion.titulo}
-                  />
-                  <p className="mt-2 text-xs text-white/50" aria-hidden>
-                    Hacia el {fechaFormateada}
-                  </p>
-                </>
+                <CountdownTimer
+                  key={dateOnly}
+                  targetDateOnly={dateOnly}
+                  title={convencion.titulo}
+                />
               ) : (
                 <div className="text-center py-6">
                   <h3 className="text-lg font-bold text-white/90 mb-4">{convencion.titulo}</h3>

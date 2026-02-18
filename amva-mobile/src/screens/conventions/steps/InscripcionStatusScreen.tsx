@@ -442,8 +442,21 @@ export function InscripcionStatusScreen({
               const estaPendiente = estadoNormalizado === 'PENDIENTE'
               const tieneComprobante = !!pago.comprobanteUrl
               const estaSubiendo = uploadingComprobante && pagoSeleccionado === pago.id
-              
-              console.log(`📋 Pago ${numeroPago}: estado=${pago.estado}, normalizado=${estadoNormalizado}, pendiente=${estaPendiente}`)
+              // Orden de cuotas: solo se puede subir comprobante de la siguiente en orden
+              const cuotasAnterioresPagadas =
+                numeroPago <= 1 ||
+                Array.from({ length: numeroPago - 1 }, (_, i) => i + 1).every(n => {
+                  const pAnterior = pagos.find(p => (p.numeroCuota ?? pagos.indexOf(p) + 1) === n)
+                  return pAnterior?.estado?.toUpperCase() === 'COMPLETADO'
+                })
+              const puedeSubirComprobante = estaPendiente && cuotasAnterioresPagadas
+              const primeraCuotaPendiente =
+                numeroPago > 1 &&
+                !cuotasAnterioresPagadas &&
+                Array.from({ length: numeroPago - 1 }, (_, i) => i + 1).find(n => {
+                  const pAnterior = pagos.find(p => (p.numeroCuota ?? pagos.indexOf(p) + 1) === n)
+                  return pAnterior?.estado?.toUpperCase() !== 'COMPLETADO'
+                })
 
               return (
                 <View key={pago.id} style={styles.paymentItem}>
@@ -475,9 +488,18 @@ export function InscripcionStatusScreen({
                     (pesos argentinos)
                   </Text>
                   
-                  {/* Botón para subir comprobante (solo para pagos pendientes) */}
+                  {/* Botón para subir comprobante (solo para pagos pendientes y en orden) */}
                   {estaPendiente && (
                     <View style={styles.paymentUploadSection}>
+                      {!puedeSubirComprobante && primeraCuotaPendiente && (
+                        <View style={styles.paymentUploadWarning}>
+                          <AlertCircle size={14} color="#f59e0b" />
+                          <Text style={styles.paymentUploadWarningText}>
+                            Para subir el comprobante de la cuota {numeroPago} primero debe estar pagada la cuota{' '}
+                            {primeraCuotaPendiente}.
+                          </Text>
+                        </View>
+                      )}
                       {/* Estado del comprobante */}
                       {tieneComprobante ? (
                         <View style={styles.comprobanteUploaded}>
@@ -493,11 +515,14 @@ export function InscripcionStatusScreen({
                       <TouchableOpacity
                         style={[
                           styles.paymentUploadButton,
-                          (estaSubiendo || tieneComprobante) && styles.paymentUploadButtonDisabled,
+                          (estaSubiendo || tieneComprobante || !puedeSubirComprobante) &&
+                            styles.paymentUploadButtonDisabled,
                           tieneComprobante && styles.paymentUploadButtonSuccess,
                         ]}
                         onPress={() => handleUploadComprobante(pago.id)}
-                        disabled={estaSubiendo || uploadingComprobante || tieneComprobante}
+                        disabled={
+                          estaSubiendo || uploadingComprobante || tieneComprobante || !puedeSubirComprobante
+                        }
                       >
                         {estaSubiendo ? (
                           <View style={styles.paymentUploadButtonContent}>

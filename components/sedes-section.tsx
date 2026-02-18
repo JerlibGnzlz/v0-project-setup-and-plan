@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, MapPin, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImageWithSkeleton } from './image-with-skeleton'
+import { SectionFormatBar, sectionTitleGradientClass } from './section-format-bar'
 import { useSedesLanding } from '@/lib/hooks/use-sedes-landing'
 import type { Sede } from '@/lib/api/sedes'
 
@@ -135,23 +136,19 @@ export function SedesSection() {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        {/* Header con badge */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
-            <Globe className="w-4 h-4 text-emerald-400" />
-            <span className="text-sm text-white/80 font-medium">Presencia Global</span>
-          </div>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
-            Nuestras{' '}
-            <span className="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
-              Sedes
-            </span>
-          </h2>
-          <p className="text-lg text-white/60 max-w-2xl mx-auto">
-            Presencia misionera en múltiples países, llevando el mensaje de vida abundante a todas
-            las naciones
-          </p>
-        </div>
+        <SectionFormatBar
+          badgeIcon={Globe}
+          badgeLabel="Presencia Global"
+          title={
+            <>
+              Nuestras{' '}
+              <span className={sectionTitleGradientClass}>Sedes</span>
+            </>
+          }
+          subtitle="Presencia misionera en múltiples países, llevando el mensaje de vida abundante a todas las naciones"
+          bottomMargin="compact"
+          subtitleClassName="max-w-2xl"
+        />
 
         {/* Carousel modernizado - Diseño compacto y profesional */}
         <div className="relative max-w-5xl mx-auto">

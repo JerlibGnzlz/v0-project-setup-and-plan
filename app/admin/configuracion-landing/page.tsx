@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useConfiguracionLanding, useUpdateConfiguracionLanding } from '@/lib/hooks/use-configuracion-landing'
 import { Settings, Save, Users, Globe, Calendar, BookOpen, Target, Eye } from 'lucide-react'
@@ -16,10 +23,19 @@ export default function ConfiguracionLandingPage() {
   const { data: configuracion, isLoading } = useConfiguracionLanding()
   const updateMutation = useUpdateConfiguracionLanding()
 
+  const JUSTIFICACION_OPTIONS = [
+    { value: 'left', label: 'Izquierda' },
+    { value: 'center', label: 'Centro' },
+    { value: 'right', label: 'Derecha' },
+    { value: 'justify', label: 'Justificado' },
+  ] as const
+
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { isDirty },
   } = useForm<UpdateConfiguracionLandingDto>({
     defaultValues: {
@@ -32,12 +48,15 @@ export default function ConfiguracionLandingPage() {
       titulo: 'Quiénes Somos',
       subtitulo:
         'Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino',
+      subtituloJustificacion: 'left',
       misionTitulo: 'Nuestra Misión',
       misionContenido:
         'Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.',
+      misionJustificacion: 'left',
       visionTitulo: 'Nuestra Visión',
       visionContenido:
         'Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.',
+      visionJustificacion: 'left',
     },
   })
 
@@ -54,10 +73,13 @@ export default function ConfiguracionLandingPage() {
         paisesOverride: configuracion.paisesOverride,
         titulo: configuracion.titulo,
         subtitulo: configuracion.subtitulo,
+        subtituloJustificacion: configuracion.subtituloJustificacion ?? 'left',
         misionTitulo: configuracion.misionTitulo,
         misionContenido: configuracion.misionContenido,
+        misionJustificacion: configuracion.misionJustificacion ?? 'left',
         visionTitulo: configuracion.visionTitulo,
         visionContenido: configuracion.visionContenido,
+        visionJustificacion: configuracion.visionJustificacion ?? 'left',
       })
     }
   }, [configuracion, reset])
@@ -191,6 +213,29 @@ export default function ConfiguracionLandingPage() {
                 {...register('subtitulo')}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label>Justificación del texto (Subtítulo)</Label>
+              <Select
+                value={watch('subtituloJustificacion') ?? 'left'}
+                onValueChange={(value) =>
+                  setValue('subtituloJustificacion', value as 'left' | 'center' | 'right' | 'justify', {
+                    shouldDirty: true,
+                  })
+                }
+              >
+                <SelectTrigger className="w-full max-w-xs">
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {JUSTIFICACION_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
         </Card>
 
@@ -216,6 +261,29 @@ export default function ConfiguracionLandingPage() {
                 {...register('misionContenido')}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label>Justificación del texto (Misión)</Label>
+              <Select
+                value={watch('misionJustificacion') ?? 'left'}
+                onValueChange={(value) =>
+                  setValue('misionJustificacion', value as 'left' | 'center' | 'right' | 'justify', {
+                    shouldDirty: true,
+                  })
+                }
+              >
+                <SelectTrigger className="w-full max-w-xs">
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {JUSTIFICACION_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
         </Card>
 
@@ -240,6 +308,29 @@ export default function ConfiguracionLandingPage() {
                 rows={5}
                 {...register('visionContenido')}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Justificación del texto (Visión)</Label>
+              <Select
+                value={watch('visionJustificacion') ?? 'left'}
+                onValueChange={(value) =>
+                  setValue('visionJustificacion', value as 'left' | 'center' | 'right' | 'justify', {
+                    shouldDirty: true,
+                  })
+                }
+              >
+                <SelectTrigger className="w-full max-w-xs">
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {JUSTIFICACION_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>

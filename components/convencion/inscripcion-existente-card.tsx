@@ -436,7 +436,7 @@ export function InscripcionExistenteCard({
                         </div>
                     </div>
 
-                    {/* Lista de pagos */}
+                    {/* Lista de pagos - solo se puede subir comprobante de la siguiente cuota en orden */}
                     <div className="mt-4 space-y-2">
                         {Array.from({ length: numeroCuotas }, (_, i) => i + 1).map(numero => {
                             const pago = pagos.find(p => p.numeroCuota === numero)
@@ -446,6 +446,18 @@ export function InscripcionExistenteCard({
                             const pagoId = pago?.id || `pago-${numero}`
                             const estaExpandido = pagosExpandidos[pagoId] || false
                             const tieneComprobante = !!pago?.comprobanteUrl
+                            const cuotasAnterioresPagadas =
+                                numero <= 1 ||
+                                Array.from({ length: numero - 1 }, (_, i) => i + 1).every(
+                                    n => pagos.find(p => p.numeroCuota === n)?.estado === 'COMPLETADO'
+                                )
+                            const puedeSubirComprobante = estaPendiente && cuotasAnterioresPagadas
+                            const primeraCuotaPendiente =
+                                numero > 1 &&
+                                !cuotasAnterioresPagadas &&
+                                Array.from({ length: numero - 1 }, (_, i) => i + 1).find(
+                                    n => pagos.find(p => p.numeroCuota === n)?.estado !== 'COMPLETADO'
+                                )
 
                             return (
                                 <div
@@ -536,6 +548,14 @@ export function InscripcionExistenteCard({
                                     {estaPendiente && estaExpandido && (
                                         <div className="px-3 pb-3 border-t border-white/10 pt-3">
                                             <div className="space-y-3">
+                                                {!puedeSubirComprobante && primeraCuotaPendiente && (
+                                                    <div className="p-3 bg-amber-500/20 border border-amber-500/40 rounded-lg">
+                                                        <p className="text-sm text-amber-200 flex items-center gap-2">
+                                                            <AlertCircle className="w-4 h-4 shrink-0" />
+                                                            Para subir el comprobante de la cuota {numero} primero debe estar pagada y validada la cuota {primeraCuotaPendiente}.
+                                                        </p>
+                                                    </div>
+                                                )}
                                                 <div>
                                                     <h4 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
                                                         <Upload className="w-4 h-4 text-amber-400" />
@@ -585,7 +605,7 @@ export function InscripcionExistenteCard({
                                                         }
                                                     }}
                                                     className="bg-white/5"
-                                                    disabled={estaPagada || !!pago?.comprobanteUrl}
+                                                    disabled={estaPagada || !!pago?.comprobanteUrl || !puedeSubirComprobante}
                                                 />
 
                                                 {/* Botón de Enviar */}
@@ -593,6 +613,7 @@ export function InscripcionExistenteCard({
                                                     <Button
                                                         onClick={() => handleEnviarComprobante(pagoId)}
                                                         disabled={
+                                                            !puedeSubirComprobante ||
                                                             (!comprobantesTemporales[pagoId] && !pago?.comprobanteUrl) ||
                                                             updatePagoMutation.isPending ||
                                                             estaPagada ||

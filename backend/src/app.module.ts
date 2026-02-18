@@ -19,6 +19,7 @@ import { CredencialesCapellaniaModule } from './modules/credenciales-capellania/
 import { CredencialesModule } from './modules/credenciales/credenciales.module'
 import { SedesModule } from './modules/sedes/sedes.module'
 import { ConfiguracionLandingModule } from './modules/configuracion-landing/configuracion-landing.module'
+import { EducacionProgramasModule } from './modules/educacion-programas/educacion-programas.module'
 import { PublicModule } from './modules/public/public.module'
 import { SolicitudesCredencialesModule } from './modules/solicitudes-credenciales/solicitudes-credenciales.module'
 import { DataSyncModule } from './modules/data-sync/data-sync.module'
@@ -69,6 +70,7 @@ import { AuditModule } from './modules/audit/audit.module'
     CredencialesModule,
     SedesModule,
     ConfiguracionLandingModule,
+    EducacionProgramasModule,
     PublicModule,
     SolicitudesCredencialesModule,
     DataSyncModule,

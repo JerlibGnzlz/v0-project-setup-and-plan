@@ -297,24 +297,6 @@ export function GallerySection() {
                       </AnimateOnScroll>
                     ))}
                   </div>
-                  
-                  {/* Mensaje si hay más imágenes */}
-                  {todasImagenes.length > MAX_IMAGENES_LANDING && (
-                    <div className="text-center mt-8">
-                      <p className="text-white/60 text-sm mb-4">
-                        Mostrando {MAX_IMAGENES_LANDING} de {todasImagenes.length} imágenes
-                      </p>
-                      <Button
-                        onClick={() => router.push('/galeria')}
-                        variant="outline"
-                        size="sm"
-                        className="bg-white/5 border-white/20 text-white hover:bg-white/10"
-                      >
-                        Ver todas las imágenes
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </AnimateOnScroll>
             )}

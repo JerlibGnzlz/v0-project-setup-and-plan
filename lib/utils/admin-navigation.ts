@@ -10,6 +10,7 @@ import {
   Settings,
   UserCog,
   FileText,
+  BookOpen,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -100,6 +101,14 @@ export const adminNavigation: NavigationItem[] = [
     href: '/admin/configuracion-landing',
     icon: Settings,
     description: 'Estadísticas y contenido',
+    roles: ['ADMIN'],
+    category: 'configuracion',
+  },
+  {
+    name: 'Educación AMVA',
+    href: '/admin/educacion-amva',
+    icon: BookOpen,
+    description: 'Programas, contacto e inscripciones',
     roles: ['ADMIN'],
     category: 'configuracion',
   },

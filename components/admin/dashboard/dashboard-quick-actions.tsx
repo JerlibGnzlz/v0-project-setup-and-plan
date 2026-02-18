@@ -11,6 +11,7 @@ import {
   Shield,
   Settings,
   UserCog,
+  BookOpen,
 } from 'lucide-react'
 import type { DashboardStats as DashboardStatsType } from '@/lib/hooks/use-dashboard-stats'
 
@@ -287,6 +288,36 @@ export function DashboardQuickActions({
             <CardContent>
               <p className="text-sm text-indigo-600/70 dark:text-indigo-400/70">
                 Estadísticas y contenido personalizable
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      </ScrollReveal>
+      )}
+
+      {/* Educación AMVA - Solo ADMIN */}
+      {isAdmin && (
+        <ScrollReveal delay={725}>
+          <Link href="/admin/educacion-amva">
+          <Card className="hover:shadow-xl hover:shadow-teal-500/10 transition-all duration-300 cursor-pointer group border-teal-200/50 dark:border-teal-500/20 bg-gradient-to-br from-white to-teal-50/30 dark:from-background dark:to-teal-950/20 overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-teal-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-teal-500/10 to-emerald-500/10 dark:from-teal-500/20 dark:to-emerald-500/20 group-hover:from-teal-500/20 group-hover:to-emerald-500/20 transition-colors">
+                  <BookOpen className="size-6 text-teal-600 dark:text-teal-400" />
+                </div>
+                <ArrowRight className="size-5 text-teal-500/50 group-hover:text-teal-500 group-hover:translate-x-1 transition-all" />
+              </div>
+              <CardTitle className="mt-4 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                Educación AMVA
+              </CardTitle>
+              <CardDescription>
+                Programas educativos e información de contacto para la landing
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-teal-600/70 dark:text-teal-400/70">
+                Programas, correo y teléfono de inscripciones
               </p>
             </CardContent>
           </Card>

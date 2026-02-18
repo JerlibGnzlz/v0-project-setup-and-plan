@@ -11,10 +11,13 @@ export interface ConfiguracionLanding {
   paisesOverride: number | null
   titulo: string
   subtitulo: string
+  subtituloJustificacion: 'left' | 'center' | 'right' | 'justify'
   misionTitulo: string
   misionContenido: string
+  misionJustificacion: 'left' | 'center' | 'right' | 'justify'
   visionTitulo: string
   visionContenido: string
+  visionJustificacion: 'left' | 'center' | 'right' | 'justify'
   createdAt: string
   updatedAt: string
 }
@@ -29,10 +32,13 @@ export interface UpdateConfiguracionLandingDto {
   paisesOverride?: number | null
   titulo?: string
   subtitulo?: string
+  subtituloJustificacion?: 'left' | 'center' | 'right' | 'justify'
   misionTitulo?: string
   misionContenido?: string
+  misionJustificacion?: 'left' | 'center' | 'right' | 'justify'
   visionTitulo?: string
   visionContenido?: string
+  visionJustificacion?: 'left' | 'center' | 'right' | 'justify'
 }
 
 export const configuracionLandingApi = {

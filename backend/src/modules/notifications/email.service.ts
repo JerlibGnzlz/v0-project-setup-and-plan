@@ -74,6 +74,7 @@ export class EmailService {
 
   /**
    * Configura SMTP (Brevo, Gmail, etc.)
+   * No configura Gmail cuando EMAIL_PROVIDER=brevo-api para no usar la cuenta personal.
    */
   private configureSMTP(): void {
     const isBrevo = (process.env.SMTP_HOST || '').includes('brevo')
@@ -92,6 +93,14 @@ export class EmailService {
 
     if (!emailConfig.auth.user || !emailConfig.auth.pass) {
       this.logger.warn('⚠️ SMTP no configurado (faltan SMTP_USER o SMTP_PASSWORD)')
+      return
+    }
+
+    // Si el proveedor elegido es Brevo API, no configurar SMTP de Gmail (evitar uso de cuenta personal)
+    const providerEnv = (process.env.EMAIL_PROVIDER || '').toLowerCase()
+    const isGmail = emailConfig.host.includes('gmail') || String(emailConfig.auth.user).toLowerCase().includes('gmail')
+    if ((providerEnv === 'brevo-api' || process.env.BREVO_API_KEY) && isGmail) {
+      this.logger.log('📧 EMAIL_PROVIDER=brevo-api: no se configura SMTP de Gmail (solo se usa Brevo API)')
       return
     }
 
@@ -171,15 +180,14 @@ export class EmailService {
       return false
     }
 
-    // Prioridad: Brevo API (funciona en Digital Ocean)
+    // Prioridad: Brevo API (funciona en Digital Ocean). Si está configurado, no se usa Gmail/SMTP.
     if (this.brevoApi) {
       this.logger.log(`📧 [EmailService] Usando Brevo API para enviar a ${to}`)
       const result = await this.sendWithBrevoApi(to, title, body, data)
-      if (result) return true
-      this.logger.warn('⚠️ Brevo API falló, intentando SMTP...')
+      return result
     }
 
-    // Fallback: SMTP
+    // Fallback: SMTP (solo si Brevo API no está configurado)
     if (this.transporter) {
       this.logger.log(`📧 [EmailService] Usando SMTP para enviar a ${to}`)
       return this.sendWithSMTP(to, title, body, data)

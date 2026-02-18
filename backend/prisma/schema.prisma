@@ -501,6 +501,32 @@ model Sede {
   @@map("sedes")
 }
 
+model ProgramaEducacion {
+  id           String   @id @default(uuid())
+  clave        String   @unique // instituto_biblico | escuela_capellania | misiones
+  titulo       String   @map("titulo")
+  duracion     String   @default("2 años.") @map("duracion")
+  modalidad    String   @map("modalidad")
+  inscripcion  String   @map("inscripcion") // ej. "$25.000"
+  cuotaMensual String   @map("cuota_mensual") // ej. "$35.000"
+  requisitos   String   @default("Internet, dispositivo electrónico y compromiso con estudios, trabajos y exámenes.") @map("requisitos")
+  orden        Int      @default(0) @map("orden")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("programas_educacion")
+}
+
+model ConfiguracionEducacion {
+  id        String   @id @default(uuid())
+  email     String   @default("educacion@vidaabundante.org") @map("email")
+  telefono  String   @default("+54 11 xxxx-xxxx") @map("telefono")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("configuracion_educacion")
+}
+
 model ConfiguracionLanding {
   id                     String   @id @default(uuid())
   // Estadísticas
@@ -515,10 +541,13 @@ model ConfiguracionLanding {
   // Contenido
   titulo                 String   @default("Quiénes Somos") @map("titulo")
   subtitulo              String   @default("Una organización misionera comprometida con la formación integral de líderes pastorales para el servicio del Reino") @map("subtitulo")
+  subtituloJustificacion String   @default("left") @map("subtitulo_justificacion") // left | center | right | justify
   misionTitulo           String   @default("Nuestra Misión") @map("mision_titulo")
   misionContenido        String   @default("Capacitar, fortalecer y empoderar a pastores y líderes cristianos de habla hispana a través de convenciones, seminarios y recursos de formación continua, promoviendo el crecimiento espiritual y ministerial efectivo.") @map("mision_contenido")
+  misionJustificacion    String   @default("left") @map("mision_justificacion") // left | center | right | justify
   visionTitulo           String   @default("Nuestra Visión") @map("vision_titulo")
   visionContenido        String   @default("Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.") @map("vision_contenido")
+  visionJustificacion    String   @default("left") @map("vision_justificacion") // left | center | right | justify
   // Metadata
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")
