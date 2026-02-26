@@ -23,8 +23,13 @@ export function Step2ConvencionInfo({
   onBack,
   initialNumeroCuotas = 3,
 }: Step2ConvencionInfoProps) {
-  const [numeroCuotas, setNumeroCuotas] = useState<number>(initialNumeroCuotas)
-  // Usar parseISO para evitar problemas de zona horaria
+  const costo =
+    typeof convencion.costo === 'number'
+      ? Number(convencion.costo)
+      : parseFloat(String(convencion.costo || 0))
+  const esGratuito = costo === 0
+  const [numeroCuotas, setNumeroCuotas] = useState<number>(esGratuito ? 0 : initialNumeroCuotas)
+
   const fechaInicio = parseISO(convencion.fechaInicio)
   const fechaFin = parseISO(convencion.fechaFin)
 
@@ -32,12 +37,6 @@ export function Step2ConvencionInfo({
     return format(fecha, 'dd/MM/yyyy', { locale: es })
   }
 
-  const costo =
-    typeof convencion.costo === 'number'
-      ? Number(convencion.costo)
-      : parseFloat(String(convencion.costo || 0))
-
-  // Asegurar que sean números válidos
   const montoPorCuota1 = Number(costo) || 0
   const montoPorCuota2 = Number(costo / 2) || 0
   const montoPorCuota3 = Number(costo / 3) || 0
@@ -46,7 +45,7 @@ export function Step2ConvencionInfo({
     if (yaInscrito) {
       return
     }
-    onComplete({ numeroCuotas })
+    onComplete({ numeroCuotas: esGratuito ? 0 : numeroCuotas })
   }
 
   return (
@@ -83,6 +82,14 @@ export function Step2ConvencionInfo({
             <Text style={styles.infoValue}>{convencion.ubicacion}</Text>
           </View>
         </View>
+
+        {/* Evento gratuito */}
+        {esGratuito && (
+          <View style={[styles.costoContainer, { backgroundColor: 'rgba(34, 197, 94, 0.1)', borderColor: 'rgba(34, 197, 94, 0.3)' }]}>
+            <Text style={[styles.costoLabel, { color: '#4ade80' }]}>Evento gratuito</Text>
+            <Text style={[styles.costoValue, { color: '#4ade80', fontSize: 16 }]}>Solo inscripción. No hay pagos ni cuotas.</Text>
+          </View>
+        )}
 
         {/* Costo y Selección de Cuotas */}
         {costo > 0 && (

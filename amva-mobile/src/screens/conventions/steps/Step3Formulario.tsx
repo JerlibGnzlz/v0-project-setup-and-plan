@@ -250,7 +250,12 @@ export function Step3Formulario({
       console.log('✅ tipoInscripcion válido:', tipoInscripcionStr)
     }
 
-    if (!formData.numeroCuotas || formData.numeroCuotas < 1 || formData.numeroCuotas > 3) {
+    const costoNum =
+      typeof convencion.costo === 'number'
+        ? convencion.costo
+        : parseFloat(String(convencion.costo || 0))
+    const esGratuito = costoNum === 0
+    if (!esGratuito && (!formData.numeroCuotas || formData.numeroCuotas < 1 || formData.numeroCuotas > 3)) {
       newErrors.numeroCuotas = 'El número de cuotas debe ser entre 1 y 3'
     }
 
@@ -389,6 +394,7 @@ export function Step3Formulario({
     typeof convencion.costo === 'number'
       ? convencion.costo
       : parseFloat(String(convencion.costo || 0))
+  const esGratuito = costo === 0
 
   // Asegurar que numeroCuotas sea un número
   const numeroCuotasNum =
@@ -676,68 +682,72 @@ export function Step3Formulario({
                 {errors.tipoInscripcion && <Text style={styles.errorText}>{errors.tipoInscripcion}</Text>}
               </View>
 
-              <View style={styles.halfInput}>
-                <Text style={styles.label}>
-                  Número de Cuotas <Text style={styles.required}>*</Text>
-                </Text>
-                <CustomPicker
-                  selectedValue={formData.numeroCuotas || 3}
-                  onValueChange={value => {
-                    if (value !== undefined && value !== null) {
-                      handleChange('numeroCuotas', Number(value))
-                    }
-                  }}
-                  items={[
-                    { label: `1 Cuota ($${Number(costo).toFixed(2)})`, value: 1 },
-                    { label: `2 Cuotas ($${Number(costo / 2).toFixed(2)} c/u)`, value: 2 },
-                    { label: `3 Cuotas ($${Number(costo / 3).toFixed(2)} c/u)`, value: 3 },
-                  ]}
-                  placeholder="Selecciona número de cuotas (1, 2 o 3)"
-                  label="Número de Cuotas"
-                  required
-                />
-              </View>
-            </View>
-
-            {/* Documento/Comprobante (Opcional) */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Documento o Comprobante (Opcional)</Text>
-              <Text style={styles.helperText}>
-                Puedes subir un documento o comprobante relacionado con tu inscripción
-              </Text>
-
-              {formData.documentoUrl || selectedImageUri ? (
-                <View style={styles.documentPreview}>
-                  <Image
-                    source={{ uri: selectedImageUri || formData.documentoUrl }}
-                    style={styles.documentImage}
-                    resizeMode="contain"
+              {!esGratuito && (
+                <View style={styles.halfInput}>
+                  <Text style={styles.label}>
+                    Número de Cuotas <Text style={styles.required}>*</Text>
+                  </Text>
+                  <CustomPicker
+                    selectedValue={formData.numeroCuotas || 3}
+                    onValueChange={value => {
+                      if (value !== undefined && value !== null) {
+                        handleChange('numeroCuotas', Number(value))
+                      }
+                    }}
+                    items={[
+                      { label: `1 Cuota ($${Number(costo).toFixed(2)})`, value: 1 },
+                      { label: `2 Cuotas ($${Number(costo / 2).toFixed(2)} c/u)`, value: 2 },
+                      { label: `3 Cuotas ($${Number(costo / 3).toFixed(2)} c/u)`, value: 3 },
+                    ]}
+                    placeholder="Selecciona número de cuotas (1, 2 o 3)"
+                    label="Número de Cuotas"
+                    required
                   />
-                  <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={handleRemoveDocument}
-                    disabled={uploadingDocument}
-                  >
-                    <Text style={styles.removeButtonText}>✕ Eliminar</Text>
-                  </TouchableOpacity>
                 </View>
-              ) : (
-                <TouchableOpacity
-                  style={[styles.uploadButton, uploadingDocument && styles.uploadButtonDisabled]}
-                  onPress={handleSelectDocument}
-                  disabled={uploadingDocument}
-                >
-                  {uploadingDocument ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <>
-                      <Text style={styles.uploadButtonText}>📎 Seleccionar Documento</Text>
-                      <Text style={styles.uploadButtonSubtext}>Desde galería o cámara</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
               )}
             </View>
+
+            {/* Documento/Comprobante (oculto si evento gratuito) */}
+            {!esGratuito && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Documento o Comprobante (Opcional)</Text>
+                <Text style={styles.helperText}>
+                  Puedes subir un documento o comprobante relacionado con tu inscripción
+                </Text>
+
+                {formData.documentoUrl || selectedImageUri ? (
+                  <View style={styles.documentPreview}>
+                    <Image
+                      source={{ uri: selectedImageUri || formData.documentoUrl }}
+                      style={styles.documentImage}
+                      resizeMode="contain"
+                    />
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={handleRemoveDocument}
+                      disabled={uploadingDocument}
+                    >
+                      <Text style={styles.removeButtonText}>✕ Eliminar</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.uploadButton, uploadingDocument && styles.uploadButtonDisabled]}
+                    onPress={handleSelectDocument}
+                    disabled={uploadingDocument}
+                  >
+                    {uploadingDocument ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <>
+                        <Text style={styles.uploadButtonText}>📎 Seleccionar Documento</Text>
+                        <Text style={styles.uploadButtonSubtext}>Desde galería o cámara</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
 
             {/* Notas */}
             <View style={styles.inputGroup}>

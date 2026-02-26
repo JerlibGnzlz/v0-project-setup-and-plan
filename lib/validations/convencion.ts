@@ -14,18 +14,17 @@ export const convencionSchema = z.object({
     .trim(),
   monto: z
     .number()
-    .min(0.01, 'El monto debe ser mayor a 0')
+    .min(0, 'El monto no puede ser negativo')
     .max(999999.99, 'El monto no puede exceder $999,999.99')
     .refine(val => {
-      // Validar que tenga máximo 2 decimales
       const decimalPlaces = (val.toString().split('.')[1] || '').length
       return decimalPlaces <= 2
     }, 'El monto solo puede tener hasta 2 decimales'),
   cuotas: z
     .number()
     .int('Las cuotas deben ser un número entero')
-    .min(1, 'Debe haber al menos 1 cuota')
-    .max(12, 'Las cuotas deben estar entre 1 y 12'),
+    .min(0, 'Las cuotas no pueden ser negativas')
+    .max(12, 'Las cuotas deben estar entre 0 y 12'),
   invitadoNombre: z.string().max(120, 'Máximo 120 caracteres').optional().or(z.literal('')),
   invitadoFotoUrl: z.string().optional(),
 })

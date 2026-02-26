@@ -729,8 +729,8 @@ export function Step3Formulario({
             </Select>
           </div>
 
-          {/* Información de cuotas seleccionadas (solo lectura) */}
-          {formData.numeroCuotas && (
+          {/* Información de cuotas seleccionadas (oculto si evento gratuito) */}
+          {costo > 0 && formData.numeroCuotas && (
             <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
@@ -738,52 +738,54 @@ export function Step3Formulario({
               </div>
               <p className="text-sm text-white/70">
                 {formData.numeroCuotas} cuota{formData.numeroCuotas > 1 ? 's' : ''} de $
-                {(costo / formData.numeroCuotas).toFixed(2)} cada una
+                {(formData.numeroCuotas > 0 ? costo / formData.numeroCuotas : 0).toFixed(2)} cada una
               </p>
               <p className="text-xs text-white/50 mt-1">Total: ${costo.toFixed(2)}</p>
             </div>
           )}
 
-          {/* Comprobante de Transferencia */}
-          <div className="space-y-3">
-            <div>
-              <Label className="text-white/90 mb-2 block flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-amber-400" />
-                Comprobante de Transferencia Bancaria
-              </Label>
-              <p className="text-sm text-white/70 mb-3">
-                Sube una foto o captura del comprobante de transferencia bancaria. Esto facilitará
-                la validación de tu pago.
-              </p>
-            </div>
-            <ComprobanteUpload
-              value={formData.documentoUrl}
-              onChange={url => handleChange('documentoUrl', url)}
-              onUpload={async file => {
-                try {
-                  const response = await uploadApi.uploadInscripcionDocumento(file)
-                  toast.success('Comprobante subido exitosamente', {
-                    description: 'Tu comprobante de transferencia ha sido cargado correctamente',
-                  })
-                  return response.url
-                } catch (error) {
-                  toast.error('Error al subir el comprobante', {
-                    description: 'Por favor, intenta nuevamente',
-                  })
-                  throw error
-                }
-              }}
-              className="bg-white/5"
-            />
-            {formData.documentoUrl && (
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-                <p className="text-sm text-emerald-300 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Comprobante de transferencia cargado correctamente
+          {/* Comprobante de Transferencia (oculto si evento gratuito) */}
+          {costo > 0 && (
+            <div className="space-y-3">
+              <div>
+                <Label className="text-white/90 mb-2 block flex items-center gap-2">
+                  <Receipt className="w-4 h-4 text-amber-400" />
+                  Comprobante de Transferencia Bancaria
+                </Label>
+                <p className="text-sm text-white/70 mb-3">
+                  Sube una foto o captura del comprobante de transferencia bancaria. Esto facilitará
+                  la validación de tu pago.
                 </p>
               </div>
-            )}
-          </div>
+              <ComprobanteUpload
+                value={formData.documentoUrl}
+                onChange={url => handleChange('documentoUrl', url)}
+                onUpload={async file => {
+                  try {
+                    const response = await uploadApi.uploadInscripcionDocumento(file)
+                    toast.success('Comprobante subido exitosamente', {
+                      description: 'Tu comprobante de transferencia ha sido cargado correctamente',
+                    })
+                    return response.url
+                  } catch (error) {
+                    toast.error('Error al subir el comprobante', {
+                      description: 'Por favor, intenta nuevamente',
+                    })
+                    throw error
+                  }
+                }}
+                className="bg-white/5"
+              />
+              {formData.documentoUrl && (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                  <p className="text-sm text-emerald-300 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Comprobante de transferencia cargado correctamente
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Notas */}
           <div>

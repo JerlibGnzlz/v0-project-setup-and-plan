@@ -52,6 +52,7 @@ export function InscripcionCard({
                         inscripcion={inscripcion}
                         pagosInfo={pagosInfo}
                         onCrearPago={onCrearPago}
+                        costoConvencion={convencion?.costo != null ? Number(convencion.costo) : undefined}
                     />
                 </div>
             </CardContent>

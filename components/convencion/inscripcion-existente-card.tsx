@@ -103,9 +103,15 @@ export function InscripcionExistenteCard({
         }
     }
 
+    // Obtener costo total (antes de esGratuito)
+    const costo = typeof convencion.costo === 'number'
+        ? convencion.costo
+        : parseFloat(String(convencion.costo || 0))
+
     // Calcular estado de pagos
     const pagos = inscripcion.pagos || []
-    const numeroCuotas = inscripcion.numeroCuotas || 3
+    const numeroCuotas = inscripcion.numeroCuotas ?? 3
+    const esGratuito = numeroCuotas === 0 || costo === 0
     const cuotasPagadas = pagos.filter(p => p.estado === 'COMPLETADO').length
     const cuotasPendientes = numeroCuotas - cuotasPagadas
     const porcentajePagado = numeroCuotas > 0 ? (cuotasPagadas / numeroCuotas) * 100 : 0
@@ -114,10 +120,6 @@ export function InscripcionExistenteCard({
     const pagosCancelados = pagos.filter(p => p.estado === 'CANCELADO')
     const tienePagosCancelados = pagosCancelados.length > 0
 
-    // Obtener costo total
-    const costo = typeof convencion.costo === 'number'
-        ? convencion.costo
-        : parseFloat(String(convencion.costo || 0))
     const montoPorCuota = numeroCuotas > 0 ? costo / numeroCuotas : costo
 
     // Calcular total pagado
@@ -316,8 +318,8 @@ export function InscripcionExistenteCard({
                     <div className="h-px flex-1 bg-gradient-to-l from-transparent via-emerald-500/50 to-emerald-500/30" />
                 </div>
 
-                {/* Código de referencia destacado */}
-                {inscripcion.codigoReferencia && (
+                {/* Código de referencia (solo cuando hay pagos/cuotas) */}
+                {!esGratuito && inscripcion.codigoReferencia && (
                     <div
                         className="mb-6 p-4 bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-amber-500/20 border-2 border-amber-500/40 rounded-xl"
                         role="region"
@@ -372,7 +374,13 @@ export function InscripcionExistenteCard({
                     </div>
                 )}
 
-                {/* Estado de pagos */}
+                {/* Estado de pagos (oculto si evento gratuito) */}
+                {esGratuito ? (
+                  <div className="mb-6 p-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-center">
+                    <p className="text-emerald-300 font-medium">Evento gratuito</p>
+                    <p className="text-sm text-white/70 mt-1">Inscripción confirmada. No hay pagos ni cuotas.</p>
+                  </div>
+                ) : (
                 <div className={cn(
                     "mb-6 p-4 rounded-lg border",
                     cuotasPagadas >= numeroCuotas
@@ -668,6 +676,7 @@ export function InscripcionExistenteCard({
                         })}
                     </div>
                 </div>
+                )}
 
                 {/* Información de la convención */}
                 <div className="mb-6 p-4 bg-gradient-to-br from-sky-500/10 via-sky-600/5 to-sky-500/10 border border-sky-500/20 rounded-lg">

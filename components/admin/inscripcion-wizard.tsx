@@ -60,9 +60,8 @@ export function InscripcionWizard({
   // Convención activa por defecto
   const convencionActiva = convenciones.find((c: any) => c.activa)
 
-  // Formulario completo
+  // Formulario completo (evento gratuito → 0 cuotas)
   const [formData, setFormData] = useState({
-    // Paso 1: Datos personales
     convencionId: convencionActiva?.id || '',
     nombre: '',
     apellido: '',
@@ -70,28 +69,30 @@ export function InscripcionWizard({
     telefono: '',
     sede: '',
     tipoInscripcion: 'invitado',
-    numeroCuotas: convencionActiva ? 3 : 1,
+    numeroCuotas: convencionActiva ? (Number(convencionActiva.costo) === 0 ? 0 : 3) : 1,
     notas: '',
   })
 
-  // Calcular monto por cuota
   const convencionSeleccionada = convenciones.find((c: any) => c.id === formData.convencionId)
   const costoTotal = convencionSeleccionada?.costo ? Number(convencionSeleccionada.costo) : 0
-  const montoPorCuota = formData.numeroCuotas > 0 ? costoTotal / formData.numeroCuotas : costoTotal
+  const esGratuito = costoTotal === 0
+  const montoPorCuota = formData.numeroCuotas > 0 ? costoTotal / formData.numeroCuotas : 0
 
   // Resetear cuando se abre/cierra
   useEffect(() => {
     if (open) {
+      const activa = convenciones.find((c: any) => c.activa)
+      const costoActiva = activa?.costo ? Number(activa.costo) : 0
       setCurrentStep(1)
       setFormData({
-        convencionId: convencionActiva?.id || '',
+        convencionId: activa?.id || '',
         nombre: '',
         apellido: '',
         email: '',
         telefono: '',
         sede: '',
         tipoInscripcion: 'invitado',
-        numeroCuotas: convencionActiva ? 3 : 1,
+        numeroCuotas: activa ? (costoActiva === 0 ? 0 : 3) : 1,
         notas: '',
       })
     }
@@ -135,7 +136,7 @@ export function InscripcionWizard({
         telefono: formData.telefono.trim() || undefined,
         sede: formData.sede.trim() || 'Sin sede especificada',
         tipoInscripcion: formData.tipoInscripcion,
-        numeroCuotas: formData.numeroCuotas,
+        numeroCuotas: costoTotal === 0 ? 0 : formData.numeroCuotas,
         notas: formData.notas.trim() || `Inscripción manual creada desde admin`,
       }
 
@@ -178,10 +179,11 @@ export function InscripcionWizard({
                   value={formData.convencionId}
                   onValueChange={value => {
                     const conv = convenciones.find((c: any) => c.id === value)
+                    const costo = conv?.costo ? Number(conv.costo) : 0
                     setFormData({
                       ...formData,
                       convencionId: value,
-                      numeroCuotas: conv ? 3 : formData.numeroCuotas,
+                      numeroCuotas: conv ? (costo === 0 ? 0 : 3) : formData.numeroCuotas,
                     })
                   }}
                 >
@@ -263,7 +265,7 @@ export function InscripcionWizard({
                 </div>
               </div>
 
-              {/* Tipo y Cuotas */}
+              {/* Tipo y Cuotas (cuotas ocultas si evento gratuito) */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Tipo de Inscripción</Label>
@@ -287,24 +289,33 @@ export function InscripcionWizard({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Número de Cuotas</Label>
-                  <Select
-                    value={String(formData.numeroCuotas)}
-                    onValueChange={value =>
-                      setFormData({ ...formData, numeroCuotas: parseInt(value) })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 cuota (pago único)</SelectItem>
-                      <SelectItem value="2">2 cuotas</SelectItem>
-                      <SelectItem value="3">3 cuotas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {!esGratuito && (
+                  <div className="space-y-2">
+                    <Label>Número de Cuotas</Label>
+                    <Select
+                      value={String(formData.numeroCuotas)}
+                      onValueChange={value =>
+                        setFormData({ ...formData, numeroCuotas: parseInt(value) })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 cuota (pago único)</SelectItem>
+                        <SelectItem value="2">2 cuotas</SelectItem>
+                        <SelectItem value="3">3 cuotas</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {esGratuito && (
+                  <div className="space-y-2 flex items-end">
+                    <div className="py-2 px-3 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-sm text-emerald-700 dark:text-emerald-300">
+                      Evento gratuito — sin cuotas
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Notas */}
@@ -318,8 +329,17 @@ export function InscripcionWizard({
                 />
               </div>
 
-              {/* Resumen de costos */}
-              {convencionSeleccionada && (
+              {/* Resumen de costos (oculto si evento gratuito) */}
+              {convencionSeleccionada && esGratuito && (
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="size-4 text-emerald-600 dark:text-emerald-400" />
+                    <span className="font-semibold text-emerald-900 dark:text-emerald-100">Evento gratuito</span>
+                  </div>
+                  <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">No se requieren pagos ni cuotas.</p>
+                </div>
+              )}
+              {convencionSeleccionada && !esGratuito && (
                 <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <CreditCard className="size-4 text-blue-600 dark:text-blue-400" />

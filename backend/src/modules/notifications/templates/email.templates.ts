@@ -477,7 +477,8 @@ export function getInscripcionCreadaTemplate(data: EmailTemplateData): EmailTemp
       : typeof numeroCuotasValue === 'string'
         ? parseInt(numeroCuotasValue) || 1
         : 1
-  const montoPorCuota = numeroCuotas > 0 ? montoTotal / numeroCuotas : montoTotal
+  const esGratuito = numeroCuotas === 0 || montoTotal === 0
+  const montoPorCuota = numeroCuotas > 0 ? montoTotal / numeroCuotas : 0
   const origenRegistro = data.origenRegistro || 'web'
   const origenLabel =
     origenRegistro === 'mobile'
@@ -486,31 +487,13 @@ export function getInscripcionCreadaTemplate(data: EmailTemplateData): EmailTemp
         ? 'Panel Administrativo'
         : 'Sitio Web'
 
-  const body = `
-    <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px; font-weight: 700;">📝 ¡Inscripción Recibida Exitosamente!</h2>
-    <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.8;">
-      Hola <strong>${nombreCompleto}</strong>,<br><br>
-      ¡Gracias por inscribirte! Tu inscripción ha sido <strong style="color: #3b82f6;">recibida exitosamente</strong>. 
-      Te notificaremos cuando sea confirmada y podrás comenzar a realizar tus pagos.
-    </p>
-    
-    <div style="margin: 30px 0; padding: 25px; background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%); border-radius: 12px; border: 2px solid #3b82f6; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);">
-      <div style="display: flex; align-items: center; margin-bottom: 20px;">
-        <div style="width: 50px; height: 50px; background-color: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-          <span style="font-size: 24px;">📝</span>
-        </div>
-        <div>
-          <h3 style="margin: 0; color: #1e40af; font-size: 18px; font-weight: 700;">Detalles de tu Inscripción</h3>
-          <p style="margin: 5px 0 0; color: #1e3a8a; font-size: 14px;">Recibida y en proceso</p>
-        </div>
-      </div>
-      
-      <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
-        <table style="width: 100%; border-collapse: collapse;">
+  const filasPago = esGratuito
+    ? `
           <tr>
-            <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Convención:</strong></td>
-            <td style="padding: 8px 0; color: #4b5563; font-size: 14px; text-align: right; border-bottom: 1px solid #e5e7eb;">${convencionTitulo}</td>
-          </tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Costo:</strong></td>
+            <td style="padding: 8px 0; color: #10b981; font-size: 18px; font-weight: 700; text-align: right; border-bottom: 1px solid #e5e7eb;">Evento gratuito</td>
+          </tr>`
+    : `
           <tr>
             <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Monto Total:</strong></td>
             <td style="padding: 8px 0; color: #3b82f6; font-size: 18px; font-weight: 700; text-align: right; border-bottom: 1px solid #e5e7eb;">${montoFormateado}</td>
@@ -521,13 +504,36 @@ export function getInscripcionCreadaTemplate(data: EmailTemplateData): EmailTemp
           </tr>
           <tr>
             <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Monto por Cuota:</strong></td>
-            <td style="padding: 8px 0; color: #4b5563; font-size: 14px; text-align: right; border-bottom: 1px solid #e5e7eb;">${new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: 'ARS',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(montoPorCuota)}</td>
+            <td style="padding: 8px 0; color: #4b5563; font-size: 14px; text-align: right; border-bottom: 1px solid #e5e7eb;">${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(montoPorCuota)}</td>
+          </tr>`
+
+  const body = `
+    <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px; font-weight: 700;">📝 ¡Inscripción ${esGratuito ? 'Confirmada' : 'Recibida'} Exitosamente!</h2>
+    <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.8;">
+      Hola <strong>${nombreCompleto}</strong>,<br><br>
+      ${esGratuito
+    ? '¡Gracias por inscribirte! Tu inscripción ha sido <strong style="color: #10b981;">confirmada</strong>. No hay pagos pendientes.'
+    : '¡Gracias por inscribirte! Tu inscripción ha sido <strong style="color: #3b82f6;">recibida exitosamente</strong>. Te notificaremos cuando sea confirmada y podrás comenzar a realizar tus pagos.'}
+    </p>
+    
+    <div style="margin: 30px 0; padding: 25px; background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%); border-radius: 12px; border: 2px solid #3b82f6; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);">
+      <div style="display: flex; align-items: center; margin-bottom: 20px;">
+        <div style="width: 50px; height: 50px; background-color: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+          <span style="font-size: 24px;">📝</span>
+        </div>
+        <div>
+          <h3 style="margin: 0; color: #1e40af; font-size: 18px; font-weight: 700;">Detalles de tu Inscripción</h3>
+          <p style="margin: 5px 0 0; color: #1e3a8a; font-size: 14px;">${esGratuito ? 'Confirmada' : 'Recibida y en proceso'}</p>
+        </div>
+      </div>
+      
+      <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #1f2937; font-size: 14px; border-bottom: 1px solid #e5e7eb;"><strong>Convención:</strong></td>
+            <td style="padding: 8px 0; color: #4b5563; font-size: 14px; text-align: right; border-bottom: 1px solid #e5e7eb;">${convencionTitulo}</td>
           </tr>
+          ${filasPago}
           <tr>
             <td style="padding: 8px 0; color: #1f2937; font-size: 14px;"><strong>Origen de Registro:</strong></td>
             <td style="padding: 8px 0; color: #4b5563; font-size: 14px; text-align: right;">${origenLabel}</td>
@@ -537,17 +543,19 @@ export function getInscripcionCreadaTemplate(data: EmailTemplateData): EmailTemp
     </div>
     
     <div style="margin: 25px 0; padding: 20px; background-color: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">
-      <h3 style="margin: 0 0 15px; color: #065f46; font-size: 16px; font-weight: 700;">📋 Próximos Pasos</h3>
-      <ol style="margin: 0; padding-left: 20px; color: #047857; font-size: 14px; line-height: 1.8;">
+      <h3 style="margin: 0 0 15px; color: #065f46; font-size: 16px; font-weight: 700;">📋 ${esGratuito ? 'Todo listo' : 'Próximos Pasos'}</h3>
+      ${esGratuito
+    ? '<p style="margin: 0; color: #047857; font-size: 14px; line-height: 1.8;">Tu inscripción está confirmada. No hay pagos pendientes. Nos vemos en el evento.</p>'
+    : `<ol style="margin: 0; padding-left: 20px; color: #047857; font-size: 14px; line-height: 1.8;">
         <li>Revisa los detalles de tu inscripción</li>
         <li>Realiza el pago de la primera cuota (si aplica)</li>
         <li>Sube el comprobante de pago cuando lo tengas</li>
         <li>Espera la confirmación de tu inscripción</li>
-      </ol>
+      </ol>`}
     </div>
     
     <p style="margin: 25px 0 0; color: #4b5563; font-size: 15px; line-height: 1.8;">
-      <strong>💡 Importante:</strong> Mantén este email como referencia. Te enviaremos actualizaciones sobre el estado de tu inscripción y pagos.
+      <strong>💡 Importante:</strong> ${esGratuito ? 'Mantén este email como referencia para el evento.' : 'Mantén este email como referencia. Te enviaremos actualizaciones sobre el estado de tu inscripción y pagos.'}
     </p>
   `
 

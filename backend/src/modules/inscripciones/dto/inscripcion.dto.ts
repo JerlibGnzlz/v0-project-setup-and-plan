@@ -82,9 +82,9 @@ export class CreateInscripcionDto {
 
   @IsOptional()
   @IsNumber()
-  @Min(1)
+  @Min(0, { message: 'numeroCuotas debe ser 0 (evento gratuito) o entre 1 y 3' })
   @Max(3)
-  numeroCuotas?: number // 1, 2 o 3 cuotas
+  numeroCuotas?: number // 0 = evento gratuito, 1-3 = cuotas
 
   @IsOptional()
   @IsString()
@@ -170,9 +170,9 @@ export class UpdateInscripcionDto {
 
   @IsOptional()
   @IsNumber()
-  @Min(1)
+  @Min(0, { message: 'numeroCuotas debe ser 0 (evento gratuito) o entre 1 y 3' })
   @Max(3)
-  numeroCuotas?: number // 1, 2 o 3 cuotas
+  numeroCuotas?: number // 0 = evento gratuito, 1-3 = cuotas
 }
 
 export class CreatePagoDto {

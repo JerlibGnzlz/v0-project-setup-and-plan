@@ -107,7 +107,8 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
   const fechaFormateada = format(fechaInicio, 'dd/MM/yyyy', { locale: es })
   const fechaFinFormateada = format(fechaFin, 'dd/MM/yyyy', { locale: es })
 
-  // Estados del formulario
+  const esGratuito = costo === 0
+  // Estados del formulario (evento gratuito → 0 cuotas)
   const [formData, setFormData] = useState({
     nombre: user.nombre || '',
     apellido: user.apellido || '',
@@ -117,7 +118,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
     pais: 'Argentina',
     provincia: '',
     tipoInscripcion: user.tipo === 'INVITADO' ? 'invitado' : 'pastor',
-    numeroCuotas: 3,
+    numeroCuotas: esGratuito ? 0 : 3,
     dni: '', // DNI para relacionar con credenciales
     documentoUrl: '',
     notas: '',
@@ -185,10 +186,10 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Calcular montos
+  // Calcular montos (evitar división por cero cuando es gratuito)
   const montoPorCuota1 = costo
-  const montoPorCuota2 = costo / 2
-  const montoPorCuota3 = costo / 3
+  const montoPorCuota2 = costo > 0 ? costo / 2 : 0
+  const montoPorCuota3 = costo > 0 ? costo / 3 : 0
 
   // Validación
   const validateForm = () => {
@@ -243,7 +244,7 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
         pais: formData.pais.trim() || undefined,
         provincia: formData.provincia.trim() || undefined,
         tipoInscripcion: formData.tipoInscripcion,
-        numeroCuotas: formData.numeroCuotas,
+        numeroCuotas: esGratuito ? 0 : formData.numeroCuotas,
         dni: formData.dni?.trim() || undefined, // DNI para relacionar con credenciales
         documentoUrl: formData.documentoUrl?.trim() || undefined,
         notas: formData.notas?.trim() || undefined,
@@ -524,46 +525,48 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
                     </Select>
                   </div>
 
-                  {/* Comprobante de Transferencia */}
-                  <div className="space-y-3">
-                    <div>
-                      <Label className="text-white/90 mb-2 block flex items-center gap-2">
-                        <Receipt className="w-4 h-4 text-amber-400" />
-                        Comprobante de Transferencia Bancaria
-                      </Label>
-                      <p className="text-sm text-white/70 mb-3">
-                        Sube una foto o captura del comprobante de transferencia bancaria. Esto facilitará
-                        la validación de tu pago.
-                      </p>
-                    </div>
-                    <ComprobanteUpload
-                      value={formData.documentoUrl}
-                      onChange={url => setFormData({ ...formData, documentoUrl: url })}
-                      onUpload={async file => {
-                        try {
-                          const response = await uploadApi.uploadInscripcionDocumento(file)
-                          toast.success('Comprobante subido exitosamente', {
-                            description: 'Tu comprobante de transferencia ha sido cargado correctamente',
-                          })
-                          return response.url
-                        } catch (error) {
-                          toast.error('Error al subir el comprobante', {
-                            description: 'Por favor, intenta nuevamente',
-                          })
-                          throw error
-                        }
-                      }}
-                      className="bg-white/5"
-                    />
-                    {formData.documentoUrl && (
-                      <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-                        <p className="text-sm text-emerald-300 flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4" />
-                          Comprobante de transferencia cargado correctamente
+                  {/* Comprobante de Transferencia (oculto si evento gratuito) */}
+                  {!esGratuito && (
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-white/90 mb-2 block flex items-center gap-2">
+                          <Receipt className="w-4 h-4 text-amber-400" />
+                          Comprobante de Transferencia Bancaria
+                        </Label>
+                        <p className="text-sm text-white/70 mb-3">
+                          Sube una foto o captura del comprobante de transferencia bancaria. Esto facilitará
+                          la validación de tu pago.
                         </p>
                       </div>
-                    )}
-                  </div>
+                      <ComprobanteUpload
+                        value={formData.documentoUrl}
+                        onChange={url => setFormData({ ...formData, documentoUrl: url })}
+                        onUpload={async file => {
+                          try {
+                            const response = await uploadApi.uploadInscripcionDocumento(file)
+                            toast.success('Comprobante subido exitosamente', {
+                              description: 'Tu comprobante de transferencia ha sido cargado correctamente',
+                            })
+                            return response.url
+                          } catch (error) {
+                            toast.error('Error al subir el comprobante', {
+                              description: 'Por favor, intenta nuevamente',
+                            })
+                            throw error
+                          }
+                        }}
+                        className="bg-white/5"
+                      />
+                      {formData.documentoUrl && (
+                        <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                          <p className="text-sm text-emerald-300 flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4" />
+                            Comprobante de transferencia cargado correctamente
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label className="text-white/90">Notas (Opcional)</Label>
@@ -647,76 +650,85 @@ export function UnifiedInscriptionForm({ convencion, user, onBack }: UnifiedInsc
 
                 <div className="my-4 border-t border-white/10"></div>
 
-                {/* Plan de Pago */}
-                <div className="space-y-3">
-                  <Label className="text-white/90">Plan de Pago</Label>
-                  <div className="space-y-2">
-                    {[1, 2, 3].map(num => {
-                      const monto =
-                        num === 1 ? montoPorCuota1 : num === 2 ? montoPorCuota2 : montoPorCuota3
-                      const isSelected = formData.numeroCuotas === num
-                      return (
-                        <button
-                          key={num}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, numeroCuotas: num })}
-                          className={cn(
-                            'w-full p-3 rounded-lg border-2 transition-all text-left',
-                            isSelected
-                              ? 'border-emerald-500 bg-emerald-500/10'
-                              : 'border-white/10 bg-white/5 hover:border-white/20'
-                          )}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-white font-medium">
-                                {num} {num === 1 ? 'cuota' : 'cuotas'}
-                              </p>
-                              <p className="text-xs text-white/60">
-                                ${monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}{' '}
-                                {num > 1 ? 'cada una' : ''}
-                              </p>
-                            </div>
-                            {isSelected && <CheckCircle2 className="size-5 text-emerald-400" />}
-                          </div>
-                        </button>
-                      )
-                    })}
+                {esGratuito ? (
+                  <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10">
+                    <p className="text-sm font-medium text-emerald-300">Evento gratuito</p>
+                    <p className="text-xs text-white/70 mt-0.5">Solo inscripción. No hay pagos ni cuotas.</p>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    {/* Plan de Pago */}
+                    <div className="space-y-3">
+                      <Label className="text-white/90">Plan de Pago</Label>
+                      <div className="space-y-2">
+                        {[1, 2, 3].map(num => {
+                          const monto =
+                            num === 1 ? montoPorCuota1 : num === 2 ? montoPorCuota2 : montoPorCuota3
+                          const isSelected = formData.numeroCuotas === num
+                          return (
+                            <button
+                              key={num}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, numeroCuotas: num })}
+                              className={cn(
+                                'w-full p-3 rounded-lg border-2 transition-all text-left',
+                                isSelected
+                                  ? 'border-emerald-500 bg-emerald-500/10'
+                                  : 'border-white/10 bg-white/5 hover:border-white/20'
+                              )}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-white font-medium">
+                                    {num} {num === 1 ? 'cuota' : 'cuotas'}
+                                  </p>
+                                  <p className="text-xs text-white/60">
+                                    ${monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}{' '}
+                                    {num > 1 ? 'cada una' : ''}
+                                  </p>
+                                </div>
+                                {isSelected && <CheckCircle2 className="size-5 text-emerald-400" />}
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
 
-                <div className="my-4 border-t border-white/10"></div>
+                    <div className="my-4 border-t border-white/10"></div>
 
-                {/* Resumen de Costos */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-white/70">Costo total:</span>
-                    <span className="text-white font-semibold">
-                      ${costo.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-white/70">Cuotas:</span>
-                    <span className="text-white font-semibold">{formData.numeroCuotas}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-white/70">Monto por cuota:</span>
-                    <span className="text-white font-semibold">
-                      $
-                      {(costo / formData.numeroCuotas).toLocaleString('es-AR', {
-                        minimumFractionDigits: 2,
-                      })}
-                    </span>
-                  </div>
-                </div>
+                    {/* Resumen de Costos */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-white/70">Costo total:</span>
+                        <span className="text-white font-semibold">
+                          ${costo.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-white/70">Cuotas:</span>
+                        <span className="text-white font-semibold">{formData.numeroCuotas}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-white/70">Monto por cuota:</span>
+                        <span className="text-white font-semibold">
+                          $
+                          {(formData.numeroCuotas > 0 ? costo / formData.numeroCuotas : 0).toLocaleString('es-AR', {
+                            minimumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+                    </div>
 
-                {/* Información de Pago */}
-                <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                  <p className="text-xs text-amber-300">
-                    💡 Los pagos se crearán después desde tu panel. Recibirás un código de
-                    referencia único.
-                  </p>
-                </div>
+                    {/* Información de Pago */}
+                    <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                      <p className="text-xs text-amber-300">
+                        💡 Los pagos se crearán después desde tu panel. Recibirás un código de
+                        referencia único.
+                      </p>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>

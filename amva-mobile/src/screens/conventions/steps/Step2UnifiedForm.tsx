@@ -55,7 +55,12 @@ export function Step2UnifiedForm({
   const scrollViewRef = useRef<ScrollView>(null)
   const inputRefs = useRef<{ [key: string]: TextInput | null }>({})
 
-  // Pre-llenar con datos del invitado
+  const costo =
+    typeof convencion.costo === 'number'
+      ? Number(convencion.costo)
+      : parseFloat(String(convencion.costo || 0))
+  const esGratuito = costo === 0
+
   const nombreDefault = invitado.nombre || ''
   const apellidoDefault = invitado.apellido || ''
 
@@ -68,7 +73,7 @@ export function Step2UnifiedForm({
     pais: 'Argentina',
     provincia: '',
     tipoInscripcion: 'Invitado',
-    numeroCuotas: 3,
+    numeroCuotas: esGratuito ? 0 : 3,
     dni: '',
     documentoUrl: '',
     notas: '',
@@ -139,11 +144,6 @@ export function Step2UnifiedForm({
   const fechaFormateada = format(fechaInicio, "d 'de' MMMM, yyyy", { locale: es })
   const fechaFinFormateada = format(fechaFin, "d 'de' MMMM, yyyy", { locale: es })
 
-  const costo =
-    typeof convencion.costo === 'number'
-      ? Number(convencion.costo)
-      : parseFloat(String(convencion.costo || 0))
-
   const montoPorCuota1 = Number(costo) || 0
   const montoPorCuota2 = Number(costo / 2) || 0
   const montoPorCuota3 = Number(costo / 3) || 0
@@ -199,7 +199,7 @@ export function Step2UnifiedForm({
     if (!formData.tipoInscripcion.trim()) {
       newErrors.tipoInscripcion = 'El tipo de inscripción es requerido'
     }
-    if (formData.numeroCuotas < 1 || formData.numeroCuotas > 3) {
+    if (!esGratuito && (formData.numeroCuotas < 1 || formData.numeroCuotas > 3)) {
       newErrors.numeroCuotas = 'El número de cuotas debe ser entre 1 y 3'
     }
     if (formData.dni && formData.dni.length > 20) {
@@ -280,7 +280,7 @@ export function Step2UnifiedForm({
         pais: formData.pais.trim() || undefined,
         provincia: formData.provincia.trim() || undefined,
         tipoInscripcion: formData.tipoInscripcion || 'Invitado',
-        numeroCuotas: formData.numeroCuotas || 3,
+        numeroCuotas: esGratuito ? 0 : (formData.numeroCuotas || 3),
         dni: formData.dni?.trim() || undefined,
         documentoUrl: formData.documentoUrl || undefined,
         notas: formData.notas?.trim() || undefined,
@@ -405,6 +405,14 @@ export function Step2UnifiedForm({
               </View>
             </View>
           </View>
+
+          {/* Evento gratuito */}
+          {esGratuito && (
+            <View style={[styles.paymentPlanSection, { backgroundColor: 'rgba(34, 197, 94, 0.08)', borderColor: 'rgba(34, 197, 94, 0.25)' }]}>
+              <Text style={[styles.paymentPlanTitle, { color: '#4ade80' }]}>Evento gratuito</Text>
+              <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 4 }}>Solo inscripción. No hay pagos ni cuotas.</Text>
+            </View>
+          )}
 
           {/* Plan de Pago - Igual que en la web */}
           {costo > 0 && (
@@ -630,39 +638,41 @@ export function Step2UnifiedForm({
               )}
             </View>
 
-            {/* Comprobante de Transferencia */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                <Receipt size={12} color="rgba(255, 255, 255, 0.6)" /> Comprobante de Transferencia
-              </Text>
-              <Text style={styles.helperText}>
-                Sube una foto o captura del comprobante de transferencia bancaria
-              </Text>
-              {formData.documentoUrl ? (
-                <View style={styles.documentUploaded}>
-                  <CheckCircle2 size={16} color="#22c55e" />
-                  <Text style={styles.documentUploadedText}>Comprobante cargado</Text>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  style={styles.uploadButton}
-                  onPress={handleUploadDocument}
-                  disabled={uploadingDocument}
-                >
-                  {uploadingDocument ? (
-                    <ActivityIndicator color="#22c55e" />
-                  ) : (
-                    <>
-                      <Receipt size={18} color="#22c55e" />
-                      <Text style={styles.uploadButtonText}>Subir Comprobante</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              )}
-              {selectedImageUri && (
-                <Image source={{ uri: selectedImageUri }} style={styles.previewImage} />
-              )}
-            </View>
+            {/* Comprobante de Transferencia (oculto si evento gratuito) */}
+            {!esGratuito && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  <Receipt size={12} color="rgba(255, 255, 255, 0.6)" /> Comprobante de Transferencia
+                </Text>
+                <Text style={styles.helperText}>
+                  Sube una foto o captura del comprobante de transferencia bancaria
+                </Text>
+                {formData.documentoUrl ? (
+                  <View style={styles.documentUploaded}>
+                    <CheckCircle2 size={16} color="#22c55e" />
+                    <Text style={styles.documentUploadedText}>Comprobante cargado</Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.uploadButton}
+                    onPress={handleUploadDocument}
+                    disabled={uploadingDocument}
+                  >
+                    {uploadingDocument ? (
+                      <ActivityIndicator color="#22c55e" />
+                    ) : (
+                      <>
+                        <Receipt size={18} color="#22c55e" />
+                        <Text style={styles.uploadButtonText}>Subir Comprobante</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+                {selectedImageUri && (
+                  <Image source={{ uri: selectedImageUri }} style={styles.previewImage} />
+                )}
+              </View>
+            )}
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Notas (Opcional)</Text>
@@ -682,6 +692,14 @@ export function Step2UnifiedForm({
             </View>
           </View>
 
+          {/* Resumen: evento gratuito */}
+          {!yaInscrito && esGratuito && (
+            <View style={[styles.summarySection, { backgroundColor: 'rgba(34, 197, 94, 0.08)', borderColor: 'rgba(34, 197, 94, 0.25)' }]}>
+              <Text style={[styles.summaryLabel, { color: '#4ade80' }]}>Evento gratuito</Text>
+              <Text style={[styles.summaryValue, { color: 'rgba(255,255,255,0.9)' }]}>Solo inscripción. Sin pagos.</Text>
+            </View>
+          )}
+
           {/* Resumen de Costos - Igual que en la web */}
           {!yaInscrito && costo > 0 && (
             <View style={styles.summarySection}>
@@ -696,7 +714,7 @@ export function Step2UnifiedForm({
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Monto por cuota:</Text>
                 <Text style={styles.summaryValue}>
-                  ${(costo / (formData.numeroCuotas || 3)).toFixed(2)}
+                  ${(formData.numeroCuotas > 0 ? costo / formData.numeroCuotas : 0).toFixed(2)}
                 </Text>
               </View>
             </View>

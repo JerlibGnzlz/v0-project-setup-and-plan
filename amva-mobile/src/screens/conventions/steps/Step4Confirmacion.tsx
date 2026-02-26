@@ -65,8 +65,8 @@ export function Step4Confirmacion({
     typeof convencion.costo === 'number'
       ? convencion.costo
       : parseFloat(String(convencion.costo || 0))
-
-  const montoPorCuota = costo / formData.numeroCuotas
+  const esGratuito = costo === 0
+  const montoPorCuota = formData.numeroCuotas > 0 ? costo / formData.numeroCuotas : 0
 
   const handleConfirm = async () => {
     try {
@@ -129,7 +129,7 @@ export function Step4Confirmacion({
         pais: formData.pais?.trim() || undefined,
         provincia: formData.provincia?.trim() || undefined,
         tipoInscripcion: formData.tipoInscripcion || 'Invitado',
-        numeroCuotas: formData.numeroCuotas || 3,
+        numeroCuotas: esGratuito ? 0 : (formData.numeroCuotas || 3),
         dni: formData.dni?.trim() || undefined,
         origenRegistro: 'mobile',
         documentoUrl: formData.documentoUrl || undefined,
@@ -335,26 +335,35 @@ export function Step4Confirmacion({
           )}
         </View>
 
-        {/* Información de Pago */}
+        {/* Información de Pago (o evento gratuito) */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <CreditCard size={18} color="#f59e0b" />
-            <Text style={styles.sectionTitle}>Información de Pago</Text>
+            <CreditCard size={18} color={esGratuito ? '#22c55e' : '#f59e0b'} />
+            <Text style={styles.sectionTitle}>{esGratuito ? 'Costo' : 'Información de Pago'}</Text>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Plan de pago:</Text>
-            <Text style={styles.infoValue}>
-              {formData.numeroCuotas} cuota{formData.numeroCuotas > 1 ? 's' : ''}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Monto por cuota:</Text>
-            <Text style={styles.infoValue}>${montoPorCuota.toFixed(2)}</Text>
-          </View>
-          <View style={[styles.infoRow, styles.totalRow]}>
-            <Text style={styles.totalLabel}>Costo total:</Text>
-            <Text style={styles.totalValue}>${costo.toFixed(2)}</Text>
-          </View>
+          {esGratuito ? (
+            <View style={styles.infoRow}>
+              <Text style={[styles.infoLabel, { color: '#4ade80' }]}>Evento gratuito</Text>
+              <Text style={styles.infoValue}>Solo inscripción. Sin pagos.</Text>
+            </View>
+          ) : (
+            <>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Plan de pago:</Text>
+                <Text style={styles.infoValue}>
+                  {formData.numeroCuotas} cuota{formData.numeroCuotas !== 1 ? 's' : ''}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Monto por cuota:</Text>
+                <Text style={styles.infoValue}>${montoPorCuota.toFixed(2)}</Text>
+              </View>
+              <View style={[styles.infoRow, styles.totalRow]}>
+                <Text style={styles.totalLabel}>Costo total:</Text>
+                <Text style={styles.totalValue}>${costo.toFixed(2)}</Text>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Documento subido */}
@@ -379,13 +388,12 @@ export function Step4Confirmacion({
         <View style={styles.infoBox}>
           <View style={styles.infoBoxHeader}>
             <AlertCircle size={16} color="#3b82f6" />
-            <Text style={styles.infoBoxTitle}>¿Qué sigue después?</Text>
+            <Text style={styles.infoBoxTitle}>{esGratuito ? 'Todo listo' : '¿Qué sigue después?'}</Text>
           </View>
           <Text style={styles.infoBoxText}>
-            • Recibirás un email de confirmación con todos los detalles{'\n'}
-            • Podrás realizar el pago de tus cuotas según el plan seleccionado{'\n'}
-            • Nuestro equipo validará tus pagos y te notificará por email{'\n'}
-            • Una vez completados todos los pagos, recibirás la confirmación final
+            {esGratuito
+              ? 'Recibirás un email de confirmación. Tu inscripción quedará confirmada de inmediato (evento gratuito).'
+              : '• Recibirás un email de confirmación con todos los detalles\n• Podrás realizar el pago de tus cuotas según el plan seleccionado\n• Nuestro equipo validará tus pagos y te notificará por email\n• Una vez completados todos los pagos, recibirás la confirmación final'}
           </Text>
         </View>
 
