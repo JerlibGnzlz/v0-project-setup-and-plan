@@ -17,9 +17,11 @@ import {
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useCreateInscripcion, useCheckInscripcion } from '@/lib/hooks/use-inscripciones'
+import { inscripcionesApi } from '@/lib/api/inscripciones'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useUnifiedAuth } from '@/lib/hooks/use-unified-auth'
+import { isAxiosError } from 'axios'
 
 interface Step4ResumenProps {
   convencion: {
@@ -72,7 +74,9 @@ export function Step4Resumen({
     typeof convencion.costo === 'number'
       ? convencion.costo
       : parseFloat(String(convencion.costo || 0))
-  const montoPorCuota = costo / formData.numeroCuotas
+  const esGratuito = costo === 0
+  const numeroCuotasEfectivo = esGratuito ? 0 : (formData.numeroCuotas || 3)
+  const montoPorCuota = numeroCuotasEfectivo > 0 ? costo / numeroCuotasEfectivo : 0
 
   const handleConfirm = async () => {
     // Verificar si ya está inscrito ANTES de enviar
@@ -172,7 +176,7 @@ export function Step4Resumen({
         apellido: formData.apellido.trim(),
         email: formData.email.trim().toLowerCase(),
         tipoInscripcion: formData.tipoInscripcion || 'pastor',
-        numeroCuotas: formData.numeroCuotas || 3,
+        numeroCuotas: esGratuito ? 0 : (formData.numeroCuotas || 3),
         origenRegistro: 'web',
       }
 
@@ -430,27 +434,33 @@ export function Step4Resumen({
           </div>
         </div>
 
-        {/* Información de Pago */}
+        {/* Información de Pago (oculto si evento gratuito) */}
         <div className="mb-6 p-4 bg-gradient-to-br from-amber-500/10 via-amber-600/5 to-amber-500/10 border border-amber-500/20 rounded-lg">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
             <CreditCard className="w-5 h-5 text-amber-400" />
-            Información de Pago
+            {esGratuito ? 'Costo' : 'Información de Pago'}
           </h3>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-white/70">Plan de pago:</span>
-              <span className="text-white font-medium">
-                {formData.numeroCuotas} cuota{formData.numeroCuotas > 1 ? 's' : ''}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/70">Monto por cuota:</span>
-              <span className="text-white font-medium">${montoPorCuota.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between pt-2 border-t border-amber-500/20">
-              <span className="text-white font-semibold">Costo total:</span>
-              <span className="text-amber-400 font-bold text-lg">${costo.toFixed(2)}</span>
-            </div>
+            {esGratuito ? (
+              <p className="text-emerald-300 font-medium">Evento gratuito — Solo inscripción, sin pagos.</p>
+            ) : (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-white/70">Plan de pago:</span>
+                  <span className="text-white font-medium">
+                    {numeroCuotasEfectivo} cuota{numeroCuotasEfectivo !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/70">Monto por cuota:</span>
+                  <span className="text-white font-medium">${montoPorCuota.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-amber-500/20">
+                  <span className="text-white font-semibold">Costo total:</span>
+                  <span className="text-amber-400 font-bold text-lg">${costo.toFixed(2)}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -479,12 +489,18 @@ export function Step4Resumen({
             <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
               <h4 className="text-sm font-semibold text-blue-300 mb-1">¿Qué sigue después?</h4>
-              <ul className="text-xs text-white/70 space-y-1 list-disc list-inside">
-                <li>Recibirás un email de confirmación con todos los detalles</li>
-                <li>Podrás realizar el pago de tus cuotas según el plan seleccionado</li>
-                <li>Nuestro equipo validará tus pagos y te notificará por email</li>
-                <li>Una vez completados todos los pagos, recibirás la confirmación final</li>
-              </ul>
+              {esGratuito ? (
+                <p className="text-xs text-white/70">
+                  Recibirás un email de confirmación. Tu inscripción quedará confirmada de inmediato (evento gratuito).
+                </p>
+              ) : (
+                <ul className="text-xs text-white/70 space-y-1 list-disc list-inside">
+                  <li>Recibirás un email de confirmación con todos los detalles</li>
+                  <li>Podrás realizar el pago de tus cuotas según el plan seleccionado</li>
+                  <li>Nuestro equipo validará tus pagos y te notificará por email</li>
+                  <li>Una vez completados todos los pagos, recibirás la confirmación final</li>
+                </ul>
+              )}
             </div>
           </div>
         </div>

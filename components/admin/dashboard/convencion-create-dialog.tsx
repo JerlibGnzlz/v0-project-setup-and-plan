@@ -129,7 +129,7 @@ export function ConvencionCreateDialog({
                     validate: value => {
                       if (value === undefined || value === null)
                         return 'El monto es requerido'
-                      if (value <= 0) return 'El monto debe ser mayor a 0'
+                      if (value < 0) return 'El monto no puede ser negativo'
                       if (value > 999999.99) return 'El monto no puede exceder $999,999.99'
                       return true
                     },
@@ -157,8 +157,10 @@ export function ConvencionCreateDialog({
               <Input
                 id="create-cuotas"
                 type="number"
+                min={0}
+                max={12}
                 {...register('cuotas', { valueAsNumber: true })}
-                placeholder="1"
+                placeholder="0"
               />
               {errors.cuotas && (
                 <p className="text-sm text-red-500">{errors.cuotas.message}</p>

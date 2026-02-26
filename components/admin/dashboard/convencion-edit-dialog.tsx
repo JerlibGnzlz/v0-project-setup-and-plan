@@ -210,7 +210,7 @@ export function ConvencionEditDialog({
                     validate: value => {
                       if (value === undefined || value === null)
                         return 'El monto es requerido'
-                      if (value <= 0) return 'El monto debe ser mayor a 0'
+                      if (value < 0) return 'El monto no puede ser negativo'
                       if (value > 999999.99)
                         return 'El monto no puede exceder $999,999.99'
                       return true
@@ -230,7 +230,7 @@ export function ConvencionEditDialog({
                 <p className="text-sm text-destructive">{errors.monto.message}</p>
               )}
               <p className="text-xs text-muted-foreground">
-                Ingresa el monto con hasta 2 decimales (ej: 15000.50)
+                Ingresa el monto con hasta 2 decimales (ej: 15000.50). Usa 0 para evento gratuito.
               </p>
             </div>
 
@@ -239,7 +239,7 @@ export function ConvencionEditDialog({
               <Input
                 id="cuotas"
                 type="number"
-                min="1"
+                min="0"
                 max="12"
                 placeholder="3"
                 {...register('cuotas', { valueAsNumber: true })}
@@ -249,6 +249,9 @@ export function ConvencionEditDialog({
               )}
             </div>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Si el monto es $0, la convención se mostrará como evento gratuito. Si las cuotas son 0, se considerará pago único o a definir.
+          </p>
 
           <div className="space-y-4 pt-2 border-t">
             <p className="text-sm font-medium text-muted-foreground">

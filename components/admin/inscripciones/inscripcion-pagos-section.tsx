@@ -20,13 +20,39 @@ interface InscripcionPagosSectionProps {
   inscripcion: Inscripcion
   pagosInfo: PagosInfo
   onCrearPago: (inscripcion: Inscripcion & { numeroCuota: number }, pago?: any) => void
+  /** Si la convención tiene costo 0, se considera evento gratuito (también para inscripciones antiguas con cuotas) */
+  costoConvencion?: number
 }
 
 export function InscripcionPagosSection({
   inscripcion,
   pagosInfo,
   onCrearPago,
+  costoConvencion,
 }: InscripcionPagosSectionProps) {
+  const esGratuito =
+    pagosInfo.numeroCuotas === 0 ||
+    (costoConvencion != null && costoConvencion === 0) ||
+    pagosInfo.costoTotal === 0
+
+  if (esGratuito) {
+    return (
+      <div className="lg:col-span-7">
+        <div
+          className="p-4 rounded-lg border bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/50"
+        >
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
+            <span className="font-semibold text-sm text-emerald-700 dark:text-emerald-300">Evento gratuito</span>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            No aplican pagos ni cuotas para esta inscripción.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="lg:col-span-7">
       <div className="space-y-4">

@@ -32,7 +32,7 @@ export class CreateConvencionDto {
 
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 }, { message: 'El costo solo puede tener hasta 2 decimales' })
-  @Min(0.01, { message: 'El costo debe ser mayor a 0' })
+  @Min(0, { message: 'El costo no puede ser negativo' })
   @Max(999999.99, { message: 'El costo no puede exceder $999,999.99' })
   costo?: number
 
@@ -88,7 +88,7 @@ export class UpdateConvencionDto {
 
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 }, { message: 'El costo solo puede tener hasta 2 decimales' })
-  @Min(0.01, { message: 'El costo debe ser mayor a 0' })
+  @Min(0, { message: 'El costo no puede ser negativo' })
   @Max(999999.99, { message: 'El costo no puede exceder $999,999.99' })
   costo?: number
 

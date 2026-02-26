@@ -296,6 +296,13 @@ export function InscripcionStatusScreen({
     }
   }
 
+  const costoConvencion =
+    typeof convencion.costo === 'number'
+      ? convencion.costo
+      : parseFloat(String(convencion.costo || 0))
+  const esGratuito =
+    (inscripcionCompleta?.numeroCuotas === 0) || (costoConvencion === 0 && pagos.length === 0)
+
   const pagosPendientes = pagos.filter(p => String(p.estado).toUpperCase() === 'PENDIENTE')
   const pagosCompletados = pagos.filter(p => String(p.estado).toUpperCase() === 'COMPLETADO')
   const totalPagos = pagos.length
@@ -321,8 +328,8 @@ export function InscripcionStatusScreen({
     )
   }
 
-  // Verificar si todos los pagos están completados
-  const todosLosPagosCompletados = totalPagos > 0 && totalCompletados === totalPagos
+  // Verificar si todos los pagos están completados (o evento gratuito = confirmado)
+  const todosLosPagosCompletados = esGratuito || (totalPagos > 0 && totalCompletados === totalPagos)
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -339,9 +346,18 @@ export function InscripcionStatusScreen({
         </View>
 
         {/* Banner de estado */}
-        <View style={styles.statusBanner}>
-          <AlertCircle size={20} color="#f59e0b" />
-          <Text style={styles.statusBannerText}>Inscripción Pendiente de Pago</Text>
+        <View style={[styles.statusBanner, esGratuito && { backgroundColor: 'rgba(34, 197, 94, 0.15)', borderColor: 'rgba(34, 197, 94, 0.4)' }]}>
+          {esGratuito ? (
+            <>
+              <CheckCircle2 size={20} color="#22c55e" />
+              <Text style={[styles.statusBannerText, { color: '#22c55e' }]}>Inscripción Confirmada (Evento gratuito)</Text>
+            </>
+          ) : (
+            <>
+              <AlertCircle size={20} color="#f59e0b" />
+              <Text style={styles.statusBannerText}>Inscripción Pendiente de Pago</Text>
+            </>
+          )}
         </View>
 
         {/* Mensaje de bienvenida */}
@@ -354,7 +370,8 @@ export function InscripcionStatusScreen({
           </Text>
         </View>
 
-        {/* Código de Referencia */}
+        {/* Código de Referencia (oculto si evento gratuito) */}
+        {!esGratuito && (
         <View style={styles.referenceCodeCard}>
           <Text style={styles.referenceCodeTitle}>CÓDIGO DE REFERENCIA PARA PAGOS</Text>
           <View style={styles.referenceCodeContainer}>
@@ -391,8 +408,21 @@ export function InscripcionStatusScreen({
             </View>
           </View>
         </View>
+        )}
 
-        {/* Estado de Pagos */}
+        {/* Evento gratuito: mensaje simple */}
+        {esGratuito && (
+          <View style={[styles.referenceCodeCard, { backgroundColor: 'rgba(34, 197, 94, 0.1)', borderColor: 'rgba(34, 197, 94, 0.3)' }]}>
+            <CheckCircle2 size={24} color="#22c55e" style={{ marginBottom: 8 }} />
+            <Text style={[styles.referenceCodeTitle, { color: '#22c55e', fontSize: 14 }]}>Evento gratuito</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, textAlign: 'center', marginTop: 4 }}>
+              Inscripción confirmada. No hay pagos ni cuotas.
+            </Text>
+          </View>
+        )}
+
+        {/* Estado de Pagos (oculto si evento gratuito) */}
+        {!esGratuito && (
         <View style={styles.paymentStatusCard}>
           <View style={styles.paymentStatusHeader}>
             <CreditCard size={20} color="#22c55e" />
@@ -431,9 +461,10 @@ export function InscripcionStatusScreen({
             {totalCompletados}/{totalPagos} cuotas • {totalCompletados} de {totalPagos}
           </Text>
         </View>
+        )}
 
-        {/* Lista de Pagos */}
-        {pagos.length > 0 ? (
+        {/* Lista de Pagos (oculta si evento gratuito) */}
+        {!esGratuito && (pagos.length > 0 ? (
           <View style={styles.paymentsListCard}>
             {pagos.map((pago, index) => {
               const numeroPago = pago.numeroCuota || index + 1
@@ -561,7 +592,7 @@ export function InscripcionStatusScreen({
               No hay pagos registrados para esta inscripción
             </Text>
           </View>
-        )}
+        ))}
 
         {/* Información de Convención */}
         <View style={styles.convencionInfoCard}>

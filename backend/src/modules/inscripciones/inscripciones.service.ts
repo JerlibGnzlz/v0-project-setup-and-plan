@@ -287,8 +287,6 @@ export class InscripcionesService {
                 `Origen de registro inválido: ${origenRegistro}. Debe ser: web, mobile o dashboard`
             )
         }
-        const numeroCuotas = dto.numeroCuotas || 3
-
         // Obtener la convención para calcular el monto por cuota
         const convencion = await this.prisma.convencion.findUnique({
             where: { id: dto.convencionId },
@@ -302,6 +300,16 @@ export class InscripcionesService {
         if (!convencion.activa) {
             throw new BadRequestException('Esta convención no está disponible para inscripciones')
         }
+
+        // Calcular el costo (puede venir como Decimal de Prisma)
+        const costoTotal =
+            typeof convencion.costo === 'number'
+                ? convencion.costo
+                : parseFloat(String(convencion.costo || 0))
+
+        // Si el evento es gratuito (costo 0), no hay cuotas ni pagos; inscripción queda confirmada
+        const numeroCuotas = costoTotal === 0 ? 0 : (dto.numeroCuotas ?? 3)
+        const montoPorCuota = numeroCuotas > 0 ? costoTotal / numeroCuotas : 0
 
         // Validar email duplicado ANTES de crear (usando transacción para evitar race conditions)
         const emailExistente = await this.checkInscripcionByEmail(dto.email, dto.convencionId)
@@ -334,14 +342,6 @@ export class InscripcionesService {
 
             this.logger.log(`✅ Cupos disponibles: ${cuposDisponibles} de ${convencion.cupoMaximo}`)
         }
-
-        // Calcular el costo (puede venir como Decimal de Prisma)
-        const costoTotal =
-            typeof convencion.costo === 'number'
-                ? convencion.costo
-                : parseFloat(String(convencion.costo || 0))
-
-        const montoPorCuota = costoTotal / numeroCuotas
 
         // Generar código de referencia único
         const generarCodigoReferencia = async (): Promise<string> => {
@@ -460,7 +460,10 @@ export class InscripcionesService {
                     ...dto,
                     origenRegistro,
                     codigoReferencia,
-                    invitadoId: invitado.id, // Vincular con invitado
+                    invitadoId: invitado.id,
+                    numeroCuotas,
+                    // Evento gratuito: sin cuotas ni pagos, inscripción confirmada de inmediato
+                    ...(numeroCuotas === 0 && { estado: 'confirmado' }),
                 } as unknown as Prisma.InscripcionCreateInput,
                 include: this.inscripcionIncludes,
             })
@@ -482,37 +485,36 @@ export class InscripcionesService {
                 this.logger.error(`⚠️ Email: ${dto.email}, Pastor ID: ${pastorCreadoPorError.id}`)
             }
 
-            // Crear automáticamente los pagos para TODOS los orígenes (web, mobile, dashboard)
-            // Esto asegura que siempre haya pagos asociados a la inscripción
-            this.logger.log(
-                `💰 Creando ${numeroCuotas} pago(s) automático(s) para inscripción ${nuevaInscripcion.id} (origen: ${origenRegistro})`
-            )
-
-            // Si hay un documentoUrl en la inscripción, asignarlo al primer pago como comprobanteUrl
+            // Crear pagos solo cuando hay cuotas (costo > 0). Evento gratuito: 0 cuotas, sin pagos
             const comprobanteUrl = dto.documentoUrl || null
-
-            // Crear los pagos según el número de cuotas
             const pagos: Pago[] = []
-            for (let i = 1; i <= numeroCuotas; i++) {
-                const pago = await tx.pago.create({
-                    data: {
-                        inscripcionId: nuevaInscripcion.id,
-                        monto: montoPorCuota, // Prisma maneja la conversión a Decimal automáticamente
-                        metodoPago: 'pendiente', // Se actualizará cuando se registre el pago
-                        numeroCuota: i,
-                        estado: EstadoPago.PENDIENTE,
-                        // Asignar el comprobante solo al primer pago si existe
-                        comprobanteUrl: i === 1 && comprobanteUrl ? comprobanteUrl : null,
-                    },
-                })
-                pagos.push(pago)
-            }
 
-            if (comprobanteUrl) {
-                this.logger.log(`📎 Comprobante asignado al primer pago: ${comprobanteUrl}`)
+            if (numeroCuotas > 0) {
+                this.logger.log(
+                    `💰 Creando ${numeroCuotas} pago(s) automático(s) para inscripción ${nuevaInscripcion.id} (origen: ${origenRegistro})`
+                )
+                for (let i = 1; i <= numeroCuotas; i++) {
+                    const pago = await tx.pago.create({
+                        data: {
+                            inscripcionId: nuevaInscripcion.id,
+                            monto: montoPorCuota,
+                            metodoPago: 'pendiente',
+                            numeroCuota: i,
+                            estado: EstadoPago.PENDIENTE,
+                            comprobanteUrl: i === 1 && comprobanteUrl ? comprobanteUrl : null,
+                        },
+                    })
+                    pagos.push(pago)
+                }
+                if (comprobanteUrl) {
+                    this.logger.log(`📎 Comprobante asignado al primer pago: ${comprobanteUrl}`)
+                }
+                this.logger.log(`✅ ${pagos.length} pago(s) creado(s) exitosamente`)
+            } else {
+                this.logger.log(
+                    `✅ Inscripción sin pagos (evento gratuito): ${nuevaInscripcion.id} (origen: ${origenRegistro})`
+                )
             }
-
-            this.logger.log(`✅ ${pagos.length} pago(s) creado(s) exitosamente`)
 
             // Recargar la inscripción con los pagos incluidos
             return await tx.inscripcion.findUnique({
@@ -549,10 +551,12 @@ export class InscripcionesService {
             const cuotasPagadas = pagosInfo.filter((p: Pago) => p.estado === 'COMPLETADO').length
             const numeroCuotas = inscripcion.numeroCuotas || 3
 
-            // Construir mensaje con información de pagos
+            // Construir mensaje con información de pagos (o evento gratuito)
             let mensaje = `${inscripcion.nombre} ${inscripcion.apellido} se ha inscrito a "${convencion.titulo}" desde ${origenTexto}.`
             if (numeroCuotas > 0) {
                 mensaje += `\n💰 ${numeroCuotas} cuota(s) - ${cuotasPendientes} pendiente(s), ${cuotasPagadas} pagada(s)`
+            } else {
+                mensaje += `\n🎫 Evento gratuito - inscripción confirmada`
             }
 
             // Enviar notificación a cada admin (usando NotificationsService directamente para admins)
@@ -594,10 +598,10 @@ export class InscripcionesService {
                 currency: 'ARS',
             }).format(costoTotal)
 
-            const montoPorCuotaFormateado = new Intl.NumberFormat('es-AR', {
-                style: 'currency',
-                currency: 'ARS',
-            }).format(montoPorCuota)
+            const montoPorCuotaFormateado =
+                numeroCuotas > 0
+                    ? new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(montoPorCuota)
+                    : null
 
             // Formatear fechas de la convención
             const fechaInicio = new Date(convencion.fechaInicio).toLocaleDateString('es-AR', {
@@ -690,13 +694,11 @@ export class InscripcionesService {
                     })
 
                     if (invitado?.auth?.deviceTokens && invitado.auth.deviceTokens.length > 0) {
-                        const montoFormateado = new Intl.NumberFormat('es-AR', {
-                            style: 'currency',
-                            currency: 'ARS',
-                        }).format(costoTotal)
-
                         const titulo = '✅ Inscripción Recibida'
-                        const mensaje = `Tu inscripción a "${convencion.titulo}" ha sido recibida exitosamente. Total: ${montoFormateado} (${numeroCuotas} cuotas).`
+                        const mensaje =
+                            numeroCuotas > 0
+                                ? `Tu inscripción a "${convencion.titulo}" ha sido recibida. Total: ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(costoTotal)} (${numeroCuotas} cuotas).`
+                                : `Tu inscripción a "${convencion.titulo}" ha sido confirmada. Evento gratuito.`
 
                         let successCount = 0
                         let errorCount = 0

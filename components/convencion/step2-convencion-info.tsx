@@ -54,7 +54,12 @@ export function Step2ConvencionInfo({
 }: Step2ConvencionInfoProps) {
   const router = useRouter()
   const { user } = useUnifiedAuth()
-  const [numeroCuotas, setNumeroCuotas] = useState<number>(initialNumeroCuotas)
+  const costo =
+    typeof convencion.costo === 'number'
+      ? convencion.costo
+      : parseFloat(String(convencion.costo || 0))
+  const esGratuito = costo === 0
+  const [numeroCuotas, setNumeroCuotas] = useState<number>(esGratuito ? 0 : initialNumeroCuotas)
 
   // Verificar si el usuario ya está inscrito
   const { data: inscripcionExistente, isLoading: checkingInscripcion } = useCheckInscripcion(
@@ -67,11 +72,6 @@ export function Step2ConvencionInfo({
   const fechaFormateada = format(fechaInicio, 'dd/MM/yyyy', { locale: es })
   const fechaFinFormateada = format(fechaFin, 'dd/MM/yyyy', { locale: es })
 
-  // Convertir costo a número de forma segura (puede venir como Decimal de Prisma)
-  const costo =
-    typeof convencion.costo === 'number'
-      ? convencion.costo
-      : parseFloat(String(convencion.costo || 0))
   const montoPorCuota1 = costo
   const montoPorCuota2 = costo / 2
   const montoPorCuota3 = costo / 3
@@ -93,7 +93,7 @@ export function Step2ConvencionInfo({
       }
       return
     }
-    onComplete({ numeroCuotas })
+    onComplete({ numeroCuotas: esGratuito ? 0 : numeroCuotas })
   }
 
   return (
@@ -172,6 +172,14 @@ export function Step2ConvencionInfo({
             </div>
           </div>
         </div>
+
+        {/* Evento gratuito: solo inscripción, sin cuotas */}
+        {esGratuito && (
+          <div className="mb-6 p-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-center">
+            <p className="text-lg font-semibold text-emerald-300">Evento gratuito</p>
+            <p className="text-sm text-white/70 mt-1">Solo completá tu inscripción. No hay pagos ni cuotas.</p>
+          </div>
+        )}
 
         {/* Costo y Selección de Cuotas */}
         {costo > 0 && (

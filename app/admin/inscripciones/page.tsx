@@ -610,7 +610,9 @@ export default function InscripcionesPage() {
             <tbody>
               ${filteredInscripciones.map((insc: any, index: number) => {
             const pagosInfo = getPagosInfo(insc)
-            const pagoCompleto = pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
+            const costoConvencion = convencionActiva?.costo ? Number(convencionActiva.costo) : 0
+            const esGratuito = insc.numeroCuotas === 0 || costoConvencion === 0
+            const pagoCompleto = esGratuito || (pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas)
 
             // Extraer país y provincia de la sede
             let pais = '-'
@@ -629,6 +631,11 @@ export default function InscripcionesPage() {
                 }
             }
 
+            const cuotasTexto = esGratuito ? 'Gratuito' : `${pagosInfo.cuotasPagadas}/${pagosInfo.numeroCuotas}`
+            const estadoPagoBadge = esGratuito
+                ? '<span class="badge badge-completo">Gratuito</span>'
+                : `<span class="badge ${pagoCompleto ? 'badge-completo' : 'badge-pendiente'}">${pagoCompleto ? 'Completo' : 'Pendiente'}</span>`
+
             return `
                   <tr>
                     <td>${index + 1}</td>
@@ -638,12 +645,8 @@ export default function InscripcionesPage() {
                     <td>${escapeHtml(sedeNombre)}</td>
                     <td>${escapeHtml(pais)}</td>
                     <td><strong style="font-family: monospace;">${escapeHtml(insc.codigoReferencia || '-')}</strong></td>
-                    <td>${pagosInfo.cuotasPagadas}/${pagosInfo.numeroCuotas}</td>
-                    <td>
-                      <span class="badge ${pagoCompleto ? 'badge-completo' : 'badge-pendiente'}">
-                        ${pagoCompleto ? 'Completo' : 'Pendiente'}
-                      </span>
-                    </td>
+                    <td>${cuotasTexto}</td>
+                    <td>${estadoPagoBadge}</td>
                     <td>${escapeHtml(insc.estado)}</td>
                   </tr>
                 `
@@ -698,7 +701,9 @@ export default function InscripcionesPage() {
 
         const rows = filteredInscripciones.map((insc: any) => {
             const pagosInfo = getPagosInfo(insc)
-            const pagoCompleto = pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
+            const costoConv = convencionActiva?.costo ? Number(convencionActiva.costo) : 0
+            const esGratuito = insc.numeroCuotas === 0 || costoConv === 0
+            const pagoCompleto = esGratuito || (pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas)
 
             // Extraer país de la sede
             let pais = ''
@@ -726,9 +731,9 @@ export default function InscripcionesPage() {
                 pais,
                 insc.convencion?.titulo || '',
                 insc.codigoReferencia || '',
-                pagosInfo.cuotasPagadas,
-                pagosInfo.numeroCuotas,
-                pagoCompleto ? 'Completo' : 'Pendiente',
+                esGratuito ? 'Gratuito' : pagosInfo.cuotasPagadas,
+                esGratuito ? 'Gratuito' : pagosInfo.numeroCuotas,
+                esGratuito ? 'Gratuito' : (pagoCompleto ? 'Completo' : 'Pendiente'),
                 insc.estado,
                 format(new Date(insc.fechaInscripcion), "dd/MM/yyyy HH:mm", { locale: es })
             ]
@@ -962,6 +967,8 @@ export default function InscripcionesPage() {
                             ) : (
                                 filteredInscripciones.map((insc: any) => {
                                     const pagosInfo = getPagosInfo(insc)
+                                    const esGratuito =
+                                        pagosInfo.numeroCuotas === 0 || pagosInfo.costoTotal === 0
 
                                     return (
                                         <Card
@@ -1115,16 +1122,17 @@ export default function InscripcionesPage() {
                                                             >
                                                                 {insc.estado}
                                                             </Badge>
-                                                            {pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas && (
+                                                            {(esGratuito || pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas) && (
                                                                 <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
                                                                     <CheckCircle2 className="size-3 mr-1" />
-                                                                    Pago Completo
+                                                                    {esGratuito ? 'Gratuito' : 'Pago Completo'}
                                                                 </Badge>
                                                             )}
                                                             {/* Botón editar - Deshabilitado si todos los pagos están completados o inscripción confirmada */}
                                                             {(() => {
-                                                                const pagosInfo = getPagosInfo(insc)
-                                                                const todosPagosCompletados = pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
+                                                                const pagosInfoLocal = getPagosInfo(insc)
+                                                                const esGratuitoLocal = pagosInfoLocal.numeroCuotas === 0
+                                                                const todosPagosCompletados = esGratuitoLocal || (pagosInfoLocal.cuotasPagadas >= pagosInfoLocal.numeroCuotas)
                                                                 const estaConfirmada = insc.estado === 'confirmado'
                                                                 const deshabilitado = todosPagosCompletados || estaConfirmada
 
@@ -1185,8 +1193,17 @@ export default function InscripcionesPage() {
                                                         </div>
                                                     </div>
 
-                                                    {/* Gestión de cuotas */}
+                                                    {/* Gestión de cuotas (oculto si evento gratuito) */}
                                                     <div className="lg:col-span-7">
+                                                        {esGratuito ? (
+                                                            <div className="p-4 rounded-lg border bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/50">
+                                                                <div className="flex items-center gap-2">
+                                                                    <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
+                                                                    <span className="font-semibold text-sm text-emerald-700 dark:text-emerald-300">Evento gratuito</span>
+                                                                </div>
+                                                                <p className="text-sm text-muted-foreground mt-2">No aplican pagos ni cuotas para esta inscripción.</p>
+                                                            </div>
+                                                        ) : (
                                                         <div className="space-y-4">
                                                             {/* Resumen de pagos */}
                                                             <div className={`p-4 rounded-lg border ${pagosInfo.cuotasPagadas >= pagosInfo.numeroCuotas
@@ -1341,6 +1358,7 @@ export default function InscripcionesPage() {
                                                                 </Button>
                                                             </Link>
                                                         </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </CardContent>

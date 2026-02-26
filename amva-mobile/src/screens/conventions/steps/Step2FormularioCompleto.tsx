@@ -705,38 +705,40 @@ export function Step2FormularioCompleto({
             </View>
           )}
 
-          {/* Comprobante de Transferencia */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              <Receipt size={12} color="rgba(255, 255, 255, 0.6)" /> Comprobante de Transferencia
-            </Text>
-            <Text style={styles.helperText}>
-              Sube una foto o captura del comprobante de transferencia bancaria
-            </Text>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={handleUploadDocument}
-              disabled={uploadingDocument}
-              activeOpacity={0.7}
-            >
-              {uploadingDocument ? (
-                <ActivityIndicator color="#22c55e" />
-              ) : formData.documentoUrl ? (
-                <View style={styles.uploadSuccess}>
-                  <CheckCircle2 size={18} color="#22c55e" />
-                  <Text style={styles.uploadSuccessText}>Comprobante cargado</Text>
-                </View>
-              ) : (
-                <View style={styles.uploadContent}>
-                  <Receipt size={20} color="#22c55e" />
-                  <Text style={styles.uploadText}>Subir comprobante</Text>
-                </View>
+          {/* Comprobante de Transferencia (oculto si evento gratuito) */}
+          {costo > 0 && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                <Receipt size={12} color="rgba(255, 255, 255, 0.6)" /> Comprobante de Transferencia
+              </Text>
+              <Text style={styles.helperText}>
+                Sube una foto o captura del comprobante de transferencia bancaria
+              </Text>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={handleUploadDocument}
+                disabled={uploadingDocument}
+                activeOpacity={0.7}
+              >
+                {uploadingDocument ? (
+                  <ActivityIndicator color="#22c55e" />
+                ) : formData.documentoUrl ? (
+                  <View style={styles.uploadSuccess}>
+                    <CheckCircle2 size={18} color="#22c55e" />
+                    <Text style={styles.uploadSuccessText}>Comprobante cargado</Text>
+                  </View>
+                ) : (
+                  <View style={styles.uploadContent}>
+                    <Receipt size={20} color="#22c55e" />
+                    <Text style={styles.uploadText}>Subir comprobante</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              {selectedImageUri && (
+                <Image source={{ uri: selectedImageUri }} style={styles.previewImage} />
               )}
-            </TouchableOpacity>
-            {selectedImageUri && (
-              <Image source={{ uri: selectedImageUri }} style={styles.previewImage} />
-            )}
-          </View>
+            </View>
+          )}
 
           {/* Notas */}
           <View style={styles.inputGroup}>
