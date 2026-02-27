@@ -49,17 +49,19 @@ export function SectionFormatBar({
         <Icon className="w-4 h-4 text-emerald-400 shrink-0" aria-hidden />
         <span className="text-sm text-white/80 font-medium">{badgeLabel}</span>
       </div>
-      <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
+      <h2 className={cn('text-4xl sm:text-5xl md:text-6xl font-bold text-white', subtitle?.trim() ? 'mb-4' : 'mb-0')}>
         {title}
       </h2>
-      <p
-        className={cn(
-          'text-lg text-white/60 max-w-3xl mx-auto',
-          subtitleClassName
-        )}
-      >
-        {subtitle}
-      </p>
+      {subtitle?.trim() ? (
+        <p
+          className={cn(
+            'text-lg text-white/60 max-w-3xl mx-auto',
+            subtitleClassName
+          )}
+        >
+          {subtitle}
+        </p>
+      ) : null}
     </div>
   )
 }

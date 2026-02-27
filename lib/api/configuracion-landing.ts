@@ -18,6 +18,11 @@ export interface ConfiguracionLanding {
   visionTitulo: string
   visionContenido: string
   visionJustificacion: 'left' | 'center' | 'right' | 'justify'
+  ofrendasHabilitado: boolean
+  ofrendasTitulo: string
+  ofrendasContenido: string
+  ofrendasCuentaBancaria: string
+  ofrendasJustificacion: 'left' | 'center' | 'right' | 'justify'
   createdAt: string
   updatedAt: string
 }
@@ -39,6 +44,11 @@ export interface UpdateConfiguracionLandingDto {
   visionTitulo?: string
   visionContenido?: string
   visionJustificacion?: 'left' | 'center' | 'right' | 'justify'
+  ofrendasHabilitado?: boolean
+  ofrendasTitulo?: string
+  ofrendasContenido?: string
+  ofrendasCuentaBancaria?: string
+  ofrendasJustificacion?: 'left' | 'center' | 'right' | 'justify'
 }
 
 export const configuracionLandingApi = {

@@ -27,6 +27,11 @@ export const convencionSchema = z.object({
     .max(12, 'Las cuotas deben estar entre 0 y 12'),
   invitadoNombre: z.string().max(120, 'Máximo 120 caracteres').optional().or(z.literal('')),
   invitadoFotoUrl: z.string().optional(),
+  contactoNombre: z.string().max(120, 'Máximo 120 caracteres').optional().or(z.literal('')),
+  contactoTelefono: z.string().max(30, 'Máximo 30 caracteres').optional().or(z.literal('')),
+  aliasCbu: z.string().max(80, 'Máximo 80 caracteres').optional().or(z.literal('')),
+  titularTransferencia: z.string().max(120, 'Máximo 120 caracteres').optional().or(z.literal('')),
+  cbu: z.string().max(30, 'Máximo 30 caracteres').optional().or(z.literal('')),
 })
 
 export type ConvencionFormData = z.infer<typeof convencionSchema>

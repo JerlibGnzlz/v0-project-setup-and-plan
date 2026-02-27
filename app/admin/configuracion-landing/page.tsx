@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useConfiguracionLanding, useUpdateConfiguracionLanding } from '@/lib/hooks/use-configuracion-landing'
-import { Settings, Save, Users, Globe, Calendar, BookOpen, Target, Eye } from 'lucide-react'
+import { Settings, Save, Users, Globe, Calendar, BookOpen, Target, Eye, Heart } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import type { UpdateConfiguracionLandingDto } from '@/lib/api/configuracion-landing'
 
@@ -57,6 +57,12 @@ export default function ConfiguracionLandingPage() {
       visionContenido:
         'Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.',
       visionJustificacion: 'left',
+      ofrendasHabilitado: true,
+      ofrendasTitulo: 'Ofrendas para la Misión',
+      ofrendasContenido:
+        'En AMVA (Asociación Misionera Vida Abundante) creemos que la fe se expresa plenamente cuando se comparte con los demás y se traduce en acciones que transforman vidas. Nuestras misiones cristianas llevan esperanza, acompañamiento espiritual y apoyo comunitario a pueblos y comunidades que enfrentan necesidades profundas.\n\nTu ofrenda es una herramienta real para sostener:\n\n• El envío y cuidado de nuestros misioneros y misioneras en campo.\n• Proyectos de evangelización, educación y salud en territorios con recursos escasos.\n• Capacitación continua para líderes cristianos y pastores locales.\n• Recursos logísticos, materiales y operativos para actividades misioneras.\n\nCada aporte —grande o pequeño— multiplica vida abundante en Cristo y fortalece la obra que Dios está realizando a través de nuestros enviados a diferentes regiones del mundo.\n\n¡Gracias por tu generosidad y tu compromiso con la misión!',
+      ofrendasCuentaBancaria: '',
+      ofrendasJustificacion: 'left',
     },
   })
 
@@ -73,13 +79,18 @@ export default function ConfiguracionLandingPage() {
         paisesOverride: configuracion.paisesOverride,
         titulo: configuracion.titulo,
         subtitulo: configuracion.subtitulo,
-        subtituloJustificacion: configuracion.subtituloJustificacion ?? 'left',
+        subtituloJustificacion: (configuracion.subtituloJustificacion || 'left') as 'left' | 'center' | 'right' | 'justify',
         misionTitulo: configuracion.misionTitulo,
         misionContenido: configuracion.misionContenido,
-        misionJustificacion: configuracion.misionJustificacion ?? 'left',
+        misionJustificacion: (configuracion.misionJustificacion || 'left') as 'left' | 'center' | 'right' | 'justify',
         visionTitulo: configuracion.visionTitulo,
         visionContenido: configuracion.visionContenido,
-        visionJustificacion: configuracion.visionJustificacion ?? 'left',
+        visionJustificacion: (configuracion.visionJustificacion || 'left') as 'left' | 'center' | 'right' | 'justify',
+        ofrendasHabilitado: configuracion.ofrendasHabilitado ?? true,
+        ofrendasTitulo: configuracion.ofrendasTitulo,
+        ofrendasContenido: configuracion.ofrendasContenido,
+        ofrendasCuentaBancaria: configuracion.ofrendasCuentaBancaria ?? '',
+        ofrendasJustificacion: (configuracion.ofrendasJustificacion || 'left') as 'left' | 'center' | 'right' | 'justify',
       })
     }
   }, [configuracion, reset])
@@ -316,6 +327,67 @@ export default function ConfiguracionLandingPage() {
                 value={watch('visionJustificacion') ?? 'left'}
                 onValueChange={(value) =>
                   setValue('visionJustificacion', value as 'left' | 'center' | 'right' | 'justify', {
+                    shouldDirty: true,
+                  })
+                }
+              >
+                <SelectTrigger className="w-full max-w-xs">
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {JUSTIFICACION_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Ofrendas para la Misión */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Heart className="w-5 h-5" />
+              Ofrendas para la Misión
+            </CardTitle>
+            <CardDescription>
+              Texto y cuenta bancaria para la sección de donaciones a misioneros
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="ofrendasTitulo">Título</Label>
+              <Input id="ofrendasTitulo" {...register('ofrendasTitulo')} placeholder="Ofrendas para la Misión" />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ofrendasContenido">Contenido</Label>
+              <Textarea
+                id="ofrendasContenido"
+                rows={12}
+                {...register('ofrendasContenido')}
+                placeholder="Texto que explica la importancia de las ofrendas y qué se sostiene con ellas..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ofrendasCuentaBancaria">Cuenta bancaria / CBU para transferencias</Label>
+              <Input
+                id="ofrendasCuentaBancaria"
+                {...register('ofrendasCuentaBancaria')}
+                placeholder="Ej: CBU 1234567890123456789012 o Nº de cuenta"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Justificación del texto</Label>
+              <Select
+                value={watch('ofrendasJustificacion') ?? 'left'}
+                onValueChange={(value) =>
+                  setValue('ofrendasJustificacion', value as 'left' | 'center' | 'right' | 'justify', {
                     shouldDirty: true,
                   })
                 }

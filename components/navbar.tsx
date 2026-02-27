@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { ChevronRight, User } from 'lucide-react'
 import { usePastorAuth } from '@/lib/hooks/use-pastor-auth'
+import { useConvencionActiva } from '@/lib/hooks/use-convencion'
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -14,6 +15,8 @@ export function Navbar() {
   const navContainerRef = useRef<HTMLDivElement>(null)
   const navLinksRef = useRef<{ [key: string]: HTMLAnchorElement | null }>({})
   const { pastor, isAuthenticated, isHydrated } = usePastorAuth()
+  const { data: convencionActiva } = useConvencionActiva()
+  const hasConvencionActiva = !!convencionActiva?.id
 
   useEffect(() => {
     if (isOpen) {
@@ -40,6 +43,7 @@ export function Navbar() {
         'convenciones',
         'galeria',
         'educacion',
+        'ofrendas',
       ]
       const scrollPosition = window.scrollY + 100
 
@@ -133,6 +137,7 @@ export function Navbar() {
     { href: '#convenciones', label: 'Convención' },
     { href: '#galeria', label: 'Galería' },
     { href: '#educacion', label: 'Educación' },
+    { href: '#ofrendas', label: 'Ofrendas' },
   ]
 
   return (
@@ -211,9 +216,11 @@ export function Navbar() {
 
             {/* Desktop Navigation */}
             <div ref={navContainerRef} className="hidden lg:flex items-center gap-1 relative">
-              {navLinks.map((link: any) => {
+              {navLinks.map((link: { href: string; label: string; isPage?: boolean }) => {
                 const sectionId = link.href.replace('#', '').replace('/', '')
                 const isActive = !link.isPage && activeSection === sectionId
+                const isConvencion = sectionId === 'convenciones'
+                const showConvencionGlow = isConvencion && hasConvencionActiva
 
                 // Si es una página, usar navegación normal
                 if (link.isPage) {
@@ -236,13 +243,21 @@ export function Navbar() {
                       navLinksRef.current[sectionId] = el
                     }}
                     onClick={e => handleNavClick(e, link.href)}
-                    className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ${isActive ? 'text-white' : 'text-white/60 hover:text-white hover:bg-white/5'
-                      }`}
+                    className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
+                      showConvencionGlow
+                        ? 'text-amber-200/95 hover:text-amber-100 shadow-[0_0_12px_rgba(251,191,36,0.4)] hover:shadow-[0_0_18px_rgba(251,191,36,0.5)] bg-amber-500/10 border border-amber-400/30 hover:bg-amber-500/15'
+                        : isActive
+                          ? 'text-white'
+                          : 'text-white/60 hover:text-white hover:bg-white/5'
+                    }`}
                   >
                     {link.label}
                     {/* Active indicator dot */}
-                    {isActive && (
+                    {isActive && !showConvencionGlow && (
                       <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full shadow-lg shadow-emerald-400/50" />
+                    )}
+                    {isActive && showConvencionGlow && (
+                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-amber-400 rounded-full shadow-lg shadow-amber-400/60" />
                     )}
                   </Link>
                 )
@@ -306,9 +321,11 @@ export function Navbar() {
         }}
       >
         <nav className="flex flex-col p-6 gap-2 overflow-y-auto h-full">
-          {navLinks.map((link: any, index: number) => {
+          {navLinks.map((link: { href: string; label: string; isPage?: boolean }, index: number) => {
             const sectionId = link.href.replace('#', '').replace('/', '')
             const isActive = !link.isPage && activeSection === sectionId
+            const isConvencion = sectionId === 'convenciones'
+            const showConvencionGlow = isConvencion && hasConvencionActiva
 
             // Si es una página, usar navegación normal y cerrar menú
             if (link.isPage) {
@@ -333,20 +350,22 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={e => handleNavClick(e, link.href)}
-                className={`group flex items-center justify-between py-3 px-4 text-lg font-medium rounded-xl transition-all duration-200 ${isActive
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
-                    : 'hover:bg-white/5 text-white/70'
-                  } ${isOpen ? 'animate-in slide-in-from-right-4 fade-in' : ''}`}
+                className={`group flex items-center justify-between py-3 px-4 text-lg font-medium rounded-xl transition-all duration-200 ${
+                  showConvencionGlow
+                    ? 'bg-gradient-to-r from-amber-500/30 to-amber-600/20 text-amber-100 border border-amber-400/40 shadow-[0_0_16px_rgba(251,191,36,0.35)] hover:shadow-[0_0_20px_rgba(251,191,36,0.45)]'
+                    : isActive
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
+                      : 'hover:bg-white/5 text-white/70'
+                } ${isOpen ? 'animate-in slide-in-from-right-4 fade-in' : ''}`}
                 style={{
                   animationDelay: isOpen ? `${index * 50}ms` : '0ms',
                 }}
               >
                 <span>{link.label}</span>
                 <ChevronRight
-                  className={`w-5 h-5 transition-all duration-200 ${isActive
-                      ? 'opacity-100'
-                      : 'opacity-0 group-hover:opacity-100 group-hover:translate-x-1'
-                    }`}
+                  className={`w-5 h-5 transition-all duration-200 ${
+                    isActive || showConvencionGlow ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-hover:translate-x-1'
+                  }`}
                 />
               </Link>
             )

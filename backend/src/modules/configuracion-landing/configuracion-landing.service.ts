@@ -45,6 +45,12 @@ export class ConfiguracionLandingService {
           visionContenido:
             'Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.',
           visionJustificacion: 'left',
+          ofrendasHabilitado: true,
+          ofrendasTitulo: 'Ofrendas para la Misión',
+          ofrendasContenido:
+            'En AMVA (Asociación Misionera Vida Abundante) creemos que la fe se expresa plenamente cuando se comparte con los demás y se traduce en acciones que transforman vidas. Nuestras misiones cristianas llevan esperanza, acompañamiento espiritual y apoyo comunitario a pueblos y comunidades que enfrentan necesidades profundas.\n\nTu ofrenda es una herramienta real para sostener:\n\n• El envío y cuidado de nuestros misioneros y misioneras en campo.\n• Proyectos de evangelización, educación y salud en territorios con recursos escasos.\n• Capacitación continua para líderes cristianos y pastores locales.\n• Recursos logísticos, materiales y operativos para actividades misioneras.\n\nCada aporte —grande o pequeño— multiplica vida abundante en Cristo y fortalece la obra que Dios está realizando a través de nuestros enviados a diferentes regiones del mundo.\n\n¡Gracias por tu generosidad y tu compromiso con la misión!',
+          ofrendasCuentaBancaria: '',
+          ofrendasJustificacion: 'left',
         },
       })
     }
@@ -67,10 +73,17 @@ export class ConfiguracionLandingService {
     })
 
     if (config) {
-      // Actualizar configuración existente
+      // Normalizar justificación vacía a 'left' cuando el campo viene en el body
+      const justificacion = (v: string | undefined): string =>
+        v && v.trim() !== '' ? v : 'left'
+      const data: UpdateConfiguracionLandingDto = { ...dto }
+      if (dto.subtituloJustificacion !== undefined) data.subtituloJustificacion = justificacion(dto.subtituloJustificacion)
+      if (dto.misionJustificacion !== undefined) data.misionJustificacion = justificacion(dto.misionJustificacion)
+      if (dto.visionJustificacion !== undefined) data.visionJustificacion = justificacion(dto.visionJustificacion)
+      if (dto.ofrendasJustificacion !== undefined) data.ofrendasJustificacion = justificacion(dto.ofrendasJustificacion)
       config = await this.prisma.configuracionLanding.update({
         where: { id: config.id },
-        data: dto,
+        data,
       })
       this.logger.log('✅ Configuración actualizada exitosamente')
     } else {
@@ -99,6 +112,13 @@ export class ConfiguracionLandingService {
             dto.visionContenido ??
             'Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.',
           visionJustificacion: dto.visionJustificacion ?? 'left',
+          ofrendasHabilitado: dto.ofrendasHabilitado ?? true,
+          ofrendasTitulo: dto.ofrendasTitulo ?? 'Ofrendas para la Misión',
+          ofrendasContenido:
+            dto.ofrendasContenido ??
+            'En AMVA (Asociación Misionera Vida Abundante) creemos que la fe se expresa plenamente cuando se comparte con los demás y se traduce en acciones que transforman vidas. Nuestras misiones cristianas llevan esperanza, acompañamiento espiritual y apoyo comunitario a pueblos y comunidades que enfrentan necesidades profundas.\n\nTu ofrenda es una herramienta real para sostener:\n\n• El envío y cuidado de nuestros misioneros y misioneras en campo.\n• Proyectos de evangelización, educación y salud en territorios con recursos escasos.\n• Capacitación continua para líderes cristianos y pastores locales.\n• Recursos logísticos, materiales y operativos para actividades misioneras.\n\nCada aporte —grande o pequeño— multiplica vida abundante en Cristo y fortalece la obra que Dios está realizando a través de nuestros enviados a diferentes regiones del mundo.\n\n¡Gracias por tu generosidad y tu compromiso con la misión!',
+          ofrendasCuentaBancaria: dto.ofrendasCuentaBancaria ?? '',
+          ofrendasJustificacion: dto.ofrendasJustificacion ?? 'left',
         },
       })
       this.logger.log('✅ Configuración creada exitosamente')

@@ -10,6 +10,7 @@ import {
   NotFoundException,
   Logger,
 } from '@nestjs/common'
+import { SkipThrottle } from '@nestjs/throttler'
 import { ConvencionesService } from './convenciones.service'
 import { CreateConvencionDto, UpdateConvencionDto } from './dto/convencion.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
@@ -75,7 +76,9 @@ export class ConvencionesController {
    * Convención activa para la landing (cuenta regresiva, inscripciones).
    * Las fechas se devuelven en ISO 8601 para que el frontend las interprete
    * como día del evento (YYYY-MM-DD) en hora local y calcule bien la cuenta regresiva.
+   * Sin límite de tasa para evitar 429 con múltiples componentes llamando.
    */
+  @SkipThrottle()
   @Get('active')
   async findActive() {
     const convencion = await this.convencionesService.findActive()
@@ -88,7 +91,9 @@ export class ConvencionesController {
   /**
    * Fecha del evento activo en YYYY-MM-DD. Sirve como única fuente de verdad para la cuenta regresiva.
    * La landing puede usar solo este valor para el countdown y evitar desfases por caché o parsing.
+   * Sin límite de tasa para evitar 429 con múltiples componentes llamando.
    */
+  @SkipThrottle()
   @Get('event-date')
   async getEventDate() {
     const convencion = await this.convencionesService.findActive()

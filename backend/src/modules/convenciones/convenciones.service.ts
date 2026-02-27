@@ -89,6 +89,11 @@ export class ConvencionesService {
       archivada: dto.archivada ?? false,
       invitadoNombre: dto.invitadoNombre || null,
       invitadoFotoUrl: dto.invitadoFotoUrl || null,
+      aliasCbu: dto.aliasCbu || null,
+      titularTransferencia: dto.titularTransferencia || null,
+      numeroCuenta: dto.numeroCuenta || null,
+      cbu: dto.cbu || null,
+      cuil: dto.cuil || null,
     }
     const convencion = await this.repository.create(data as unknown as Partial<Convencion>)
 
@@ -117,6 +122,13 @@ export class ConvencionesService {
     if (dto.activa !== undefined) data.activa = dto.activa
     if (dto.invitadoNombre !== undefined) data.invitadoNombre = dto.invitadoNombre
     if (dto.invitadoFotoUrl !== undefined) data.invitadoFotoUrl = dto.invitadoFotoUrl
+    if (dto.contactoNombre !== undefined) data.contactoNombre = dto.contactoNombre
+    if (dto.contactoTelefono !== undefined) data.contactoTelefono = dto.contactoTelefono
+    if (dto.aliasCbu !== undefined) data.aliasCbu = dto.aliasCbu
+    if (dto.titularTransferencia !== undefined) data.titularTransferencia = dto.titularTransferencia
+    if (dto.numeroCuenta !== undefined) data.numeroCuenta = dto.numeroCuenta
+    if (dto.cbu !== undefined) data.cbu = dto.cbu
+    if (dto.cuil !== undefined) data.cuil = dto.cuil
 
     this.logger.log(`📝 Actualizando convención: ${id}`)
 

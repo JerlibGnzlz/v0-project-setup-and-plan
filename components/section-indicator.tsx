@@ -11,6 +11,7 @@ const sections = [
   { id: 'convenciones', label: 'Convención' },
   { id: 'galeria', label: 'Galería' },
   { id: 'educacion', label: 'Educación' },
+  { id: 'ofrendas', label: 'Ofrendas' },
 ]
 
 export function SectionIndicator() {

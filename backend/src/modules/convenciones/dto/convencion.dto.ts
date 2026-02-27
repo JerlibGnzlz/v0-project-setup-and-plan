@@ -60,6 +60,41 @@ export class CreateConvencionDto {
   @IsOptional()
   @IsString()
   invitadoFotoUrl?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 120, { message: 'El nombre de contacto no puede exceder 120 caracteres' })
+  contactoNombre?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 30, { message: 'El teléfono de contacto no puede exceder 30 caracteres' })
+  contactoTelefono?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 80, { message: 'El alias CBU no puede exceder 80 caracteres' })
+  aliasCbu?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 120, { message: 'El nombre del titular no puede exceder 120 caracteres' })
+  titularTransferencia?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 40, { message: 'El número de cuenta no puede exceder 40 caracteres' })
+  numeroCuenta?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 30, { message: 'El CBU no puede exceder 30 caracteres' })
+  cbu?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 20, { message: 'El CUIL no puede exceder 20 caracteres' })
+  cuil?: string
 }
 
 export class UpdateConvencionDto {
@@ -112,4 +147,39 @@ export class UpdateConvencionDto {
   @IsOptional()
   @IsString()
   invitadoFotoUrl?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 120, { message: 'El nombre de contacto no puede exceder 120 caracteres' })
+  contactoNombre?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 30, { message: 'El teléfono de contacto no puede exceder 30 caracteres' })
+  contactoTelefono?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 80, { message: 'El alias CBU no puede exceder 80 caracteres' })
+  aliasCbu?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 120, { message: 'El nombre del titular no puede exceder 120 caracteres' })
+  titularTransferencia?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 40, { message: 'El número de cuenta no puede exceder 40 caracteres' })
+  numeroCuenta?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 30, { message: 'El CBU no puede exceder 30 caracteres' })
+  cbu?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 20, { message: 'El CUIL no puede exceder 20 caracteres' })
+  cuil?: string
 }
