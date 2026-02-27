@@ -12,6 +12,9 @@ import {
   PartyPopper,
   Clock,
   Star,
+  Phone,
+  User,
+  Copy,
 } from 'lucide-react'
 import { CountdownTimer } from './countdown-timer'
 import { useConvencionActiva, useEventDate } from '@/lib/hooks/use-convencion'
@@ -21,6 +24,39 @@ import type { Convencion } from '@/lib/api/convenciones'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { getEventDate } from '@/lib/utils/event-date'
+import { toast } from 'sonner'
+
+/** Fila compacta con label, valor y botón copiar para datos de transferencia */
+function DatoTransferenciaRow({
+  label,
+  value,
+  onCopy,
+}: {
+  label: string
+  value: string
+  onCopy: () => void
+}) {
+  return (
+    <div className="flex items-center justify-between gap-1.5 p-1.5 rounded-md bg-white/5 border border-white/10">
+      <div className="min-w-0 flex-1">
+        <p className="text-[9px] text-amber-400/70 uppercase tracking-wide">{label}</p>
+        <p className="text-xs text-white/90 font-medium truncate" style={{ fontFamily: 'Georgia, serif' }}>
+          {value}
+        </p>
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="shrink-0 h-6 w-6 text-amber-400 hover:text-amber-300 hover:bg-amber-500/20"
+        onClick={onCopy}
+        aria-label={`Copiar ${label}`}
+      >
+        <Copy className="w-3 h-3" />
+      </Button>
+    </div>
+  )
+}
 
 // Decorative corner component for invitation
 function DecorativeCorner({
@@ -290,24 +326,24 @@ function HorizontalInvitationCard({
         {/* Ornamental top border */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
 
-        {/* Content */}
-        <div className="relative p-6 sm:p-8 h-full flex flex-col">
+        {/* Content - compacto para caber en una pantalla */}
+        <div className="relative p-4 sm:p-5 h-full flex flex-col">
           {/* Header with logo - Premium */}
-          <div className="text-center mb-4">
+          <div className="text-center mb-2">
             {/* Premium Seal/Emblem */}
-            <div className="relative inline-block mb-3">
+            <div className="relative inline-block mb-2">
               {/* Outer glow rings */}
               <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/30 via-yellow-400/20 to-amber-500/30 rounded-full blur-xl animate-pulse" />
               <div className="absolute -inset-2 bg-gradient-to-r from-amber-500/20 via-yellow-400/15 to-amber-500/20 rounded-full blur-md" />
 
               {/* Main seal */}
-              <div className="relative w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-amber-500/30 via-amber-600/20 to-amber-700/10 border-2 border-amber-500/50 flex items-center justify-center shadow-lg shadow-amber-500/20">
+              <div className="relative w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-amber-500/30 via-amber-600/20 to-amber-700/10 border-2 border-amber-500/50 flex items-center justify-center shadow-lg shadow-amber-500/20">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 to-transparent" />
                 <Image
                   src="/mundo.png"
                   alt="AMVA"
-                  width={48}
-                  height={48}
+                  width={40}
+                  height={40}
                   className="object-contain relative z-10 drop-shadow-lg"
                 />
               </div>
@@ -332,9 +368,9 @@ function HorizontalInvitationCard({
 
             {/* Invitado destacado (foto y nombre desde dashboard) */}
             {(convencion.invitadoNombre || convencion.invitadoFotoUrl) && (
-              <div className="mt-4 flex flex-col items-center gap-2 p-3 rounded-xl bg-white/5 border border-amber-500/20">
+              <div className="mt-2 flex flex-col items-center gap-1.5 p-2 rounded-lg bg-white/5 border border-amber-500/20">
                 {convencion.invitadoFotoUrl && (
-                  <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-amber-500/40 ring-2 ring-amber-500/20">
+                  <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-amber-500/40 ring-2 ring-amber-500/20">
                     <Image
                       src={convencion.invitadoFotoUrl}
                       alt={convencion.invitadoNombre || 'Invitado'}
@@ -346,7 +382,7 @@ function HorizontalInvitationCard({
                 )}
                 {convencion.invitadoNombre && (
                   <p
-                    className="text-sm font-semibold text-white text-center"
+                    className="text-xs font-semibold text-white text-center leading-tight"
                     style={{ fontFamily: 'Georgia, serif' }}
                   >
                     {convencion.invitadoNombre}
@@ -356,22 +392,17 @@ function HorizontalInvitationCard({
             )}
           </div>
 
-          {/* Elegant divider - Enhanced */}
-          <div className="flex items-center justify-center gap-3 my-4">
+          {/* Elegant divider */}
+          <div className="flex items-center justify-center gap-2 my-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/50 to-amber-500/30" />
-            <div className="relative">
-              <Star className="w-3 h-3 text-amber-400/60 fill-amber-400/20" />
-              <div className="absolute inset-0 animate-ping">
-                <Star className="w-3 h-3 text-amber-400/30" />
-              </div>
-            </div>
+            <Star className="w-2.5 h-2.5 text-amber-400/60 fill-amber-400/20" />
             <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-500/50 to-amber-500/30" />
           </div>
 
           {/* Event title - Premium */}
-          <div className="text-center mb-4 flex-shrink-0">
+          <div className="text-center mb-2 flex-shrink-0">
             <h3
-              className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight"
+              className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-1.5 leading-tight"
               style={{
                 fontFamily: 'Georgia, serif',
                 textShadow: '0 2px 8px rgba(0,0,0,0.3)',
@@ -381,69 +412,144 @@ function HorizontalInvitationCard({
             </h3>
 
             {/* Premium Badge */}
-            <Badge className="bg-gradient-to-r from-amber-500/30 via-yellow-500/25 to-orange-500/30 text-amber-200 border border-amber-400/40 px-3 py-1 text-xs font-semibold shadow-lg shadow-amber-500/20 backdrop-blur-sm">
-              <Ticket className="w-3 h-3 mr-1.5" />
+            <Badge className="bg-gradient-to-r from-amber-500/30 via-yellow-500/25 to-orange-500/30 text-amber-200 border border-amber-400/40 px-2 py-0.5 text-[10px] font-semibold shadow-lg shadow-amber-500/20 backdrop-blur-sm">
+              <Ticket className="w-2.5 h-2.5 mr-1" />
               Inscripción Abierta
             </Badge>
           </div>
 
-          {/* Elegant divider - Enhanced */}
-          <div className="flex items-center justify-center gap-3 my-4">
+          {/* Divider */}
+          <div className="flex items-center justify-center gap-2 my-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/50 to-amber-500/30" />
-            <div className="relative">
-              <Star className="w-3 h-3 text-amber-400/60 fill-amber-400/20" />
-            </div>
+            <Star className="w-2.5 h-2.5 text-amber-400/60 fill-amber-400/20" />
             <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-500/50 to-amber-500/30" />
           </div>
 
-          {/* Event details - Premium layout */}
-          <div className="space-y-3 mb-6 flex-grow">
-            {/* Date - Enhanced */}
-            <div className="flex items-center gap-3 justify-center p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30">
-                <Calendar className="w-5 h-5 text-amber-300" />
+          {/* Event details - compacto: fecha y lugar en una fila */}
+          <div className="space-y-2 mb-3 flex-grow">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10">
+                <div className="p-1.5 rounded-md bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30">
+                  <Calendar className="w-4 h-4 text-amber-300" />
+                </div>
+                <span className="text-xs text-white/90 font-medium truncate" style={{ fontFamily: 'Georgia, serif' }}>
+                  {fechaFormateada}
+                </span>
               </div>
-              <span
-                className="text-sm text-white/90 font-medium flex-1"
-                style={{ fontFamily: 'Georgia, serif' }}
-              >
-                {fechaFormateada}
-              </span>
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10">
+                <div className="p-1.5 rounded-md bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30">
+                  <MapPin className="w-4 h-4 text-amber-300" />
+                </div>
+                <span className="text-xs text-white/90 font-medium truncate" style={{ fontFamily: 'Georgia, serif' }}>
+                  {convencion.ubicacion}
+                </span>
+              </div>
             </div>
 
-            {/* Location - Enhanced */}
-            <div className="flex items-center gap-3 justify-center p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30">
-                <MapPin className="w-5 h-5 text-amber-300" />
-              </div>
-              <span
-                className="text-sm text-white/90 font-medium flex-1"
-                style={{ fontFamily: 'Georgia, serif' }}
-              >
-                {convencion.ubicacion}
-              </span>
-            </div>
-
-            {/* Price - Premium display */}
-            {convencion.costo && Number(convencion.costo) > 0 && (
-              <div className="text-center pt-3 mt-3 border-t border-amber-500/30">
-                <p className="text-amber-400/60 text-[10px] tracking-[0.2em] uppercase font-semibold mb-2">
-                  Inversión
-                </p>
-                <div className="relative inline-block">
-                  <div className="absolute -inset-2 bg-gradient-to-r from-amber-500/20 via-yellow-400/15 to-amber-500/20 rounded-lg blur-md" />
-                  <div className="relative text-2xl font-bold bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 bg-clip-text text-transparent">
-                    ${Number(convencion.costo).toLocaleString('es-AR')}
-                    <span className="text-sm ml-1 text-amber-400/70 font-normal">ARS</span>
+            {/* Contacto para consultas */}
+            {(() => {
+              const nombre = (convencion as { contactoNombre?: string; contacto_nombre?: string }).contactoNombre?.trim()
+                || (convencion as { contacto_nombre?: string }).contacto_nombre?.trim()
+              const telefono = (convencion as { contactoTelefono?: string; contacto_telefono?: string }).contactoTelefono?.trim()
+                || (convencion as { contacto_telefono?: string }).contacto_telefono?.trim()
+              if (!nombre && !telefono) return null
+              return (
+                <div className="flex flex-col gap-1 p-2 rounded-lg bg-white/5 border border-amber-500/20 backdrop-blur-sm">
+                  <p className="text-[9px] tracking-[0.15em] uppercase text-amber-400/80 font-semibold text-center">
+                    Para consultas
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-xs text-white/90">
+                    {nombre && (
+                      <span className="inline-flex items-center gap-1">
+                        <User className="w-3 h-3 text-amber-400/70" />
+                        <span style={{ fontFamily: 'Georgia, serif' }}>{nombre}</span>
+                      </span>
+                    )}
+                    {telefono && (
+                      <a
+                        href={`tel:${telefono.replace(/\s/g, '')}`}
+                        className="inline-flex items-center gap-1 text-amber-200/90 hover:text-amber-200 transition-colors"
+                      >
+                        <Phone className="w-3 h-3" />
+                        <span style={{ fontFamily: 'Georgia, serif' }}>{telefono}</span>
+                      </a>
+                    )}
                   </div>
                 </div>
-              </div>
-            )}
+              )
+            })()}
+
+            {/* Inversión + Datos para transferencia en una fila (compacto) */}
+            {convencion.costo && Number(convencion.costo) > 0 && (() => {
+              const c = convencion as {
+                aliasCbu?: string
+                alias_cbu?: string
+                titularTransferencia?: string
+                titular_transferencia?: string
+                cbu?: string
+              }
+              const aliasCbu = (c.aliasCbu ?? c.alias_cbu)?.trim()
+              const nombrePersona = (c.titularTransferencia ?? c.titular_transferencia)?.trim()
+              const cbu = c.cbu?.trim()
+              const hasTransfer = !!(nombrePersona || aliasCbu || cbu)
+              const copyToClipboard = (text: string) => {
+                navigator.clipboard.writeText(text).then(
+                  () => toast.success('Copiado al portapapeles'),
+                  () => toast.error('No se pudo copiar')
+                )
+              }
+
+              return (
+                <div className={`pt-2 mt-2 border-t border-amber-500/30 ${hasTransfer ? 'grid grid-cols-1 sm:grid-cols-2 gap-3' : ''}`}>
+                  <div className="text-center">
+                    <p className="text-amber-400/60 text-[9px] tracking-[0.2em] uppercase font-semibold mb-1">
+                      Inversión
+                    </p>
+                    <div className="relative inline-block">
+                      <div className="relative text-lg font-bold bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 bg-clip-text text-transparent">
+                        ${Number(convencion.costo).toLocaleString('es-AR')}
+                        <span className="text-xs ml-1 text-amber-400/70 font-normal">ARS</span>
+                      </div>
+                    </div>
+                  </div>
+                  {hasTransfer && (
+                    <div className="space-y-1">
+                      <p className="text-amber-400/60 text-[9px] tracking-[0.2em] uppercase font-semibold mb-1 text-center sm:text-left">
+                        Datos para transferencia
+                      </p>
+                      <div className="space-y-1">
+                        {nombrePersona && (
+                          <DatoTransferenciaRow
+                            label="Nombre de la persona"
+                            value={nombrePersona}
+                            onCopy={() => copyToClipboard(nombrePersona)}
+                          />
+                        )}
+                        {aliasCbu && (
+                          <DatoTransferenciaRow
+                            label="Alias de CBU"
+                            value={aliasCbu}
+                            onCopy={() => copyToClipboard(aliasCbu)}
+                          />
+                        )}
+                        {cbu && (
+                          <DatoTransferenciaRow
+                            label="CBU"
+                            value={cbu}
+                            onCopy={() => copyToClipboard(cbu)}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
           </div>
 
-          {/* Premium CTA Button */}
+          {/* CTA Button - más compacto */}
           <Button
-            className="w-full h-12 text-base bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 text-slate-900 font-bold border-0 shadow-xl shadow-amber-500/30 hover:shadow-amber-500/50 transition-all duration-300 rounded-xl relative overflow-hidden group/btn"
+            className="w-full h-10 text-sm bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 text-slate-900 font-bold border-0 shadow-xl shadow-amber-500/30 hover:shadow-amber-500/50 transition-all duration-300 rounded-xl relative overflow-hidden group/btn"
             onClick={() => {
               // Detectar si es dispositivo móvil para deep linking
               const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
@@ -467,19 +573,19 @@ function HorizontalInvitationCard({
           >
             {/* Button shine effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
-            <Sparkles className="w-5 h-5 mr-2 relative z-10" />
+            <Sparkles className="w-4 h-4 mr-1.5 relative z-10" />
             <span className="relative z-10">Confirmar Asistencia</span>
           </Button>
 
-          {/* Premium bottom seal */}
-          <div className="flex justify-center items-center gap-2 mt-4">
-            <div className="h-px w-8 bg-gradient-to-r from-transparent to-amber-500/30" />
-            <div className="flex items-center gap-1.5 text-amber-500/40">
-              <Star className="w-2.5 h-2.5 fill-amber-500/20" />
-              <Star className="w-3 h-3 fill-amber-500/30" />
-              <Star className="w-2.5 h-2.5 fill-amber-500/20" />
+          {/* Bottom seal - compacto */}
+          <div className="flex justify-center items-center gap-1.5 mt-2">
+            <div className="h-px w-6 bg-gradient-to-r from-transparent to-amber-500/30" />
+            <div className="flex items-center gap-1 text-amber-500/40">
+              <Star className="w-2 h-2 fill-amber-500/20" />
+              <Star className="w-2.5 h-2.5 fill-amber-500/30" />
+              <Star className="w-2 h-2 fill-amber-500/20" />
             </div>
-            <div className="h-px w-8 bg-gradient-to-l from-transparent to-amber-500/30" />
+            <div className="h-px w-6 bg-gradient-to-l from-transparent to-amber-500/30" />
           </div>
         </div>
 

@@ -17,6 +17,13 @@ export interface Convencion {
   fechaArchivado?: string
   invitadoNombre?: string
   invitadoFotoUrl?: string
+  contactoNombre?: string
+  contactoTelefono?: string
+  aliasCbu?: string
+  titularTransferencia?: string
+  numeroCuenta?: string
+  cbu?: string
+  cuil?: string
   createdAt: string
   updatedAt: string
 }
@@ -53,7 +60,16 @@ export const convencionesApi = {
    */
   getActive: async (): Promise<Convencion | null> => {
     try {
-      const response = await apiClient.get<Convencion>('/convenciones/active')
+      type Raw = Convencion & {
+        contacto_nombre?: string
+        contacto_telefono?: string
+        alias_cbu?: string
+        titular_transferencia?: string
+        numero_cuenta?: string
+        cbu?: string
+        cuil?: string
+      }
+      const response = await apiClient.get<Raw>('/convenciones/active')
       const raw = response.data
       if (!raw || !raw.id) {
         return null
@@ -64,10 +80,24 @@ export const convencionesApi = {
           ? String(raw.fechaInicioDateOnly).trim()
           : null
       const fechaInicioDateOnly = fromDateOnly ?? (fechaInicio.length >= 10 ? fechaInicio.slice(0, 10) : undefined)
+      const contactoNombre = raw.contactoNombre ?? raw.contacto_nombre
+      const contactoTelefono = raw.contactoTelefono ?? raw.contacto_telefono
+      const aliasCbu = raw.aliasCbu ?? raw.alias_cbu
+      const titularTransferencia = raw.titularTransferencia ?? raw.titular_transferencia
+      const numeroCuenta = raw.numeroCuenta ?? raw.numero_cuenta
+      const cbu = raw.cbu
+      const cuil = raw.cuil
       return {
         ...raw,
         fechaInicio: fechaInicio || raw.fechaInicio,
         ...(fechaInicioDateOnly && { fechaInicioDateOnly }),
+        contactoNombre: contactoNombre ?? undefined,
+        contactoTelefono: contactoTelefono ?? undefined,
+        aliasCbu: aliasCbu ?? undefined,
+        titularTransferencia: titularTransferencia ?? undefined,
+        numeroCuenta: numeroCuenta ?? undefined,
+        cbu: cbu ?? undefined,
+        cuil: cuil ?? undefined,
       } as Convencion
     } catch (error: unknown) {
       const err = error as { response?: { status?: number; data?: { message?: string } }; message?: string }

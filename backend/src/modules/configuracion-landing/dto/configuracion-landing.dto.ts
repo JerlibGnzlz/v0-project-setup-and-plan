@@ -1,4 +1,9 @@
-import { IsString, IsInt, IsOptional, Min, IsIn } from 'class-validator'
+import { IsString, IsInt, IsOptional, Min, IsIn, IsBoolean, ValidateIf } from 'class-validator'
+
+// Solo validar IsIn cuando el valor está presente y no es cadena vacía (aceptar '' como opcional).
+function cuandoJustificacionPresente(_o: unknown, v: unknown): boolean {
+  return v !== undefined && v !== null && v !== ''
+}
 
 export class UpdateConfiguracionLandingDto {
   @IsOptional()
@@ -43,6 +48,7 @@ export class UpdateConfiguracionLandingDto {
 
   @IsOptional()
   @IsString()
+  @ValidateIf(cuandoJustificacionPresente)
   @IsIn(['left', 'center', 'right', 'justify'])
   subtituloJustificacion?: string
 
@@ -56,6 +62,7 @@ export class UpdateConfiguracionLandingDto {
 
   @IsOptional()
   @IsString()
+  @ValidateIf(cuandoJustificacionPresente)
   @IsIn(['left', 'center', 'right', 'justify'])
   misionJustificacion?: string
 
@@ -69,7 +76,30 @@ export class UpdateConfiguracionLandingDto {
 
   @IsOptional()
   @IsString()
+  @ValidateIf(cuandoJustificacionPresente)
   @IsIn(['left', 'center', 'right', 'justify'])
   visionJustificacion?: string
+
+  @IsOptional()
+  @IsBoolean()
+  ofrendasHabilitado?: boolean
+
+  @IsOptional()
+  @IsString()
+  ofrendasTitulo?: string
+
+  @IsOptional()
+  @IsString()
+  ofrendasContenido?: string
+
+  @IsOptional()
+  @IsString()
+  ofrendasCuentaBancaria?: string
+
+  @IsOptional()
+  @IsString()
+  @ValidateIf(cuandoJustificacionPresente)
+  @IsIn(['left', 'center', 'right', 'justify'])
+  ofrendasJustificacion?: string
 }
 

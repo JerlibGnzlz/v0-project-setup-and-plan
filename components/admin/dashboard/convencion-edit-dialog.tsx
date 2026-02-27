@@ -50,6 +50,11 @@ interface ConvencionEditDialogProps {
     costo?: number | string
     invitadoNombre?: string
     invitadoFotoUrl?: string
+    contactoNombre?: string
+    contactoTelefono?: string
+    aliasCbu?: string
+    titularTransferencia?: string
+    cbu?: string
   } | null
   onSubmit: (data: ConvencionFormData) => Promise<void>
   onImageUpload: (file: File) => Promise<string>
@@ -73,6 +78,11 @@ export function ConvencionEditDialog({
       cuotas: 3,
       invitadoNombre: convencion.invitadoNombre || '',
       invitadoFotoUrl: convencion.invitadoFotoUrl || '',
+      contactoNombre: convencion.contactoNombre || '',
+      contactoTelefono: convencion.contactoTelefono || '',
+      aliasCbu: convencion.aliasCbu || '',
+      titularTransferencia: convencion.titularTransferencia || '',
+      cbu: convencion.cbu || '',
     }
     : {
       nombre: '',
@@ -82,6 +92,11 @@ export function ConvencionEditDialog({
       cuotas: 3,
       invitadoNombre: '',
       invitadoFotoUrl: '',
+      contactoNombre: '',
+      contactoTelefono: '',
+      aliasCbu: '',
+      titularTransferencia: '',
+      cbu: '',
     }
 
   const {
@@ -111,6 +126,11 @@ export function ConvencionEditDialog({
         cuotas: 3,
         invitadoNombre: convencion.invitadoNombre || '',
         invitadoFotoUrl: convencion.invitadoFotoUrl || '',
+        contactoNombre: convencion.contactoNombre || '',
+        contactoTelefono: convencion.contactoTelefono || '',
+        aliasCbu: convencion.aliasCbu || '',
+        titularTransferencia: convencion.titularTransferencia || '',
+        cbu: convencion.cbu || '',
       })
     }
   }, [convencion, reset])
@@ -121,14 +141,15 @@ export function ConvencionEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
           <DialogTitle>Editar Convención</DialogTitle>
           <DialogDescription>
             Modifica el nombre, fecha, lugar y detalles de pago de la convención
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col flex-1 min-h-0">
+          <div className="overflow-y-auto flex-1 min-h-0 px-6 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="nombre">Nombre de la Convención</Label>
             <Input
@@ -281,7 +302,75 @@ export function ConvencionEditDialog({
             </div>
           </div>
 
-          <DialogFooter>
+          <div className="space-y-4 pt-2 border-t">
+            <p className="text-sm font-medium text-muted-foreground">
+              Contacto para consultas (se muestra en la invitación de la landing)
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="contactoNombre">Nombre de quien contactar</Label>
+              <Input
+                id="contactoNombre"
+                placeholder="Ej: María González"
+                {...register('contactoNombre')}
+              />
+              {errors.contactoNombre && (
+                <p className="text-sm text-destructive">{errors.contactoNombre.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactoTelefono">Teléfono de contacto</Label>
+              <Input
+                id="contactoTelefono"
+                placeholder="Ej: +54 9 11 1234-5678"
+                {...register('contactoTelefono')}
+              />
+              {errors.contactoTelefono && (
+                <p className="text-sm text-destructive">{errors.contactoTelefono.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-2 border-t">
+            <p className="text-sm font-medium text-muted-foreground">
+              Datos para transferencia (se muestran en la invitación cuando la convención tiene costo)
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="titularTransferencia">Nombre de la persona (titular)</Label>
+              <Input
+                id="titularTransferencia"
+                placeholder="Ej: Asociación AMVA"
+                {...register('titularTransferencia')}
+              />
+              {errors.titularTransferencia && (
+                <p className="text-sm text-destructive">{errors.titularTransferencia.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="aliasCbu">Alias de CBU</Label>
+              <Input
+                id="aliasCbu"
+                placeholder="Ej: Amva-conven.Galicia"
+                {...register('aliasCbu')}
+              />
+              {errors.aliasCbu && (
+                <p className="text-sm text-destructive">{errors.aliasCbu.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cbu">CBU</Label>
+              <Input
+                id="cbu"
+                placeholder="Ej: 00703541-30004001106140"
+                {...register('cbu')}
+              />
+              {errors.cbu && (
+                <p className="text-sm text-destructive">{errors.cbu.message}</p>
+              )}
+            </div>
+          </div>
+
+          </div>
+          <DialogFooter className="shrink-0 px-6 py-4 border-t bg-muted/30">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>

@@ -84,6 +84,13 @@ model Convencion {
   fechaArchivado   DateTime?       @map("fecha_archivado")
   invitadoNombre   String?         @map("invitado_nombre")
   invitadoFotoUrl  String?         @map("invitado_foto_url")
+  contactoNombre   String?         @map("contacto_nombre")
+  contactoTelefono String?         @map("contacto_telefono")
+  aliasCbu              String?         @map("alias_cbu")
+  titularTransferencia  String?         @map("titular_transferencia")
+  numeroCuenta         String?         @map("numero_cuenta")
+  cbu                  String?         @map("cbu")
+  cuil             String?         @map("cuil")
   galeria          GaleriaImagen[]
   inscripciones    Inscripcion[]
 
@@ -548,6 +555,12 @@ model ConfiguracionLanding {
   visionTitulo           String   @default("Nuestra Visión") @map("vision_titulo")
   visionContenido        String   @default("Ser una red global de formación pastoral reconocida por su excelencia e impacto, transformando vidas y fortaleciendo iglesias en toda América Latina y el mundo de habla hispana.") @map("vision_contenido")
   visionJustificacion    String   @default("left") @map("vision_justificacion") // left | center | right | justify
+  // Ofrendas para la Misión
+  ofrendasHabilitado     Boolean  @default(true) @map("ofrendas_habilitado")
+  ofrendasTitulo         String   @default("Ofrendas para la Misión") @map("ofrendas_titulo")
+  ofrendasContenido      String   @default("En AMVA (Asociación Misionera Vida Abundante) creemos que la fe se expresa plenamente cuando se comparte con los demás y se traduce en acciones que transforman vidas. Nuestras misiones cristianas llevan esperanza, acompañamiento espiritual y apoyo comunitario a pueblos y comunidades que enfrentan necesidades profundas.\n\nTu ofrenda es una herramienta real para sostener:\n\n• El envío y cuidado de nuestros misioneros y misioneras en campo.\n• Proyectos de evangelización, educación y salud en territorios con recursos escasos.\n• Capacitación continua para líderes cristianos y pastores locales.\n• Recursos logísticos, materiales y operativos para actividades misioneras.\n\nCada aporte —grande o pequeño— multiplica vida abundante en Cristo y fortalece la obra que Dios está realizando a través de nuestros enviados a diferentes regiones del mundo.\n\n¡Gracias por tu generosidad y tu compromiso con la misión!") @map("ofrendas_contenido")
+  ofrendasCuentaBancaria String   @default("") @map("ofrendas_cuenta_bancaria")
+  ofrendasJustificacion  String   @default("left") @map("ofrendas_justificacion") // left | center | right | justify
   // Metadata
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")

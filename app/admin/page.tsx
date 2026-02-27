@@ -77,6 +77,11 @@ export default function AdminDashboard() {
           fechaFin: fechaFinStr,
           invitadoNombre: data.invitadoNombre?.trim() || undefined,
           invitadoFotoUrl: data.invitadoFotoUrl?.trim() || undefined,
+          contactoNombre: data.contactoNombre?.trim() || undefined,
+          contactoTelefono: data.contactoTelefono?.trim() || undefined,
+          aliasCbu: data.aliasCbu?.trim() || undefined,
+          titularTransferencia: data.titularTransferencia?.trim() || undefined,
+          cbu: data.cbu?.trim() || undefined,
         },
       })
 

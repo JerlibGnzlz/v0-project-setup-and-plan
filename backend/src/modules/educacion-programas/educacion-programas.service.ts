@@ -37,16 +37,6 @@ const PROGRAMAS_DEFAULT: Array<{
     requisitos: DEFAULT_REQUISITOS,
     orden: 1,
   },
-  {
-    clave: 'misiones',
-    titulo: 'Misiones',
-    duracion: DEFAULT_DURACION,
-    modalidad: 'Clases virtuales en vivo vía Google Meet (acceso simple sin instalaciones).',
-    inscripcion: '$25.000',
-    cuotaMensual: '$35.000',
-    requisitos: DEFAULT_REQUISITOS,
-    orden: 2,
-  },
 ]
 
 const CONFIG_SINGLETON_ID = 'educacion-contacto'
@@ -80,7 +70,7 @@ export class EducacionProgramasService {
 
   /**
    * Obtiene todos los programas de educación y contacto (público).
-   * Si no existen programas, crea los 3 por defecto.
+   * Si no existen programas, crea los programas por defecto (Instituto Bíblico y Escuela de Capellanía).
    */
   async findAll(): Promise<EducacionProgramasResponse> {
     let list = await this.prisma.programaEducacion.findMany({

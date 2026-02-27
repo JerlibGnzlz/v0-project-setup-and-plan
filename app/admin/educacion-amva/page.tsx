@@ -12,19 +12,17 @@ import {
   useUpdateEducacionProgramas,
 } from '@/lib/hooks/use-educacion-programas'
 import type { UpdateProgramaEducacionItemDto } from '@/lib/api/educacion-programas'
-import { BookOpen, Save, GraduationCap, Users, Globe, RefreshCw, Mail } from 'lucide-react'
+import { BookOpen, Save, GraduationCap, Users, RefreshCw, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 
 const CLAVE_LABELS: Record<string, string> = {
   instituto_biblico: 'Instituto Bíblico',
   escuela_capellania: 'Escuela de Capellanía',
-  misiones: 'Misiones',
 }
 
 const CLAVE_ICONS: Record<string, typeof GraduationCap> = {
   instituto_biblico: GraduationCap,
   escuela_capellania: Users,
-  misiones: Globe,
 }
 
 export default function EducacionAmvaPage() {
@@ -40,8 +38,9 @@ export default function EducacionAmvaPage() {
   useEffect(() => {
     if (data) {
       if (data.programas.length > 0) {
+        const programasActivos = data.programas.filter((p) => p.clave !== 'misiones')
         setFormProgramas(
-          data.programas.map((p) => ({
+          programasActivos.map((p) => ({
             clave: p.clave,
             titulo: p.titulo,
             duracion: p.duracion,
@@ -101,9 +100,9 @@ export default function EducacionAmvaPage() {
           <h1 className="text-3xl font-bold">Educación AMVA Digital</h1>
         </div>
         <p className="text-muted-foreground">
-          Gestiona duración, requisitos, modalidad, inscripción y cuota mensual de los tres
-          programas, y el correo y teléfono de contacto que se muestran en la sección Educación
-          de la landing.
+          Gestiona duración, requisitos, modalidad, inscripción y cuota mensual de los programas
+          (Instituto Bíblico y Escuela de Capellanía), y el correo y teléfono de contacto que se
+          muestran en la sección Educación de la landing.
         </p>
       </div>
 
@@ -222,8 +221,8 @@ export default function EducacionAmvaPage() {
               <p className="text-sm text-muted-foreground">
                 Si ya ejecutaste la migración de base de datos (
                 <code className="bg-muted px-1 rounded">programas_educacion</code>), haz clic en
-                &quot;Cargar programas&quot; para crear los tres por defecto (Instituto Bíblico,
-                Escuela de Capellanía, Misiones).
+                &quot;Cargar programas&quot; para crear los programas por defecto (Instituto Bíblico
+                y Escuela de Capellanía).
               </p>
               <Button
                 type="button"
@@ -232,7 +231,7 @@ export default function EducacionAmvaPage() {
                   setIsRefetching(true)
                   try {
                     await refetch()
-                    toast.success('Datos cargados. Si la tabla estaba vacía, se crearon los 3 programas.')
+                    toast.success('Datos cargados. Si la tabla estaba vacía, se crearon los programas por defecto.')
                   } catch {
                     toast.error(
                       'No se pudieron cargar los programas. ¿Ejecutaste la migración? (prisma migrate deploy)'

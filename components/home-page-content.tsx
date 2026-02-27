@@ -12,6 +12,7 @@ import { NewsSection } from '@/components/news-section'
 import { ConventionsSection } from '@/components/conventions-section'
 import { GallerySection } from '@/components/gallery-section'
 import { EducacionSection } from '@/components/educacion-section'
+import { OfrendasSection } from '@/components/ofrendas-section'
 import { Footer } from '@/components/footer'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import { FloatingCTA } from '@/components/floating-cta'
@@ -121,6 +122,11 @@ export function HomePageContent() {
         <div id="educacion">
           <ScrollReveal delay={100}>
             <EducacionSection />
+          </ScrollReveal>
+        </div>
+        <div id="ofrendas">
+          <ScrollReveal delay={100}>
+            <OfrendasSection />
           </ScrollReveal>
         </div>
         <Footer />

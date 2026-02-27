@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Facebook } from 'lucide-react'
 import { DownloadAppButton } from '@/components/download-app-button'
 
 const quickLinks = [
@@ -14,10 +13,7 @@ const quickLinks = [
   { href: '#convenciones', label: 'Convención' },
   { href: '#galeria', label: 'Galería' },
   { href: '#educacion', label: 'Educación' },
-]
-
-const socialLinks = [
-  { icon: Facebook, href: '#', label: 'Facebook', color: 'hover:bg-sky-500' },
+  { href: '#ofrendas', label: 'Ofrendas' },
 ]
 
 export function Footer() {
@@ -54,23 +50,6 @@ export function Footer() {
                 {/* Download App Button */}
                 <div className="max-w-xs">
                   <DownloadAppButton />
-                </div>
-
-                {/* Social Links */}
-                <div className="flex gap-3">
-                  {socialLinks.map(social => {
-                    const Icon = social.icon
-                    return (
-                      <a
-                        key={social.label}
-                        href={social.href}
-                        aria-label={social.label}
-                        className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 transition-all duration-300 ${social.color} hover:border-transparent hover:text-white`}
-                      >
-                        <Icon className="w-5 h-5" />
-                      </a>
-                    )
-                  })}
                 </div>
               </div>
 
