@@ -9,6 +9,11 @@ import { RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+const TIPO_CAPELLAN_LABEL: Record<string, string> = {
+  CAPELLAN: 'CAPELLÁN / CHAPLAIN',
+  CAPELLANA: 'CAPELLÁN / CHAPLAIN',
+}
+
 interface CredencialCapellaniaFlipCardCompactProps {
   credencial: CredencialCapellania
   className?: string
@@ -166,7 +171,7 @@ export function CredencialCapellaniaFlipCardCompact({
                       lineHeight: '1.1',
                     }}
                   >
-                    {credencial.tipoCapellan} / CHAPLAIN
+                    {TIPO_CAPELLAN_LABEL[credencial.tipoCapellan] ?? credencial.tipoCapellan}
                   </div>
                 </div>
 

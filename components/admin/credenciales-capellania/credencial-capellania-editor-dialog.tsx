@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { DatePickerSimple } from '@/components/ui/date-picker-simple'
+import { DateInputCredencial } from '@/components/ui/date-input-credencial'
 import {
   Select,
   SelectContent,
@@ -323,12 +323,11 @@ export function CredencialCapellaniaEditorDialog({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="fechaNacimiento">Fecha de Nacimiento *</Label>
-                  <DatePickerSimple
+                  <DateInputCredencial
                     id="fechaNacimiento"
                     value={fechaNacimiento || undefined}
                     onChange={(date) => {
                       if (date) {
-                        // Formatear fecha usando métodos locales para evitar problemas de zona horaria
                         const year = date.getFullYear()
                         const month = String(date.getMonth() + 1).padStart(2, '0')
                         const day = String(date.getDate()).padStart(2, '0')
@@ -337,7 +336,7 @@ export function CredencialCapellaniaEditorDialog({
                         setValue('fechaNacimiento', '', { shouldValidate: true })
                       }
                     }}
-                    placeholder="Selecciona la fecha de nacimiento"
+                    placeholder="dd/mm/aaaa"
                   />
                   {errors.fechaNacimiento && (
                     <p className="text-xs text-destructive">
@@ -356,8 +355,7 @@ export function CredencialCapellaniaEditorDialog({
                       <SelectValue placeholder="Selecciona un tipo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="CAPELLAN">CAPELLAN / CHAPLAIN</SelectItem>
-                      <SelectItem value="CAPELLANA">CAPELLANA / CHAPLAIN</SelectItem>
+                      <SelectItem value="CAPELLAN">CAPELLÁN / CHAPLAIN</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -379,12 +377,11 @@ export function CredencialCapellaniaEditorDialog({
 
           <div className="space-y-2">
             <Label htmlFor="fechaVencimiento">Fecha de Vencimiento *</Label>
-            <DatePickerSimple
+            <DateInputCredencial
               id="fechaVencimiento"
               value={fechaVencimiento || undefined}
               onChange={(date) => {
                 if (date) {
-                  // Formatear fecha usando métodos locales para evitar problemas de zona horaria
                   const year = date.getFullYear()
                   const month = String(date.getMonth() + 1).padStart(2, '0')
                   const day = String(date.getDate()).padStart(2, '0')
@@ -393,7 +390,7 @@ export function CredencialCapellaniaEditorDialog({
                   setValue('fechaVencimiento', '', { shouldValidate: true })
                 }
               }}
-              placeholder="Selecciona la fecha de vencimiento"
+              placeholder="dd/mm/aaaa"
             />
             {errors.fechaVencimiento && (
               <p className="text-xs text-destructive">{errors.fechaVencimiento.message}</p>

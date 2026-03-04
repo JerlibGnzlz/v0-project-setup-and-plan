@@ -9,6 +9,15 @@ import { RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+const TIPO_PASTOR_LABEL: Record<string, string> = {
+  PASTOR: 'PASTOR / PASTOR',
+  PASTORA: 'PASTORA / PASTOR',
+  REVERENDO: 'REVERENDO / REVEREND',
+  REVERENDA: 'REVERENDA / REVEREND',
+  OBISPO: 'OBISPO / BISHOP',
+  OBISPA: 'OBISPA / BISHOP',
+}
+
 interface CredencialFlipCardCompactProps {
   credencial: CredencialMinisterial
   className?: string
@@ -166,7 +175,7 @@ export function CredencialFlipCardCompact({
                       lineHeight: '1.1',
                     }}
                   >
-                    {credencial.tipoPastor} / SHEPHERD
+                    {TIPO_PASTOR_LABEL[credencial.tipoPastor] ?? credencial.tipoPastor}
                   </div>
                 </div>
 

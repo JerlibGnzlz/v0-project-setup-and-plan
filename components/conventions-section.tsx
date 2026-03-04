@@ -663,8 +663,11 @@ export function ConventionsSection() {
   if (isLoading) {
     return (
       <section id="convenciones" className="relative py-16 sm:py-20 lg:py-24 overflow-hidden">
-        <div className="container mx-auto px-4 text-center">
-          <div className="animate-pulse text-white/50">Cargando próxima convención...</div>
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+            <div className="lg:col-span-7 rounded-2xl bg-white/[0.03] border border-white/10 h-64 animate-pulse" />
+            <div className="lg:col-span-5 rounded-2xl bg-white/[0.03] border border-white/10 h-64 animate-pulse" />
+          </div>
         </div>
       </section>
     )
@@ -749,10 +752,7 @@ export function ConventionsSection() {
               ) : (
                 <div className="text-center py-6">
                   <h3 className="text-lg font-bold text-white/90 mb-4">{convencion.titulo}</h3>
-                  <p className="text-sm text-white/50">Cargando cuenta regresiva...</p>
-                  <p className="mt-2 text-xs text-white/40">
-                    Si tarda, verifica que el backend esté en marcha y que la convención tenga fecha guardada.
-                  </p>
+                  <div className="h-12 w-32 mx-auto rounded-lg bg-white/10 animate-pulse" aria-hidden />
                 </div>
               )}
             </div>

@@ -10,7 +10,6 @@ import {
   Star,
   ChevronLeft,
   ChevronRight,
-  Loader2,
   User,
   TrendingUp,
   Radio,
@@ -344,12 +343,14 @@ export function NewsSection() {
 
   if (isLoading) {
     return (
-      <section className="relative py-24 overflow-hidden bg-[#0a1628]">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-center items-center py-20">
-            <div className="flex flex-col items-center gap-4">
-              <Loader2 className="w-10 h-10 text-emerald-400 animate-spin" />
-              <p className="text-white/40 text-sm">Cargando noticias...</p>
+      <section id="noticias" className="relative py-24 overflow-hidden bg-[#0a1628]">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 rounded-2xl bg-white/5 border border-white/10 h-80 animate-pulse" aria-hidden />
+            <div className="space-y-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="rounded-xl bg-white/5 border border-white/10 h-24 animate-pulse" aria-hidden />
+              ))}
             </div>
           </div>
         </div>
