@@ -8,6 +8,15 @@ import { es } from 'date-fns/locale/es'
 import { RotateCcw, Printer, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
+const TIPO_PASTOR_LABEL: Record<string, string> = {
+  PASTOR: 'PASTOR / PASTOR',
+  PASTORA: 'PASTORA / PASTOR',
+  REVERENDO: 'REVERENDO / REVEREND',
+  REVERENDA: 'REVERENDA / REVEREND',
+  OBISPO: 'OBISPO / BISHOP',
+  OBISPA: 'OBISPA / BISHOP',
+}
+
 interface CredencialCardProps {
   credencial: CredencialMinisterial
   onEdit?: () => void
@@ -15,6 +24,7 @@ interface CredencialCardProps {
 }
 
 export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialCardProps) {
+  const tipoLabel = TIPO_PASTOR_LABEL[credencial.tipoPastor] ?? credencial.tipoPastor
   const [isFlipped, setIsFlipped] = useState(false)
 
   const handlePrint = () => {
@@ -340,7 +350,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               <div class="photo-placeholder">
                 ${credencial.fotoUrl ? `<img src="${credencial.fotoUrl}" alt="Foto" />` : 'FOTO'}
               </div>
-              <div class="tipo-pastor">${credencial.tipoPastor} / SHEPHERD</div>
+              <div class="tipo-pastor">${tipoLabel}</div>
             </div>
             <div class="info-section">
               <div class="info-row">
@@ -545,7 +555,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
                     )}
                   </div>
                   <div className="text-center font-semibold whitespace-nowrap overflow-hidden text-ellipsis" style={{ fontSize: 'clamp(6px, 0.8vw, 10px)', color: '#0D374E', fontWeight: 600, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.1', padding: '0 2px' }}>
-                    {credencial.tipoPastor} / SHEPHERD
+                    {tipoLabel}
                   </div>
                 </div>
 

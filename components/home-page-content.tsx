@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { Navbar } from '@/components/navbar'
-import { toast } from 'sonner'
 import { HeroSection } from '@/components/hero-section'
 import { MarqueeTicker } from '@/components/marquee-ticker'
 import { SedesSection } from '@/components/sedes-section'
@@ -20,24 +19,8 @@ import { MouseFollower } from '@/components/mouse-follower'
 import { Calendar } from 'lucide-react'
 import { useConvencionActiva } from '@/lib/hooks/use-convencion'
 
-function InscripcionSuccessHandler() {
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const urlParams = new URLSearchParams(window.location.search)
-    if (urlParams.get('inscripcion') === 'exito') {
-      toast.success('¡Inscripción exitosa!', {
-        description: 'Tu inscripción ha sido registrada correctamente. Te contactaremos pronto.',
-        duration: 5000,
-      })
-      const url = new URL(window.location.href)
-      url.searchParams.delete('inscripcion')
-      window.history.replaceState({}, '', url.toString())
-    }
-  }, [])
-  return null
-}
-
-export function HomePageContent() {
+/** Contenido debajo del hero: marquee, secciones y footer. Carga dinámica para hero visible de inmediato. */
+export function HomePageBelowFold() {
   const { data: convencionActiva } = useConvencionActiva()
   const hasActiveConvencion = Boolean(convencionActiva)
 
@@ -61,13 +44,7 @@ export function HomePageContent() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#0a1628] text-white overflow-x-hidden" style={{ colorScheme: 'dark' }}>
-      <a
-        href="#inicio"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-white focus:text-[#0a1628] focus:rounded-lg focus:font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-[#0a1628]"
-      >
-        Saltar al contenido principal
-      </a>
+    <div className="animate-in fade-in duration-700 ease-out">
       <FloatingCTA enabled={hasActiveConvencion} />
       <MouseFollower
         enabled={hasActiveConvencion}
@@ -84,10 +61,6 @@ export function HomePageContent() {
         </span>
       </MouseFollower>
       <main>
-        <Navbar />
-        <div id="inicio">
-          <HeroSection />
-        </div>
         <MarqueeTicker />
         <div id="sedes">
           <ScrollReveal>
@@ -135,4 +108,20 @@ export function HomePageContent() {
   )
 }
 
-export { InscripcionSuccessHandler }
+export function HomePageContent() {
+  return (
+    <div className="min-h-screen bg-[#0a1628] text-white overflow-x-hidden" style={{ colorScheme: 'dark' }}>
+      <a
+        href="#inicio"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-white focus:text-[#0a1628] focus:rounded-lg focus:font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-[#0a1628]"
+      >
+        Saltar al contenido principal
+      </a>
+      <Navbar />
+      <div id="inicio">
+        <HeroSection />
+      </div>
+      <HomePageBelowFold />
+    </div>
+  )
+}

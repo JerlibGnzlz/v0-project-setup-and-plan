@@ -100,34 +100,68 @@ export function LeadershipSection() {
           </p>
         </div>
 
-        {/* Loading State */}
+        {/* Loading: skeleton de cards sin mensaje */}
         {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="w-8 h-8 text-white/50 animate-spin" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div
+                key={i}
+                className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden animate-pulse"
+                aria-hidden
+              >
+                <div className="aspect-square bg-white/10" />
+                <div className="p-4 space-y-2">
+                  <div className="h-4 w-3/4 rounded bg-white/10" />
+                  <div className="h-3 w-1/2 rounded bg-white/10" />
+                  <div className="h-3 w-1/3 rounded bg-white/10" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <>
-            {/* Leaders Grid - Modern Cards */}
-            <div
-              className={`grid gap-4 max-w-6xl mx-auto ${
-                pastores.length === 1
-                  ? 'grid-cols-1 max-w-sm'
-                  : pastores.length === 2
-                    ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl'
-                    : pastores.length === 3
-                      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl'
-                      : pastores.length === 4
-                        ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-                        : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-              }`}
-            >
-              {pastores.map((pastor: Pastor, index: number) => {
-                const accent = accentColors[index % accentColors.length]
-                return (
-                  <ModernPastorCard key={pastor.id} pastor={pastor} accent={accent} index={index} />
-                )
-              })}
-            </div>
+            {/* Leaders Grid - 5 cards: 3 arriba + 2 abajo centradas; resto: grid normal */}
+            {pastores.length === 5 ? (
+              <div className="max-w-5xl mx-auto space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pastores.slice(0, 3).map((pastor: Pastor, index: number) => {
+                    const accent = accentColors[index % accentColors.length]
+                    return (
+                      <ModernPastorCard key={pastor.id} pastor={pastor} accent={accent} index={index} />
+                    )
+                  })}
+                </div>
+                <div className="flex flex-wrap justify-center gap-4 lg:gap-6">
+                  {pastores.slice(3, 5).map((pastor: Pastor, index: number) => {
+                    const accent = accentColors[(index + 3) % accentColors.length]
+                    return (
+                      <ModernPastorCard key={pastor.id} pastor={pastor} accent={accent} index={index + 3} />
+                    )
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div
+                className={`grid gap-4 max-w-6xl mx-auto ${
+                  pastores.length === 1
+                    ? 'grid-cols-1 max-w-sm'
+                    : pastores.length === 2
+                      ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl'
+                      : pastores.length === 3
+                        ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl'
+                        : pastores.length === 4
+                          ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+                          : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                }`}
+              >
+                {pastores.map((pastor: Pastor, index: number) => {
+                  const accent = accentColors[index % accentColors.length]
+                  return (
+                    <ModernPastorCard key={pastor.id} pastor={pastor} accent={accent} index={index} />
+                  )
+                })}
+              </div>
+            )}
 
             {/* Ver todo el equipo button */}
             <div className="text-center mt-14">
@@ -233,9 +267,9 @@ function ModernPastorCard({
               </div>
             </div>
 
-            {/* Info */}
+            {/* Info - nombres y cargo completos, permiten wrap para 5 cards en línea */}
             <div className="flex-1 min-w-0">
-              <h3 className="text-base font-bold text-white mb-0.5 truncate group-hover:text-white/90">
+              <h3 className="text-sm font-bold text-white mb-0.5 break-words line-clamp-2 leading-tight group-hover:text-white/90">
                 {fullName}
               </h3>
               {/* Tipo de clasificación */}
@@ -248,14 +282,14 @@ function ModernPastorCard({
               </div>
               {/* Cargo o ministerio si existe */}
               {(pastor.cargo || pastor.ministerio) && (
-                <p className="text-xs text-white/60 truncate mb-1">
+                <p className="text-xs text-white/60 break-words line-clamp-2 leading-tight mb-1">
                   {pastor.cargo || pastor.ministerio}
                 </p>
               )}
               {location && (
                 <div className="flex items-center gap-1 mt-1 text-white/40 text-xs">
                   <MapPin className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{location}</span>
+                  <span className="break-words line-clamp-1">{location}</span>
                 </div>
               )}
             </div>

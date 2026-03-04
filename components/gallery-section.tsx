@@ -227,8 +227,10 @@ export function GallerySection() {
         </AnimateOnScroll>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="size-8 animate-spin text-emerald-400" />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[200px] md:auto-rows-[220px]" aria-hidden>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="rounded-xl bg-white/5 border border-white/10 animate-pulse" />
+            ))}
           </div>
         ) : (
           <>

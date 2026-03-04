@@ -448,14 +448,15 @@ export function RegistrationSection() {
     setShowConfirmation(false)
   }
 
-  // Si no hay convención activa, mostrar mensaje
   if (loadingConvencion) {
     return (
       <section id="inscripcion" className="relative py-24 overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-2xl mx-auto text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-amber-400 mx-auto mb-4" />
-            <p className="text-white/60">Cargando información...</p>
+        <div className="container mx-auto px-4 relative z-10 max-w-2xl mx-auto">
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-8 animate-pulse space-y-4" aria-hidden>
+            <div className="h-8 w-2/3 mx-auto rounded bg-white/10" />
+            <div className="h-4 w-full rounded bg-white/10" />
+            <div className="h-4 w-4/5 rounded bg-white/10" />
+            <div className="h-12 w-40 mx-auto rounded-lg bg-white/10" />
           </div>
         </div>
       </section>

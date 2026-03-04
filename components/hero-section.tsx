@@ -11,6 +11,7 @@ export function HeroSection() {
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
   const [isClient, setIsClient] = useState(false)
   const [isAnimated, setIsAnimated] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
   const heroRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -169,11 +170,11 @@ export function HeroSection() {
             }}
           />
 
-          {/* Imagen principal con efecto de flotación - MEJORADA */}
+          {/* Imagen principal con efecto de flotación y fade-in al cargar */}
           <img
             src="/mundo.png"
             alt="Asociación Misionera Vida Abundante"
-            className={`w-full h-full object-contain ${isAnimated ? 'animate-float' : ''}`}
+            className={`w-full h-full object-contain transition-opacity duration-700 ease-out ${isAnimated ? 'animate-float' : ''} ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             style={{
               filter: `
                 drop-shadow(0 0 60px rgba(56, 189, 248, 0.4))
@@ -183,9 +184,10 @@ export function HeroSection() {
               willChange: isAnimated ? 'transform' : 'auto',
               backfaceVisibility: 'hidden',
               imageRendering: 'auto',
-              opacity: 1,
             }}
             draggable={false}
+            fetchPriority="high"
+            onLoad={() => setImageLoaded(true)}
           />
 
           {/* Outer glow ring - optimizado */}

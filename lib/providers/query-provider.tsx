@@ -34,15 +34,14 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
     setMounted(true)
   }, [])
 
-  // Evitar renderizar hijos que usan React Query hasta que estemos en el cliente
+  // Carga progresiva: mismo fondo que la landing, sin mensaje de carga
   if (!mounted) {
     return (
       <div
-        className="min-h-screen bg-[#0a1628] flex items-center justify-center"
+        className="min-h-screen bg-[#0a1628]"
         style={{ colorScheme: 'dark' }}
-      >
-        <div className="animate-pulse text-white/60">Cargando...</div>
-      </div>
+        aria-hidden
+      />
     )
   }
 

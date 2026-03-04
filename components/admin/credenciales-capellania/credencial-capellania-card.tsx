@@ -8,6 +8,11 @@ import { es } from 'date-fns/locale/es'
 import { RotateCcw, Printer, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
+const TIPO_CAPELLAN_LABEL: Record<string, string> = {
+  CAPELLAN: 'CAPELLÁN / CHAPLAIN',
+  CAPELLANA: 'CAPELLÁN / CHAPLAIN',
+}
+
 interface CredencialCapellaniaCardProps {
   credencial: CredencialCapellania
   onEdit?: () => void
@@ -15,6 +20,7 @@ interface CredencialCapellaniaCardProps {
 }
 
 export function CredencialCapellaniaCard({ credencial, onEdit, onBackToList }: CredencialCapellaniaCardProps) {
+  const tipoLabel = TIPO_CAPELLAN_LABEL[credencial.tipoCapellan] ?? credencial.tipoCapellan
   const [isFlipped, setIsFlipped] = useState(false)
 
   const handlePrint = () => {
@@ -340,7 +346,7 @@ export function CredencialCapellaniaCard({ credencial, onEdit, onBackToList }: C
               <div class="photo-placeholder">
                 ${credencial.fotoUrl ? `<img src="${credencial.fotoUrl}" alt="Foto" />` : 'FOTO'}
               </div>
-              <div class="tipo-pastor">${credencial.tipoCapellan} / CHAPLAIN</div>
+              <div class="tipo-pastor">${tipoLabel}</div>
             </div>
             <div class="info-section">
               <div class="info-row">
@@ -545,7 +551,7 @@ export function CredencialCapellaniaCard({ credencial, onEdit, onBackToList }: C
                     )}
                   </div>
                   <div className="text-center font-semibold whitespace-nowrap overflow-hidden text-ellipsis" style={{ fontSize: 'clamp(6px, 0.8vw, 10px)', color: '#0D374E', fontWeight: 600, textShadow: '0 1px 2px rgba(255,255,255,0.9)', lineHeight: '1.1', padding: '0 2px' }}>
-                    {credencial.tipoCapellan} / CHAPLAIN
+                    {tipoLabel}
                   </div>
                 </div>
 
