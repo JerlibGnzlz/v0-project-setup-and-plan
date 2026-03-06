@@ -2,6 +2,12 @@
   "installCommand": "npm install --legacy-peer-deps",
   "buildCommand": "npm run build",
   "framework": "nextjs",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.amva.org.es/api/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/downloads/amva-movil.apk",
