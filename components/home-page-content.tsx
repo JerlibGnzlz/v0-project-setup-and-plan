@@ -26,12 +26,28 @@ export function HomePageBelowFold() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const ensureScrollToTop = () => {
-      sessionStorage.removeItem('amva_last_section')
-      if (window.location.hash) {
-        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    const sectionIds = ['inicio', 'sedes', 'mision', 'directiva', 'noticias', 'convenciones', 'galeria', 'educacion', 'ofrendas']
+    const scrollToSectionFromHash = () => {
+      const hash = window.location.hash.replace('#', '').trim()
+      if (!hash || !sectionIds.includes(hash)) return
+      const el = document.getElementById(hash)
+      if (el) {
+        const offsetTop = el.getBoundingClientRect().top + window.scrollY - 80
+        window.scrollTo({ top: offsetTop, behavior: 'smooth' })
       }
+    }
+    const ensureScrollToTop = () => {
+      if (window.location.hash) {
+        scrollToSectionFromHash()
+        return
+      }
+      sessionStorage.removeItem('amva_last_section')
       window.scrollTo(0, 0)
+    }
+    if (window.location.hash) {
+      const t1 = setTimeout(scrollToSectionFromHash, 100)
+      const t2 = setTimeout(scrollToSectionFromHash, 500)
+      return () => { clearTimeout(t1); clearTimeout(t2) }
     }
     ensureScrollToTop()
     if (document.readyState === 'loading') {
@@ -62,42 +78,42 @@ export function HomePageBelowFold() {
       </MouseFollower>
       <main>
         <MarqueeTicker />
-        <div id="sedes">
+        <div id="sedes" className="scroll-mt-20">
           <ScrollReveal>
             <SedesSection />
           </ScrollReveal>
         </div>
-        <div id="mision">
+        <div id="mision" className="scroll-mt-20">
           <ScrollReveal delay={100}>
             <AboutSection />
           </ScrollReveal>
         </div>
-        <div id="directiva">
+        <div id="directiva" className="scroll-mt-20">
           <ScrollReveal delay={100}>
             <LeadershipSection />
           </ScrollReveal>
         </div>
-        <div id="noticias">
+        <div id="noticias" className="scroll-mt-20">
           <ScrollReveal delay={100}>
             <NewsSection />
           </ScrollReveal>
         </div>
-        <div id="convenciones">
+        <div id="convenciones" className="scroll-mt-20">
           <ScrollReveal delay={100}>
             <ConventionsSection />
           </ScrollReveal>
         </div>
-        <div id="galeria">
+        <div id="galeria" className="scroll-mt-20">
           <ScrollReveal delay={100}>
             <GallerySection />
           </ScrollReveal>
         </div>
-        <div id="educacion">
+        <div id="educacion" className="scroll-mt-20">
           <ScrollReveal delay={100}>
             <EducacionSection />
           </ScrollReveal>
         </div>
-        <div id="ofrendas">
+        <div id="ofrendas" className="scroll-mt-20">
           <ScrollReveal delay={100}>
             <OfrendasSection />
           </ScrollReveal>

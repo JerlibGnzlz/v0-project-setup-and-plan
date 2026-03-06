@@ -136,29 +136,85 @@ export function handleNetworkError(error: unknown): string {
     return 'Error de conexión.'
   }
 
+  // Prioridad: si es error de axios (tiene response), extraer mensaje del servidor
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const axiosError = error as AxiosErrorLike & { config?: { url?: string } }
+    const status = axiosError.response?.status
+    const requestUrl = axiosError.config?.url ?? ''
+
+    if (status === 401) {
+      if (requestUrl.includes('solicitudes-credenciales')) {
+        return (
+          'Tu sesión ha expirado.\n\n' +
+          'Cierra sesión y vuelve a iniciar sesión con tu cuenta (Google) para poder enviar la solicitud de credencial.'
+        )
+      }
+      return (
+        'Tu sesión ha expirado o no tienes permiso.\n\n' +
+        'Cierra sesión y vuelve a iniciar sesión para continuar.'
+      )
+    }
+
+    const data = axiosError.response?.data as
+      | {
+          message?: string
+          errors?: Array<{ property?: string; constraints?: Record<string, string> }>
+          error?: {
+            message?: string
+            details?: Array<{ property?: string; constraints?: Record<string, string> }>
+          }
+        }
+      | undefined
+
+    if (status === 400 && data) {
+      // Respuesta backend: { success, error: { message, details }, timestamp }
+      const payload = (data as { error?: { message?: string; details?: unknown } }).error ?? data
+      const messageStr =
+        typeof payload?.message === 'string' ? payload.message : undefined
+      const rawDetails = payload?.details ?? (data as { details?: unknown }).details
+      const detailsArray = Array.isArray(rawDetails)
+        ? rawDetails
+        : Array.isArray((data as { errors?: unknown }).errors)
+          ? (data as { errors: Array<{ property?: string; constraints?: Record<string, string> }> }).errors
+          : []
+
+      if (messageStr && messageStr !== 'Error de validación') return messageStr
+      if (detailsArray.length > 0) {
+        const first = detailsArray[0] as { property?: string; constraints?: Record<string, string> } | undefined
+        const msg = first?.constraints ? Object.values(first.constraints)[0] : first?.property
+        if (msg) return msg
+      }
+      // Mensaje guía cuando el servidor dice "Error de validación" sin detalle (ej. backend sin desplegar)
+      if (messageStr === 'Error de validación') {
+        return (
+          'Error de validación del servidor.\n\n' +
+          'Revisa que hayas enviado: tipo (ministerial o capellanía), DNI (5-30 caracteres), nombre, apellido y, si es ministerial, tipo de pastor.\n\n' +
+          'Si todo está correcto, el servidor puede no estar actualizado: despliega el backend con los últimos cambios para ver el mensaje exacto.'
+        )
+      }
+      if (messageStr) return messageStr
+    }
+
+    if (axiosError.response?.status === 0) {
+      return 'No se pudo conectar al servidor. Verifica tu conexión a internet.'
+    }
+  }
+
   if (error instanceof Error) {
     const errorMessage = error.message.toLowerCase()
-    
     if (errorMessage.includes('network') || errorMessage.includes('econnrefused')) {
       return 'No se pudo conectar al servidor.\n\nVerifica que:\n• El backend esté corriendo\n• La URL del API sea correcta\n• Estés en la misma red WiFi (si usas dispositivo físico)'
     }
-
     if (errorMessage.includes('timeout')) {
       return 'La solicitud tardó demasiado.\n\nVerifica tu conexión a internet.'
     }
-
     return error.message
   }
 
   if (typeof error === 'object' && error !== null) {
     const axiosError = error as AxiosErrorLike
-
     if (axiosError.code === 'ECONNREFUSED' || axiosError.message?.includes('Network Error')) {
       return 'No se pudo conectar al servidor.\n\nVerifica que:\n• El backend esté corriendo\n• La URL del API sea correcta\n• Estés en la misma red WiFi (si usas dispositivo físico)'
-    }
-
-    if (axiosError.response?.status === 0) {
-      return 'No se pudo conectar al servidor. Verifica tu conexión a internet.'
     }
   }
 

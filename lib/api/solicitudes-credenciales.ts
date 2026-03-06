@@ -19,6 +19,7 @@ export interface SolicitudCredencial {
   dni: string
   nombre: string
   apellido: string
+  tipoPastor?: string
   nacionalidad?: string
   fechaNacimiento?: string
   motivo?: string
@@ -102,6 +103,13 @@ export const solicitudesCredencialesApi = {
   update: async (id: string, dto: UpdateSolicitudCredencialDto): Promise<SolicitudCredencial> => {
     const response = await apiClient.patch<SolicitudCredencial>(`/solicitudes-credenciales/${id}`, dto)
     return response.data
+  },
+
+  /**
+   * Eliminar una solicitud (solo admin). La credencial asociada se desvincula, no se borra.
+   */
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/solicitudes-credenciales/${id}`)
   },
 }
 

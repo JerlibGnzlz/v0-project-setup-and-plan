@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ImageUpload } from '@/components/ui/image-upload'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   useCreateCredencialCapellania,
   useUpdateCredencialCapellania,
@@ -37,6 +38,7 @@ const credencialSchema = z.object({
   nombre: z.string().min(1, 'El nombre es requerido'),
   documento: z.string().min(1, 'El documento es requerido'),
   nacionalidad: z.string().min(1, 'La nacionalidad es requerida'),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
   fechaNacimiento: z.string().min(1, 'La fecha de nacimiento es requerida'),
   tipoCapellan: z.string().min(1, 'El tipo de capellán es requerido'),
   fechaVencimiento: z.string().min(1, 'La fecha de vencimiento es requerida'),
@@ -52,6 +54,7 @@ interface SolicitudCredencialData {
   nacionalidad?: string
   fechaNacimiento?: string
   invitadoId?: string
+  email?: string
 }
 
 interface CredencialCapellaniaEditorDialogProps {
@@ -88,6 +91,7 @@ export function CredencialCapellaniaEditorDialog({
       nombre: '',
       documento: '',
       nacionalidad: '',
+      email: '',
       fechaNacimiento: '',
       tipoCapellan: 'CAPELLAN',
       fechaVencimiento: '',
@@ -119,23 +123,28 @@ export function CredencialCapellaniaEditorDialog({
     }
 
     if (credencial && open) {
+      const emailParaForm =
+        credencial.email?.trim() ||
+        credencial.invitado?.email?.trim() ||
+        ''
       reset({
         apellido: credencial.apellido,
         nombre: credencial.nombre,
         documento: credencial.documento,
         nacionalidad: credencial.nacionalidad,
+        email: emailParaForm,
         fechaNacimiento: formatDateToString(credencial.fechaNacimiento as string | Date | undefined),
         tipoCapellan: credencial.tipoCapellan,
         fechaVencimiento: formatDateToString(credencial.fechaVencimiento as string | Date | undefined),
         fotoUrl: credencial.fotoUrl || '',
       })
     } else if (solicitud && open) {
-      // Pre-llenar desde solicitud
       reset({
         apellido: solicitud.apellido,
         nombre: solicitud.nombre,
         documento: solicitud.dni,
         nacionalidad: solicitud.nacionalidad || '',
+        email: solicitud.email || '',
         fechaNacimiento: solicitud.fechaNacimiento || '',
         tipoCapellan: 'CAPELLAN',
         fechaVencimiento: '',
@@ -173,10 +182,11 @@ export function CredencialCapellaniaEditorDialog({
               nombre: data.nombre,
               documento: data.documento,
               nacionalidad: data.nacionalidad,
+              email: data.email?.trim() || undefined,
               fechaNacimiento: data.fechaNacimiento,
               tipoCapellan: data.tipoCapellan,
               fotoUrl: data.fotoUrl,
-              fechaVencimiento: data.fechaVencimiento, // Incluir fecha de vencimiento del dorso
+              fechaVencimiento: data.fechaVencimiento,
             },
           })
           onOpenChange(false)
@@ -265,6 +275,27 @@ export function CredencialCapellaniaEditorDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {solicitud && !credencial && (
+            <Alert variant="default" className="border-blue-500/50 bg-blue-500/10">
+              <AlertDescription>
+                Datos pre-llenados desde la solicitud de la app. Puedes <strong>editar cualquier campo</strong> (nombre, apellido, DNI, etc.) si la persona envió algo erróneo antes de crear la credencial.
+              </AlertDescription>
+            </Alert>
+          )}
+          {editMode === 'frente' && credencial && !credencial.email?.trim() && !credencial.invitado?.email?.trim() && (
+            <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
+              <AlertDescription>
+                Para que esta credencial se vea en la app móvil al iniciar sesión con Google, completa el campo <strong>Email</strong> debajo con el mismo correo que usa la persona en la app.
+              </AlertDescription>
+            </Alert>
+          )}
+          {editMode === 'frente' && credencial && !credencial.email?.trim() && credencial.invitado?.email?.trim() && (
+            <Alert variant="default" className="border-emerald-500/50 bg-emerald-500/10">
+              <AlertDescription>
+                Esta credencial está vinculada a un invitado. Se ha rellenado el email para que se vea en la app. Revisa que sea correcto y guarda los cambios.
+              </AlertDescription>
+            </Alert>
+          )}
           {editMode === 'frente' && (
             <>
               <div className="grid grid-cols-2 gap-4">
@@ -318,6 +349,22 @@ export function CredencialCapellaniaEditorDialog({
                     <p className="text-xs text-destructive">{errors.nacionalidad.message}</p>
                   )}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email (para ver credencial en app móvil)</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="ejemplo@gmail.com"
+                  {...register('email')}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Si la persona inicia sesión con Google en la app, se mostrará esta credencial si el email coincide.
+                </p>
+                {errors.email && (
+                  <p className="text-xs text-destructive">{errors.email.message}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">

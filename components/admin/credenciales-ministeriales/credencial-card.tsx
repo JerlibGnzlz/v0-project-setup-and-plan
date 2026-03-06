@@ -24,7 +24,9 @@ interface CredencialCardProps {
 }
 
 export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialCardProps) {
-  const tipoLabel = TIPO_PASTOR_LABEL[credencial.tipoPastor] ?? credencial.tipoPastor
+  const raw = credencial.tipoPastor?.trim() ?? 'PASTOR'
+  const tipoLabel =
+    raw.includes(' / ') ? raw : (TIPO_PASTOR_LABEL[raw.toUpperCase()] ?? raw)
   const [isFlipped, setIsFlipped] = useState(false)
 
   const handlePrint = () => {
@@ -117,7 +119,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
           .credencial {
             width: 400px;
             height: 252px;
-            background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%);
+            background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 10%, #38bdf8 25%, #0ea5e9 40%, #0284c7 60%, #0369a1 75%, #0284c7 90%, #0ea5e9 100%);
             border-radius: 8px;
             padding: 14px;
             color: white;
@@ -127,7 +129,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
             display: block;
           }
           .credencial-dorso {
-            background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%);
+            background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 10%, #38bdf8 25%, #0ea5e9 40%, #0284c7 60%, #0369a1 75%, #0284c7 90%, #0ea5e9 100%);
           }
           .header {
             text-align: center;
@@ -523,7 +525,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
               padding: 'clamp(10px, 1.5vw, 20px)',
-              background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
+              background: 'linear-gradient(135deg, #bae6fd 0%, #7dd3fc 10%, #38bdf8 25%, #0ea5e9 40%, #0284c7 60%, #0369a1 75%, #0284c7 90%, #0ea5e9 100%)',
             }}
           >
             {/* Header */}
@@ -637,7 +639,7 @@ export function CredencialCard({ credencial, onEdit, onBackToList }: CredencialC
               WebkitBackfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
               padding: 'clamp(14px, 2vw, 26px)',
-              background: 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 10%, #3b82f6 25%, #2563eb 40%, #1e40af 60%, #1e3a8a 75%, #1e40af 90%, #2563eb 100%)',
+              background: 'linear-gradient(135deg, #bae6fd 0%, #7dd3fc 10%, #38bdf8 25%, #0ea5e9 40%, #0284c7 60%, #0369a1 75%, #0284c7 90%, #0ea5e9 100%)',
             }}
           >
             <div className="h-full flex flex-col" style={{ height: '100%' }}>

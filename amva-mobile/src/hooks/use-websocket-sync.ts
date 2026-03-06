@@ -42,6 +42,8 @@ export function useWebSocketSync() {
   const socketRef = useRef<Socket | null>(null)
   const reconnectAttemptsRef = useRef(0)
   const maxReconnectAttempts = 5
+  const lastMaxAttemptsTimeRef = useRef<number>(0)
+  const COOLDOWN_AFTER_MAX_MS = 60 * 1000 // No intentar reconectar durante 1 minuto después de alcanzar el máximo
 
   const connect = useCallback(async () => {
     try {
@@ -64,17 +66,17 @@ export function useWebSocketSync() {
 
       console.log('🔌 Conectando a WebSocket:', WS_URL)
 
-      // Crear conexión Socket.io
+      // Crear conexión Socket.io (opcional: si el servidor no tiene data-sync, la app sigue funcionando sin tiempo real)
       const socket = io(WS_URL, {
         auth: {
           token,
         },
-        transports: ['websocket', 'polling'], // Fallback a polling si websocket falla
+        transports: ['websocket', 'polling'],
         reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
+        reconnectionDelay: 2000,
+        reconnectionDelayMax: 10000,
         reconnectionAttempts: maxReconnectAttempts,
-        timeout: 20000,
+        timeout: 25000,
       })
 
       socketRef.current = socket
@@ -157,13 +159,18 @@ export function useWebSocketSync() {
         }
       })
 
-      // Evento: Error de conexión
+      // Evento: Error de conexión (no bloquear la app; el WebSocket es opcional para sincronización en tiempo real)
       socket.on('connect_error', (error: Error) => {
         reconnectAttemptsRef.current += 1
-        console.error('❌ Error de conexión WebSocket:', error.message)
+        if (reconnectAttemptsRef.current <= 2) {
+          console.warn('⚠️ WebSocket: intento', reconnectAttemptsRef.current, '-', error.message)
+        }
 
         if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-          console.error('❌ Máximo de intentos de reconexión alcanzado')
+          lastMaxAttemptsTimeRef.current = Date.now()
+          console.warn(
+            '⚠️ WebSocket no disponible (timeout). La app funciona sin sincronización en tiempo real. Desliza para actualizar en Credenciales.'
+          )
           disconnect()
         }
       })
@@ -192,27 +199,29 @@ export function useWebSocketSync() {
     }
   }, [connect, disconnect])
 
-  // Reconectar cuando cambie el token (usuario autenticado)
+  // Reconectar cuando cambie el token (usuario autenticado), respetando cooldown tras fallos
   useEffect(() => {
     const checkTokenAndReconnect = async () => {
       const invitadoToken = await SecureStore.getItemAsync('invitado_token')
       const pastorToken = await SecureStore.getItemAsync('access_token')
 
-      // Si hay token y no hay conexión, conectar
-      if ((invitadoToken || pastorToken) && !socketRef.current?.connected) {
-        console.log('🔄 Token disponible, reconectando WebSocket...')
-        connect()
+      if (!invitadoToken && !pastorToken && socketRef.current?.connected) {
+        disconnect()
+        return
       }
 
-      // Si no hay token y hay conexión, desconectar
-      if (!invitadoToken && !pastorToken && socketRef.current?.connected) {
-        console.log('🔄 No hay token, desconectando WebSocket...')
-        disconnect()
+      const inCooldown =
+        lastMaxAttemptsTimeRef.current > 0 &&
+        Date.now() - lastMaxAttemptsTimeRef.current < COOLDOWN_AFTER_MAX_MS
+      if (inCooldown) return
+
+      if ((invitadoToken || pastorToken) && !socketRef.current?.connected) {
+        reconnectAttemptsRef.current = 0
+        connect()
       }
     }
 
-    // Verificar cada 5 segundos si hay cambios en el token
-    const interval = setInterval(checkTokenAndReconnect, 5000)
+    const interval = setInterval(checkTokenAndReconnect, 10000)
 
     return () => clearInterval(interval)
   }, [connect, disconnect])

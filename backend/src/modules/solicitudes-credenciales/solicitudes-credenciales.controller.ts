@@ -5,7 +5,10 @@ import {
   Body,
   Patch,
   Param,
+  Delete,
   UseGuards,
+  UseInterceptors,
+  UsePipes,
   Request,
   Query,
   Logger,
@@ -13,18 +16,20 @@ import {
   HttpException,
   InternalServerErrorException,
   NotFoundException,
+  ValidationPipe,
 } from '@nestjs/common'
 import { SolicitudesCredencialesService } from './solicitudes-credenciales.service'
 import {
   CreateSolicitudCredencialDto,
   UpdateSolicitudCredencialDto,
+  FindAllSolicitudesQueryDto,
   EstadoSolicitud,
   TipoCredencial,
 } from './dto/solicitud-credencial.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { InvitadoJwtAuthGuard } from '../auth/guards/invitado-jwt-auth.guard'
 import { AuthenticatedRequest, AuthenticatedInvitadoRequest } from '../auth/types/request.types'
-import { PaginationDto } from '../../common/dto/pagination.dto'
+import { SanitizeSolicitudBodyInterceptor } from './sanitize-body.interceptor'
 
 @Controller('solicitudes-credenciales')
 export class SolicitudesCredencialesController {
@@ -35,9 +40,29 @@ export class SolicitudesCredencialesController {
   ) {}
 
   /**
-   * Crear solicitud de credencial desde la app móvil
+   * Crear solicitud de credencial desde la app móvil.
+   * Pipe local: whitelist sin forbidNonWhitelisted para no rechazar por propiedades extra.
+   * El interceptor sanitiza el body además.
    */
   @Post()
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: false,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+      exceptionFactory: (errors) => {
+        const first = errors?.[0] as { property?: string; constraints?: Record<string, string> } | undefined
+        const msg = first?.constraints
+          ? Object.values(first.constraints)[0]
+          : first?.property
+            ? `Campo ${first.property} inválido`
+            : 'Error de validación. Revisa DNI (5-30 caracteres), nombre, apellido y tipo (ministerial o capellania).'
+        return new BadRequestException({ message: msg, details: errors })
+      },
+    })
+  )
+  @UseInterceptors(SanitizeSolicitudBodyInterceptor)
   @UseGuards(InvitadoJwtAuthGuard)
   async create(
     @Request() req: AuthenticatedInvitadoRequest,
@@ -191,17 +216,17 @@ export class SolicitudesCredencialesController {
   }
 
   /**
-   * Obtener todas las solicitudes (para admins)
-   * IMPORTANTE: Esta ruta debe ir ANTES de @Get(':id') para evitar que :id capture todas las rutas
+   * Obtener todas las solicitudes (para admins).
+   * Usar FindAllSolicitudesQueryDto para que ValidationPipe no elimine estado/tipo (whitelist).
    */
   @Get()
   @UseGuards(JwtAuthGuard)
-  async findAll(
-    @Query() query: PaginationDto & { estado?: EstadoSolicitud; tipo?: TipoCredencial }
-  ) {
-    const page = query.page ? Number(query.page) : 1
-    const limit = query.limit ? Number(query.limit) : 20
-
+  async findAll(@Query() query: FindAllSolicitudesQueryDto) {
+    const page = query.page ?? 1
+    const limit = query.limit ?? 20
+    this.logger.log(
+      `GET solicitudes: page=${page}, limit=${limit}, estado=${query.estado ?? 'todos'}, tipo=${query.tipo ?? 'todos'}`
+    )
     return this.solicitudesCredencialesService.findAll(
       page,
       limit,
@@ -234,6 +259,20 @@ export class SolicitudesCredencialesController {
       `Actualizando solicitud ${id} por usuario ${req.user?.email}`
     )
     return this.solicitudesCredencialesService.update(id, dto)
+  }
+
+  /**
+   * Eliminar una solicitud (solo admin). La credencial asociada se desvincula, no se borra.
+   */
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async remove(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest
+  ): Promise<{ message: string }> {
+    this.logger.log(`Eliminando solicitud ${id} por usuario ${req.user?.email}`)
+    await this.solicitudesCredencialesService.remove(id)
+    return { message: 'Solicitud eliminada correctamente' }
   }
 }
 

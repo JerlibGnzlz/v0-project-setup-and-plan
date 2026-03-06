@@ -226,6 +226,37 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api')
 
+  // Sanitizar body de POST /api/solicitudes-credenciales para evitar 400 por forbidNonWhitelisted (props extra)
+  const ALLOWED_CREATE_SOLICITUD_KEYS = [
+    'tipo',
+    'dni',
+    'nombre',
+    'apellido',
+    'nacionalidad',
+    'tipoPastor',
+    'fechaNacimiento',
+    'motivo',
+  ]
+  app.use((req, res, next) => {
+    const pathMatch =
+      req.path?.includes('solicitudes-credenciales') ||
+      req.url?.includes?.('solicitudes-credenciales')
+    if (req.method === 'POST' && pathMatch) {
+      if (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) {
+        const sanitized: Record<string, unknown> = {}
+        for (const key of ALLOWED_CREATE_SOLICITUD_KEYS) {
+          if (Object.prototype.hasOwnProperty.call(req.body, key)) {
+            const v = req.body[key]
+            if (v !== undefined && v !== null) sanitized[key] = v
+          }
+        }
+        // Solo reemplazar si hay algo (evita pisar body vacío si el parser no corrió aún)
+        if (Object.keys(sanitized).length > 0) req.body = sanitized
+      }
+    }
+    next()
+  })
+
   // ============================================
   // 🔒 HTTPS ENFORCEMENT (Producción con SSL)
   // Solo redirigir si DISABLE_HTTPS_ENFORCEMENT no está definido
@@ -275,23 +306,27 @@ async function bootstrap() {
   const { LoggingInterceptor } = await import('./common/interceptors/logging.interceptor')
   app.useGlobalInterceptors(new LoggingInterceptor())
 
-  // Validation
+  // Validation: whitelist elimina propiedades extra; forbidNonWhitelisted: false evita 400 por campos extra (ej. app móvil)
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false,
       transformOptions: {
         enableImplicitConversion: true,
       },
       exceptionFactory: (errors) => {
         logger.error('❌ ValidationPipe: Error de validación')
         logger.error(`❌ Validation errors: ${JSON.stringify(errors, null, 2)}`)
-        // Importar BadRequestException dinámicamente para evitar problemas de circular dependency
         const { BadRequestException } = require('@nestjs/common')
+        const first = errors?.[0] as { property?: string; constraints?: Record<string, string> } | undefined
+        const firstMsg =
+          first?.constraints ? Object.values(first.constraints)[0] : first?.property
+            ? `Campo ${first.property} inválido`
+            : undefined
         return new BadRequestException({
-          message: 'Error de validación',
-          errors,
+          message: firstMsg || 'Error de validación',
+          details: errors,
         })
       },
     })

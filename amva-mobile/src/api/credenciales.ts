@@ -70,6 +70,7 @@ export const credencialesApi = {
   }> => {
     try {
       console.log('🔍 Obteniendo credenciales unificadas...')
+      // Cache-busting para que cambios en AMVA Digital (ej. tipo de pastor) se reflejen al abrir Credenciales
       const response = await apiClient.get<{
         tieneCredenciales: boolean
         credenciales: CredencialUnificada[]
@@ -80,15 +81,54 @@ export const credencialesApi = {
           vencidas: number
         }
         mensaje?: string
-      }>('/credenciales/mis-credenciales')
-      
-      console.log('✅ Respuesta unificada recibida:', {
-        tieneCredenciales: response.data.tieneCredenciales,
-        cantidad: response.data.credenciales?.length || 0,
-        resumen: response.data.resumen,
+      }>('/credenciales/mis-credenciales', { params: { _: Date.now() } })
+
+      const data = response.data
+      const credenciales = (data.credenciales || []).map((c): CredencialUnificada => {
+        const fechaVencimiento =
+          c.fechaVencimiento instanceof Date
+            ? c.fechaVencimiento.toISOString()
+            : typeof c.fechaVencimiento === 'string'
+              ? c.fechaVencimiento
+              : ''
+        const fechaEmision =
+          c.fechaEmision instanceof Date
+            ? c.fechaEmision.toISOString()
+            : typeof c.fechaEmision === 'string'
+              ? c.fechaEmision
+              : undefined
+        const fechaNacimiento =
+          c.fechaNacimiento instanceof Date
+            ? c.fechaNacimiento.toISOString()
+            : typeof c.fechaNacimiento === 'string'
+              ? c.fechaNacimiento
+              : undefined
+        return {
+          ...c,
+          fechaVencimiento,
+          fechaEmision,
+          fechaNacimiento,
+          nombre: c.nombre ?? '',
+          apellido: c.apellido ?? '',
+          documento: c.documento ?? c.numero ?? '',
+          diasRestantes: typeof c.diasRestantes === 'number' ? c.diasRestantes : 0,
+          tipoPastor: (c.tipo === 'ministerial' || c.tipo === 'pastoral')
+            ? (c.tipoPastor != null && String(c.tipoPastor).trim() !== '' ? String(c.tipoPastor).trim() : 'PASTOR')
+            : c.tipoPastor,
+          tipoCapellan: c.tipo === 'capellania' ? (c.tipoCapellan ?? 'CAPELLÁN') : c.tipoCapellan,
+        }
       })
-      
-      return response.data
+
+      console.log('✅ Respuesta unificada recibida:', {
+        tieneCredenciales: data.tieneCredenciales,
+        cantidad: credenciales.length,
+        resumen: data.resumen,
+      })
+
+      return {
+        ...data,
+        credenciales,
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       console.error('❌ Error obteniendo credenciales unificadas:', errorMessage)
@@ -228,51 +268,6 @@ export const credencialesApi = {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       console.error('❌ Error obteniendo credenciales de capellanía:', errorMessage)
-      throw error
-    }
-  },
-
-  /**
-   * Obtener todas las credenciales del usuario autenticado (unificado)
-   * Funciona tanto para pastores como para invitados
-   * Retorna credenciales pastorales si es pastor, o credenciales ministeriales/capellanía si es invitado
-   * Requiere autenticación de pastor o invitado
-   */
-  obtenerMisCredencialesUnificado: async (): Promise<{
-    tieneCredenciales: boolean
-    credenciales: CredencialUnificada[]
-    resumen?: {
-      total: number
-      vigentes: number
-      porVencer: number
-      vencidas: number
-    }
-    mensaje?: string
-  }> => {
-    try {
-      console.log('🔍 Obteniendo credenciales unificadas...')
-      const response = await apiClient.get<{
-        tieneCredenciales: boolean
-        credenciales: CredencialUnificada[]
-        resumen?: {
-          total: number
-          vigentes: number
-          porVencer: number
-          vencidas: number
-        }
-        mensaje?: string
-      }>('/credenciales/mis-credenciales')
-      
-      console.log('✅ Respuesta unificada recibida:', {
-        tieneCredenciales: response.data.tieneCredenciales,
-        cantidad: response.data.credenciales?.length || 0,
-        resumen: response.data.resumen,
-      })
-      
-      return response.data
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-      console.error('❌ Error obteniendo credenciales unificadas:', errorMessage)
       throw error
     }
   },

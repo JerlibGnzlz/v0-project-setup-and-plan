@@ -82,19 +82,23 @@ export class SolicitudesCredencialesService {
 
       this.logger.log(`✅ Invitado encontrado: ${invitado.email}`)
 
+      // Normalizar DNI: quitar puntos/espacios para comparar y guardar (acepta "95.774.063" o "95774063")
+      const dniNormalizado = dto.dni.trim().replace(/\D/g, '')
+      if (dniNormalizado.length < 5) {
+        throw new BadRequestException('El DNI debe tener al menos 5 dígitos')
+      }
+
       // Normalizar tipo antes de verificar solicitud existente
       const tipoString = dto.tipo === TipoCredencial.MINISTERIAL ? 'ministerial' : 'capellania'
-      
-      // Verificar que no haya una solicitud pendiente para este DNI y tipo
-      this.logger.log(`🔍 Verificando solicitud existente para DNI: ${dto.dni.trim()}, tipo: ${tipoString}`)
-      const solicitudExistente = await this.prisma.solicitudCredencial.findFirst({
-        where: {
-          invitadoId,
-          dni: dto.dni.trim(),
-          tipo: tipoString,
-          estado: 'pendiente',
-        },
+
+      // Verificar que no haya una solicitud pendiente para este DNI (normalizado) y tipo
+      this.logger.log(`🔍 Verificando solicitud existente para DNI: ${dniNormalizado}, tipo: ${tipoString}`)
+      const todasPendientes = await this.prisma.solicitudCredencial.findMany({
+        where: { invitadoId, tipo: tipoString, estado: 'pendiente' },
       })
+      const solicitudExistente = todasPendientes.find(
+        (s) => s.dni.replace(/\D/g, '') === dniNormalizado
+      )
 
       if (solicitudExistente) {
         this.logger.warn(`⚠️ Solicitud existente encontrada: ${solicitudExistente.id}`)
@@ -123,11 +127,13 @@ export class SolicitudesCredencialesService {
         }
       }
 
-      // Preparar datos para Prisma
+      // Preparar datos para Prisma (DNI guardado con puntos si los trae el cliente, o solo dígitos)
+      const dniParaGuardar = dto.dni.trim()
       const dataToCreate = {
         invitadoId,
         tipo: tipoString,
-        dni: dto.dni.trim(),
+        tipoPastor: dto.tipoPastor?.trim() || null,
+        dni: dniParaGuardar,
         nombre: dto.nombre.trim(),
         apellido: dto.apellido.trim(),
         nacionalidad: dto.nacionalidad?.trim() || null,
@@ -174,7 +180,20 @@ export class SolicitudesCredencialesService {
       } catch (prismaError: unknown) {
         const prismaErrorMessage = prismaError instanceof Error ? prismaError.message : 'Error desconocido'
         const prismaErrorStack = prismaError instanceof Error ? prismaError.stack : undefined
-        
+        const msgLower = String(prismaErrorMessage).toLowerCase()
+
+        // Columna faltante en BD (ej. tipo_pastor): suele indicar que faltan migraciones
+        const posibleColumnaFaltante =
+          msgLower.includes('tipo_pastor') ||
+          (msgLower.includes('column') && msgLower.includes('does not exist')) ||
+          msgLower.includes('no existe')
+        if (posibleColumnaFaltante) {
+          this.logger.error(`❌ Error de Prisma (posible migración pendiente): ${prismaErrorMessage}`)
+          throw new BadRequestException(
+            'La base de datos no está actualizada. Ejecuta las migraciones de Prisma en el servidor: npx prisma migrate deploy'
+          )
+        }
+
         // Si es un error de Prisma, proporcionar más detalles
         if (prismaError && typeof prismaError === 'object' && 'code' in prismaError) {
           const prismaErrorCode = prismaError as { code?: string; meta?: unknown }
@@ -182,7 +201,7 @@ export class SolicitudesCredencialesService {
           this.logger.error(`   Código: ${prismaErrorCode.code}`)
           this.logger.error(`   Mensaje: ${prismaErrorMessage}`)
           this.logger.error(`   Meta: ${JSON.stringify(prismaErrorCode.meta)}`)
-          
+
           // Errores comunes de Prisma
           if (prismaErrorCode.code === 'P2002') {
             const meta = prismaErrorCode.meta as { target?: string[] } | undefined
@@ -201,13 +220,12 @@ export class SolicitudesCredencialesService {
             throw new BadRequestException('Faltan campos requeridos en la solicitud')
           }
         }
-        
+
         this.logger.error(`❌ Error al crear solicitud en Prisma: ${prismaErrorMessage}`)
         if (prismaErrorStack) {
           this.logger.error(`Stack trace: ${prismaErrorStack}`)
         }
-        
-        // Re-lanzar el error para que el controller lo capture
+
         throw prismaError
       }
 
@@ -447,6 +465,10 @@ export class SolicitudesCredencialesService {
       where.tipo = tipo
     }
 
+    this.logger.log(
+      `findAll solicitudes: where=${JSON.stringify(where)}, skip=${skip}, take=${limit}`
+    )
+
     const [data, total] = await Promise.all([
       this.prisma.solicitudCredencial.findMany({
         where,
@@ -482,6 +504,8 @@ export class SolicitudesCredencialesService {
       }),
       this.prisma.solicitudCredencial.count({ where }),
     ])
+
+    this.logger.log(`findAll solicitudes: total=${total}, devolviendo ${data.length} en esta página`)
 
     return {
       data,
@@ -676,6 +700,48 @@ export class SolicitudesCredencialesService {
     }, 0)
 
     return updated
+  }
+
+  /**
+   * Eliminar una solicitud (solo admin).
+   * Si la solicitud tiene credencial asociada (ministerial o capellanía), la elimina también
+   * para que no siga apareciendo en "Ver Credenciales".
+   */
+  async remove(id: string): Promise<void> {
+    const solicitud = await this.prisma.solicitudCredencial.findUnique({
+      where: { id },
+      select: { id: true, credencialMinisterialId: true, credencialCapellaniaId: true },
+    })
+    if (!solicitud) {
+      throw new NotFoundException(`Solicitud con ID ${id} no encontrada`)
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      // Quitar la referencia en la solicitud para poder borrar las credenciales sin violar FK
+      await tx.solicitudCredencial.update({
+        where: { id },
+        data: { credencialMinisterialId: null, credencialCapellaniaId: null },
+      })
+      // Eliminar la credencial ministerial asociada (si existe)
+      if (solicitud.credencialMinisterialId) {
+        await tx.credencialMinisterial.deleteMany({
+          where: { id: solicitud.credencialMinisterialId },
+        })
+        this.logger.log(`✅ Credencial ministerial ${solicitud.credencialMinisterialId} eliminada`)
+      }
+      // Eliminar la credencial de capellanía asociada (si existe)
+      if (solicitud.credencialCapellaniaId) {
+        await tx.credencialCapellania.deleteMany({
+          where: { id: solicitud.credencialCapellaniaId },
+        })
+        this.logger.log(`✅ Credencial capellanía ${solicitud.credencialCapellaniaId} eliminada`)
+      }
+      // Eliminar la solicitud
+      await tx.solicitudCredencial.delete({
+        where: { id },
+      })
+    })
+    this.logger.log(`✅ Solicitud ${id} eliminada correctamente`)
   }
 
   /**

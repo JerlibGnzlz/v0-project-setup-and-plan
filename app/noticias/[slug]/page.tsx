@@ -10,6 +10,7 @@ import {
   User,
   Share2,
   Facebook,
+  Instagram,
   Copy,
   Check,
   Loader2,
@@ -160,9 +161,12 @@ function NoticiaContent({ slug }: { slug: string }) {
     }
   }, [noticia, isLoading, queryClient])
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://amva.org.es'
+  const shareUrl = `${siteUrl}/noticias/${slug}`
+
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href)
+      await navigator.clipboard.writeText(shareUrl)
       setCopied(true)
       toast.success('Enlace copiado')
       setTimeout(() => setCopied(false), 2000)
@@ -171,8 +175,15 @@ function NoticiaContent({ slug }: { slug: string }) {
     }
   }
 
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
-  const shareTitle = noticia?.titulo || ''
+  const handleShareInstagram = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      toast.success(`Enlace copiado. Pégalo en Instagram para compartir esta noticia. Página: ${siteUrl}`)
+      window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer')
+    } catch {
+      toast.error('Error al copiar')
+    }
+  }
 
   if (isLoading) {
     return (
@@ -224,6 +235,15 @@ function NoticiaContent({ slug }: { slug: string }) {
               >
                 <Facebook className="w-4 h-4" />
               </a>
+              <button
+                type="button"
+                onClick={handleShareInstagram}
+                className="flex items-center justify-center p-2 text-white/70 hover:text-[#E4405F] hover:bg-white/10 rounded-lg transition-colors min-w-[40px]"
+                title="Compartir en Instagram (copia el enlace)"
+                aria-label="Compartir en Instagram"
+              >
+                <Instagram className="w-4 h-4" />
+              </button>
               <Button
                 variant="ghost"
                 size="icon"
@@ -343,6 +363,14 @@ function NoticiaContent({ slug }: { slug: string }) {
                 <Facebook className="w-4 h-4" />
                 Facebook
               </a>
+              <button
+                type="button"
+                onClick={handleShareInstagram}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#E4405F]/20 text-[#E4405F] hover:bg-[#E4405F]/30 transition-colors"
+              >
+                <Instagram className="w-4 h-4" />
+                Instagram
+              </button>
               <button
                 onClick={handleCopyLink}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/80 hover:bg-white/20 transition-colors"

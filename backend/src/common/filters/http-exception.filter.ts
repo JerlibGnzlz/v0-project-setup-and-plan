@@ -104,6 +104,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           details = { validationErrors: message }
           message = 'Error de validación'
         }
+
+        // 400 con "Error de validación": usar el primer detalle para mensaje útil al cliente
+        if (status === 400 && message === 'Error de validación' && Array.isArray(details) && details.length > 0) {
+          const first = details[0] as { property?: string; constraints?: Record<string, string> } | undefined
+          const firstMsg = first?.constraints
+            ? Object.values(first.constraints)[0]
+            : first?.property
+              ? `Campo "${first.property}" es requerido o inválido.`
+              : null
+          if (firstMsg) message = firstMsg
+        }
       }
     }
     // Manejar errores de Prisma

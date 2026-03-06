@@ -11,6 +11,8 @@ interface SolicitudesListProps {
   getEstadoSolicitudColor: (estado: EstadoSolicitud) => string
   getEstadoSolicitudLabel: (estado: EstadoSolicitud) => string
   formatDate: (dateString: string) => string
+  /** Deshabilita el botón "Nueva Solicitud" cuando el usuario ya tiene ambas credenciales (ministerial y capellanía) */
+  nuevaSolicitudDisabled?: boolean
 }
 
 export function SolicitudesList({
@@ -19,13 +21,12 @@ export function SolicitudesList({
   getEstadoSolicitudColor,
   getEstadoSolicitudLabel,
   formatDate,
+  nuevaSolicitudDisabled = false,
 }: SolicitudesListProps) {
-  if (solicitudes.length === 0) return null
-
   return (
     <View style={styles.solicitudesContainer}>
       <Text style={styles.solicitudesTitle}>Mis Solicitudes</Text>
-      {solicitudes.map(solicitud => {
+      {solicitudes.length === 0 ? null : solicitudes.map(solicitud => {
         const estadoColor = getEstadoSolicitudColor(solicitud.estado)
         return (
           <View key={solicitud.id} style={styles.solicitudCard}>
@@ -82,15 +83,23 @@ export function SolicitudesList({
         )
       })}
       <TouchableOpacity
-        style={styles.solicitarButton}
-        onPress={() => {
-          console.log('🔍 SolicitudesList: Botón "Nueva Solicitud" presionado')
-          onSolicitarPress()
-        }}
+        style={[
+          styles.solicitarButton,
+          nuevaSolicitudDisabled && styles.solicitarButtonDisabled,
+        ]}
+        onPress={() => !nuevaSolicitudDisabled && onSolicitarPress()}
         activeOpacity={0.7}
+        disabled={nuevaSolicitudDisabled}
       >
-        <Plus size={20} color="#fff" />
-        <Text style={styles.solicitarButtonText}>Nueva Solicitud</Text>
+        <Plus size={20} color={nuevaSolicitudDisabled ? '#9ca3af' : '#fff'} />
+        <Text
+          style={[
+            styles.solicitarButtonText,
+            nuevaSolicitudDisabled && styles.solicitarButtonTextDisabled,
+          ]}
+        >
+          {nuevaSolicitudDisabled ? 'Ya tienes ambas credenciales' : 'Nueva Solicitud'}
+        </Text>
       </TouchableOpacity>
     </View>
   )
@@ -188,6 +197,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  solicitarButtonDisabled: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    opacity: 0.8,
+  },
+  solicitarButtonTextDisabled: {
+    color: 'rgba(255, 255, 255, 0.7)',
   },
 })
 

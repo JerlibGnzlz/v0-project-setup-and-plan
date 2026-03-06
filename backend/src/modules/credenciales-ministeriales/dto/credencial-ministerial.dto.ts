@@ -4,6 +4,7 @@ import {
   IsDateString,
   IsOptional,
   IsBoolean,
+  IsEmail,
   Length,
 } from 'class-validator'
 import { Type } from 'class-transformer'
@@ -55,6 +56,12 @@ export class CreateCredencialMinisterialDto {
 
   @IsString()
   @IsOptional()
+  @IsEmail()
+  @Length(1, 255)
+  email?: string
+
+  @IsString()
+  @IsOptional()
   solicitudCredencialId?: string
 }
 
@@ -98,6 +105,12 @@ export class UpdateCredencialMinisterialDto {
   @IsBoolean()
   @IsOptional()
   activa?: boolean
+
+  @IsString()
+  @IsOptional()
+  @IsEmail()
+  @Length(1, 255)
+  email?: string
 }
 
 export class CredencialMinisterialFilterDto {

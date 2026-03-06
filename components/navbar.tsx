@@ -14,6 +14,8 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const navContainerRef = useRef<HTMLDivElement>(null)
   const navLinksRef = useRef<{ [key: string]: HTMLAnchorElement | null }>({})
+  const scrollLockUntilRef = useRef(0)
+  const rafScrollRef = useRef<number | null>(null)
   const { pastor, isAuthenticated, isHydrated } = usePastorAuth()
   const { data: convencionActiva } = useConvencionActiva()
   const hasConvencionActiva = !!convencionActiva?.id
@@ -30,23 +32,23 @@ export function Navbar() {
   }, [isOpen])
 
   useEffect(() => {
-    const handleScroll = () => {
+    const sections = [
+      'inicio',
+      'sedes',
+      'mision',
+      'directiva',
+      'noticias',
+      'convenciones',
+      'galeria',
+      'educacion',
+      'ofrendas',
+    ]
+
+    const updateSectionFromScroll = () => {
       if (typeof window === 'undefined') return
+      if (Date.now() < scrollLockUntilRef.current) return
       setScrolled(window.scrollY > 50)
-
-      const sections = [
-        'inicio',
-        'sedes',
-        'mision',
-        'directiva',
-        'noticias',
-        'convenciones',
-        'galeria',
-        'educacion',
-        'ofrendas',
-      ]
       const scrollPosition = window.scrollY + 100
-
       for (const section of sections) {
         const element = document.getElementById(section)
         if (element) {
@@ -63,81 +65,76 @@ export function Navbar() {
       }
     }
 
-    // Esperar a que el DOM y el layout estén listos (evita fallos intermitentes)
+    const onScroll = () => {
+      if (rafScrollRef.current !== null) return
+      rafScrollRef.current = requestAnimationFrame(() => {
+        updateSectionFromScroll()
+        rafScrollRef.current = null
+      })
+    }
+
     const rafId = requestAnimationFrame(() => {
-      handleScroll()
-      // Segundo frame por si hay layout shifts (imágenes, fuentes)
-      requestAnimationFrame(handleScroll)
+      updateSectionFromScroll()
+      requestAnimationFrame(updateSectionFromScroll)
     })
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('load', handleScroll, { once: true })
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('load', () => updateSectionFromScroll(), { once: true })
     return () => {
       cancelAnimationFrame(rafId)
-      window.removeEventListener('scroll', handleScroll)
+      if (rafScrollRef.current !== null) cancelAnimationFrame(rafScrollRef.current)
+      window.removeEventListener('scroll', onScroll)
     }
   }, [])
 
+  const getSectionId = (href: string): string => {
+    const hash = href.replace(/^.*#/, '').replace('/', '').trim().toLowerCase()
+    return hash || 'inicio'
+  }
+
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault()
-    const targetId = href.replace('#', '').replace('/', '')
+    const targetId = getSectionId(href)
 
+    setActiveSection(targetId)
+    scrollLockUntilRef.current = Date.now() + 1100
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('amva_last_section', targetId)
     }
 
     let element = document.getElementById(targetId)
-    // Si no existe aún (layout no listo), reintentar tras un breve delay
+    // Si no existe (ej. estamos en otra página o el contenido dinámico no cargó), dejar que el enlace /#sedes navegue; luego el home hará scroll
     if (!element) {
-      requestAnimationFrame(() => {
-        const el = document.getElementById(targetId)
-        if (el) {
-          const offsetTop = el.offsetTop - 80
-          window.scrollTo({ top: offsetTop, behavior: 'smooth' })
-        }
-      })
+      const isHome = window.location.pathname === '/' || window.location.pathname === ''
+      if (!isHome) {
+        window.location.href = `/#${targetId}`
+      } else {
+        requestAnimationFrame(() => {
+          const el = document.getElementById(targetId)
+          if (el) {
+            const offsetTop = el.getBoundingClientRect().top + window.scrollY - 80
+            window.scrollTo({ top: offsetTop, behavior: 'smooth' })
+          }
+        })
+      }
       setIsOpen(false)
       return
     }
 
-    if (element) {
-      const offsetTop = element.offsetTop - 80
-      const startPosition = window.scrollY
-      const distance = offsetTop - startPosition
-      const duration = 1200
-      let start: number | null = null
-
-      const smoothScrollAnimation = (currentTime: number) => {
-        if (start === null) start = currentTime
-        const timeElapsed = currentTime - start
-        const progress = Math.min(timeElapsed / duration, 1)
-
-        const easeInOutCubic = (t: number) => {
-          return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-        }
-
-        window.scrollTo(0, startPosition + distance * easeInOutCubic(progress))
-
-        if (progress < 1) {
-          requestAnimationFrame(smoothScrollAnimation)
-        }
-      }
-
-      requestAnimationFrame(smoothScrollAnimation)
-    }
-
+    const offsetTop = element.getBoundingClientRect().top + window.scrollY - 80
+    window.scrollTo({ top: offsetTop, behavior: 'smooth' })
     setIsOpen(false)
   }
 
   const navLinks = [
-    { href: '#inicio', label: 'Inicio' },
-    { href: '#sedes', label: 'Sedes' },
-    { href: '#mision', label: 'Misión' },
-    { href: '#directiva', label: 'Directiva' },
-    { href: '#noticias', label: 'Noticias' },
-    { href: '#convenciones', label: 'Convención' },
-    { href: '#galeria', label: 'Galería' },
-    { href: '#educacion', label: 'Educación' },
-    { href: '#ofrendas', label: 'Ofrendas' },
+    { href: '/#inicio', label: 'Inicio' },
+    { href: '/#sedes', label: 'Sedes' },
+    { href: '/#mision', label: 'Misión' },
+    { href: '/#directiva', label: 'Directiva' },
+    { href: '/#noticias', label: 'Noticias' },
+    { href: '/#convenciones', label: 'Convención' },
+    { href: '/#galeria', label: 'Galería' },
+    { href: '/#educacion', label: 'Educación' },
+    { href: '/#ofrendas', label: 'Ofrendas' },
   ]
 
   return (
@@ -217,7 +214,7 @@ export function Navbar() {
             {/* Desktop Navigation */}
             <div ref={navContainerRef} className="hidden lg:flex items-center gap-1 relative">
               {navLinks.map((link: { href: string; label: string; isPage?: boolean }) => {
-                const sectionId = link.href.replace('#', '').replace('/', '')
+                const sectionId = getSectionId(link.href)
                 const isActive = !link.isPage && activeSection === sectionId
                 const isConvencion = sectionId === 'convenciones'
                 const showConvencionGlow = isConvencion && hasConvencionActiva
@@ -243,21 +240,27 @@ export function Navbar() {
                       navLinksRef.current[sectionId] = el
                     }}
                     onClick={e => handleNavClick(e, link.href)}
-                    className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
+                    className={`relative px-3 py-2.5 text-sm font-medium rounded-full transition-all duration-150 min-w-0 ${
                       showConvencionGlow
                         ? 'text-amber-200/95 hover:text-amber-100 shadow-[0_0_12px_rgba(251,191,36,0.4)] hover:shadow-[0_0_18px_rgba(251,191,36,0.5)] bg-amber-500/10 border border-amber-400/30 hover:bg-amber-500/15'
                         : isActive
-                          ? 'text-white'
+                          ? 'text-white bg-white/10'
                           : 'text-white/60 hover:text-white hover:bg-white/5'
                     }`}
                   >
-                    {link.label}
-                    {/* Active indicator dot */}
+                    <span className="block truncate">{link.label}</span>
+                    {/* Active indicator: barra inferior para que se distinga en todos los ítems */}
                     {isActive && !showConvencionGlow && (
-                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full shadow-lg shadow-emerald-400/50" />
+                      <span
+                        className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 min-w-[12px] max-w-[24px] w-[60%] rounded-full bg-gradient-to-r from-sky-400 to-emerald-400"
+                        aria-hidden
+                      />
                     )}
                     {isActive && showConvencionGlow && (
-                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-amber-400 rounded-full shadow-lg shadow-amber-400/60" />
+                      <span
+                        className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 min-w-[12px] max-w-[24px] w-[60%] rounded-full bg-amber-400"
+                        aria-hidden
+                      />
                     )}
                   </Link>
                 )
@@ -322,7 +325,7 @@ export function Navbar() {
       >
         <nav className="flex flex-col p-6 gap-2 overflow-y-auto h-full">
           {navLinks.map((link: { href: string; label: string; isPage?: boolean }, index: number) => {
-            const sectionId = link.href.replace('#', '').replace('/', '')
+            const sectionId = getSectionId(link.href)
             const isActive = !link.isPage && activeSection === sectionId
             const isConvencion = sectionId === 'convenciones'
             const showConvencionGlow = isConvencion && hasConvencionActiva

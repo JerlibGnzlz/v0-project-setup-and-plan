@@ -185,7 +185,7 @@ export function DashboardQuickActions({
       </ScrollReveal>
       )}
 
-      {/* Credencial de Pastores - Solo ADMIN */}
+      {/* Credenciales Pastorales - Solo ADMIN (mismo módulo que el menú lateral) */}
       {isAdmin && (
         <ScrollReveal delay={600}>
           <Link href="/admin/visor-credenciales">
@@ -199,7 +199,7 @@ export function DashboardQuickActions({
                 <ArrowRight className="size-5 text-purple-500/50 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
               </div>
               <CardTitle className="mt-4 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                Credencial de Pastores
+                Credenciales Pastorales
               </CardTitle>
               <CardDescription>
                 Gestiona las credenciales ministeriales físicas para impresión

@@ -34,12 +34,12 @@ export function useMisCredenciales() {
   const query = useQuery<CredencialesResponse>({
     queryKey: ['credenciales', 'mis-credenciales'],
     queryFn: () => credencialesApi.obtenerMisCredencialesUnificado(),
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 0, // Siempre considerar datos obsoletos: cambios en admin (ej. tipo de pastor) se ven al abrir Credenciales o al deslizar
     retry: 2,
     retryDelay: 1000,
-    // Refetch automático cuando la app vuelve a estar activa
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
+    refetchOnMount: true,
   })
 
   // Refetch automático cuando se conecta el WebSocket

@@ -272,9 +272,9 @@ export default function VisorCredencialesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Credencial de Pastores</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Credenciales Pastorales</h1>
           <p className="text-muted-foreground">
-            Gestiona las credenciales pastorales físicas para impresión
+            Gestiona las credenciales ministeriales físicas para impresión
           </p>
         </div>
         <div className="flex gap-2">
