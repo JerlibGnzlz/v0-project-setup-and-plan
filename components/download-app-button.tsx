@@ -5,15 +5,10 @@ import { Smartphone, Download } from 'lucide-react'
 
 /**
  * URL del APK para descarga directa.
- *
- * Por defecto usa el APK alojado en el propio sitio (/downloads/amva-movil.apk),
- * así la descarga no caduca. Mantén el archivo en public/downloads/amva-movil.apk
- * y reemplázalo cuando generes un nuevo build.
- *
- * Para usar otra URL (ej. EAS temporal o Play Store):
- *   NEXT_PUBLIC_APK_DOWNLOAD_URL=https://...
+ * Por defecto usa el artefacto EAS actual. Para cambiar: NEXT_PUBLIC_APK_DOWNLOAD_URL en Vercel.
+ * Los enlaces EAS expiran ~30 días; entonces actualiza esta URL o usa /downloads/amva-movil.apk.
  */
-const DEFAULT_APK_URL = '/downloads/amva-movil.apk'
+const DEFAULT_APK_URL = 'https://expo.dev/artifacts/eas/2Yt9kBNShiZFuNFEWstEq5.apk'
 const APK_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || DEFAULT_APK_URL
 
 interface DownloadAppButtonProps {
