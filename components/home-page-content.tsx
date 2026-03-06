@@ -17,12 +17,15 @@ import { ScrollReveal } from '@/components/scroll-reveal'
 import { FloatingCTA } from '@/components/floating-cta'
 import { MouseFollower } from '@/components/mouse-follower'
 import { Calendar } from 'lucide-react'
-import { useConvencionActiva } from '@/lib/hooks/use-convencion'
+import { useConvencionActiva, useConvenciones } from '@/lib/hooks/use-convencion'
 
 /** Contenido debajo del hero: marquee, secciones y footer. Carga dinámica para hero visible de inmediato. */
 export function HomePageBelowFold() {
   const { data: convencionActiva } = useConvencionActiva()
+  const { data: convenciones } = useConvenciones()
   const hasActiveConvencion = Boolean(convencionActiva)
+  const hasAnyConvencion = Boolean(convenciones?.length)
+  const showConventionCtas = hasActiveConvencion || hasAnyConvencion
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -60,10 +63,11 @@ export function HomePageBelowFold() {
   }, [])
 
   return (
-    <div className="animate-in fade-in duration-700 ease-out">
-      <FloatingCTA enabled={hasActiveConvencion} />
+    <>
+      {/* CTAs fuera del contenedor con animación para que position:fixed sea respecto al viewport y sigan visibles al hacer scroll */}
+      <FloatingCTA enabled={showConventionCtas} />
       <MouseFollower
-        enabled={hasActiveConvencion}
+        enabled={showConventionCtas}
         showOnlyAfterScrollY={500}
         offsetX={20}
         offsetY={20}
@@ -76,6 +80,7 @@ export function HomePageBelowFold() {
           Inscribirse en convención
         </span>
       </MouseFollower>
+      <div className="animate-in fade-in duration-700 ease-out">
       <main>
         <MarqueeTicker />
         <div id="sedes" className="scroll-mt-20">
@@ -120,7 +125,8 @@ export function HomePageBelowFold() {
         </div>
         <Footer />
       </main>
-    </div>
+      </div>
+    </>
   )
 }
 
