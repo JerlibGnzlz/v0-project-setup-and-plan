@@ -7,6 +7,8 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
+  useWindowDimensions,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
@@ -41,6 +43,8 @@ export function NewsDetailScreen() {
   const { noticiaId, noticiaSlug } = route.params
   const [noticia, setNoticia] = React.useState<Noticia | null>(null)
   const [loading, setLoading] = React.useState(true)
+  const [showImageZoom, setShowImageZoom] = React.useState(false)
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions()
 
   React.useEffect(() => {
     const loadNoticia = async () => {
@@ -122,10 +126,21 @@ export function NewsDetailScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
-        {/* Imagen */}
+        {/* Imagen: completa (contain) y tocable para ampliar */}
         {noticia.imagenUrl && (
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: noticia.imagenUrl }} style={styles.image} resizeMode="cover" />
+          <View style={styles.imageWrapper}>
+            <TouchableOpacity
+              style={styles.imageContainer}
+              onPress={() => setShowImageZoom(true)}
+              activeOpacity={0.95}
+            >
+              <Image
+                source={{ uri: noticia.imagenUrl }}
+                style={styles.image}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <Text style={styles.imageZoomHint}>Toque la imagen para ampliar</Text>
           </View>
         )}
 
@@ -151,6 +166,45 @@ export function NewsDetailScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Modal: imagen ampliada para leer (ej. plan de estudios) */}
+      <Modal
+        visible={showImageZoom}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowImageZoom(false)}
+      >
+        <TouchableOpacity
+          style={[styles.imageZoomOverlay, { minHeight: screenHeight }]}
+          activeOpacity={1}
+          onPress={() => setShowImageZoom(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => {}}
+            style={[
+              styles.imageZoomCard,
+              {
+                maxWidth: screenWidth - 32,
+                maxHeight: screenHeight * 0.85,
+              },
+            ]}
+          >
+            <Image
+              source={{ uri: noticia?.imagenUrl }}
+              style={[
+                styles.imageZoomImage,
+                {
+                  width: screenWidth - 48,
+                  height: screenHeight * 0.8,
+                },
+              ]}
+              resizeMode="contain"
+            />
+            <Text style={styles.imageZoomCloseHint}>Toque fuera para cerrar</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -215,14 +269,47 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingBottom: 40,
   },
+  imageWrapper: {
+    marginBottom: 16,
+  },
   imageContainer: {
     width: '100%',
-    height: 250,
-    marginBottom: 24,
+    minHeight: 280,
+    height: 320,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   image: {
     width: '100%',
     height: '100%',
+  },
+  imageZoomHint: {
+    marginTop: 8,
+    marginHorizontal: 20,
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.5)',
+  },
+  imageZoomOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  imageZoomCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+  },
+  imageZoomImage: {
+    borderRadius: 8,
+  },
+  imageZoomCloseHint: {
+    marginTop: 12,
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.5)',
   },
   content: {
     paddingHorizontal: 20,

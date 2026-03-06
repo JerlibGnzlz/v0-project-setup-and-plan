@@ -11,6 +11,9 @@ export interface CredencialCapellania {
   fechaVencimiento: string
   fotoUrl: string | null
   activa: boolean
+  email?: string | null
+  invitadoId?: string | null
+  invitado?: { email: string } | null
   createdAt: string
   updatedAt: string
   estado?: 'vigente' | 'por_vencer' | 'vencida'
@@ -28,6 +31,7 @@ export interface CreateCredencialCapellaniaDto {
   fotoUrl?: string
   activa?: boolean
   invitadoId?: string
+  email?: string
   solicitudCredencialId?: string
 }
 
@@ -41,6 +45,7 @@ export interface UpdateCredencialCapellaniaDto {
   fechaVencimiento?: string
   fotoUrl?: string
   activa?: boolean
+  email?: string
 }
 
 export interface CredencialCapellaniaFilterDto {

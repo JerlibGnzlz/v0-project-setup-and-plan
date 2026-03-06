@@ -141,6 +141,7 @@ apiClient.interceptors.request.use(
         config.url?.includes('/pagos/invitado/') ||
         config.url?.includes('/auth/invitado/me') ||
         config.url?.includes('/solicitudes-credenciales/mis-solicitudes') ||
+        config.url?.includes('/notifications/register/invitado') ||
         // POST /solicitudes-credenciales también requiere token de invitado
         (config.url?.includes('/solicitudes-credenciales') && config.method === 'post')
 
@@ -158,7 +159,8 @@ apiClient.interceptors.request.use(
         (config.url?.includes('/inscripciones') && !isPublicInscripcionPost) ||
         config.url?.includes('/inscripciones/invitado/') ||
         config.url?.includes('/pagos/invitado/') ||
-        config.url?.includes('/solicitudes-credenciales')
+        config.url?.includes('/solicitudes-credenciales') ||
+        config.url?.includes('/notifications/register/invitado')
 
       // Detectar si es un endpoint de consulta de credenciales (acepta pastor o invitado)
       const isConsultaCredenciales =
@@ -350,6 +352,7 @@ apiClient.interceptors.response.use(
         const isInvitadoEndpoint =
           originalRequest.url?.includes('/auth/invitado/me') ||
           originalRequest.url?.includes('/auth/invitado/logout') ||
+          originalRequest.url?.includes('/credenciales/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-capellania/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-ministeriales/consultar/') ||
@@ -407,17 +410,19 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        // Detectar si es un endpoint de invitados o de pastores
+        // Detectar si es un endpoint de invitados o de pastores (incluye unificado /credenciales/mis-credenciales)
         const isInvitadoEndpoint =
           originalRequest.url?.includes('/auth/invitado/me') ||
           originalRequest.url?.includes('/auth/invitado/logout') ||
+          originalRequest.url?.includes('/credenciales/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-capellania/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-ministeriales/consultar/') ||
           originalRequest.url?.includes('/credenciales-capellania/consultar/') ||
           originalRequest.url?.includes('/inscripciones/my') ||
           originalRequest.url?.includes('/inscripciones') && originalRequest.method === 'post' ||
-          originalRequest.url?.includes('/solicitudes-credenciales')
+          originalRequest.url?.includes('/solicitudes-credenciales') ||
+          originalRequest.url?.includes('/notifications/register/invitado')
 
         // Intentar refrescar el token según el tipo de usuario
         let refreshToken: string | null = null
@@ -523,6 +528,7 @@ apiClient.interceptors.response.use(
         const isInvitadoEndpoint =
           originalRequest.url?.includes('/auth/invitado/me') ||
           originalRequest.url?.includes('/auth/invitado/logout') ||
+          originalRequest.url?.includes('/credenciales/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-capellania/mis-credenciales') ||
           originalRequest.url?.includes('/credenciales-ministeriales/consultar/') ||

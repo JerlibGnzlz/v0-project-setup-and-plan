@@ -139,6 +139,21 @@ export class CredencialesCapellaniaService extends BaseService<
         }
       }
 
+      const finalInvitadoId = invitadoId || dto.invitadoId
+      let emailParaCredencial = dto.email?.trim() || undefined
+      if (!emailParaCredencial && finalInvitadoId) {
+        const invitado = await this.prisma.invitado.findUnique({
+          where: { id: finalInvitadoId },
+          select: { email: true },
+        })
+        if (invitado?.email) {
+          emailParaCredencial = invitado.email.trim()
+          this.logger.log(
+            `📧 Email asignado desde invitado para que la credencial se vea en app móvil: ${emailParaCredencial}`
+          )
+        }
+      }
+
       const credencial = await this.prisma.credencialCapellania.create({
         data: {
           apellido: dto.apellido,
@@ -150,7 +165,8 @@ export class CredencialesCapellaniaService extends BaseService<
           fechaVencimiento,
           fotoUrl: dto.fotoUrl,
           activa: dto.activa ?? true,
-          invitadoId: invitadoId || dto.invitadoId,
+          invitadoId: finalInvitadoId,
+          email: emailParaCredencial,
         },
       })
 
@@ -251,6 +267,7 @@ export class CredencialesCapellaniaService extends BaseService<
       if (dto.tipoCapellan !== undefined) updateData.tipoCapellan = dto.tipoCapellan
       if (dto.fotoUrl !== undefined) updateData.fotoUrl = dto.fotoUrl
       if (dto.activa !== undefined) updateData.activa = dto.activa
+      if (dto.email !== undefined) updateData.email = dto.email?.trim() || null
       
       // Parsear fechas a Date
       if (dto.fechaNacimiento) {
@@ -343,6 +360,9 @@ export class CredencialesCapellaniaService extends BaseService<
           skip,
           take: limit,
           orderBy: { fechaVencimiento: 'asc' },
+          include: {
+            invitado: { select: { email: true } },
+          },
         }),
         this.prisma.credencialCapellania.count({ where }),
       ])

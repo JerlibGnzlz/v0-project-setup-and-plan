@@ -71,19 +71,29 @@ export class CredencialesMinisterialesService extends BaseService<
   /**
    * Crea una nueva credencial ministerial
    */
+  /** Solo dígitos del documento para comparar duplicados (ej. 25.717.786 y 25717786 son el mismo) */
+  private documentoSoloDigitos(documento: string): string {
+    return String(documento || '').replace(/\D/g, '')
+  }
+
   override async create(
     dto: CreateCredencialMinisterialDto
   ): Promise<CredencialMinisterial> {
     try {
-      // Verificar que el documento no existe
-      const credencialExistente = await this.prisma.credencialMinisterial.findUnique({
-        where: { documento: dto.documento },
+      const documentoIngresado = String(dto.documento || '').trim()
+      const documentoDigitos = this.documentoSoloDigitos(documentoIngresado)
+
+      // Verificar duplicado por documento (comparar solo dígitos: 25.717.786 = 25717786)
+      const todasActivas = await this.prisma.credencialMinisterial.findMany({
+        where: { activa: true },
+        select: { id: true, documento: true, nombre: true, apellido: true },
       })
+      const credencialExistente = todasActivas.find(
+        c => this.documentoSoloDigitos(c.documento) === documentoDigitos && documentoDigitos !== ''
+      )
 
       if (credencialExistente) {
-        // Enviar notificación a todos los admins
         const admins = await this.prisma.user.findMany()
-
         const titulo = 'Intento de crear credencial duplicada'
         const mensaje = `Se intentó crear una credencial con el documento ${dto.documento} que ya existe. La credencial existente pertenece a ${credencialExistente.nombre} ${credencialExistente.apellido}.`
 
@@ -101,11 +111,13 @@ export class CredencialesMinisterialesService extends BaseService<
         }
 
         this.logger.warn(
-          `⚠️ Intento de crear credencial ministerial duplicada: ${dto.documento} - ${dto.nombre} ${dto.apellido}`
+          `⚠️ Intento de crear credencial ministerial duplicada: ${dto.documento} - ${dto.nombre} ${dto.apellido} (ya existe id: ${credencialExistente.id})`
         )
 
         throw new ConflictException(
-          `Ya existe una credencial MINISTERIAL con el documento ${dto.documento}. Nota: Una persona puede tener credenciales ministeriales y de capellanía con el mismo DNI, pero no puede tener dos credenciales del mismo tipo.`
+          `Ya existe una credencial ministerial con este DNI (${credencialExistente.documento}). ` +
+            `Pertenece a ${credencialExistente.nombre} ${credencialExistente.apellido}. ` +
+            `Ve a "Ver Credenciales", busca esa credencial y edítala o asígnala al invitado; no crees una nueva.`
         )
       }
 
@@ -118,18 +130,16 @@ export class CredencialesMinisterialesService extends BaseService<
       let solicitudCredencial = null
       let invitadoId = dto.invitadoId
 
-      if (!invitadoId && dto.documento) {
-        // Buscar solicitud por DNI y tipo ministerial
-        solicitudCredencial = await this.prisma.solicitudCredencial.findFirst({
-          where: {
-            dni: dto.documento,
-            tipo: 'ministerial',
-            estado: 'pendiente',
-          },
-          include: {
-            invitado: true,
-          },
+      if (!invitadoId && documentoDigitos) {
+        // Buscar solicitud pendiente por DNI (comparar solo dígitos: 25.717.786 = 25717786)
+        const solicitudesPendientes = await this.prisma.solicitudCredencial.findMany({
+          where: { tipo: 'ministerial', estado: 'pendiente' },
+          include: { invitado: true },
         })
+        solicitudCredencial =
+          solicitudesPendientes.find(
+            s => this.documentoSoloDigitos(s.dni) === documentoDigitos
+          ) || null
 
         if (solicitudCredencial) {
           invitadoId = solicitudCredencial.invitadoId
@@ -139,6 +149,30 @@ export class CredencialesMinisterialesService extends BaseService<
         }
       }
 
+      const finalInvitadoId = invitadoId || dto.invitadoId
+      let emailParaCredencial = dto.email?.trim() || undefined
+      if (!emailParaCredencial && finalInvitadoId) {
+        const invitado = await this.prisma.invitado.findUnique({
+          where: { id: finalInvitadoId },
+          select: { email: true },
+        })
+        if (invitado?.email) {
+          emailParaCredencial = invitado.email.trim()
+          this.logger.log(
+            `📧 Email asignado desde invitado para que la credencial se vea en app móvil: ${emailParaCredencial}`
+          )
+        }
+      }
+
+      // Normalizar tipoPastor al crear (igual que en update): trim, mayúsculas; si viene vacío usar PASTOR
+      const tipoPastorCrear =
+        dto.tipoPastor != null && String(dto.tipoPastor).trim() !== ''
+          ? String(dto.tipoPastor).trim().toUpperCase()
+          : 'PASTOR'
+      this.logger.log(
+        `📝 Creando credencial con tipoPastor: "${tipoPastorCrear}" (recibido: "${dto.tipoPastor ?? ''}")`
+      )
+
       const credencial = await this.prisma.credencialMinisterial.create({
         data: {
           apellido: dto.apellido,
@@ -146,11 +180,12 @@ export class CredencialesMinisterialesService extends BaseService<
           documento: dto.documento,
           nacionalidad: dto.nacionalidad,
           fechaNacimiento,
-          tipoPastor: dto.tipoPastor || 'PASTOR',
+          tipoPastor: tipoPastorCrear,
           fechaVencimiento,
           fotoUrl: dto.fotoUrl,
           activa: dto.activa ?? true,
-          invitadoId: invitadoId || dto.invitadoId,
+          invitadoId: finalInvitadoId,
+          email: emailParaCredencial,
           solicitudCredencialId: solicitudCredencial?.id || dto.solicitudCredencialId,
         },
         include: {
@@ -166,7 +201,7 @@ export class CredencialesMinisterialesService extends BaseService<
         },
       })
 
-      // Si hay solicitud, actualizarla como completada
+      // Si hay solicitud, actualizarla como completada y guardar tipo_pastor (consistencia con credencial y con la tabla solicitudes_credenciales)
       if (solicitudCredencial) {
         await this.prisma.solicitudCredencial.update({
           where: { id: solicitudCredencial.id },
@@ -174,6 +209,7 @@ export class CredencialesMinisterialesService extends BaseService<
             estado: 'completada',
             credencialMinisterialId: credencial.id,
             completadaAt: new Date(),
+            tipoPastor: tipoPastorCrear,
           },
         })
 
@@ -319,16 +355,23 @@ export class CredencialesMinisterialesService extends BaseService<
 
       // Construir updateData explícitamente para evitar problemas de tipos
       const updateData: Prisma.CredencialMinisterialUpdateInput = {}
-      
+
+      // Normalizar tipoPastor: trim, mayúsculas; si queda vacío usar PASTOR (para que la app lo refleje)
+      if (dto.tipoPastor !== undefined) {
+        const normalized = String(dto.tipoPastor).trim().toUpperCase()
+        updateData.tipoPastor = normalized || 'PASTOR'
+        this.logger.log(`📝 Actualizando tipoPastor a: "${updateData.tipoPastor}" (recibido: "${dto.tipoPastor}")`)
+      }
+
       // Copiar campos que no son fechas
       if (dto.apellido !== undefined) updateData.apellido = dto.apellido
       if (dto.nombre !== undefined) updateData.nombre = dto.nombre
       if (dto.documento !== undefined) updateData.documento = dto.documento
       if (dto.nacionalidad !== undefined) updateData.nacionalidad = dto.nacionalidad
-      if (dto.tipoPastor !== undefined) updateData.tipoPastor = dto.tipoPastor
       if (dto.fotoUrl !== undefined) updateData.fotoUrl = dto.fotoUrl
       if (dto.activa !== undefined) updateData.activa = dto.activa
-      
+      if (dto.email !== undefined) updateData.email = dto.email?.trim() || null
+
       // Parsear fechas a Date
       if (dto.fechaNacimiento) {
         updateData.fechaNacimiento = this.parseDateString(dto.fechaNacimiento)
@@ -420,6 +463,9 @@ export class CredencialesMinisterialesService extends BaseService<
           skip,
           take: limit,
           orderBy: { fechaVencimiento: 'asc' },
+          include: {
+            invitado: { select: { email: true } },
+          },
         }),
         this.prisma.credencialMinisterial.count({ where }),
       ])

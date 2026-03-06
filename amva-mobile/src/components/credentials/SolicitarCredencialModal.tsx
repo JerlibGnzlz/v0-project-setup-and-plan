@@ -11,6 +11,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   Keyboard,
+  Alert,
 } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { X, Clock } from 'lucide-react-native'
@@ -21,6 +22,37 @@ import { TipoCredencial } from '@api/solicitudes-credenciales'
 import type { Invitado } from '@api/invitado-auth'
 import { paises } from '@utils/paises'
 
+/** Formatea DNI solo con dígitos a formato con puntos (ej: 95774063 → 95.774.063) */
+function formatDniWithDots(value: string): string {
+  const digits = value.replace(/\D/g, '')
+  if (digits.length <= 2) return digits
+  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}`
+}
+
+/** Deja solo dígitos del DNI (para guardar en estado al escribir) */
+function normalizeDniInput(value: string): string {
+  return value.replace(/\D/g, '').slice(0, 8)
+}
+
+/** Opciones para tipo de pastor: select con Pastor/a, Reverendo/a, Obispo */
+const TIPO_PASTOR_OPTIONS: { value: string; label: string }[] = [
+  { value: 'PASTOR', label: 'Pastor/a' },
+  { value: 'REVERENDO', label: 'Reverendo/a' },
+  { value: 'OBISPO', label: 'Obispo' },
+]
+
+/** Valores permitidos para tipo de credencial (backend espera minúsculas) */
+const TIPO_CREDENCIAL_MIN = {
+  ministerial: 'ministerial' as const,
+  capellania: 'capellania' as const,
+}
+
+/** Longitudes máximas que acepta el backend */
+const MAX_NOMBRE_APELLIDO = 100
+const MIN_DNI_LEN = 5
+const MAX_DNI_LEN = 30
+
 interface SolicitarCredencialModalProps {
   visible: boolean
   onClose: () => void
@@ -29,12 +61,17 @@ interface SolicitarCredencialModalProps {
     dni: string
     nombre: string
     apellido: string
+    tipoPastor?: string
     nacionalidad?: string
     fechaNacimiento?: string
     motivo?: string
   }) => Promise<void>
   invitado?: Invitado | null
   loading?: boolean
+  /** Si el usuario ya tiene credencial ministerial, esa opción se deshabilita y se preselecciona capellanía */
+  tieneMinisterial?: boolean
+  /** Si el usuario ya tiene credencial de capellanía, esa opción se deshabilita y se preselecciona ministerial */
+  tieneCapellania?: boolean
 }
 
 export function SolicitarCredencialModal({
@@ -43,13 +80,14 @@ export function SolicitarCredencialModal({
   onSubmit,
   invitado,
   loading = false,
+  tieneMinisterial = false,
+  tieneCapellania = false,
 }: SolicitarCredencialModalProps) {
-  // Debug: Log cuando cambia la visibilidad del modal
-  useEffect(() => {
-    console.log('🔍 SolicitarCredencialModal: visible cambió a:', visible)
-  }, [visible])
+  const TOTAL_STEPS = 4
+  const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     tipo: TipoCredencial.MINISTERIAL as TipoCredencial,
+    tipoPastor: 'PASTOR',
     dni: '',
     nombre: '',
     apellido: '',
@@ -61,12 +99,37 @@ export function SolicitarCredencialModal({
   const [fechaNacimientoDate, setFechaNacimientoDate] = useState<Date | null>(null)
   const scrollViewRef = React.useRef<ScrollView>(null)
 
-  // Pre-llenar formulario con datos del invitado
+  // Al abrir el modal: resetear paso y preseleccionar el tipo que aún no tiene
+  useEffect(() => {
+    if (visible) {
+      const tipoPreseleccionado =
+        tieneMinisterial && !tieneCapellania
+          ? TipoCredencial.CAPELLANIA
+          : !tieneMinisterial && tieneCapellania
+            ? TipoCredencial.MINISTERIAL
+            : TipoCredencial.MINISTERIAL
+      setStep(1)
+      setFormData({
+        tipo: tipoPreseleccionado as TipoCredencial,
+        tipoPastor: 'PASTOR',
+        dni: '',
+        nombre: '',
+        apellido: '',
+        nacionalidad: '',
+        fechaNacimiento: '',
+        motivo: '',
+      })
+      setFechaNacimientoDate(null)
+    }
+  }, [visible, tieneMinisterial, tieneCapellania])
+
+  // Pre-llenar formulario con datos del invitado (después del reset)
   useEffect(() => {
     if (invitado && visible) {
+      const dniRaw = (invitado.dni ?? '').replace(/\D/g, '').slice(0, 8)
       setFormData(prev => ({
         ...prev,
-        dni: invitado.dni || prev.dni,
+        dni: dniRaw || prev.dni,
         nombre: invitado.nombre || prev.nombre,
         apellido: invitado.apellido || prev.apellido,
         nacionalidad: invitado.nacionalidad || prev.nacionalidad,
@@ -88,23 +151,80 @@ export function SolicitarCredencialModal({
     }
   }
 
+  const canGoNext = (): boolean => {
+    if (step === 1) return true
+    if (step === 2) {
+      if (!formData.dni.trim()) {
+        Alert.alert('Falta un dato', 'Completa el DNI para continuar.')
+        return false
+      }
+      if (!formData.nombre.trim()) {
+        Alert.alert('Falta un dato', 'Completa el nombre para continuar.')
+        return false
+      }
+      if (!formData.apellido.trim()) {
+        Alert.alert('Falta un dato', 'Completa el apellido para continuar.')
+        return false
+      }
+      return true
+    }
+    return true
+  }
+
+  const handleNext = () => {
+    if (!canGoNext()) return
+    if (step < TOTAL_STEPS) setStep(s => s + 1)
+  }
+
+  const handleBack = () => {
+    if (step > 1) setStep(s => s - 1)
+  }
+
   const handleSubmit = async () => {
-    // Validar campos requeridos
-    if (!formData.dni.trim()) {
+    const nombre = formData.nombre.trim()
+    const apellido = formData.apellido.trim()
+    const dniDigits = formData.dni.trim().replace(/\D/g, '')
+
+    if (!dniDigits || !nombre || !apellido) {
+      Alert.alert('Falta un dato', 'Completa DNI, nombre y apellido para enviar.')
       return
     }
-    if (!formData.nombre.trim()) {
+    if (dniDigits.length < MIN_DNI_LEN || dniDigits.length > MAX_DNI_LEN) {
+      Alert.alert(
+        'DNI inválido',
+        `El DNI debe tener entre ${MIN_DNI_LEN} y ${MAX_DNI_LEN} caracteres (solo números).`
+      )
       return
     }
-    if (!formData.apellido.trim()) {
+    if (nombre.length > MAX_NOMBRE_APELLIDO || apellido.length > MAX_NOMBRE_APELLIDO) {
+      Alert.alert(
+        'Nombre o apellido largo',
+        `Cada uno puede tener hasta ${MAX_NOMBRE_APELLIDO} caracteres.`
+      )
       return
     }
 
+    const tipoNormalized =
+      formData.tipo === TipoCredencial.CAPELLANIA
+        ? TIPO_CREDENCIAL_MIN.capellania
+        : TIPO_CREDENCIAL_MIN.ministerial
+    const tipoPastorValue =
+      formData.tipo === TipoCredencial.MINISTERIAL
+        ? (formData.tipoPastor?.trim() || 'PASTOR')
+        : undefined
+    const tipoPastorFinal =
+      tipoPastorValue && TIPO_PASTOR_OPTIONS.some(o => o.value === tipoPastorValue)
+        ? tipoPastorValue
+        : formData.tipo === TipoCredencial.MINISTERIAL
+          ? 'PASTOR'
+          : undefined
+
     await onSubmit({
-      tipo: formData.tipo,
-      dni: formData.dni.trim(),
-      nombre: formData.nombre.trim(),
-      apellido: formData.apellido.trim(),
+      tipo: tipoNormalized as TipoCredencial,
+      dni: formatDniWithDots(formData.dni.trim()),
+      nombre: nombre.slice(0, MAX_NOMBRE_APELLIDO),
+      apellido: apellido.slice(0, MAX_NOMBRE_APELLIDO),
+      tipoPastor: tipoPastorFinal,
       nacionalidad: formData.nacionalidad.trim() || undefined,
       fechaNacimiento: formData.fechaNacimiento.trim() || undefined,
       motivo: formData.motivo.trim() || undefined,
@@ -137,10 +257,27 @@ export function SolicitarCredencialModal({
           <View style={styles.modalContent}>
             <View style={styles.modalContentInner}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Solicitar Credencial</Text>
+                <View>
+                  <Text style={styles.modalTitle}>Solicitar Credencial</Text>
+                  <Text style={styles.stepIndicator}>Paso {step} de {TOTAL_STEPS}</Text>
+                </View>
                 <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
                   <X size={24} color="#fff" />
                 </TouchableOpacity>
+              </View>
+
+              {/* Indicador de progreso */}
+              <View style={styles.progressBarContainer}>
+                {[1, 2, 3, 4].map(i => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.progressDot,
+                      i <= step && styles.progressDotActive,
+                      i < step && styles.progressDotDone,
+                    ]}
+                  />
+                ))}
               </View>
 
               <ScrollView
@@ -151,51 +288,94 @@ export function SolicitarCredencialModal({
                 keyboardShouldPersistTaps="handled"
                 nestedScrollEnabled={true}
               >
-            {/* Tipo de Credencial */}
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Tipo de Credencial *</Text>
-              <View style={styles.radioGroup}>
-                <TouchableOpacity
-                  style={[
-                    styles.radioOption,
-                    formData.tipo === TipoCredencial.MINISTERIAL && styles.radioOptionSelected,
-                  ]}
-                  onPress={() => setFormData(prev => ({ ...prev, tipo: TipoCredencial.MINISTERIAL }))}
-                >
-                  <Text
+            {/* Paso 1: Tipo de credencial y tipo de pastor (si ministerial) */}
+            {step === 1 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>¿Qué tipo de credencial necesitas?</Text>
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Tipo de Credencial *</Text>
+                <View style={styles.radioGroup}>
+                  <TouchableOpacity
                     style={[
-                      styles.radioText,
-                      formData.tipo === TipoCredencial.MINISTERIAL && styles.radioTextSelected,
+                      styles.radioOption,
+                      formData.tipo === TipoCredencial.MINISTERIAL && styles.radioOptionSelected,
+                      tieneMinisterial && styles.radioOptionDisabled,
                     ]}
+                    onPress={() =>
+                      !tieneMinisterial && setFormData(prev => ({ ...prev, tipo: TipoCredencial.MINISTERIAL }))
+                    }
+                    disabled={tieneMinisterial}
+                    activeOpacity={tieneMinisterial ? 1 : 0.7}
                   >
-                    Ministerial
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.radioOption,
-                    formData.tipo === TipoCredencial.CAPELLANIA && styles.radioOptionSelected,
-                  ]}
-                  onPress={() => setFormData(prev => ({ ...prev, tipo: TipoCredencial.CAPELLANIA }))}
-                >
-                  <Text
+                    <Text
+                      style={[
+                        styles.radioText,
+                        formData.tipo === TipoCredencial.MINISTERIAL && styles.radioTextSelected,
+                        tieneMinisterial && styles.radioTextDisabled,
+                      ]}
+                    >
+                      Ministerial{tieneMinisterial ? ' (ya la tienes)' : ''}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     style={[
-                      styles.radioText,
-                      formData.tipo === TipoCredencial.CAPELLANIA && styles.radioTextSelected,
+                      styles.radioOption,
+                      formData.tipo === TipoCredencial.CAPELLANIA && styles.radioOptionSelected,
+                      tieneCapellania && styles.radioOptionDisabled,
                     ]}
+                    onPress={() =>
+                      !tieneCapellania && setFormData(prev => ({ ...prev, tipo: TipoCredencial.CAPELLANIA }))
+                    }
+                    disabled={tieneCapellania}
+                    activeOpacity={tieneCapellania ? 1 : 0.7}
                   >
-                    Capellanía
-                  </Text>
-                </TouchableOpacity>
+                    <Text
+                      style={[
+                        styles.radioText,
+                        formData.tipo === TipoCredencial.CAPELLANIA && styles.radioTextSelected,
+                        tieneCapellania && styles.radioTextDisabled,
+                      ]}
+                    >
+                      Capellanía{tieneCapellania ? ' (ya la tienes)' : ''}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
 
-            {/* DNI */}
+              {formData.tipo === TipoCredencial.MINISTERIAL && (
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>Tipo de Pastor *</Text>
+                  <Text style={styles.formHint}>
+                    Elige tu rol ministerial. Se guardará en la solicitud y en AMVA Digital.
+                  </Text>
+                  <CustomPicker
+                    items={TIPO_PASTOR_OPTIONS}
+                    selectedValue={formData.tipoPastor}
+                    onValueChange={value =>
+                      setFormData(prev => ({ ...prev, tipoPastor: String(value) }))
+                    }
+                    placeholder="Selecciona tipo de pastor"
+                  />
+                </View>
+              )}
+            </View>
+            )}
+
+            {/* Paso 2: Datos personales */}
+            {step === 2 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>Tus datos personales</Text>
+              <Text style={styles.formHint}>
+                Nombre, apellido y DNI son obligatorios para la solicitud.
+              </Text>
+            {/* DNI: se muestra con puntos (ej. 95.774.063), se guardan solo dígitos internamente */}
             <FormField
               label="DNI *"
-              value={formData.dni}
-              onChangeText={value => setFormData(prev => ({ ...prev, dni: value }))}
-              placeholder="Número de documento"
+              value={formatDniWithDots(formData.dni)}
+              onChangeText={value =>
+                setFormData(prev => ({ ...prev, dni: normalizeDniInput(value) }))
+              }
+              placeholder="Ej: 95.774.063"
               keyboardType="numeric"
               containerStyle={styles.formGroup}
             />
@@ -217,7 +397,16 @@ export function SolicitarCredencialModal({
               placeholder="Tu apellido"
               containerStyle={styles.formGroup}
             />
+            </View>
+            )}
 
+            {/* Paso 3: Datos opcionales */}
+            {step === 3 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>Datos opcionales</Text>
+              <Text style={styles.formHint}>
+                Nacionalidad, fecha de nacimiento y motivo ayudan a procesar tu solicitud.
+              </Text>
             {/* Nacionalidad */}
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>Nacionalidad</Text>
@@ -294,30 +483,113 @@ export function SolicitarCredencialModal({
                 numberOfLines={4}
                 textAlignVertical="top"
                 onFocus={() => {
-                  // Scroll al campo cuando se enfoca
                   setTimeout(() => {
                     scrollViewRef.current?.scrollToEnd({ animated: true })
                   }, 100)
                 }}
               />
             </View>
+            </View>
+            )}
+
+            {/* Paso 4: Resumen */}
+            {step === 4 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>Revisa tu solicitud</Text>
+              <Text style={styles.formHint}>
+                Confirma los datos antes de enviar. En AMVA Digital completarán foto y fechas si falta algo.
+              </Text>
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Tipo: </Text>
+                  <Text style={styles.summaryValue}>
+                    {formData.tipo === TipoCredencial.CAPELLANIA ? 'Capellanía' : 'Ministerial'}
+                  </Text>
+                </View>
+                {formData.tipo === TipoCredencial.MINISTERIAL && (
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Tipo de pastor: </Text>
+                    <Text style={styles.summaryValue}>
+                      {TIPO_PASTOR_OPTIONS.find(o => o.value === formData.tipoPastor)?.label ?? formData.tipoPastor}
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Nombre: </Text>
+                  <Text style={styles.summaryValue}>{formData.nombre || '—'}</Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Apellido: </Text>
+                  <Text style={styles.summaryValue}>{formData.apellido || '—'}</Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>DNI: </Text>
+                  <Text style={styles.summaryValue}>
+                    {formData.dni ? formatDniWithDots(formData.dni) : '—'}
+                  </Text>
+                </View>
+                {(formData.nacionalidad || formData.fechaNacimiento || formData.motivo) && (
+                  <>
+                    {formData.nacionalidad && (
+                      <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>Nacionalidad: </Text>
+                        <Text style={styles.summaryValue}>{formData.nacionalidad}</Text>
+                      </View>
+                    )}
+                    {formData.fechaNacimiento && (
+                      <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>Fecha nac.: </Text>
+                        <Text style={styles.summaryValue}>{formData.fechaNacimiento}</Text>
+                      </View>
+                    )}
+                    {formData.motivo && (
+                      <View style={[styles.summaryRow, styles.summaryMotivo]}>
+                        <Text style={styles.summaryLabel}>Motivo: </Text>
+                        <Text style={styles.summaryValue}>{formData.motivo}</Text>
+                      </View>
+                    )}
+                  </>
+                )}
+              </View>
+            </View>
+            )}
           </ScrollView>
 
           <View style={styles.modalFooter}>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.modalButtonCancel]}
-              onPress={onClose}
-              disabled={loading}
-            >
-              <Text style={styles.modalButtonText}>Cancelar</Text>
-            </TouchableOpacity>
-            <LoadingButton
-              onPress={handleSubmit}
-              loading={loading}
-              title="Enviar Solicitud"
-              variant="primary"
-              style={[styles.modalButton, styles.modalButtonSubmit]}
-            />
+            {step > 1 ? (
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={handleBack}
+                disabled={loading}
+              >
+                <Text style={styles.modalButtonText}>Anterior</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={onClose}
+                disabled={loading}
+              >
+                <Text style={styles.modalButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+            )}
+            {step < TOTAL_STEPS ? (
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSubmit]}
+                onPress={handleNext}
+                disabled={loading}
+              >
+                <Text style={styles.modalButtonText}>Siguiente</Text>
+              </TouchableOpacity>
+            ) : (
+              <LoadingButton
+                onPress={handleSubmit}
+                loading={loading}
+                title="Enviar solicitud"
+                variant="primary"
+                style={[styles.modalButton, styles.modalButtonSubmit]}
+              />
+            )}
           </View>
             </View>
           </View>
@@ -384,6 +656,70 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
+  stepIndicator: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginTop: 4,
+  },
+  progressBarContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  progressDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  progressDotActive: {
+    backgroundColor: '#22c55e',
+    transform: [{ scale: 1.2 }],
+  },
+  progressDotDone: {
+    backgroundColor: 'rgba(34, 197, 94, 0.6)',
+  },
+  stepContainer: {
+    paddingTop: 8,
+  },
+  stepTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  summaryCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginRight: 6,
+    fontSize: 15,
+  },
+  summaryValue: {
+    color: '#fff',
+    flex: 1,
+    fontSize: 15,
+  },
+  summaryMotivo: {
+    marginTop: 4,
+  },
   modalCloseButton: {
     padding: 4,
   },
@@ -429,6 +765,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginBottom: 8,
   },
+  formHint: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: 16,
+    lineHeight: 18,
+  },
   formInput: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
@@ -468,6 +810,14 @@ const styles = StyleSheet.create({
   radioTextSelected: {
     color: '#fff',
     fontWeight: '600',
+  },
+  radioOptionDisabled: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    opacity: 0.7,
+  },
+  radioTextDisabled: {
+    color: 'rgba(255, 255, 255, 0.4)',
   },
   dateInputContainer: {
     position: 'relative',

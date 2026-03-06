@@ -175,6 +175,7 @@ model SolicitudCredencial {
   id                                                                                                        String                 @id @default(uuid())
   invitadoId                                                                                                String                 @map("invitado_id")
   tipo                                                                                                      String
+  tipoPastor                                                                                                String?                @map("tipo_pastor")
   dni                                                                                                       String
   nombre                                                                                                    String
   apellido                                                                                                  String
@@ -216,6 +217,7 @@ model CredencialMinisterial {
   createdAt                                                                                               DateTime             @default(now()) @map("created_at")
   updatedAt                                                                                               DateTime             @updatedAt @map("updated_at")
   invitadoId                                                                                              String?              @map("invitado_id")
+  email                                                                                                   String?              @map("email")
   solicitudCredencialId                                                                                   String?              @unique @map("solicitud_credencial_id")
   invitado                                                                                                Invitado?            @relation(fields: [invitadoId], references: [id])
   solicitudCredencial                                                                                     SolicitudCredencial? @relation(fields: [solicitudCredencialId], references: [id])
@@ -225,6 +227,7 @@ model CredencialMinisterial {
   @@index([fechaVencimiento])
   @@index([activa])
   @@index([invitadoId])
+  @@index([email])
   @@map("credenciales_ministeriales")
 }
 
@@ -242,6 +245,7 @@ model CredencialCapellania {
   createdAt                                                                                           DateTime             @default(now()) @map("created_at")
   updatedAt                                                                                           DateTime             @updatedAt @map("updated_at")
   invitadoId                                                                                          String?              @map("invitado_id")
+  email                                                                                               String?              @map("email")
   solicitudCredencialId                                                                               String?              @unique @map("solicitud_credencial_id")
   invitado                                                                                            Invitado?            @relation(fields: [invitadoId], references: [id])
   solicitudCredencial                                                                                 SolicitudCredencial? @relation(fields: [solicitudCredencialId], references: [id])
@@ -251,6 +255,7 @@ model CredencialCapellania {
   @@index([fechaVencimiento])
   @@index([activa])
   @@index([invitadoId])
+  @@index([email])
   @@map("credenciales_capellania")
 }
 

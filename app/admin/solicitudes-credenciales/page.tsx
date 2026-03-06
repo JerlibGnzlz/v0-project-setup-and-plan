@@ -36,6 +36,7 @@ import { Label } from '@/components/ui/label'
 import {
   useSolicitudesCredenciales,
   useUpdateSolicitudCredencial,
+  useDeleteSolicitudCredencial,
 } from '@/lib/hooks/use-solicitudes-credenciales'
 import {
   SolicitudCredencial,
@@ -57,12 +58,14 @@ import {
   User,
   CreditCard,
   Plus,
+  Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { CredencialEditorDialog } from '@/components/admin/credenciales-ministeriales/credencial-editor-dialog'
 import { CredencialCapellaniaEditorDialog } from '@/components/admin/credenciales-capellania/credencial-capellania-editor-dialog'
 import { CredencialMinisterial } from '@/lib/api/credenciales-ministeriales'
 import { CredencialCapellania } from '@/lib/api/credenciales-capellania'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const ESTADO_COLORS = {
   pendiente: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
@@ -97,6 +100,9 @@ export default function SolicitudesCredencialesPage() {
   const [credencialFromSolicitud, setCredencialFromSolicitud] =
     useState<SolicitudCredencial | null>(null)
   const [observaciones, setObservaciones] = useState('')
+  const [ocultarCompletadas, setOcultarCompletadas] = useState(true)
+  const [showEliminarDialog, setShowEliminarDialog] = useState(false)
+  const [solicitudToEliminar, setSolicitudToEliminar] = useState<SolicitudCredencial | null>(null)
 
   const { data, isLoading, error } = useSolicitudesCredenciales(
     page,
@@ -105,12 +111,13 @@ export default function SolicitudesCredencialesPage() {
     tipoFilter !== 'todos' ? tipoFilter : undefined
   )
   const updateMutation = useUpdateSolicitudCredencial()
+  const deleteMutation = useDeleteSolicitudCredencial()
 
   const solicitudes = data?.data || []
   const paginationMeta = data?.meta
 
   // Filtrar por término de búsqueda en el cliente (nombre, apellido, DNI, email)
-  const filteredSolicitudes = solicitudes.filter((solicitud) => {
+  const filteredBySearch = solicitudes.filter((solicitud) => {
     if (!searchTerm) return true
     const search = searchTerm.toLowerCase()
     return (
@@ -120,6 +127,9 @@ export default function SolicitudesCredencialesPage() {
       solicitud.invitado.email.toLowerCase().includes(search)
     )
   })
+  const filteredSolicitudes = ocultarCompletadas
+    ? filteredBySearch.filter((s) => s.estado !== EstadoSolicitud.COMPLETADA)
+    : filteredBySearch
 
   // Estadísticas
   const stats = {
@@ -207,6 +217,18 @@ export default function SolicitudesCredencialesPage() {
     setSelectedSolicitud(solicitud)
     setObservaciones('')
     setShowRechazarDialog(true)
+  }
+
+  const handleAbrirEliminar = (solicitud: SolicitudCredencial) => {
+    setSolicitudToEliminar(solicitud)
+    setShowEliminarDialog(true)
+  }
+
+  const handleEliminar = async () => {
+    if (!solicitudToEliminar) return
+    await deleteMutation.mutateAsync(solicitudToEliminar.id)
+    setShowEliminarDialog(false)
+    setSolicitudToEliminar(null)
   }
 
   const handleCrearCredencialDesdeSolicitud = (solicitud: SolicitudCredencial) => {
@@ -373,6 +395,14 @@ export default function SolicitudesCredencialesPage() {
                 <SelectItem value={TipoCredencial.CAPELLANIA}>Capellanía</SelectItem>
               </SelectContent>
             </Select>
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <Checkbox
+                id="ocultar-completadas-sol"
+                checked={ocultarCompletadas}
+                onCheckedChange={(checked) => setOcultarCompletadas(checked === true)}
+              />
+              <span className="text-sm text-muted-foreground">Ocultar completadas en la lista</span>
+            </label>
           </div>
         </CardContent>
       </Card>
@@ -512,6 +542,15 @@ export default function SolicitudesCredencialesPage() {
                               Crear Credencial
                             </Button>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleAbrirEliminar(solicitud)}
+                            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Eliminar
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
@@ -717,6 +756,47 @@ export default function SolicitudesCredencialesPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Eliminar solicitud */}
+      <AlertDialog
+        open={showEliminarDialog}
+        onOpenChange={(open) => {
+          setShowEliminarDialog(open)
+          if (!open) setSolicitudToEliminar(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar esta solicitud?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminará la solicitud de la base de datos. La credencial asociada (si existe) no se
+              borrará, solo se desvinculará. Esta acción no se puede deshacer.
+              {solicitudToEliminar && (
+                <span className="block mt-2 font-medium">
+                  Solicitud: {solicitudToEliminar.nombre} {solicitudToEliminar.apellido} (
+                  {solicitudToEliminar.dni})
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setSolicitudToEliminar(null)
+              }}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleEliminar}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? 'Eliminando...' : 'Eliminar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Crear Credencial Dialog - Ministerial */}
       {credencialFromSolicitud?.tipo === TipoCredencial.MINISTERIAL && (
         <CredencialEditorDialog
@@ -737,6 +817,7 @@ export default function SolicitudesCredencialesPage() {
                   nacionalidad: credencialFromSolicitud.nacionalidad || undefined,
                   fechaNacimiento: credencialFromSolicitud.fechaNacimiento || undefined,
                   invitadoId: credencialFromSolicitud.invitadoId,
+                  email: credencialFromSolicitud.invitado?.email ?? undefined,
                 }
               : null
           }
@@ -767,6 +848,7 @@ export default function SolicitudesCredencialesPage() {
                   nacionalidad: credencialFromSolicitud.nacionalidad || undefined,
                   fechaNacimiento: credencialFromSolicitud.fechaNacimiento || undefined,
                   invitadoId: credencialFromSolicitud.invitadoId,
+                  email: credencialFromSolicitud.invitado?.email ?? undefined,
                 }
               : null
           }

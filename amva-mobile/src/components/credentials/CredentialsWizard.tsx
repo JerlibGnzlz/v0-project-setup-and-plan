@@ -113,13 +113,17 @@ export function CredentialsWizard({
       <Animated.View style={[styles.wizardContent, { opacity: fadeAnim }]}>
         {currentStep === 1 && <CredentialsResumen resumen={resumen} credencialesList={credencialesList} fadeAnim={fadeAnim} />}
 
-        {currentStep > 1 && currentCredencialIndex < credencialesList.length && (
-          <View style={styles.wizardStepContainer}>
-            <View style={styles.credentialCardWrapper}>
-              <CredencialFlipCard credencial={credencialesList[currentCredencialIndex]} />
+        {currentStep > 1 && (() => {
+          const credencial = credencialesList[currentCredencialIndex]
+          if (!credencial) return null
+          return (
+            <View style={styles.wizardStepContainer}>
+              <View style={styles.credentialCardWrapper}>
+                <CredencialFlipCard credencial={credencial} />
+              </View>
             </View>
-          </View>
-        )}
+          )
+        })()}
       </Animated.View>
 
       {/* Navigation Buttons */}

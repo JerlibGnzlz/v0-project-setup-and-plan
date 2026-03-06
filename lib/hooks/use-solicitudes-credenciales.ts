@@ -56,3 +56,26 @@ export function useUpdateSolicitudCredencial() {
   })
 }
 
+export function useDeleteSolicitudCredencial() {
+  const queryClient = useQueryClient()
+  const { notifyChange } = useSmartSync()
+
+  return useMutation({
+    mutationFn: (id: string) => solicitudesCredencialesApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['solicitudes-credenciales'] })
+      queryClient.invalidateQueries({ queryKey: ['solicitud-credencial'] })
+      notifyChange('solicitudes-credenciales')
+      toast.success('Solicitud eliminada correctamente')
+    },
+    onError: (error: unknown) => {
+      const errorMessage =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Error al eliminar la solicitud'
+      toast.error('Error al eliminar la solicitud', {
+        description: errorMessage,
+      })
+    },
+  })
+}
+

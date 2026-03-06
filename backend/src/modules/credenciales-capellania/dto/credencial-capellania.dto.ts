@@ -4,6 +4,7 @@ import {
   IsDateString,
   IsOptional,
   IsBoolean,
+  IsEmail,
   Length,
 } from 'class-validator'
 import { Type } from 'class-transformer'
@@ -52,6 +53,12 @@ export class CreateCredencialCapellaniaDto {
   @IsString()
   @IsOptional()
   invitadoId?: string
+
+  @IsString()
+  @IsOptional()
+  @IsEmail()
+  @Length(1, 255)
+  email?: string
 }
 
 export class UpdateCredencialCapellaniaDto {
@@ -94,6 +101,12 @@ export class UpdateCredencialCapellaniaDto {
   @IsBoolean()
   @IsOptional()
   activa?: boolean
+
+  @IsString()
+  @IsOptional()
+  @IsEmail()
+  @Length(1, 255)
+  email?: string
 }
 
 export class CredencialCapellaniaFilterDto {

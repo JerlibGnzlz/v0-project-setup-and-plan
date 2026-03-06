@@ -12,26 +12,31 @@ import {
   RefreshControl,
   AppState,
   AppStateStatus,
+  Modal,
 } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { CreditCard, AlertCircle, RefreshCw, Info, Plus } from 'lucide-react-native'
+import { CreditCard, AlertCircle, RefreshCw, Info, Plus, CheckCircle2 } from 'lucide-react-native'
+import { useQueryClient } from '@tanstack/react-query'
 import { useMisCredenciales } from '@hooks/use-credenciales'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useAuth } from '@hooks/useAuth'
 import { solicitudesCredencialesApi, EstadoSolicitud, TipoCredencial } from '@api/solicitudes-credenciales'
 import { useMisSolicitudes } from '@hooks/use-solicitudes-credenciales'
+import * as ScreenOrientation from 'expo-screen-orientation'
 import { CredentialsWizard } from '@components/credentials/CredentialsWizard'
 import { SolicitudesList } from '@components/credentials/SolicitudesList'
 import { SolicitarCredencialModal } from '@components/credentials/SolicitarCredencialModal'
 import { handleNetworkError } from '@utils/errorHandler'
 
 export function CredentialsScreen() {
+  const queryClient = useQueryClient()
   const { invitado, isAuthenticated: isInvitadoAuthenticated } = useInvitadoAuth()
   const { pastor } = useAuth()
   const { data, isLoading, error, refetch, isRefetching } = useMisCredenciales()
 
-  // Refetch automático cuando la app vuelve a estar activa
+  // Refetch cuando la app vuelve a estar activa (ej. volver de segundo plano)
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
       if (nextAppState === 'active') {
@@ -44,6 +49,23 @@ export function CredentialsScreen() {
     }
   }, [refetch])
 
+  // Invalidar caché y refetch para que tipo de pastor y demás cambios de AMVA Digital se vean al instante
+  const refreshCredenciales = React.useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
+    refetch()
+  }, [queryClient, refetch])
+
+  // Al enfocar Credenciales: refrescar datos y permitir rotación (portrait + landscape)
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshCredenciales()
+      ScreenOrientation.unlockAsync().catch(() => {})
+      return () => {
+        ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {})
+      }
+    }, [refreshCredenciales])
+  )
+
   const isPastorAuthenticated = pastor !== null
 
   const [currentStep, setCurrentStep] = useState(1)
@@ -53,12 +75,8 @@ export function CredentialsScreen() {
   // Usar React Query para obtener solicitudes (se actualiza automáticamente con WebSocket)
   const { data: solicitudes = [], refetch: refetchSolicitudes } = useMisSolicitudes()
   const [showSolicitarModal, setShowSolicitarModal] = useState(false)
+  const [showSolicitudGuardadaModal, setShowSolicitudGuardadaModal] = useState(false)
   const [solicitandoCredencial, setSolicitandoCredencial] = useState(false)
-
-  // Debug: Log cuando cambia el estado del modal
-  useEffect(() => {
-    console.log('🔍 CredentialsScreen: showSolicitarModal cambió a:', showSolicitarModal)
-  }, [showSolicitarModal])
 
   // Refetch automático cuando la app vuelve a estar activa (para solicitudes también)
   useEffect(() => {
@@ -87,6 +105,23 @@ export function CredentialsScreen() {
   const credencialesList = useMemo(() => {
     return data?.credenciales || []
   }, [data?.credenciales])
+
+  const hasSolicitudCompletada = useMemo(
+    () => solicitudes.some(s => s.estado === EstadoSolicitud.COMPLETADA),
+    [solicitudes]
+  )
+
+  const tieneMinisterial = useMemo(
+    () => credencialesList.some(c => c.tipo === 'ministerial'),
+    [credencialesList]
+  )
+  const tieneCapellania = useMemo(
+    () => credencialesList.some(c => c.tipo === 'capellania'),
+    [credencialesList]
+  )
+  const tieneAmbasCredenciales = tieneMinisterial && tieneCapellania
+  const showSolicitudesSection =
+    solicitudes.length > 0 || tieneMinisterial || tieneCapellania
 
   const totalSteps = credencialesList.length > 0 ? credencialesList.length + 1 : 1 // +1 para el paso de resumen
 
@@ -150,6 +185,7 @@ export function CredentialsScreen() {
     dni: string
     nombre: string
     apellido: string
+    tipoPastor?: string
     nacionalidad?: string
     fechaNacimiento?: string
     motivo?: string
@@ -165,32 +201,23 @@ export function CredentialsScreen() {
 
     setSolicitandoCredencial(true)
     try {
-
       await solicitudesCredencialesApi.create({
         tipo: formData.tipo,
         dni: formData.dni,
         nombre: formData.nombre,
         apellido: formData.apellido,
+        tipoPastor: formData.tipoPastor,
         nacionalidad: formData.nacionalidad,
         fechaNacimiento: formData.fechaNacimiento,
         motivo: formData.motivo,
       })
 
-      Alert.alert(
-        'Solicitud Enviada',
-        'Tu solicitud de credencial ha sido enviada exitosamente. Recibirás una notificación cuando sea procesada.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setShowSolicitarModal(false)
-              // Recargar solicitudes y credenciales
-              refetchSolicitudes()
-              refetch()
-            },
-          },
-        ]
-      )
+      // Actualizar listas antes de cerrar para que se vea la nueva solicitud guardada
+      queryClient.invalidateQueries({ queryKey: ['solicitudes-credenciales', 'mis-solicitudes'] })
+      queryClient.invalidateQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
+      await Promise.all([refetchSolicitudes(), refetch()])
+      setShowSolicitarModal(false)
+      setShowSolicitudGuardadaModal(true)
     } catch (error: unknown) {
       const errorMessage = handleNetworkError(error)
       Alert.alert('Error', errorMessage)
@@ -235,7 +262,7 @@ export function CredentialsScreen() {
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#22c55e" />
+          <RefreshControl refreshing={isRefetching} onRefresh={refreshCredenciales} tintColor="#22c55e" />
         }
       >
         {/* Header */}
@@ -273,12 +300,58 @@ export function CredentialsScreen() {
             <Text style={styles.errorText}>
               {error instanceof Error ? error.message : 'Error desconocido'}
             </Text>
-            <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+            {(error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthorized') || error.message.includes('No autorizado'))) ||
+            (typeof (error as { message?: string })?.message === 'string' &&
+              ((error as { message: string }).message.includes('401') ||
+                (error as { message: string }).message.includes('Unauthorized'))) ? (
+              <Text style={styles.errorHint}>
+                Tu sesión pudo haber expirado. Cierra sesión en Perfil y vuelve a iniciar con el mismo correo para ver tu credencial.
+              </Text>
+            ) : null}
+            <TouchableOpacity style={styles.retryButton} onPress={refreshCredenciales}>
               <RefreshCw size={20} color="#fff" />
               <Text style={styles.retryButtonText}>Reintentar</Text>
             </TouchableOpacity>
           </View>
         )}
+
+        {/* Aviso: solicitud completada pero credencial no visible */}
+        {!isLoading &&
+          !error &&
+          hasSolicitudCompletada &&
+          (!data?.tieneCredenciales || credencialesList.length === 0) && (
+            <View style={styles.completadaHintBox}>
+              <Info size={22} color="#3b82f6" />
+              <View style={styles.completadaHintContent}>
+                <Text style={styles.completadaHintTitle}>Solicitud completada</Text>
+                <Text style={styles.completadaHintText}>
+                  Tu solicitud está completada. Si no ves tu credencial arriba, desliza hacia abajo para actualizar o cierra sesión y vuelve a iniciar con el mismo correo.
+                </Text>
+                <TouchableOpacity
+                  style={styles.actualizarButton}
+                  onPress={refreshCredenciales}
+                  disabled={isRefetching}
+                >
+                  <RefreshCw size={18} color="#fff" />
+                  <Text style={styles.actualizarButtonText}>
+                    {isRefetching ? 'Actualizando...' : 'Actualizar credenciales'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+        {/* Mensaje del backend cuando no hay credenciales (ej. indicación de email) */}
+        {!isLoading &&
+          !error &&
+          (!data?.tieneCredenciales || credencialesList.length === 0) &&
+          data?.mensaje &&
+          typeof data.mensaje === 'string' && (
+            <View style={styles.backendMensajeBox}>
+              <Info size={18} color="#3b82f6" />
+              <Text style={styles.backendMensajeText}>{data.mensaje}</Text>
+            </View>
+          )}
 
         {/* Empty State - Sin credenciales */}
         {!isLoading &&
@@ -317,7 +390,7 @@ export function CredentialsScreen() {
                     <View style={styles.defaultCardDivider} />
                     <Text style={styles.defaultCardMessage}>
                       {isInvitadoAuthenticated
-                        ? 'No tienes credenciales activas asociadas a tu cuenta.\n\nSolicita tu credencial digital completando el formulario a continuación.'
+                        ? 'Para obtener tu credencial digital debes solicitarla: usa el botón "Solicitar Mi Credencial" y completa el formulario. Un administrador la aprobará y podrás verla aquí.'
                         : 'No se encontraron credenciales registradas para tu cuenta.'}
                     </Text>
                   </View>
@@ -375,39 +448,62 @@ export function CredentialsScreen() {
           />
         )}
 
-        {/* Lista de Solicitudes */}
-        {isInvitadoAuthenticated && invitado && solicitudes.length > 0 && (
+        {/* Lista de Solicitudes y botón Nueva Solicitud (visible si hay solicitudes o si ya tiene al menos una credencial) */}
+        {isInvitadoAuthenticated && invitado && showSolicitudesSection && (
           <SolicitudesList
             solicitudes={solicitudes}
-            onSolicitarPress={() => {
-              console.log('🔍 CredentialsScreen: onSolicitarPress llamado desde SolicitudesList')
-              setShowSolicitarModal(true)
-            }}
+            onSolicitarPress={() => setShowSolicitarModal(true)}
             getEstadoSolicitudColor={getEstadoSolicitudColor}
             getEstadoSolicitudLabel={getEstadoSolicitudLabel}
             formatDate={formatDate}
+            nuevaSolicitudDisabled={tieneAmbasCredenciales}
           />
         )}
 
-        {/* Botón para solicitar credencial si no tiene ninguna */}
-        {isInvitadoAuthenticated &&
-          invitado &&
-          !isLoading &&
-          !error &&
-          (!data?.tieneCredenciales || credencialesList.length === 0) &&
-          solicitudes.length === 0 && (
-            <View style={styles.solicitarContainer}>
-              <TouchableOpacity
-                style={styles.solicitarButton}
-                onPress={() => setShowSolicitarModal(true)}
-              >
-                <Plus size={20} color="#fff" />
-                <Text style={styles.solicitarButtonText}>Solicitar Credencial</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
       </ScrollView>
+
+      {/* Modal de éxito: solicitud guardada (estilo acorde al resto de la app) */}
+      <Modal
+        visible={showSolicitudGuardadaModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSolicitudGuardadaModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.successModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSolicitudGuardadaModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.successModalCard}
+            activeOpacity={1}
+            onPress={() => {}}
+          >
+            <View style={styles.successModalIconWrap}>
+              <CheckCircle2 size={48} color="#22c55e" />
+            </View>
+            <Text style={styles.successModalTitle}>Solicitud guardada</Text>
+            <Text style={styles.successModalMessage}>
+              Tu solicitud de credencial se ha enviado correctamente. Recibirás una notificación
+              cuando sea procesada.
+            </Text>
+            <TouchableOpacity
+              style={styles.successModalButton}
+              onPress={() => setShowSolicitudGuardadaModal(false)}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={['#22c55e', '#16a34a']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.successModalButtonGradient}
+              >
+                <Text style={styles.successModalButtonText}>Entendido</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
       {/* Modal para Solicitar Credencial - Fuera del ScrollView para mejor renderizado */}
       <SolicitarCredencialModal
@@ -416,6 +512,8 @@ export function CredentialsScreen() {
         onSubmit={handleSolicitarCredencial}
         invitado={invitado}
         loading={solicitandoCredencial}
+        tieneMinisterial={tieneMinisterial}
+        tieneCapellania={tieneCapellania}
       />
     </SafeAreaView>
   )
@@ -486,6 +584,71 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
     marginBottom: 8,
+  },
+  errorHint: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.85)',
+    textAlign: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 16,
+  },
+  completadaHintBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    borderColor: 'rgba(59, 130, 246, 0.4)',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    gap: 12,
+  },
+  completadaHintContent: {
+    flex: 1,
+  },
+  completadaHintTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#93c5fd',
+    marginBottom: 6,
+  },
+  completadaHintText: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.85)',
+    lineHeight: 19,
+    marginBottom: 12,
+  },
+  actualizarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 8,
+    backgroundColor: '#3b82f6',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  actualizarButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  backendMensajeBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+    borderColor: 'rgba(59, 130, 246, 0.35)',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    gap: 10,
+  },
+  backendMensajeText: {
+    flex: 1,
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.9)',
+    lineHeight: 19,
   },
   retryButton: {
     flexDirection: 'row',
@@ -584,23 +747,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: 'center',
   },
-  solicitarContainer: {
-    marginTop: 24,
-  },
-  solicitarButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#22c55e',
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-  },
-  solicitarButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   solicitarButtonLarge: {
     marginTop: 24,
     borderRadius: 16,
@@ -647,6 +793,55 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: 'rgba(255, 255, 255, 0.8)',
     lineHeight: 20,
+  },
+  successModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  successModalCard: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#0f172a',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.25)',
+    alignItems: 'center',
+  },
+  successModalIconWrap: {
+    marginBottom: 16,
+  },
+  successModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  successModalMessage: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.85)',
+    lineHeight: 22,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  successModalButton: {
+    width: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  successModalButtonGradient: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  successModalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 })
 
