@@ -39,12 +39,10 @@ const getApiUrl = () => {
   }
 
   // ============================================
-  // PRIORIDAD 2: API de Producción (Render) - POR DEFECTO
+  // PRIORIDAD 2: API de Producción - POR DEFECTO
   // ============================================
-  // El backend está desplegado en Render.com
-  // Usar producción por defecto tanto en desarrollo como en producción
   const PRODUCTION_API_URL = 'https://amva.org.es/api'
-  console.log('🌐 Usando API de producción (Render):', PRODUCTION_API_URL)
+  console.log('🌐 Usando API de producción:', PRODUCTION_API_URL)
   return PRODUCTION_API_URL
 
   // ============================================

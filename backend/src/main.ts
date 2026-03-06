@@ -347,6 +347,8 @@ async function bootstrap() {
     'http://localhost:3001',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3001',
+    'https://amva.org.es',
+    'https://www.amva.org.es',
     frontendUrl,
     wwwVariant,
   ].filter(Boolean) as string[]

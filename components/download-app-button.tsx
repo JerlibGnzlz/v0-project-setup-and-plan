@@ -5,10 +5,10 @@ import { Smartphone, Download } from 'lucide-react'
 
 /**
  * URL del APK para descarga directa.
- * Por defecto usa el APK alojado en el sitio (/downloads/amva-movil.apk), no caduca.
- * Mantén el archivo en public/downloads/amva-movil.apk. Para usar EAS o Play Store: NEXT_PUBLIC_APK_DOWNLOAD_URL.
+ * Por defecto usa el artefacto EAS. Los enlaces EAS expiran ~30 días.
+ * Para no caducar: usa /downloads/amva-movil.apk o define NEXT_PUBLIC_APK_DOWNLOAD_URL.
  */
-const DEFAULT_APK_URL = '/downloads/amva-movil.apk'
+const DEFAULT_APK_URL = 'https://expo.dev/artifacts/eas/2Yt9kBNShiZFuNFEWstEq5.apk'
 const APK_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || DEFAULT_APK_URL
 
 interface DownloadAppButtonProps {
