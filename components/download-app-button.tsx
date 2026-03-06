@@ -18,7 +18,7 @@ import { Smartphone, Download } from 'lucide-react'
  * 2) Cuando publiques en Google Play, cambia la URL a la ficha de la app:
  *    NEXT_PUBLIC_APK_DOWNLOAD_URL=https://play.google.com/store/apps/details?id=org.vidaabundante.app
  */
-const DEFAULT_APK_URL = '/downloads/amva-movil.apk'
+const DEFAULT_APK_URL = 'https://expo.dev/artifacts/eas/2Yt9kBNShiZFuNFEWstEq5.apk'
 const APK_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || DEFAULT_APK_URL
 
 interface DownloadAppButtonProps {
