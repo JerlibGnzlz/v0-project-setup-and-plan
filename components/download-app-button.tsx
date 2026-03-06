@@ -6,19 +6,14 @@ import { Smartphone, Download } from 'lucide-react'
 /**
  * URL del APK para descarga directa.
  *
- * Los artefactos de EAS (expo.dev/artifacts/...) expiran en ~30 días.
- * Para una URL que NO expire:
+ * Por defecto usa el APK alojado en el propio sitio (/downloads/amva-movil.apk),
+ * así la descarga no caduca. Mantén el archivo en public/downloads/amva-movil.apk
+ * y reemplázalo cuando generes un nuevo build.
  *
- * 1) Alojar el APK en tu propio servidor:
- *    - Sube el .apk a public/downloads/amva-movil.apk (o a tu CDN/servidor).
- *    - En .env.local define:
- *      NEXT_PUBLIC_APK_DOWNLOAD_URL=https://amva.org.es/downloads/amva-movil.apk
- *    - Al generar un nuevo build, reemplaza solo el archivo; la URL sigue igual.
- *
- * 2) Cuando publiques en Google Play, cambia la URL a la ficha de la app:
- *    NEXT_PUBLIC_APK_DOWNLOAD_URL=https://play.google.com/store/apps/details?id=org.vidaabundante.app
+ * Para usar otra URL (ej. EAS temporal o Play Store):
+ *   NEXT_PUBLIC_APK_DOWNLOAD_URL=https://...
  */
-const DEFAULT_APK_URL = 'https://expo.dev/artifacts/eas/2Yt9kBNShiZFuNFEWstEq5.apk'
+const DEFAULT_APK_URL = '/downloads/amva-movil.apk'
 const APK_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || DEFAULT_APK_URL
 
 interface DownloadAppButtonProps {
@@ -42,11 +37,13 @@ export function DownloadAppButton({ apkUrl }: DownloadAppButtonProps) {
     )
   }
 
+  const isSameOrigin = downloadUrl.startsWith('/')
   return (
     <a
       href={downloadUrl}
       target="_blank"
       rel="noopener noreferrer"
+      {...(isSameOrigin && { download: 'amva-movil.apk' })}
       className="block w-full"
       aria-label="Descargar AMVA Móvil para Android"
     >
