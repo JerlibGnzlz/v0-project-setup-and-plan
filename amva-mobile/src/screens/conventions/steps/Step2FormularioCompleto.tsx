@@ -184,9 +184,9 @@ export function Step2FormularioCompleto({
       }
     }
     if (formData.telefono && formData.telefono.trim().length > 0) {
-      const phoneDigits = formData.telefono.replace(/\D/g, '')
-      if (phoneDigits.length < 8 || phoneDigits.length > 20) {
-        newErrors.telefono = 'El teléfono debe tener entre 8 y 20 dígitos'
+      const digits = formData.telefono.replace(/\D/g, '')
+      if (digits.length < 9 || digits.length > 15) {
+        newErrors.telefono = 'El celular debe tener entre 9 y 15 dígitos'
       }
     }
     if (!formData.pais.trim()) {
@@ -504,7 +504,7 @@ export function Step2FormularioCompleto({
           {/* Teléfono */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>
-              <Phone size={12} color="rgba(255, 255, 255, 0.6)" /> Teléfono
+              <Phone size={12} color="rgba(255, 255, 255, 0.6)" /> Teléfono (celular)
             </Text>
             <TextInput
               ref={ref => {
@@ -512,12 +512,14 @@ export function Step2FormularioCompleto({
               }}
               style={[styles.input, errors.telefono && styles.inputError]}
               value={formData.telefono}
-              onChangeText={value => handleChange('telefono', value)}
+              onChangeText={value => handleChange('telefono', value.replace(/\D/g, '').slice(0, 15))}
               keyboardType="phone-pad"
-              placeholder="+54 11 1234-5678 (contacto para la convención)"
+              placeholder="Ej: 612345678 (9 o 10 dígitos)"
               placeholderTextColor="rgba(255, 255, 255, 0.4)"
+              maxLength={15}
               onFocus={() => scrollToInput(inputRefs.current['telefono'])}
             />
+            <Text style={styles.helperText}>Entre 9 y 15 dígitos, sin espacios ni guiones</Text>
             {errors.telefono && (
               <View style={styles.errorContainer}>
                 <AlertCircle size={12} color="#ef4444" />
@@ -672,18 +674,28 @@ export function Step2FormularioCompleto({
                           style={StyleSheet.absoluteFill}
                         />
                       )}
-                      <Text style={[styles.cuotaLabel, isSelected && styles.cuotaLabelSelected]}>
-                        {num} {num === 1 ? 'Cuota' : 'Cuotas'}
-                      </Text>
-                      <Text style={[styles.cuotaValue, isSelected && styles.cuotaValueSelected]}>
-                        ${monto.toFixed(2)}
-                      </Text>
-                      <Text style={[styles.cuotaSubtext, isSelected && styles.cuotaSubtextSelected]}>
-                        {num === 1 ? 'Pago único' : num === 2 ? 'c/u' : '⭐ Recomendado'}
-                      </Text>
+                      <View style={styles.cuotaCardInner}>
+                        <Text
+                          style={[styles.cuotaLabel, isSelected && styles.cuotaLabelSelected]}
+                        >
+                          {num} {num === 1 ? 'CUOTA' : 'CUOTAS'}
+                        </Text>
+                        <Text
+                          style={[styles.cuotaValue, isSelected && styles.cuotaValueSelected]}
+                          numberOfLines={2}
+                          adjustsFontSizeToFit
+                        >
+                          ${Number(monto).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </Text>
+                        <Text
+                          style={[styles.cuotaSubtext, isSelected && styles.cuotaSubtextSelected]}
+                        >
+                          {num === 1 ? 'Pago único' : num === 2 ? 'por cuota (c/u)' : 'por cuota · Recomendado'}
+                        </Text>
+                      </View>
                       {isSelected && (
                         <View style={styles.checkIcon}>
-                          <CheckCircle2 size={18} color="#22c55e" />
+                          <CheckCircle2 size={20} color="#22c55e" />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -970,21 +982,23 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   cuotasContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
+    flexDirection: 'column',
+    gap: 12,
+    marginBottom: 16,
   },
   cuotaCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 12,
-    padding: 12,
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 14,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     position: 'relative',
-    minHeight: 90,
+    flexDirection: 'row',
     justifyContent: 'center',
+    minHeight: 88,
   },
   cuotaCardSelected: {
     borderColor: 'rgba(34, 197, 94, 0.5)',
@@ -994,38 +1008,45 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
+  cuotaCardInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    paddingRight: 28,
+  },
   cuotaLabel: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.5)',
-    marginBottom: 4,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.55)',
+    marginBottom: 6,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
   cuotaLabelSelected: {
     color: '#4ade80',
     fontWeight: '600',
   },
   cuotaValue: {
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 2,
+    marginBottom: 4,
+    textAlign: 'center',
   },
   cuotaValueSelected: {
     color: '#22c55e',
   },
   cuotaSubtext: {
-    fontSize: 9,
-    color: 'rgba(255, 255, 255, 0.4)',
-    marginTop: 2,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.55)',
+    textAlign: 'center',
   },
   cuotaSubtextSelected: {
-    color: '#4ade80',
+    color: 'rgba(74, 222, 128, 0.9)',
   },
   checkIcon: {
     position: 'absolute',
-    top: 6,
-    right: 6,
+    top: 14,
+    right: 14,
   },
   resumenContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',

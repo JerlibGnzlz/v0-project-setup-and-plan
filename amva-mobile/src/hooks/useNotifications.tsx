@@ -45,13 +45,14 @@ export function useNotifications() {
       const type = data.type as string
       
       if (type === 'pago_validado') {
-        // Navegar a la pantalla de convenciones si es una notificación de pago validado
+        navigation.navigate('Convenciones')
+      } else if (type === 'pago_rechazado') {
+        navigation.navigate('Convenciones')
+      } else if (type === 'pago_rehabilitado') {
         navigation.navigate('Convenciones')
       } else if (type === 'inscripcion_confirmada') {
-        // Navegar a convenciones si la inscripción está confirmada
         navigation.navigate('Convenciones')
       }
-      // Agregar más tipos de notificaciones según sea necesario
     } catch (error) {
       console.error('Error navegando desde notificación:', error)
     }

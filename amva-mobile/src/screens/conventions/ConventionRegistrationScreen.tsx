@@ -220,14 +220,15 @@ export function ConventionRegistrationScreen() {
         placeholderTextColor="rgba(148,163,184,0.5)"
       />
 
-      <Text style={styles.label}>Teléfono</Text>
+      <Text style={styles.label}>Teléfono (celular)</Text>
       <TextInput
         style={styles.input}
         value={telefono}
-        onChangeText={setTelefono}
-        placeholder="+54 11 1234-5678"
+        onChangeText={value => setTelefono(value.replace(/\D/g, '').slice(0, 15))}
+        placeholder="Ej: 612345678 (9 o 10 dígitos)"
         keyboardType="phone-pad"
         placeholderTextColor="rgba(148,163,184,0.5)"
+        maxLength={15}
       />
 
       <Text style={styles.label}>Iglesia / Sede</Text>

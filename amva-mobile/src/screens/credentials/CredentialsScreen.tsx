@@ -292,21 +292,52 @@ export function CredentialsScreen() {
           </View>
         )}
 
-        {/* Error State */}
-        {error && !isLoading && (
+        {/* Banner cuando hay error pero tenemos datos en caché: mantener la info visible */}
+        {error && !isLoading && data && credencialesList.length > 0 && (
+          <TouchableOpacity
+            style={styles.errorBanner}
+            onPress={refreshCredenciales}
+            activeOpacity={0.9}
+          >
+            <AlertCircle size={20} color="#fbbf24" />
+            <View style={styles.errorBannerContent}>
+              <Text style={styles.errorBannerTitle}>No se pudo actualizar</Text>
+              <Text style={styles.errorBannerText}>
+                Se muestran tus credenciales guardadas. Toca para reintentar o cierra sesión en Perfil y vuelve a entrar.
+              </Text>
+            </View>
+            <RefreshCw size={20} color="#fbbf24" />
+          </TouchableOpacity>
+        )}
+
+        {/* Error State completo: solo cuando no hay datos previos para mostrar */}
+        {error && !isLoading && (!data || credencialesList.length === 0) && (
           <View style={styles.errorContainer}>
             <AlertCircle size={48} color="#ef4444" />
             <Text style={styles.errorTitle}>Error al cargar credenciales</Text>
             <Text style={styles.errorText}>
-              {error instanceof Error ? error.message : 'Error desconocido'}
+              {(() => {
+                const msg = error instanceof Error ? error.message : 'Error desconocido'
+                if (msg.includes('401') || msg.includes('Unauthorized') || msg.includes('No autorizado')) {
+                  return 'Sesión expirada o no autorizada.'
+                }
+                return msg
+              })()}
             </Text>
             {(error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthorized') || error.message.includes('No autorizado'))) ||
             (typeof (error as { message?: string })?.message === 'string' &&
               ((error as { message: string }).message.includes('401') ||
                 (error as { message: string }).message.includes('Unauthorized'))) ? (
-              <Text style={styles.errorHint}>
-                Tu sesión pudo haber expirado. Cierra sesión en Perfil y vuelve a iniciar con el mismo correo para ver tu credencial.
-              </Text>
+              <>
+                <Text style={styles.errorHint}>
+                  Tu sesión pudo haber expirado. Cierra sesión en Perfil y vuelve a iniciar con el mismo correo para ver tu credencial.
+                </Text>
+                {!isInvitadoAuthenticated && !isPastorAuthenticated ? (
+                  <Text style={[styles.errorHint, { marginTop: 8 }]}>
+                    Si aún no has iniciado sesión, ve a Perfil e inicia sesión con Google.
+                  </Text>
+                ) : null}
+              </>
             ) : null}
             <TouchableOpacity style={styles.retryButton} onPress={refreshCredenciales}>
               <RefreshCw size={20} color="#fff" />
@@ -433,8 +464,8 @@ export function CredentialsScreen() {
             </View>
           )}
 
-        {/* Credenciales encontradas */}
-        {!isLoading && !error && data?.tieneCredenciales && credencialesList.length > 0 && data?.resumen && (
+        {/* Credenciales encontradas (se muestran también con error si hay datos en caché) */}
+        {!isLoading && data?.tieneCredenciales && credencialesList.length > 0 && data?.resumen && (
           <CredentialsWizard
             currentStep={currentStep}
             totalSteps={totalSteps}
@@ -591,6 +622,32 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
     paddingHorizontal: 16,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(251, 191, 36, 0.12)',
+    borderColor: 'rgba(251, 191, 36, 0.35)',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+    gap: 12,
+  },
+  errorBannerContent: {
+    flex: 1,
+  },
+  errorBannerTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fbbf24',
+    marginBottom: 2,
+  },
+  errorBannerText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.85)',
+    lineHeight: 18,
   },
   completadaHintBox: {
     flexDirection: 'row',
