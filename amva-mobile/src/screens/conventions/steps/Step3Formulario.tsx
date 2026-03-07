@@ -211,13 +211,11 @@ export function Step3Formulario({
       newErrors.email = 'El correo electrónico debe tener entre 5 y 254 caracteres'
     }
 
-    // Validar teléfono si está presente (es opcional pero si se proporciona debe cumplir requisitos)
+    // Validar teléfono celular si está presente (9 a 15 dígitos)
     if (formData.telefono && formData.telefono.trim().length > 0) {
-      const phoneDigits = formData.telefono.replace(/\D/g, '')
-      if (phoneDigits.length < 8 || phoneDigits.length > 20) {
-        newErrors.telefono = 'El teléfono debe tener entre 8 y 20 dígitos'
-      } else if (!/^\+?[\d\s\-()]+$/.test(formData.telefono.trim())) {
-        newErrors.telefono = 'El teléfono solo puede contener números, espacios, guiones, paréntesis y el símbolo +'
+      const digits = formData.telefono.replace(/\D/g, '')
+      if (digits.length < 9 || digits.length > 15) {
+        newErrors.telefono = 'El celular debe tener entre 9 y 15 dígitos'
       }
     }
 
@@ -531,23 +529,25 @@ export function Step3Formulario({
 
             {/* Teléfono */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Teléfono</Text>
+              <Text style={styles.label}>Teléfono (celular)</Text>
               <TextInput
                 ref={ref => {
                   inputRefs.current['telefono'] = ref
                 }}
                 style={styles.input}
                 value={formData.telefono}
-                onChangeText={value => handleChange('telefono', value)}
+                onChangeText={value => handleChange('telefono', value.replace(/\D/g, '').slice(0, 15))}
                 keyboardType="phone-pad"
-                placeholder="+54 11 1234-5678 (contacto para la convención)"
+                placeholder="Ej: 612345678 (9 o 10 dígitos)"
                 placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                maxLength={15}
                 returnKeyType="next"
                 onFocus={() => handleInputFocus('telefono')}
                 onBlur={() => handleInputBlur('telefono', formData.telefono)}
                 onLayout={e => handleInputLayout('telefono', e)}
                 onSubmitEditing={() => Keyboard.dismiss()}
               />
+              <Text style={styles.helperText}>Entre 9 y 15 dígitos, sin espacios ni guiones</Text>
             </View>
 
             {/* País */}

@@ -120,18 +120,24 @@ export function Step2ConvencionInfo({
                     end={{ x: 1, y: 1 }}
                   />
                 )}
-                <Text style={[styles.cuotaLabel, numeroCuotas === 1 && styles.cuotaLabelSelected]}>
-                  1 Cuota
-                </Text>
-                <Text style={[styles.cuotaValue, numeroCuotas === 1 && styles.cuotaValueSelected]}>
-                  ${Number(montoPorCuota1).toFixed(2)}
-                </Text>
-                <Text style={[styles.cuotaSubtext, numeroCuotas === 1 && styles.cuotaSubtextSelected]}>
-                  Pago único
-                </Text>
+                <View style={styles.cuotaCardInner}>
+                  <Text style={[styles.cuotaLabel, numeroCuotas === 1 && styles.cuotaLabelSelected]}>
+                    1 CUOTA
+                  </Text>
+                  <Text
+                    style={[styles.cuotaValue, numeroCuotas === 1 && styles.cuotaValueSelected]}
+                    numberOfLines={2}
+                    adjustsFontSizeToFit
+                  >
+                    ${Number(montoPorCuota1).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Text>
+                  <Text style={[styles.cuotaSubtext, numeroCuotas === 1 && styles.cuotaSubtextSelected]}>
+                    Pago único
+                  </Text>
+                </View>
                 {numeroCuotas === 1 && (
                   <View style={styles.checkIcon}>
-                    <CheckCircle2 size={18} color="#22c55e" />
+                    <CheckCircle2 size={20} color="#22c55e" />
                   </View>
                 )}
               </TouchableOpacity>
@@ -152,18 +158,24 @@ export function Step2ConvencionInfo({
                     end={{ x: 1, y: 1 }}
                   />
                 )}
-                <Text style={[styles.cuotaLabel, numeroCuotas === 2 && styles.cuotaLabelSelected]}>
-                  2 Cuotas
-                </Text>
-                <Text style={[styles.cuotaValue, numeroCuotas === 2 && styles.cuotaValueSelected]}>
-                  ${Number(montoPorCuota2).toFixed(2)}
-                </Text>
-                <Text style={[styles.cuotaSubtext, numeroCuotas === 2 && styles.cuotaSubtextSelected]}>
-                  c/u
-                </Text>
+                <View style={styles.cuotaCardInner}>
+                  <Text style={[styles.cuotaLabel, numeroCuotas === 2 && styles.cuotaLabelSelected]}>
+                    2 CUOTAS
+                  </Text>
+                  <Text
+                    style={[styles.cuotaValue, numeroCuotas === 2 && styles.cuotaValueSelected]}
+                    numberOfLines={2}
+                    adjustsFontSizeToFit
+                  >
+                    ${Number(montoPorCuota2).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Text>
+                  <Text style={[styles.cuotaSubtext, numeroCuotas === 2 && styles.cuotaSubtextSelected]}>
+                    por cuota (c/u)
+                  </Text>
+                </View>
                 {numeroCuotas === 2 && (
                   <View style={styles.checkIcon}>
-                    <CheckCircle2 size={18} color="#22c55e" />
+                    <CheckCircle2 size={20} color="#22c55e" />
                   </View>
                 )}
               </TouchableOpacity>
@@ -184,18 +196,24 @@ export function Step2ConvencionInfo({
                     end={{ x: 1, y: 1 }}
                   />
                 )}
-                <Text style={[styles.cuotaLabel, numeroCuotas === 3 && styles.cuotaLabelSelected]}>
-                  3 Cuotas
-                </Text>
-                <Text style={[styles.cuotaValue, numeroCuotas === 3 && styles.cuotaValueSelected]}>
-                  ${Number(montoPorCuota3).toFixed(2)}
-                </Text>
-                <Text style={[styles.cuotaSubtext, numeroCuotas === 3 && styles.cuotaSubtextSelected]}>
-                  ⭐ Recomendado
-                </Text>
+                <View style={styles.cuotaCardInner}>
+                  <Text style={[styles.cuotaLabel, numeroCuotas === 3 && styles.cuotaLabelSelected]}>
+                    3 CUOTAS
+                  </Text>
+                  <Text
+                    style={[styles.cuotaValue, numeroCuotas === 3 && styles.cuotaValueSelected]}
+                    numberOfLines={2}
+                    adjustsFontSizeToFit
+                  >
+                    ${Number(montoPorCuota3).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Text>
+                  <Text style={[styles.cuotaSubtext, numeroCuotas === 3 && styles.cuotaSubtextSelected]}>
+                    por cuota · Recomendado
+                  </Text>
+                </View>
                 {numeroCuotas === 3 && (
                   <View style={styles.checkIcon}>
-                    <CheckCircle2 size={18} color="#22c55e" />
+                    <CheckCircle2 size={20} color="#22c55e" />
                   </View>
                 )}
               </TouchableOpacity>
@@ -411,21 +429,23 @@ const styles = StyleSheet.create({
     color: '#ef4444',
   },
   cuotasContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
+    flexDirection: 'column',
+    gap: 12,
+    marginBottom: 16,
   },
   cuotaCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 12,
-    padding: 12,
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 14,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     position: 'relative',
-    minHeight: 90,
+    flexDirection: 'row',
     justifyContent: 'center',
+    minHeight: 88,
   },
   cuotaCardSelected: {
     borderColor: 'rgba(34, 197, 94, 0.5)',
@@ -435,38 +455,45 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
+  cuotaCardInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    paddingRight: 28,
+  },
   cuotaLabel: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.5)',
-    marginBottom: 4,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.55)',
+    marginBottom: 6,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
   cuotaLabelSelected: {
     color: '#4ade80',
     fontWeight: '600',
   },
   cuotaValue: {
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 2,
+    marginBottom: 4,
+    textAlign: 'center',
   },
   cuotaValueSelected: {
     color: '#22c55e',
   },
   cuotaSubtext: {
-    fontSize: 9,
-    color: 'rgba(255, 255, 255, 0.4)',
-    marginTop: 2,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.55)',
+    textAlign: 'center',
   },
   cuotaSubtextSelected: {
-    color: '#4ade80',
+    color: 'rgba(74, 222, 128, 0.9)',
   },
   checkIcon: {
     position: 'absolute',
-    top: 6,
-    right: 6,
+    top: 14,
+    right: 14,
   },
   resumenContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',

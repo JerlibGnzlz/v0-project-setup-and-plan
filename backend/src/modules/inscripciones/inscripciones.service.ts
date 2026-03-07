@@ -2209,6 +2209,58 @@ export class InscripcionesService {
                 } catch (emailError) {
                     this.logger.error(`Error enviando email de pago rechazado a ${inscripcion.email}:`, emailError)
                 }
+
+                // Enviar push al invitado en el móvil para que vea el rechazo y el motivo
+                try {
+                    const invitadoConTokens = await this.prisma.invitado.findUnique({
+                        where: { email: inscripcion.email },
+                        include: {
+                            auth: {
+                                include: {
+                                    deviceTokens: {
+                                        where: { active: true },
+                                    },
+                                },
+                            },
+                        },
+                    })
+
+                    if (invitadoConTokens?.auth?.deviceTokens && invitadoConTokens.auth.deviceTokens.length > 0) {
+                        const titulo = '❌ Pago rechazado'
+                        const mensaje = motivo
+                            ? `Tu pago de ${montoFormateado} fue rechazado. Motivo: ${motivo}`
+                            : `Tu pago de ${montoFormateado} fue rechazado. Revisa tu inscripción para más detalles.`
+
+                        let successCount = 0
+                        for (const deviceToken of invitadoConTokens.auth.deviceTokens) {
+                            try {
+                                const sent = await this.notificationsService.sendPushNotification(
+                                    deviceToken.token,
+                                    titulo,
+                                    mensaje,
+                                    {
+                                        type: 'pago_rechazado',
+                                        pagoId: pago.id,
+                                        inscripcionId: inscripcion.id,
+                                        motivo: motivo || '',
+                                        monto,
+                                        convencionTitulo: inscripcionCompleta.convencion?.titulo || 'Convención',
+                                    }
+                                )
+                                if (sent) successCount++
+                            } catch (tokenError) {
+                                this.logger.warn(`Error enviando push rechazo a token:`, tokenError)
+                            }
+                        }
+                        if (successCount > 0) {
+                            this.logger.log(
+                                `📱 Push de pago rechazado enviada a ${inscripcion.email}: ${successCount} dispositivo(s)`
+                            )
+                        }
+                    }
+                } catch (pushError) {
+                    this.logger.error(`Error enviando push de pago rechazado a ${inscripcion.email}:`, pushError)
+                }
             }
 
             // Emitir evento como backup (para push/web notifications)
@@ -2319,6 +2371,59 @@ export class InscripcionesService {
                     }
                 } catch (emailError) {
                     this.logger.error(`Error enviando email de pago rehabilitado a ${inscripcion.email}:`, emailError)
+                }
+
+                // Enviar push al invitado para que vea en la app que puede subir de nuevo el comprobante
+                try {
+                    const invitadoConTokens = await this.prisma.invitado.findUnique({
+                        where: { email: inscripcion.email },
+                        include: {
+                            auth: {
+                                include: {
+                                    deviceTokens: {
+                                        where: { active: true },
+                                    },
+                                },
+                            },
+                        },
+                    })
+
+                    if (invitadoConTokens?.auth?.deviceTokens && invitadoConTokens.auth.deviceTokens.length > 0) {
+                        const montoFormateado = new Intl.NumberFormat('es-AR', {
+                            style: 'currency',
+                            currency: 'ARS',
+                        }).format(monto)
+                        const titulo = '✅ Pago rehabilitado'
+                        const mensaje = `Tu pago de ${montoFormateado} fue rehabilitado. Puedes subir un nuevo comprobante desde la app.`
+
+                        let successCount = 0
+                        for (const deviceToken of invitadoConTokens.auth.deviceTokens) {
+                            try {
+                                const sent = await this.notificationsService.sendPushNotification(
+                                    deviceToken.token,
+                                    titulo,
+                                    mensaje,
+                                    {
+                                        type: 'pago_rehabilitado',
+                                        pagoId: pago.id,
+                                        inscripcionId: inscripcion.id,
+                                        monto,
+                                        convencionTitulo: inscripcionCompleta.convencion?.titulo || 'Convención',
+                                    }
+                                )
+                                if (sent) successCount++
+                            } catch (tokenError) {
+                                this.logger.warn(`Error enviando push rehabilitado a token:`, tokenError)
+                            }
+                        }
+                        if (successCount > 0) {
+                            this.logger.log(
+                                `📱 Push de pago rehabilitado enviada a ${inscripcion.email}: ${successCount} dispositivo(s)`
+                            )
+                        }
+                    }
+                } catch (pushError) {
+                    this.logger.error(`Error enviando push de pago rehabilitado a ${inscripcion.email}:`, pushError)
                 }
             }
 

@@ -24,6 +24,8 @@ import {
   CheckCircle2,
   Loader2,
   Receipt,
+  ChevronLeft,
+  ArrowRight,
 } from 'lucide-react-native'
 import { CustomPicker } from '@components/ui/CustomPicker'
 import { type Convencion } from '@api/convenciones'
@@ -138,6 +140,10 @@ export function Step2UnifiedForm({
   const [uploadingDocument, setUploadingDocument] = useState(false)
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null)
 
+  // Wizard: 1 = Convención, 2 = Plan de pago, 3 = Datos personales
+  const WIZARD_STEPS = 3
+  const [wizardStep, setWizardStep] = useState(1)
+
   // Usar parseISO para evitar problemas de zona horaria
   const fechaInicio = parseISO(convencion.fechaInicio)
   const fechaFin = parseISO(convencion.fechaFin)
@@ -181,8 +187,11 @@ export function Step2UnifiedForm({
         newErrors.email = 'Correo electrónico inválido'
       }
     }
-    if (formData.telefono && (formData.telefono.length < 8 || formData.telefono.length > 20)) {
-      newErrors.telefono = 'El teléfono debe tener entre 8 y 20 caracteres'
+    if (formData.telefono && formData.telefono.trim().length > 0) {
+      const digits = formData.telefono.replace(/\D/g, '')
+      if (digits.length < 9 || digits.length > 15) {
+        newErrors.telefono = 'El celular debe tener entre 9 y 15 dígitos'
+      }
     }
     if (!formData.pais.trim()) {
       newErrors.pais = 'El país es requerido'
@@ -355,6 +364,8 @@ export function Step2UnifiedForm({
     }
   }
 
+  const stepTitles = ['La convención', 'Plan de pago', 'Tus datos']
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -373,14 +384,30 @@ export function Step2UnifiedForm({
         bounces={true}
       >
         <View style={styles.card}>
-          {/* Header */}
+          {/* Wizard header: título + paso actual */}
           <View style={styles.header}>
             <Text style={styles.title}>Completa tu Inscripción</Text>
-            <Text style={styles.subtitle}>Revisa y confirma tus datos</Text>
+            <Text style={styles.subtitle}>
+              Paso {wizardStep} de {WIZARD_STEPS} · {stepTitles[wizardStep - 1]}
+            </Text>
+            <View style={styles.wizardDots}>
+              {[1, 2, 3].map(step => (
+                <View
+                  key={step}
+                  style={[
+                    styles.wizardDot,
+                    step === wizardStep && styles.wizardDotActive,
+                    step < wizardStep && styles.wizardDotCompleted,
+                  ]}
+                />
+              ))}
+            </View>
           </View>
 
-          {/* Información de Convención (Resumida) - Igual que en la web */}
-          <View style={styles.convencionInfo}>
+          {/* ========== PASO 1: Información de la convención ========== */}
+          {wizardStep === 1 && (
+            <>
+              <View style={styles.convencionInfo}>
             <View style={styles.convencionInfoHeader}>
               <Calendar size={18} color="#22c55e" />
               <Text style={styles.convencionInfoTitle}>{convencion.titulo}</Text>
@@ -405,7 +432,26 @@ export function Step2UnifiedForm({
               </View>
             </View>
           </View>
+              <View style={styles.wizardNav}>
+                <TouchableOpacity style={styles.wizardButtonSecondary} onPress={onBack}>
+                  <ChevronLeft size={20} color="#22c55e" />
+                  <Text style={styles.wizardButtonSecondaryText}>Atrás</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.wizardButtonPrimary}
+                  onPress={() => setWizardStep(2)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.wizardButtonPrimaryText}>Siguiente</Text>
+                  <ArrowRight size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
 
+          {/* ========== PASO 2: Plan de pago ========== */}
+          {wizardStep === 2 && (
+            <>
           {/* Evento gratuito */}
           {esGratuito && (
             <View style={[styles.paymentPlanSection, { backgroundColor: 'rgba(34, 197, 94, 0.08)', borderColor: 'rgba(34, 197, 94, 0.25)' }]}>
@@ -440,19 +486,26 @@ export function Step2UnifiedForm({
                         />
                       )}
                       <View style={styles.cuotaContent}>
-                        <Text style={[styles.cuotaLabel, isSelected && styles.cuotaLabelSelected]}>
-                          {num} {num === 1 ? 'Cuota' : 'Cuotas'}
+                        <Text
+                          style={[styles.cuotaLabel, isSelected && styles.cuotaLabelSelected]}
+                        >
+                          {num} {num === 1 ? 'CUOTA' : 'CUOTAS'}
                         </Text>
-                        <Text style={[styles.cuotaValue, isSelected && styles.cuotaValueSelected]}>
-                          ${monto.toFixed(2)}
-                          {num > 1 && ' c/u'}
+                        <Text
+                          style={[styles.cuotaValue, isSelected && styles.cuotaValueSelected]}
+                          numberOfLines={2}
+                          adjustsFontSizeToFit
+                        >
+                          ${Number(monto).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </Text>
-                        {num === 3 && (
-                          <Text style={styles.recommendedBadge}>⭐ Recomendado</Text>
-                        )}
+                        <Text
+                          style={[styles.cuotaSubtext, isSelected && styles.cuotaSubtextSelected]}
+                        >
+                          {num === 1 ? 'Pago único' : num === 2 ? 'por cuota (c/u)' : 'por cuota · Recomendado'}
+                        </Text>
                       </View>
                       {isSelected && (
-                        <CheckCircle2 size={18} color="#22c55e" style={styles.checkIcon} />
+                        <CheckCircle2 size={20} color="#22c55e" style={styles.checkIcon} />
                       )}
                     </TouchableOpacity>
                   )
@@ -463,7 +516,26 @@ export function Step2UnifiedForm({
               )}
             </View>
           )}
+              <View style={styles.wizardNav}>
+                <TouchableOpacity style={styles.wizardButtonSecondary} onPress={() => setWizardStep(1)}>
+                  <ChevronLeft size={20} color="#22c55e" />
+                  <Text style={styles.wizardButtonSecondaryText}>Atrás</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.wizardButtonPrimary}
+                  onPress={() => setWizardStep(3)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.wizardButtonPrimaryText}>Siguiente</Text>
+                  <ArrowRight size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
 
+          {/* ========== PASO 3: Datos personales y confirmación ========== */}
+          {wizardStep === 3 && (
+            <>
           {/* Datos Personales */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -533,7 +605,7 @@ export function Step2UnifiedForm({
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                <Phone size={12} color="rgba(255, 255, 255, 0.6)" /> Teléfono
+                <Phone size={12} color="rgba(255, 255, 255, 0.6)" /> Teléfono (celular)
               </Text>
               <TextInput
                 ref={ref => {
@@ -541,11 +613,13 @@ export function Step2UnifiedForm({
                 }}
                 style={[styles.input, errors.telefono && styles.inputError]}
                 value={formData.telefono}
-                onChangeText={value => handleChange('telefono', value)}
+                onChangeText={value => handleChange('telefono', value.replace(/\D/g, '').slice(0, 15))}
                 keyboardType="phone-pad"
-                placeholder="+54 11 1234-5678 (contacto para la convención)"
+                placeholder="Ej: 612345678 (9 o 10 dígitos)"
                 placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                maxLength={15}
               />
+              <Text style={styles.helperText}>Entre 9 y 15 dígitos, sin espacios ni guiones</Text>
               {errors.telefono && <Text style={styles.errorText}>{errors.telefono}</Text>}
             </View>
 
@@ -730,34 +804,33 @@ export function Step2UnifiedForm({
             </View>
           )}
 
-          {/* Actions */}
-          <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.submitButton, (loading || yaInscrito) && styles.buttonDisabled]}
-              onPress={handleSubmit}
-              disabled={loading || yaInscrito}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={['#22c55e', '#16a34a']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.submitButtonGradient}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={18} color="#fff" />
-                    <Text style={styles.submitButtonText}>Enviando...</Text>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 size={18} color="#fff" />
-                    <Text style={styles.submitButtonText}>Confirmar Inscripción</Text>
-                  </>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+          {/* Paso 3: navegación (Atrás + Confirmar) */}
+              <View style={styles.wizardNav}>
+                <TouchableOpacity style={styles.wizardButtonSecondary} onPress={() => setWizardStep(2)}>
+                  <ChevronLeft size={20} color="#22c55e" />
+                  <Text style={styles.wizardButtonSecondaryText}>Atrás</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.wizardButtonPrimary, (loading || yaInscrito) && styles.buttonDisabled]}
+                  onPress={handleSubmit}
+                  disabled={loading || yaInscrito}
+                  activeOpacity={0.8}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 size={20} color="#fff" />
+                      <Text style={styles.wizardButtonPrimaryText}>Enviando...</Text>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={20} color="#fff" />
+                      <Text style={styles.wizardButtonPrimaryText}>Confirmar Inscripción</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -799,6 +872,65 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: 'rgba(255, 255, 255, 0.65)',
     textAlign: 'center',
+    marginBottom: 12,
+  },
+  wizardDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  wizardDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  wizardDotActive: {
+    backgroundColor: '#22c55e',
+    width: 24,
+  },
+  wizardDotCompleted: {
+    backgroundColor: 'rgba(34, 197, 94, 0.6)',
+  },
+  wizardNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 24,
+    gap: 12,
+  },
+  wizardButtonSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(34, 197, 94, 0.5)',
+    gap: 6,
+  },
+  wizardButtonSecondaryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#22c55e',
+  },
+  wizardButtonPrimary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: '#22c55e',
+    gap: 8,
+  },
+  wizardButtonPrimaryText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#fff',
   },
   convencionInfo: {
     backgroundColor: 'rgba(34, 197, 94, 0.1)',
@@ -858,20 +990,22 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   cuotasContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
+    flexDirection: 'column',
+    gap: 12,
+    marginBottom: 16,
   },
   cuotaCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 12,
-    padding: 12,
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 14,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     position: 'relative',
-    minHeight: 80,
+    flexDirection: 'row',
     justifyContent: 'center',
+    minHeight: 88,
   },
   cuotaCardSelected: {
     borderColor: 'rgba(34, 197, 94, 0.5)',
@@ -883,26 +1017,38 @@ const styles = StyleSheet.create({
   },
   cuotaContent: {
     alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    paddingRight: 28,
   },
   cuotaLabel: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.5)',
-    marginBottom: 4,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.55)',
+    marginBottom: 6,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
   cuotaLabelSelected: {
     color: '#4ade80',
     fontWeight: '600',
   },
   cuotaValue: {
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 2,
+    marginBottom: 4,
+    textAlign: 'center',
   },
   cuotaValueSelected: {
     color: '#22c55e',
+  },
+  cuotaSubtext: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.55)',
+    textAlign: 'center',
+  },
+  cuotaSubtextSelected: {
+    color: 'rgba(74, 222, 128, 0.9)',
   },
   recommendedBadge: {
     fontSize: 9,
@@ -911,8 +1057,8 @@ const styles = StyleSheet.create({
   },
   checkIcon: {
     position: 'absolute',
-    top: 6,
-    right: 6,
+    top: 14,
+    right: 14,
   },
   summarySection: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',

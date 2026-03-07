@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   View,
   Text,
@@ -7,10 +7,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
-  Alert as RNAlert,
   Modal,
   Dimensions,
+  RefreshControl,
 } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as Clipboard from 'expo-clipboard'
 import {
@@ -58,6 +59,7 @@ export function InscripcionStatusScreen({
 }: InscripcionStatusScreenProps) {
   const { isAuthenticated, invitado } = useInvitadoAuth()
   const [loading, setLoading] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
   const [uploadingComprobante, setUploadingComprobante] = useState(false)
   const [pagoSeleccionado, setPagoSeleccionado] = useState<string | null>(null)
   const [inscripcionCompleta, setInscripcionCompleta] = useState<Inscripcion | null>(inscripcion)
@@ -68,35 +70,42 @@ export function InscripcionStatusScreen({
     inscripcion.pagos && Array.isArray(inscripcion.pagos) ? (inscripcion.pagos as Pago[]) : []
   )
 
-  // Cargar información completa de la inscripción con pagos
-  useEffect(() => {
-    const loadInscripcionCompleta = async () => {
-      try {
-        setLoading(true)
-        const inscripcionData = await inscripcionesApi.getById(inscripcion.id)
-        setInscripcionCompleta(inscripcionData)
-        
-        // Si la inscripción tiene pagos, cargarlos
-        if (inscripcionData.pagos && Array.isArray(inscripcionData.pagos)) {
-          console.log('📋 Pagos cargados:', inscripcionData.pagos.length)
-          console.log('📋 Detalles de pagos:', JSON.stringify(inscripcionData.pagos, null, 2))
-          setPagos(inscripcionData.pagos as Pago[])
-        } else {
-          console.log('⚠️ No se encontraron pagos en la inscripción')
-          setPagos([])
-        }
-      } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Error al cargar la inscripción'
-        console.error('Error cargando inscripción:', errorMessage)
-        CustomAlert.alert('Error', 'No se pudo cargar la información de la inscripción', undefined, 'error')
-      } finally {
-        setLoading(false)
+  const loadInscripcionCompleta = useCallback(async (showLoader = true) => {
+    try {
+      if (showLoader) setLoading(true)
+      const inscripcionData = await inscripcionesApi.getById(inscripcion.id)
+      setInscripcionCompleta(inscripcionData)
+      if (inscripcionData.pagos && Array.isArray(inscripcionData.pagos)) {
+        setPagos(inscripcionData.pagos as Pago[])
+      } else {
+        setPagos([])
       }
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error al cargar la inscripción'
+      console.error('Error cargando inscripción:', errorMessage)
+      CustomAlert.alert('Error', 'No se pudo cargar la información de la inscripción', undefined, 'error')
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
     }
-
-    void loadInscripcionCompleta()
   }, [inscripcion.id])
+
+  useEffect(() => {
+    void loadInscripcionCompleta(true)
+  }, [loadInscripcionCompleta])
+
+  // Refrescar al volver a esta pantalla (sin cerrar sesión) para ver si un pago fue validado/rechazado
+  useFocusEffect(
+    useCallback(() => {
+      void loadInscripcionCompleta(false)
+    }, [loadInscripcionCompleta])
+  )
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true)
+    void loadInscripcionCompleta(false)
+  }, [loadInscripcionCompleta])
 
   const codigoReferencia = inscripcionCompleta?.codigoReferencia || `AMVA-2025-${inscripcion.id.substring(0, 6).toUpperCase()}`
 
@@ -162,8 +171,8 @@ export function InscripcionStatusScreen({
       setUploadingComprobante(true)
       setPagoSeleccionado(pagoId)
 
-      // Mostrar opciones: Galería o Cámara
-      RNAlert.alert(
+      // Mostrar opciones: Galería o Cámara (mismo estilo que el resto de alertas de la app)
+      CustomAlert.alert(
         'Seleccionar comprobante',
         '¿Desde dónde deseas seleccionar el comprobante?',
         [
@@ -181,7 +190,6 @@ export function InscripcionStatusScreen({
               try {
                 const uri = await pickImage('gallery')
                 if (uri) {
-                  // Guardar la imagen seleccionada y mostrar preview
                   setImagenSeleccionada({ uri, pagoId })
                   setShowPreviewModal(true)
                   setUploadingComprobante(false)
@@ -202,7 +210,6 @@ export function InscripcionStatusScreen({
               try {
                 const uri = await pickImage('camera')
                 if (uri) {
-                  // Guardar la imagen seleccionada y mostrar preview
                   setImagenSeleccionada({ uri, pagoId })
                   setShowPreviewModal(true)
                   setUploadingComprobante(false)
@@ -218,7 +225,7 @@ export function InscripcionStatusScreen({
             },
           },
         ],
-        { cancelable: true }
+        'confirm'
       )
     } catch (error: unknown) {
       const errorMessage =
@@ -333,7 +340,18 @@ export function InscripcionStatusScreen({
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#22c55e']}
+            tintColor="#22c55e"
+          />
+        }
+      >
         {/* Header */}
         <View style={styles.header}>
           {!todosLosPagosCompletados && (
@@ -471,6 +489,7 @@ export function InscripcionStatusScreen({
               // Normalizar estado a mayúsculas para comparación
               const estadoNormalizado = String(pago.estado).toUpperCase()
               const estaPendiente = estadoNormalizado === 'PENDIENTE'
+              const estaRechazado = estadoNormalizado === 'CANCELADO'
               const tieneComprobante = !!pago.comprobanteUrl
               const estaSubiendo = uploadingComprobante && pagoSeleccionado === pago.id
               // Orden de cuotas: solo se puede subir comprobante de la siguiente en orden
@@ -498,6 +517,7 @@ export function InscripcionStatusScreen({
                         styles.paymentStatusBadge,
                         estadoNormalizado === 'COMPLETADO' && styles.paymentStatusBadgeCompleted,
                         estadoNormalizado === 'PENDIENTE' && styles.paymentStatusBadgePending,
+                        estaRechazado && styles.paymentStatusBadgeRechazado,
                       ]}
                     >
                       <Text
@@ -505,9 +525,14 @@ export function InscripcionStatusScreen({
                           styles.paymentStatusBadgeText,
                           estadoNormalizado === 'COMPLETADO' && styles.paymentStatusBadgeTextCompleted,
                           estadoNormalizado === 'PENDIENTE' && styles.paymentStatusBadgeTextPending,
+                          estaRechazado && styles.paymentStatusBadgeTextRechazado,
                         ]}
                       >
-                        {estadoNormalizado === 'COMPLETADO' ? 'Completado' : 'Pendiente'}
+                        {estadoNormalizado === 'COMPLETADO'
+                          ? 'Completado'
+                          : estaRechazado
+                            ? 'Rechazado'
+                            : 'Pendiente'}
                       </Text>
                     </View>
                   </View>
@@ -518,6 +543,15 @@ export function InscripcionStatusScreen({
                     })}{' '}
                     (pesos argentinos)
                   </Text>
+
+                  {estaRechazado && (
+                    <View style={styles.paymentUploadWarning}>
+                      <AlertCircle size={14} color="#f87171" />
+                      <Text style={styles.paymentRechazadoHint}>
+                        Este pago fue rechazado. Recibirás una notificación cuando un administrador lo rehabilité para que puedas subir un nuevo comprobante.
+                      </Text>
+                    </View>
+                  )}
                   
                   {/* Botón para subir comprobante (solo para pagos pendientes y en orden) */}
                   {estaPendiente && (
@@ -937,6 +971,13 @@ const styles = StyleSheet.create({
   paymentStatusBadgeTextPending: {
     color: '#fbbf24',
   },
+  paymentStatusBadgeRechazado: {
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+  },
+  paymentStatusBadgeTextRechazado: {
+    color: '#f87171',
+  },
   paymentAmount: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.8)',
@@ -1006,6 +1047,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#ef4444',
     lineHeight: 14,
+  },
+  paymentRechazadoHint: {
+    flex: 1,
+    fontSize: 12,
+    color: 'rgba(248, 113, 113, 0.95)',
+    lineHeight: 16,
   },
   uploadCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',

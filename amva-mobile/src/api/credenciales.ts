@@ -130,6 +130,12 @@ export const credencialesApi = {
         credenciales,
       }
     } catch (error: unknown) {
+      const axiosStatus = (error as { response?: { status?: number } })?.response?.status
+      const is401 = axiosStatus === 401
+      if (is401) {
+        console.warn('⚠️ Credenciales: sesión expirada o no autorizada (401). Se mantienen los datos en caché si los hay.')
+        throw new Error('Sesión expirada o no autorizada. Cierra sesión en Perfil y vuelve a entrar.')
+      }
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       console.error('❌ Error obteniendo credenciales unificadas:', errorMessage)
       throw error

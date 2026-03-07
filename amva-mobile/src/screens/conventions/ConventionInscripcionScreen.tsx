@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Image,
   Animated,
   Dimensions,
+  RefreshControl,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -42,8 +43,37 @@ export function ConventionInscripcionScreen() {
   const [inscripcionCompleta, setInscripcionCompleta] = useState(false)
   const [yaInscrito, setYaInscrito] = useState(false)
   const [inscripcionExistente, setInscripcionExistente] = useState<any>(null)
+  const [refreshing, setRefreshing] = useState(false)
   const slideAnim = useRef(new Animated.Value(0)).current
   const fadeAnim = useRef(new Animated.Value(1)).current
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      const activa = await convencionesApi.getActive()
+      const isActiva = activa && normalizeBoolean(activa.activa)
+      if (isActiva) {
+        setConvencion({
+          ...activa,
+          activa: normalizeBoolean(activa.activa),
+          archivada: normalizeBoolean(activa.archivada),
+        })
+        if (invitado?.email) {
+          const insc = await inscripcionesApi.checkInscripcion(activa.id, invitado.email)
+          setYaInscrito(!!insc)
+          setInscripcionExistente(insc || null)
+        }
+      } else {
+        setConvencion(null)
+        setYaInscrito(false)
+        setInscripcionExistente(null)
+      }
+    } catch (e) {
+      console.error('Error refrescando convención:', e)
+    } finally {
+      setRefreshing(false)
+    }
+  }, [invitado?.email])
 
   // Inicializar animaciones cuando cambia el step
   useEffect(() => {
@@ -328,10 +358,13 @@ export function ConventionInscripcionScreen() {
             </View>
           </LinearGradient>
 
-          <ScrollView 
-            style={styles.scrollView} 
+          <ScrollView
+            style={styles.scrollView}
             contentContainerStyle={styles.emptyContentContainer}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#22c55e']} tintColor="#22c55e" />
+            }
           >
             {/* Mensaje "Muy Pronto" similar a la web */}
             <View style={styles.comingSoonContainer}>
@@ -415,10 +448,13 @@ export function ConventionInscripcionScreen() {
           </View>
         </LinearGradient>
 
-        <ScrollView 
-          style={styles.scrollView} 
+        <ScrollView
+          style={styles.scrollView}
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={true}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#22c55e']} tintColor="#22c55e" />
+          }
         >
           {/* Progress Steps - Mejorado */}
           <View style={styles.stepsContainer}>
