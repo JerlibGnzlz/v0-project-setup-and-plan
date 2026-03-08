@@ -27,7 +27,7 @@ import {
   TipoCredencial,
 } from './dto/solicitud-credencial.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { InvitadoTokenGuard } from '../auth/guards/invitado-token.guard'
+import { InvitadoJwtAuthGuard } from '../auth/guards/invitado-jwt-auth.guard'
 import { AuthenticatedRequest, AuthenticatedInvitadoRequest } from '../auth/types/request.types'
 import { SanitizeSolicitudBodyInterceptor } from './sanitize-body.interceptor'
 
@@ -63,7 +63,7 @@ export class SolicitudesCredencialesController {
     })
   )
   @UseInterceptors(SanitizeSolicitudBodyInterceptor)
-  @UseGuards(InvitadoTokenGuard)
+  @UseGuards(InvitadoJwtAuthGuard)
   async create(
     @Request() req: AuthenticatedInvitadoRequest,
     @Body() dto: CreateSolicitudCredencialDto
@@ -195,7 +195,7 @@ export class SolicitudesCredencialesController {
    * IMPORTANTE: Rutas específicas deben ir ANTES de rutas con parámetros dinámicos
    */
   @Get('mis-solicitudes')
-  @UseGuards(InvitadoTokenGuard)
+  @UseGuards(InvitadoJwtAuthGuard)
   async getMisSolicitudes(@Request() req: AuthenticatedInvitadoRequest) {
     try {
       const invitadoId = req.user?.id

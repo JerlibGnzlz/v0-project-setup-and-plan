@@ -15,7 +15,6 @@ import { UnifiedAuthService } from './unified-auth.service'
 import { NotificationsModule } from '../notifications/notifications.module'
 import { TokenBlacklistService } from './services/token-blacklist.service'
 import { PastorOrInvitadoJwtAuthGuard } from './guards/pastor-or-invitado-jwt-auth.guard'
-import { InvitadoTokenGuard } from './guards/invitado-token.guard'
 
 @Module({
   imports: [
@@ -37,7 +36,6 @@ import { InvitadoTokenGuard } from './guards/invitado-token.guard'
     GoogleOAuthStrategy,
     UnifiedAuthService,
     TokenBlacklistService,
-    InvitadoTokenGuard,
   ],
   exports: [
     AuthService,
@@ -48,7 +46,6 @@ import { InvitadoTokenGuard } from './guards/invitado-token.guard'
     PastorJwtStrategy,
     InvitadoJwtStrategy,
     TokenBlacklistService,
-    InvitadoTokenGuard,
   ],
 })
 export class AuthModule {}
