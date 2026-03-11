@@ -11,8 +11,8 @@ import {
   Platform,
   KeyboardAvoidingView,
   Keyboard,
-  Alert,
 } from 'react-native'
+import { Alert as CustomAlert } from '@utils/alert'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { X, Clock } from 'lucide-react-native'
 import { LoadingButton } from '../ui/LoadingButton'
@@ -126,13 +126,15 @@ export function SolicitarCredencialModal({
   // Pre-llenar formulario con datos del invitado (después del reset)
   useEffect(() => {
     if (invitado && visible) {
-      const dniRaw = (invitado.dni ?? '').replace(/\D/g, '').slice(0, 8)
+      // Usar type assertion para propiedades opcionales que pueden venir del backend
+      const invitadoAny = invitado as Invitado & { dni?: string; nacionalidad?: string }
+      const dniRaw = (invitadoAny.dni ?? '').replace(/\D/g, '').slice(0, 8)
       setFormData(prev => ({
         ...prev,
         dni: dniRaw || prev.dni,
         nombre: invitado.nombre || prev.nombre,
         apellido: invitado.apellido || prev.apellido,
-        nacionalidad: invitado.nacionalidad || prev.nacionalidad,
+        nacionalidad: invitadoAny.nacionalidad || prev.nacionalidad,
       }))
     }
   }, [invitado, visible])
@@ -155,15 +157,15 @@ export function SolicitarCredencialModal({
     if (step === 1) return true
     if (step === 2) {
       if (!formData.dni.trim()) {
-        Alert.alert('Falta un dato', 'Completa el DNI para continuar.')
+        CustomAlert.alert('Falta un dato', 'Completa el DNI para continuar.', undefined, 'warning')
         return false
       }
       if (!formData.nombre.trim()) {
-        Alert.alert('Falta un dato', 'Completa el nombre para continuar.')
+        CustomAlert.alert('Falta un dato', 'Completa el nombre para continuar.', undefined, 'warning')
         return false
       }
       if (!formData.apellido.trim()) {
-        Alert.alert('Falta un dato', 'Completa el apellido para continuar.')
+        CustomAlert.alert('Falta un dato', 'Completa el apellido para continuar.', undefined, 'warning')
         return false
       }
       return true
@@ -186,20 +188,24 @@ export function SolicitarCredencialModal({
     const dniDigits = formData.dni.trim().replace(/\D/g, '')
 
     if (!dniDigits || !nombre || !apellido) {
-      Alert.alert('Falta un dato', 'Completa DNI, nombre y apellido para enviar.')
+      CustomAlert.alert('Falta un dato', 'Completa DNI, nombre y apellido para enviar.', undefined, 'warning')
       return
     }
     if (dniDigits.length < MIN_DNI_LEN || dniDigits.length > MAX_DNI_LEN) {
-      Alert.alert(
+      CustomAlert.alert(
         'DNI inválido',
-        `El DNI debe tener entre ${MIN_DNI_LEN} y ${MAX_DNI_LEN} caracteres (solo números).`
+        `El DNI debe tener entre ${MIN_DNI_LEN} y ${MAX_DNI_LEN} caracteres (solo números).`,
+        undefined,
+        'error'
       )
       return
     }
     if (nombre.length > MAX_NOMBRE_APELLIDO || apellido.length > MAX_NOMBRE_APELLIDO) {
-      Alert.alert(
+      CustomAlert.alert(
         'Nombre o apellido largo',
-        `Cada uno puede tener hasta ${MAX_NOMBRE_APELLIDO} caracteres.`
+        `Cada uno puede tener hasta ${MAX_NOMBRE_APELLIDO} caracteres.`,
+        undefined,
+        'error'
       )
       return
     }
@@ -587,7 +593,7 @@ export function SolicitarCredencialModal({
                 loading={loading}
                 title="Enviar solicitud"
                 variant="primary"
-                style={[styles.modalButton, styles.modalButtonSubmit]}
+                style={StyleSheet.flatten([styles.modalButton, styles.modalButtonSubmit])}
               />
             )}
           </View>

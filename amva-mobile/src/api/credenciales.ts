@@ -2,6 +2,7 @@
  * API para credenciales - Mobile
  */
 
+import * as SecureStore from 'expo-secure-store'
 import { apiClient } from './client'
 
 export interface Credencial {
@@ -131,11 +132,37 @@ export const credencialesApi = {
       }
     } catch (error: unknown) {
       const axiosStatus = (error as { response?: { status?: number } })?.response?.status
-      const is401 = axiosStatus === 401
-      if (is401) {
-        console.warn('⚠️ Credenciales: sesión expirada o no autorizada (401). Se mantienen los datos en caché si los hay.')
-        throw new Error('Sesión expirada o no autorizada. Cierra sesión en Perfil y vuelve a entrar.')
+      const errorObj = error as Error & { isSessionExpired?: boolean; requiresReauth?: boolean }
+      
+      // Si el error ya tiene las flags de sesión expirada, propagarlo tal cual
+      // (viene del interceptor después de intentar refrescar)
+      if (errorObj.isSessionExpired && error instanceof Error) {
+        throw error
       }
+      
+      // Si es 401 pero no tiene las flags, verificar si hay refresh token disponible
+      // Si hay refresh token, el interceptor debería haberlo manejado
+      // Solo marcar como expirada si realmente no hay refresh token
+      if (axiosStatus === 401) {
+        // Verificar si hay refresh token disponible antes de marcar como expirada
+        const invitadoRefresh = await SecureStore.getItemAsync('invitado_refresh_token').catch(() => null)
+        const pastorRefresh = await SecureStore.getItemAsync('refresh_token').catch(() => null)
+        
+        if (!invitadoRefresh && !pastorRefresh) {
+          // No hay refresh token, realmente está expirada
+          console.warn('⚠️ Credenciales: sesión expirada (401 sin refresh token). Se mantienen los datos en caché si los hay.')
+          const sessionError = new Error('Sesión expirada. Por favor, cierra sesión en Perfil y vuelve a entrar con Google.') as Error & { isSessionExpired?: boolean; requiresReauth?: boolean }
+          sessionError.isSessionExpired = true
+          sessionError.requiresReauth = true
+          throw sessionError
+        } else {
+          // Hay refresh token pero aún así falló - puede ser un problema temporal
+          // Propagar el error original para que el interceptor lo maneje
+          console.warn('⚠️ Credenciales: error 401 pero hay refresh token disponible. El interceptor debería haber refrescado.')
+          throw error
+        }
+      }
+      
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       console.error('❌ Error obteniendo credenciales unificadas:', errorMessage)
       throw error

@@ -9,7 +9,6 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
 } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { AlertCircle, CheckCircle, Info, X, AlertTriangle } from 'lucide-react-native'
 
 const { width } = Dimensions.get('window')
@@ -88,40 +87,30 @@ export function CustomAlert({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircle size={36} color="#22c55e" />
+        return <CheckCircle size={32} color="#22c55e" />
       case 'error':
-        return <AlertCircle size={36} color="#ef4444" />
+        return <AlertCircle size={32} color="#ef4444" />
       case 'warning':
         return <AlertTriangle size={28} color="#f59e0b" />
       case 'confirm':
-        return <Info size={36} color="#3b82f6" />
+        return <Info size={32} color="#3b82f6" />
       default:
-        return <Info size={36} color="#3b82f6" />
+        return null // Sin icono por defecto para estilo más limpio
     }
   }
 
-  const getGradientColors = () => {
-    switch (type) {
-      case 'success':
-        return ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)']
-      case 'error':
-        return ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)']
-      case 'warning':
-        return ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)']
-      case 'confirm':
-        return ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)']
-      default:
-        return ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)']
-    }
-  }
-
-  const getButtonTextColor = (buttonStyle?: string) => {
+  const getButtonColor = (buttonStyle?: string, isPrimary = false) => {
     if (buttonStyle === 'destructive') {
       return '#ef4444'
     }
     if (buttonStyle === 'cancel') {
-      return 'rgba(255, 255, 255, 0.65)'
+      return '#6b7280'
     }
+    // Botón primario siempre verde
+    if (isPrimary) {
+      return '#22c55e'
+    }
+    // Por tipo si no es primario
     switch (type) {
       case 'success':
         return '#22c55e'
@@ -130,9 +119,9 @@ export function CustomAlert({
       case 'warning':
         return '#f59e0b'
       case 'confirm':
-        return '#3b82f6'
+        return '#22c55e'
       default:
-        return '#3b82f6'
+        return '#22c55e'
     }
   }
 
@@ -146,6 +135,9 @@ export function CustomAlert({
   }
 
   if (!visible) return null
+
+  // Determinar botón primario (último botón o único botón)
+  const primaryButtonIndex = buttons.length - 1
 
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onDismiss}>
@@ -170,36 +162,44 @@ export function CustomAlert({
                 },
               ]}
             >
-              <LinearGradient colors={getGradientColors()} style={styles.content}>
-                <View style={styles.iconContainer}>{getIcon()}</View>
+              <View style={styles.content}>
+                {getIcon() && <View style={styles.iconContainer}>{getIcon()}</View>}
 
                 <Text style={styles.title}>{title}</Text>
 
                 {message && <Text style={styles.message}>{message}</Text>}
 
                 <View style={styles.buttonContainer}>
-                  {buttons.map((button, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={[
-                        styles.button,
-                        buttons.length > 1 && index < buttons.length - 1 && styles.buttonMargin,
-                      ]}
-                      onPress={() => handleButtonPress(button)}
-                      activeOpacity={0.8}
-                    >
-                      <Text
+                  {buttons.map((button, index) => {
+                    const isPrimary = index === primaryButtonIndex
+                    const buttonColor = getButtonColor(button.style, isPrimary)
+                    
+                    return (
+                      <TouchableOpacity
+                        key={index}
                         style={[
-                          styles.buttonText,
-                          { color: getButtonTextColor(button.style) },
+                          styles.button,
+                          isPrimary && styles.buttonPrimary,
+                          { backgroundColor: isPrimary ? buttonColor : 'transparent' },
+                          buttons.length > 1 && index < buttons.length - 1 && styles.buttonMargin,
                         ]}
+                        onPress={() => handleButtonPress(button)}
+                        activeOpacity={0.8}
                       >
-                        {button.text}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                        <Text
+                          style={[
+                            styles.buttonText,
+                            isPrimary ? styles.buttonTextPrimary : styles.buttonTextSecondary,
+                            !isPrimary && { color: buttonColor },
+                          ]}
+                        >
+                          {button.text}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  })}
                 </View>
-              </LinearGradient>
+              </View>
             </Animated.View>
           </TouchableWithoutFeedback>
         </Animated.View>
@@ -211,7 +211,7 @@ export function CustomAlert({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -221,49 +221,48 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   content: {
-    borderRadius: 14,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
   },
   iconContainer: {
     alignItems: 'center',
     marginBottom: 12,
   },
   title: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
+    color: '#1f2937',
     textAlign: 'center',
-    marginBottom: 6,
-    letterSpacing: -0.3,
+    marginBottom: 8,
   },
   message: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.65)',
+    fontSize: 14,
+    color: '#4b5563',
     textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 18,
+    lineHeight: 20,
+    marginBottom: 20,
   },
   buttonContainer: {
     flexDirection: 'row',
+    justifyContent: 'flex-end',
     gap: 10,
   },
   button: {
-    flex: 1,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    paddingVertical: 11,
-    paddingHorizontal: 18,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    minWidth: 80,
+  },
+  buttonPrimary: {
+    // El color de fondo se aplica dinámicamente
   },
   buttonMargin: {
     marginRight: 0,
@@ -271,6 +270,12 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  buttonTextPrimary: {
+    color: '#ffffff',
+  },
+  buttonTextSecondary: {
+    color: '#6b7280',
   },
 })
 

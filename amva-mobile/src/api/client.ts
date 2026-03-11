@@ -103,6 +103,35 @@ export const apiClient = axios.create({
 // Log de la configuración final
 console.log('📡 Axios configurado con baseURL:', apiClient.defaults.baseURL)
 
+// Helper para logging condicional (solo en desarrollo o errores críticos)
+const logDebug = (...args: unknown[]) => {
+  if (__DEV__) {
+    console.log(...args)
+  }
+}
+
+const logError = (...args: unknown[]) => {
+  // Errores siempre se muestran, pero con menos detalle en producción
+  if (__DEV__) {
+    console.error(...args)
+  } else {
+    // En producción, solo mostrar mensajes esenciales sin detalles técnicos
+    const firstArg = args[0]
+    if (typeof firstArg === 'string' && (firstArg.includes('❌') || firstArg.includes('ERROR'))) {
+      console.error(firstArg)
+    }
+  }
+}
+
+const logWarn = (...args: unknown[]) => {
+  if (__DEV__) {
+    console.warn(...args)
+  }
+}
+
+// Mutex para que solo un refresh de invitado se ejecute a la vez (evita race y doble uso del refresh token)
+let invitadoRefreshPromise: Promise<string | null> | null = null
+
 // Interceptor para agregar token de acceso
 apiClient.interceptors.request.use(
   async config => {
@@ -168,61 +197,45 @@ apiClient.interceptors.request.use(
       // Para endpoints exclusivos de invitados, SOLO usar token de invitado
       if (isExclusiveInvitadoEndpoint) {
         console.log('🔍 Endpoint exclusivo de invitado detectado:', config.url)
-        let invitadoToken = await SecureStore.getItemAsync('invitado_token')
+        const invitadoToken = await SecureStore.getItemAsync('invitado_token')
         const invitadoRefreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
 
-        // Si no hay token pero hay refresh token, intentar refrescar primero
-        if (!invitadoToken && invitadoRefreshToken) {
-          console.log('🔄 No hay token de invitado, pero hay refresh token. Intentando refrescar...')
-          try {
-            const refreshAxios = axios.create({
-              baseURL: API_URL,
-              timeout: 10000,
-              headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-              },
-            })
-
-            const refreshResponse = await refreshAxios.post('/auth/invitado/refresh', {
-              refreshToken: invitadoRefreshToken,
-            })
-
-            const { access_token, refresh_token: newRefreshToken } = refreshResponse.data
-
-            if (access_token) {
-              await SecureStore.setItemAsync('invitado_token', access_token)
-              if (newRefreshToken) {
-                await SecureStore.setItemAsync('invitado_refresh_token', newRefreshToken)
-              }
-              invitadoToken = access_token
-              console.log('✅ Token refrescado exitosamente')
-            }
-          } catch (refreshError: unknown) {
-            const refreshErrorMessage = refreshError instanceof Error ? refreshError.message : 'Error desconocido'
-            console.error('❌ Error al refrescar token:', refreshErrorMessage)
-            // Limpiar tokens inválidos
-            await SecureStore.deleteItemAsync('invitado_token').catch(() => { })
-            await SecureStore.deleteItemAsync('invitado_refresh_token').catch(() => { })
-          }
+        // En una aplicación real, el flujo debería ser:
+        // 1. Intentar el request con el token disponible (o sin token si no hay)
+        // 2. Si el request falla con 401, el interceptor de respuesta intenta refrescar automáticamente
+        // 3. Si el refresh es exitoso, reintenta el request original
+        // 4. Si el refresh falla o no hay refresh token, entonces sí rechazar con error de sesión expirada
+        
+        // Solo rechazar inmediatamente si NO hay token NI refresh token (sesión completamente expirada)
+        if (!invitadoToken && !invitadoRefreshToken) {
+          console.warn('⚠️ No hay tokens de invitado disponibles, rechazando request')
+          const noTokenError = new Error('Sesión expirada. Por favor, cierra sesión en Perfil y vuelve a entrar con Google.') as Error & { isSessionExpired?: boolean; requiresReauth?: boolean }
+          noTokenError.isSessionExpired = true
+          noTokenError.requiresReauth = true
+          return Promise.reject(noTokenError)
         }
 
+        // Si hay token, usarlo directamente (el interceptor de respuesta manejará el refresh si es necesario)
+        // Si no hay token pero hay refresh token, permitir que el request se haga sin token
+        // El interceptor de respuesta detectará el 401 y refrescará automáticamente
         if (invitadoToken) {
+          // Si hay token, usarlo directamente
           config.headers.Authorization = `Bearer ${invitadoToken}`
-          console.log('✅ Token de invitado agregado a request:', config.url?.substring(0, 50))
-          console.log('🔍 Token length:', invitadoToken.length, 'chars')
-          console.log('🔍 Refresh token disponible:', !!invitadoRefreshToken, invitadoRefreshToken ? `(${invitadoRefreshToken.length} chars)` : '(no disponible)')
-          console.log('🔍 Headers Authorization:', config.headers.Authorization?.substring(0, 30) + '...')
+          logDebug('🔑 Token de invitado agregado a request exclusivo:', config.url?.substring(0, 50))
+          return config
+        } else if (invitadoRefreshToken) {
+          // Si no hay token pero hay refresh token, permitir que el request se haga sin token
+          // El interceptor de respuesta detectará el 401 y refrescará automáticamente
+          console.log('⚠️ No hay token de invitado, pero hay refresh token. El interceptor manejará el refresh automáticamente.')
+          // No agregar token, dejar que el backend responda con 401 y el interceptor refresque
           return config
         } else {
-          console.error('❌ Endpoint exclusivo de invitado requiere token de invitado, pero no se encontró')
-          console.error('❌ URL:', config.url)
-          console.error('❌ Método:', config.method?.toUpperCase())
-          console.error('❌ No hay token de invitado ni refresh token disponible')
-          console.error('❌ NO se usará token de pastor como fallback para este endpoint')
-          // No agregar token de pastor, dejar que el backend responda con 401
-          // El interceptor de respuesta manejará el 401 y mostrará un mensaje apropiado
-          return config
+          // Solo rechazar si no hay token NI refresh token (sesión completamente expirada)
+          console.warn('⚠️ No hay tokens de invitado disponibles, rechazando request')
+          const noTokenError = new Error('Sesión expirada. Por favor, cierra sesión en Perfil y vuelve a entrar con Google.') as Error & { isSessionExpired?: boolean; requiresReauth?: boolean }
+          noTokenError.isSessionExpired = true
+          noTokenError.requiresReauth = true
+          return Promise.reject(noTokenError)
         }
       }
 
@@ -240,14 +253,14 @@ apiClient.interceptors.request.use(
         const invitadoToken = await SecureStore.getItemAsync('invitado_token')
         if (invitadoToken) {
           config.headers.Authorization = `Bearer ${invitadoToken}`
-          console.log('🔑 Token de invitado agregado a request unificado:', config.url?.substring(0, 50))
+          logDebug('🔑 Token de invitado agregado a request unificado:', config.url?.substring(0, 50))
           return config
         }
         // Si no hay token de invitado, intentar con token de pastor
         const pastorToken = await SecureStore.getItemAsync('access_token')
         if (pastorToken) {
           config.headers.Authorization = `Bearer ${pastorToken}`
-          console.log('🔑 Token de pastor agregado a request unificado:', config.url?.substring(0, 50))
+          logDebug('🔑 Token de pastor agregado a request unificado:', config.url?.substring(0, 50))
           return config
         }
         // Si no hay ningún token, dejar que el backend responda con 401
@@ -260,7 +273,7 @@ apiClient.interceptors.request.use(
         const invitadoToken = await SecureStore.getItemAsync('invitado_token')
         if (invitadoToken) {
           config.headers.Authorization = `Bearer ${invitadoToken}`
-          console.log('🔑 Token de invitado agregado a request:', config.url?.substring(0, 50))
+          logDebug('🔑 Token de invitado agregado a request:', config.url?.substring(0, 50))
           return config
         }
         // Si no hay token de invitado pero es consulta de credenciales, permitir fallback a token de pastor
@@ -270,7 +283,7 @@ apiClient.interceptors.request.use(
       const token = await SecureStore.getItemAsync('access_token')
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
-        console.log('🔑 Token de pastor agregado a request:', config.url?.substring(0, 50))
+        logDebug('🔑 Token de pastor agregado a request:', config.url?.substring(0, 50))
       }
       // No mostrar warning si no hay token - algunos endpoints pueden ser públicos
     } catch (error) {
@@ -285,9 +298,21 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   response => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as AxiosRequestConfig & {
+    const originalRequest = error.config as (AxiosRequestConfig & {
       _retry?: boolean
       _retryCount?: number
+      _retryAfterRefresh?: boolean
+    }) | undefined
+
+    if (!originalRequest) {
+      return Promise.reject(error)
+    }
+
+    // Si este request ya fue reintentado después de un refresh, no intentar refrescar nuevamente
+    // Esto evita loops infinitos cuando el token refrescado también es inválido
+    if (originalRequest._retryAfterRefresh) {
+      logDebug('⚠️ Request ya fue reintentado después de refresh, no intentar refrescar nuevamente')
+      return Promise.reject(error)
     }
 
     // Manejar errores de red antes de intentar refresh
@@ -304,22 +329,22 @@ apiClient.interceptors.response.use(
       errorMessage.includes('timeout') ||
       errorMessage.includes('getaddrinfo')
     ) {
-      const fullUrl = originalRequest?.url
+      const fullUrl = originalRequest.url
         ? `${apiClient.defaults.baseURL}${originalRequest.url}`
         : 'URL desconocida'
 
       console.error('❌ Error de red detectado:', {
         code: errorCode,
         message: errorMessage,
-        url: originalRequest?.url,
+        url: originalRequest.url,
         fullUrl: fullUrl,
         baseURL: apiClient.defaults.baseURL,
-        method: originalRequest?.method?.toUpperCase(),
+        method: originalRequest.method?.toUpperCase(),
       })
 
       console.error('🔍 Diagnóstico de conexión:')
       console.error('   - Base URL:', apiClient.defaults.baseURL)
-      console.error('   - Endpoint:', originalRequest?.url)
+      console.error('   - Endpoint:', originalRequest.url)
       console.error('   - URL completa:', fullUrl)
       console.error('   - Código de error:', errorCode)
       console.error('   - Mensaje:', errorMessage)
@@ -339,14 +364,11 @@ apiClient.interceptors.response.use(
       return Promise.reject(networkError)
     }
 
-    // Si el error es 401 y no hemos intentado refrescar
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      // Prevenir loops infinitos: máximo 1 intento de refresh
-      const retryCount = (originalRequest._retryCount || 0) + 1
-      if (retryCount > 1) {
-        console.error('❌ Máximo de reintentos alcanzado, rechazando request:', originalRequest.url)
-
-        // Detectar si es un endpoint de invitados para limpiar los tokens correctos
+    // Si el error es 401
+    if (error.response?.status === 401) {
+      // Si ya se intentó refrescar y el request con el nuevo token también falla, rechazar
+      if (originalRequest._retryAfterRefresh) {
+        logError('❌ Sesión expirada: El token refrescado también es inválido.')
         const isInvitadoEndpoint =
           originalRequest.url?.includes('/auth/invitado/me') ||
           originalRequest.url?.includes('/auth/invitado/logout') ||
@@ -357,19 +379,74 @@ apiClient.interceptors.response.use(
           originalRequest.url?.includes('/credenciales-capellania/consultar/') ||
           originalRequest.url?.includes('/inscripciones/my') ||
           originalRequest.url?.includes('/solicitudes-credenciales')
-
-        // Limpiar tokens cuando se alcanza el máximo de reintentos
+        
         if (isInvitadoEndpoint) {
-          console.log('🧹 Limpiando tokens de invitado después de máximo de reintentos')
           try {
             await SecureStore.deleteItemAsync('invitado_token')
             await SecureStore.deleteItemAsync('invitado_refresh_token')
-            console.log('✅ Tokens de invitado limpiados')
-          } catch (cleanError) {
-            console.error('❌ Error limpiando tokens:', cleanError)
-          }
+            logDebug('🧹 Tokens de invitado limpiados (token refrescado también inválido)')
+          } catch {}
         } else {
-          console.log('🧹 Limpiando tokens de pastor después de máximo de reintentos')
+          // Limpiar tokens de pastor
+          try {
+            await SecureStore.deleteItemAsync('access_token')
+            await SecureStore.deleteItemAsync('refresh_token')
+                logDebug('🧹 Tokens de pastor limpiados (token refrescado también inválido)')
+          } catch {}
+        }
+        
+        const sessionExpiredError = new Error(
+          isInvitadoEndpoint
+            ? 'Sesión expirada. Por favor, cierra sesión en Perfil y vuelve a entrar con Google.'
+            : 'Sesión expirada. Por favor, vuelve a iniciar sesión.'
+        ) as Error & { isSessionExpired?: boolean; requiresReauth?: boolean }
+        sessionExpiredError.isSessionExpired = true
+        sessionExpiredError.requiresReauth = true
+        return Promise.reject(sessionExpiredError)
+      }
+      
+      // Si ya se intentó refrescar una vez, rechazar
+      if (originalRequest._retry) {
+        console.error('❌ Ya se intentó refrescar este request, rechazando:', originalRequest.url)
+        return Promise.reject(error)
+      }
+      
+      // Marcar como intentado ANTES de refrescar para evitar loops
+      originalRequest._retry = true
+      
+      // Prevenir loops infinitos: máximo 1 intento de refresh por request
+      const retryCount = (originalRequest._retryCount || 0) + 1
+      if (retryCount > 1) {
+        console.error('❌ Máximo de reintentos alcanzado, rechazando request:', originalRequest.url)
+        
+        // Si es un endpoint de invitados y no hay refresh token, limpiar tokens inmediatamente
+        const isInvitadoEndpoint =
+          originalRequest.url?.includes('/auth/invitado/me') ||
+          originalRequest.url?.includes('/auth/invitado/logout') ||
+          originalRequest.url?.includes('/credenciales/mis-credenciales') ||
+          originalRequest.url?.includes('/credenciales-ministeriales/mis-credenciales') ||
+          originalRequest.url?.includes('/credenciales-capellania/mis-credenciales') ||
+          originalRequest.url?.includes('/credenciales-ministeriales/consultar/') ||
+          originalRequest.url?.includes('/credenciales-capellania/consultar/') ||
+          originalRequest.url?.includes('/inscripciones/my') ||
+          originalRequest.url?.includes('/solicitudes-credenciales')
+        
+        if (isInvitadoEndpoint) {
+          try {
+            const refreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
+            if (!refreshToken) {
+              await SecureStore.deleteItemAsync('invitado_token')
+              await SecureStore.deleteItemAsync('invitado_refresh_token')
+              logDebug('🧹 Tokens de invitado limpiados (máximo de reintentos sin refresh token)')
+            }
+          } catch (cleanupError) {
+            console.error('❌ Error al limpiar tokens:', cleanupError)
+          }
+        }
+
+        // Limpiar tokens de pastor cuando se alcanza el máximo de reintentos
+        if (!isInvitadoEndpoint) {
+          logDebug('🧹 Limpiando tokens de pastor después de máximo de reintentos')
           try {
             await SecureStore.deleteItemAsync('access_token')
             await SecureStore.deleteItemAsync('refresh_token')
@@ -382,11 +459,12 @@ apiClient.interceptors.response.use(
         return Promise.reject(error)
       }
 
-      console.log(`🔄 Error 401 detectado, intentando refrescar token (intento ${retryCount}/1)`)
-      console.log('🔍 URL del request:', originalRequest.url)
-      console.log('🔍 Método del request:', originalRequest.method)
-      console.log('🔍 Headers del request:', originalRequest.headers)
+      logDebug(`🔄 Error 401 detectado, intentando refrescar token (intento ${retryCount}/1)`)
+      logDebug('🔍 URL del request:', originalRequest.url)
+      logDebug('🔍 Método del request:', originalRequest.method)
+      logDebug('🔍 Headers del request:', originalRequest.headers)
 
+      // Marcar como intentado ANTES de refrescar (ya está marcado arriba, pero asegurarse)
       originalRequest._retry = true
       originalRequest._retryCount = retryCount
 
@@ -434,42 +512,318 @@ apiClient.interceptors.response.use(
           refreshEndpoint = '/auth/invitado/refresh'
           tokenKey = 'invitado_token'
           refreshTokenKey = 'invitado_refresh_token'
-          console.log('🔍 Endpoint detectado como INVITADO')
-          console.log('🔍 Refresh token disponible:', !!refreshToken, refreshToken ? `(${refreshToken.length} chars)` : '(no disponible)')
+          logDebug('🔍 Endpoint detectado como INVITADO')
+          logDebug('🔍 Refresh token disponible:', !!refreshToken, refreshToken ? `(${refreshToken.length} chars)` : '(no disponible)')
         } else {
           // Para pastores
           refreshToken = await SecureStore.getItemAsync('refresh_token')
           refreshEndpoint = '/auth/pastor/refresh'
           tokenKey = 'access_token'
           refreshTokenKey = 'refresh_token'
-          console.log('🔍 Endpoint detectado como PASTOR')
-          console.log('🔍 Refresh token disponible:', !!refreshToken, refreshToken ? `(${refreshToken.length} chars)` : '(no disponible)')
+          logDebug('🔍 Endpoint detectado como PASTOR')
+          logDebug('🔍 Refresh token disponible:', !!refreshToken, refreshToken ? `(${refreshToken.length} chars)` : '(no disponible)')
         }
 
-        // Si no hay refresh token, limpiar tokens y forzar re-login
+        // Si no hay refresh token: limpiar tokens y rechazar inmediatamente
         if (!refreshToken) {
           console.warn(`⚠️ No hay ${refreshTokenKey} disponible para refrescar`)
-          console.warn('⚠️ Limpiando tokens y forzando re-login...')
-
-          // Limpiar tokens de invitado si es endpoint de invitado
           if (isInvitadoEndpoint) {
+            console.warn('⚠️ Cierra sesión en Perfil y vuelve a entrar con Google.')
+            // Limpiar tokens de invitado cuando no hay refresh token disponible
             try {
               await SecureStore.deleteItemAsync('invitado_token')
               await SecureStore.deleteItemAsync('invitado_refresh_token')
-              console.log('✅ Tokens de invitado limpiados')
-            } catch (cleanError) {
-              console.error('❌ Error limpiando tokens:', cleanError)
+              logDebug('🧹 Tokens de invitado limpiados (no hay refresh token disponible)')
+            } catch (cleanupError) {
+              console.error('❌ Error al limpiar tokens:', cleanupError)
+            }
+          }
+          // Crear error más descriptivo
+          const noRefreshTokenError = new Error(
+            isInvitadoEndpoint
+              ? 'Sesión expirada. Por favor, cierra sesión en Perfil y vuelve a entrar con Google.'
+              : 'Sesión expirada. Por favor, vuelve a iniciar sesión.'
+          ) as Error & { isSessionExpired?: boolean; requiresReauth?: boolean }
+          noRefreshTokenError.isSessionExpired = true
+          noRefreshTokenError.requiresReauth = true
+          return Promise.reject(noRefreshTokenError)
+        }
+
+        // Invitado: mutex para que solo un refresh se ejecute a la vez; el resto espera y reutiliza el nuevo token
+        if (isInvitadoEndpoint) {
+          if (invitadoRefreshPromise) {
+            logDebug('🔄 Esperando refresh de invitado en curso...')
+            try {
+              const newToken = await invitadoRefreshPromise
+              if (newToken) {
+                if (!originalRequest.headers) originalRequest.headers = {}
+                originalRequest.headers.Authorization = `Bearer ${newToken}`
+                originalRequest._retryAfterRefresh = true
+                logDebug('🔄 Reintentando request con token del refresh en curso')
+                try {
+                  const retryResponse = await apiClient.request(originalRequest)
+                  delete originalRequest._retryAfterRefresh
+                  return retryResponse
+                } catch (retryError) {
+                  // Si el request con el nuevo token también falla, limpiar tokens y rechazar
+                  const retryAxiosError = retryError as { response?: { status?: number } }
+                  if (retryAxiosError?.response?.status === 401) {
+                    logError('❌ Sesión expirada: El token refrescado también es inválido.')
+                    try {
+                      await SecureStore.deleteItemAsync('invitado_token')
+                      await SecureStore.deleteItemAsync('invitado_refresh_token')
+                      logDebug('🧹 Tokens de invitado limpiados (token refrescado también inválido)')
+                    } catch {}
+                    
+                    const sessionExpiredError = new Error(
+                      'Sesión expirada. Por favor, cierra sesión en Perfil y vuelve a entrar con Google.'
+                    ) as Error & { isSessionExpired?: boolean; requiresReauth?: boolean; response?: { status?: number } }
+                    sessionExpiredError.isSessionExpired = true
+                    sessionExpiredError.requiresReauth = true
+                    sessionExpiredError.response = { status: 401 }
+                    return Promise.reject(sessionExpiredError)
+                  }
+                  // Si no es 401, propagar el error original
+                  return Promise.reject(retryError)
+                }
+              }
+              // Si el refresh retornó null (falló), crear error de sesión expirada
+              logError('❌ Sesión expirada: Refresh token inválido o expirado')
+              const sessionExpiredError = new Error(
+                'Sesión expirada. Por favor, cierra sesión en Perfil y vuelve a entrar con Google.'
+              ) as Error & { isSessionExpired?: boolean; requiresReauth?: boolean; response?: { status?: number } }
+              sessionExpiredError.isSessionExpired = true
+              sessionExpiredError.requiresReauth = true
+              sessionExpiredError.response = { status: 401 }
+              return Promise.reject(sessionExpiredError)
+            } catch (refreshError) {
+              // Si el refresh falló con error, verificar si es error de red o de sesión
+              const errorObj = refreshError as Error & { isNetworkError?: boolean; isSessionExpired?: boolean }
+              if (errorObj.isNetworkError) {
+                // Si es error de red, propagarlo como error de red (no limpiar tokens)
+                console.error('❌ Refresh falló con error de red:', refreshError)
+                return Promise.reject(refreshError)
+              }
+              // Si no es error de red, tratar como error de sesión expirada
+              console.error('❌ Refresh falló con error, sesión expirada')
+              try {
+                await SecureStore.deleteItemAsync('invitado_token')
+                await SecureStore.deleteItemAsync('invitado_refresh_token')
+                logDebug('🧹 Tokens de invitado limpiados (refresh falló)')
+              } catch {}
+              
+              const sessionExpiredError = new Error(
+                'Sesión expirada. Por favor, cierra sesión en Perfil y vuelve a entrar con Google.'
+              ) as Error & { isSessionExpired?: boolean; requiresReauth?: boolean; response?: { status?: number } }
+              sessionExpiredError.isSessionExpired = true
+              sessionExpiredError.requiresReauth = true
+              sessionExpiredError.response = { status: 401 }
+              return Promise.reject(sessionExpiredError)
             }
           }
 
-          return Promise.reject(error)
+          const doRefresh = async (): Promise<string | null> => {
+            try {
+              logDebug('🔄 Intentando refrescar token...')
+              const refreshAxios = axios.create({
+                baseURL: API_URL,
+                timeout: 8000,
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+              })
+              logDebug('🔄 Enviando request de refresh...')
+              const response = await refreshAxios.post(refreshEndpoint, { refreshToken })
+              logDebug('✅ Respuesta de refresh recibida, status:', response.status)
+              
+              const data = response.data as { access_token?: string; accessToken?: string; refresh_token?: string; refreshToken?: string }
+              const access_token = data.access_token ?? data.accessToken ?? null
+              const newRefreshToken = data.refresh_token ?? data.refreshToken ?? null
+              
+              if (!access_token) {
+                logError('❌ Error: Refresh exitoso pero no se recibió access_token')
+                logDebug('📊 Datos recibidos:', JSON.stringify(data))
+                // Limpiar tokens si el refresh no retornó token
+                try {
+                  await SecureStore.deleteItemAsync('invitado_token')
+                  await SecureStore.deleteItemAsync('invitado_refresh_token')
+                  logDebug('🧹 Tokens limpiados (refresh no retornó token)')
+                } catch {}
+                return null
+              }
+              
+              logDebug('💾 Guardando nuevo access token...')
+              await SecureStore.setItemAsync(tokenKey, access_token)
+              if (newRefreshToken) {
+                logDebug('💾 Guardando nuevo refresh token...')
+                await SecureStore.setItemAsync(refreshTokenKey, newRefreshToken)
+              } else {
+                logWarn('⚠️ No se recibió nuevo refresh token, manteniendo el anterior')
+              }
+              logDebug('✅ Token refrescado exitosamente, nuevo token guardado (length:', access_token.length, 'chars)')
+              return access_token
+            } catch (e) {
+              const ax = e as { response?: { status?: number; data?: unknown } }
+              const status = ax?.response?.status
+              
+              // Si el refresh falla con 401/403, el refresh token está expirado o inválido
+              if (status === 401 || status === 403) {
+                logError(`❌ Sesión expirada: Refresh token expirado o inválido (${status})`)
+                try {
+                  await SecureStore.deleteItemAsync('invitado_token')
+                  await SecureStore.deleteItemAsync('invitado_refresh_token')
+                  logDebug('🧹 Tokens limpiados (refresh token expirado/inválido)')
+                } catch {}
+                // Retornar null indica que el refresh falló por sesión expirada
+                return null
+              }
+              
+              // Si es error de red, lanzar el error para que se propague correctamente (no limpiar tokens)
+              const errorCode = (e as { code?: string })?.code
+              const errorMsg = e instanceof Error ? e.message : ''
+              if (
+                errorCode === 'ERR_NETWORK' ||
+                errorCode === 'ECONNREFUSED' ||
+                errorCode === 'ETIMEDOUT' ||
+                errorCode === 'ENOTFOUND' ||
+                errorMsg.includes('Network Error') ||
+                errorMsg.includes('timeout') ||
+                errorMsg.includes('getaddrinfo')
+              ) {
+                console.warn('⚠️ Error de red al refrescar token, no limpiar tokens')
+                // Para errores de red, lanzar el error para que se propague correctamente
+                const networkError = e instanceof Error ? e : new Error(String(e))
+                const networkErrorWithFlag = networkError as Error & { isNetworkError?: boolean }
+                networkErrorWithFlag.isNetworkError = true
+                throw networkErrorWithFlag
+              }
+              
+              // Para otros errores (no 401/403, no red), retornar null (se manejará como error de sesión)
+              console.warn('⚠️ Error desconocido al refrescar token:', errorMsg)
+              return null
+            } finally {
+              invitadoRefreshPromise = null
+            }
+          }
+          invitadoRefreshPromise = doRefresh()
+          try {
+            const newToken = await invitadoRefreshPromise
+            if (newToken) {
+              if (!originalRequest.headers) originalRequest.headers = {}
+              originalRequest.headers.Authorization = `Bearer ${newToken}`
+              // NO eliminar _retry para evitar loops infinitos si el nuevo token también falla
+              // En su lugar, usar un flag diferente para el reintento post-refresh
+              originalRequest._retryAfterRefresh = true
+              logDebug('🔄 Reintentando request original con nuevo token...')
+              try {
+                logDebug('🔄 Reintentando request con nuevo token...')
+                const retryResponse = await apiClient.request(originalRequest)
+                logDebug('✅ Request con token refrescado exitoso')
+                // Si el reintento es exitoso, limpiar el flag
+                delete originalRequest._retryAfterRefresh
+                return retryResponse
+              } catch (retryError) {
+                // Si el request con el nuevo token también falla, puede ser que:
+                // 1. El refresh token estaba expirado pero el backend lo aceptó y devolvió un token inválido
+                // 2. El nuevo access token tiene un problema (formato, firma, etc.)
+                // 3. Hay un problema de sincronización de tiempo entre dispositivo y servidor
+                // 4. El backend está rechazando tokens válidos por alguna razón
+                
+                // Verificar si es un AxiosError o un Error personalizado
+                const isAxiosError = retryError && typeof retryError === 'object' && 'response' in retryError
+                const retryAxiosError = retryError as { response?: { status?: number; data?: unknown } }
+                const retryStatus = retryAxiosError?.response?.status
+                
+                // También verificar si es un error personalizado con flags de sesión expirada
+                const isSessionExpiredError = retryError instanceof Error && 
+                  (retryError as Error & { isSessionExpired?: boolean }).isSessionExpired === true
+                
+                logError('❌ El request con el token refrescado también falló.')
+                logDebug('📊 Status:', retryStatus || (isSessionExpiredError ? 'Session Expired (custom error)' : 'Unknown'))
+                logDebug('📊 Error data:', retryAxiosError?.response?.data || (retryError instanceof Error ? retryError.message : 'Unknown error'))
+                
+                // Si es 401 o un error de sesión expirada, limpiar tokens y rechazar
+                if (retryStatus === 401 || isSessionExpiredError) {
+                  logError('❌ Sesión expirada: El refresh token está expirado o inválido.')
+                  logDebug('🔍 El backend aceptó el refresh pero el nuevo token no es válido.')
+                  
+                  // Limpiar tokens ya que el refresh token claramente está expirado o inválido
+                  try {
+                    await SecureStore.deleteItemAsync('invitado_token')
+                    await SecureStore.deleteItemAsync('invitado_refresh_token')
+                    logDebug('🧹 Tokens limpiados (refresh token expirado/inválido)')
+                  } catch {}
+                  
+                  // Si ya es un error de sesión expirada, propagarlo tal cual
+                  // Pero asegurarse de que el flag _retryAfterRefresh esté en el error para evitar loops
+                  if (isSessionExpiredError && retryError instanceof Error) {
+                    // Asegurarse de que el error tenga el flag para evitar loops
+                    const errorWithFlag = retryError as Error & { _retryAfterRefresh?: boolean }
+                    errorWithFlag._retryAfterRefresh = true
+                    return Promise.reject(errorWithFlag)
+                  }
+                  
+                  // Si no, crear nuevo error de sesión expirada con el flag
+                  const sessionExpiredError = new Error(
+                    'Sesión expirada. Por favor, cierra sesión en Perfil y vuelve a entrar con Google.'
+                  ) as Error & { isSessionExpired?: boolean; requiresReauth?: boolean; response?: { status?: number }; _retryAfterRefresh?: boolean }
+                  sessionExpiredError.isSessionExpired = true
+                  sessionExpiredError.requiresReauth = true
+                  sessionExpiredError.response = { status: 401 }
+                  sessionExpiredError._retryAfterRefresh = true // Marcar para evitar loops
+                  return Promise.reject(sessionExpiredError)
+                }
+                // Si no es 401 ni error de sesión expirada, propagar el error original
+                logError('❌ Error diferente a 401:', retryError)
+                return Promise.reject(retryError)
+              }
+            }
+            // Si el refresh retornó null (falló por 401/403 u otro error), limpiar tokens y rechazar con error apropiado
+            console.error('❌ Refresh falló (retornó null), sesión expirada')
+            try {
+              await SecureStore.deleteItemAsync('invitado_token')
+              await SecureStore.deleteItemAsync('invitado_refresh_token')
+              logDebug('🧹 Tokens de invitado limpiados (refresh falló)')
+            } catch {}
+            
+            // Crear error de sesión expirada (no error de red)
+            const sessionExpiredError = new Error(
+              'Sesión expirada. Por favor, cierra sesión en Perfil y vuelve a entrar con Google.'
+            ) as Error & { isSessionExpired?: boolean; requiresReauth?: boolean; response?: { status?: number } }
+            sessionExpiredError.isSessionExpired = true
+            sessionExpiredError.requiresReauth = true
+            sessionExpiredError.response = { status: 401 }
+            return Promise.reject(sessionExpiredError)
+          } catch (refreshError) {
+            // Si el refresh lanzó un error (ej. error de red), verificar si es error de red o de sesión
+            const errorObj = refreshError as Error & { isNetworkError?: boolean; isSessionExpired?: boolean }
+            if (errorObj.isNetworkError) {
+              // Si es error de red, propagarlo como error de red (no limpiar tokens)
+              console.error('❌ Refresh falló con error de red:', refreshError)
+              return Promise.reject(refreshError)
+            }
+            // Si no es error de red, tratar como error de sesión expirada
+            console.error('❌ Refresh falló con error, sesión expirada')
+            try {
+              await SecureStore.deleteItemAsync('invitado_token')
+              await SecureStore.deleteItemAsync('invitado_refresh_token')
+              logDebug('🧹 Tokens de invitado limpiados (refresh falló con error)')
+            } catch {}
+            
+            // Crear error de sesión expirada
+            const sessionExpiredError = new Error(
+              'Sesión expirada. Por favor, cierra sesión en Perfil y vuelve a entrar con Google.'
+            ) as Error & { isSessionExpired?: boolean; requiresReauth?: boolean; response?: { status?: number } }
+            sessionExpiredError.isSessionExpired = true
+            sessionExpiredError.requiresReauth = true
+            sessionExpiredError.response = { status: 401 }
+            return Promise.reject(sessionExpiredError)
+          }
         }
 
-        console.log(`🔄 Intentando refrescar token de ${isInvitadoEndpoint ? 'invitado' : 'pastor'}...`)
-        // Crear una instancia separada de axios para evitar interceptor infinito
+        // Pastor: flujo sin mutex
+        console.log('🔄 Intentando refrescar token de pastor...')
         const refreshAxios = axios.create({
           baseURL: API_URL,
-          timeout: 8000, // Timeout más corto
+          timeout: 8000,
           headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
@@ -480,33 +834,33 @@ apiClient.interceptors.response.use(
           refreshToken: refreshToken,
         })
 
-        const { access_token, refresh_token: newRefreshToken } = response.data
+        const data = response.data as { access_token?: string; accessToken?: string; refresh_token?: string; refreshToken?: string }
+        const access_token = data.access_token ?? data.accessToken ?? null
+        const newRefreshToken = data.refresh_token ?? data.refreshToken ?? null
 
         if (!access_token) {
           throw new Error('No access token recibido en respuesta de refresh')
         }
 
-        // Guardar nuevos tokens según el tipo de usuario
         await SecureStore.setItemAsync(tokenKey, access_token)
         if (newRefreshToken) {
           await SecureStore.setItemAsync(refreshTokenKey, newRefreshToken)
         }
 
-        console.log(`✅ Token de ${isInvitadoEndpoint ? 'invitado' : 'pastor'} refrescado exitosamente`)
+        console.log('✅ Token de pastor refrescado exitosamente')
 
-        // Asegurar que el header se actualice correctamente
         if (!originalRequest.headers) {
           originalRequest.headers = {}
         }
         originalRequest.headers.Authorization = `Bearer ${access_token}`
 
-        // Limpiar el flag _retry para permitir reintentos si es necesario
-        // Pero mantener _retryCount para evitar loops infinitos
-        delete originalRequest._retry
-
-        // Usar request() - el interceptor de request agregará el token automáticamente
+        // Usar _retryAfterRefresh para detectar si el nuevo token también falla
+        originalRequest._retryAfterRefresh = true
         console.log('🔄 Reintentando request original con nuevo token...')
-        return apiClient.request(originalRequest)
+        const retryResponse = await apiClient.request(originalRequest)
+        // Si el reintento es exitoso, limpiar el flag
+        delete originalRequest._retryAfterRefresh
+        return retryResponse
       } catch (refreshError: unknown) {
         const errorMessage =
           refreshError instanceof Error
@@ -558,20 +912,31 @@ apiClient.interceptors.response.use(
             if (isInvitadoEndpoint) {
               await SecureStore.deleteItemAsync('invitado_token')
               await SecureStore.deleteItemAsync('invitado_refresh_token')
-              console.log('🧹 Tokens de invitado limpiados debido a error de autorización')
+              logDebug('🧹 Tokens de invitado limpiados debido a error de autorización')
             } else {
               await SecureStore.deleteItemAsync('access_token')
               await SecureStore.deleteItemAsync('refresh_token')
-              console.log('🧹 Tokens de pastor limpiados debido a error de autorización')
+              logDebug('🧹 Tokens de pastor limpiados debido a error de autorización')
             }
           } catch (cleanupError) {
             console.error('❌ Error limpiando tokens:', cleanupError)
           }
+          
+          // Crear error de sesión expirada (no error de red)
+          const sessionExpiredError = new Error(
+            isInvitadoEndpoint
+              ? 'Sesión expirada. Por favor, cierra sesión en Perfil y vuelve a entrar con Google.'
+              : 'Sesión expirada. Por favor, vuelve a iniciar sesión.'
+          ) as Error & { isSessionExpired?: boolean; requiresReauth?: boolean; response?: { status?: number } }
+          sessionExpiredError.isSessionExpired = true
+          sessionExpiredError.requiresReauth = true
+          sessionExpiredError.response = { status: 401 }
+          return Promise.reject(sessionExpiredError)
         } else {
           console.log('⚠️ Error de red o conexión, manteniendo tokens para reintentar')
         }
 
-        // Rechazar el error para que la app maneje el logout
+        // Rechazar el error original si no es de autorización
         return Promise.reject(refreshError)
       }
     }

@@ -171,7 +171,9 @@ export function handleNetworkError(error: unknown): string {
       const payload = (data as { error?: { message?: string; details?: unknown } }).error ?? data
       const messageStr =
         typeof payload?.message === 'string' ? payload.message : undefined
-      const rawDetails = payload?.details ?? (data as { details?: unknown }).details
+      const rawDetails =
+        (payload as { details?: unknown } | undefined)?.details ??
+        (data as { details?: unknown })?.details
       const detailsArray = Array.isArray(rawDetails)
         ? rawDetails
         : Array.isArray((data as { errors?: unknown }).errors)
@@ -201,12 +203,22 @@ export function handleNetworkError(error: unknown): string {
   }
 
   if (error instanceof Error) {
+    // Verificar si es un error de sesión expirada primero (antes de detectar como error de red)
+    const errorObj = error as Error & { isSessionExpired?: boolean; requiresReauth?: boolean }
+    if (errorObj.isSessionExpired || errorObj.requiresReauth) {
+      return error.message // Retornar el mensaje original de sesión expirada
+    }
+    
     const errorMessage = error.message.toLowerCase()
     if (errorMessage.includes('network') || errorMessage.includes('econnrefused')) {
       return 'No se pudo conectar al servidor.\n\nVerifica que:\n• El backend esté corriendo\n• La URL del API sea correcta\n• Estés en la misma red WiFi (si usas dispositivo físico)'
     }
     if (errorMessage.includes('timeout')) {
       return 'La solicitud tardó demasiado.\n\nVerifica tu conexión a internet.'
+    }
+    // Si el mensaje contiene "sesión expirada", retornarlo tal cual
+    if (errorMessage.includes('sesión expirada') || errorMessage.includes('session expired')) {
+      return error.message
     }
     return error.message
   }

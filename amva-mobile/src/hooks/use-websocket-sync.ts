@@ -33,6 +33,22 @@ export interface DataSyncEvent {
   timestamp: number
 }
 
+// Expo define __DEV__ de forma global en tiempo de ejecución
+declare const __DEV__: boolean
+
+// Helper para logging condicional (solo en desarrollo)
+const logDebug = (...args: unknown[]) => {
+  if (__DEV__) {
+    console.log(...args)
+  }
+}
+
+const logWarn = (...args: unknown[]) => {
+  if (__DEV__) {
+    console.warn(...args)
+  }
+}
+
 /**
  * Hook para sincronización en tiempo real usando WebSockets
  * Escucha eventos del backend y actualiza las queries de React Query automáticamente
@@ -54,17 +70,17 @@ export function useWebSocketSync() {
       }
 
       if (!token) {
-        console.log('⚠️ No hay token disponible para WebSocket, esperando autenticación...')
+        logDebug('⚠️ No hay token disponible para WebSocket, esperando autenticación...')
         return
       }
 
       // Si ya hay una conexión activa, no crear otra
       if (socketRef.current?.connected) {
-        console.log('✅ WebSocket ya está conectado')
+        logDebug('✅ WebSocket ya está conectado')
         return
       }
 
-      console.log('🔌 Conectando a WebSocket:', WS_URL)
+      logDebug('🔌 Conectando a WebSocket:', WS_URL)
 
       // Crear conexión Socket.io (opcional: si el servidor no tiene data-sync, la app sigue funcionando sin tiempo real)
       const socket = io(WS_URL, {
@@ -83,13 +99,13 @@ export function useWebSocketSync() {
 
       // Evento: Conexión exitosa
       socket.on('connect', () => {
-        console.log('✅ WebSocket conectado:', socket.id)
+        logDebug('✅ WebSocket conectado:', socket.id)
         reconnectAttemptsRef.current = 0
       })
 
       // Evento: Conexión establecida
       socket.on('connected', (data: { message: string; userId: string; tipo: string }) => {
-        console.log('✅ WebSocket autenticado:', data)
+        logDebug('✅ WebSocket autenticado:', data)
       })
 
       // Evento: Sincronización de datos
@@ -97,13 +113,19 @@ export function useWebSocketSync() {
         console.log('📡 Evento de sincronización recibido:', event.type, event.data)
 
         // Invalidar queries según el tipo de evento y hacer refetch automático
+        // Solo si no hay error de sesión expirada (verificar estado del query)
         switch (event.type) {
           case 'credencial_updated':
-            console.log('🔄 Invalidando queries de credenciales y refetch automático')
-            queryClient.invalidateQueries({ queryKey: ['credenciales'] })
-            queryClient.invalidateQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
-            // Refetch inmediato para actualizar la UI
-            queryClient.refetchQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
+            // Verificar si el query de credenciales tiene error de sesión expirada antes de invalidar
+            const credencialesQuery = queryClient.getQueryState(['credenciales', 'mis-credenciales'])
+            const credencialesError = credencialesQuery?.error as Error & { isSessionExpired?: boolean; requiresReauth?: boolean } | undefined
+            if (!credencialesError?.isSessionExpired && !credencialesError?.requiresReauth) {
+              console.log('🔄 Invalidando queries de credenciales y refetch automático')
+              queryClient.invalidateQueries({ queryKey: ['credenciales'] })
+              queryClient.invalidateQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
+              // Refetch inmediato para actualizar la UI
+              queryClient.refetchQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
+            }
             break
 
           case 'convencion_updated':
@@ -150,7 +172,7 @@ export function useWebSocketSync() {
 
       // Evento: Desconexión
       socket.on('disconnect', (reason: string) => {
-        console.log('🔌 WebSocket desconectado:', reason)
+        logDebug('🔌 WebSocket desconectado:', reason)
 
         // Si fue desconexión forzada del servidor, intentar reconectar
         if (reason === 'io server disconnect') {
@@ -163,12 +185,12 @@ export function useWebSocketSync() {
       socket.on('connect_error', (error: Error) => {
         reconnectAttemptsRef.current += 1
         if (reconnectAttemptsRef.current <= 2) {
-          console.warn('⚠️ WebSocket: intento', reconnectAttemptsRef.current, '-', error.message)
+          logWarn('⚠️ WebSocket: intento', reconnectAttemptsRef.current, '-', error.message)
         }
 
         if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
           lastMaxAttemptsTimeRef.current = Date.now()
-          console.warn(
+          logWarn(
             '⚠️ WebSocket no disponible (timeout). La app funciona sin sincronización en tiempo real. Desliza para actualizar en Credenciales.'
           )
           disconnect()
@@ -182,7 +204,7 @@ export function useWebSocketSync() {
 
   const disconnect = useCallback(() => {
     if (socketRef.current) {
-      console.log('🔌 Desconectando WebSocket...')
+      logDebug('🔌 Desconectando WebSocket...')
       socketRef.current.disconnect()
       socketRef.current = null
       reconnectAttemptsRef.current = 0

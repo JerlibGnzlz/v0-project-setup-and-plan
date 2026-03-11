@@ -214,14 +214,14 @@ export function Step2FormularioCompleto({
   const handleUploadDocument = async () => {
     try {
       setUploadingDocument(true)
-      const image = await pickImage()
-      if (!image) {
+      const imageUri = await pickImage()
+      if (!imageUri) {
         setUploadingDocument(false)
         return
       }
 
-      setSelectedImageUri(image.uri)
-      const response = await uploadApi.uploadInscripcionDocumento(image)
+      setSelectedImageUri(imageUri)
+      const response = await uploadApi.uploadInscripcionDocumento(imageUri)
       handleChange('documentoUrl', response.url)
       Alert.alert('✅ Éxito', 'Comprobante subido correctamente', undefined, 'success')
     } catch (error: unknown) {
@@ -347,10 +347,11 @@ export function Step2FormularioCompleto({
     }
   }
 
-  const scrollToInput = (inputRef: React.RefObject<TextInput | null>, offset: number = 0) => {
+  const scrollToInput = (inputRef: React.RefObject<TextInput | null> | TextInput | null, offset: number = 0) => {
     setTimeout(() => {
-      if (inputRef.current && scrollViewRef.current) {
-        inputRef.current.measureLayout(
+      const input = inputRef && 'current' in inputRef ? inputRef.current : inputRef
+      if (input && scrollViewRef.current) {
+        input.measureLayout(
           scrollViewRef.current as any,
           (_x: number, y: number) => {
             scrollViewRef.current?.scrollTo({
@@ -561,12 +562,6 @@ export function Step2FormularioCompleto({
                 placeholder="Selecciona tu provincia (convención AMVA)"
                 error={errors.provincia}
               />
-              {errors.provincia && (
-                <View style={styles.errorContainer}>
-                  <AlertCircle size={12} color="#ef4444" />
-                  <Text style={styles.errorText}>{errors.provincia}</Text>
-                </View>
-              )}
             </View>
           )}
 

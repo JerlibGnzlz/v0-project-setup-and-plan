@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { CreditCard, AlertCircle, RefreshCw, Info, Plus, CheckCircle2 } from 'lucide-react-native'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMisCredenciales } from '@hooks/use-credenciales'
+import type { CredencialesResponse } from '@hooks/use-credenciales'
 import { useInvitadoAuth } from '@hooks/useInvitadoAuth'
 import { useAuth } from '@hooks/useAuth'
 import { solicitudesCredencialesApi, EstadoSolicitud, TipoCredencial } from '@api/solicitudes-credenciales'
@@ -34,36 +35,43 @@ export function CredentialsScreen() {
   const queryClient = useQueryClient()
   const { invitado, isAuthenticated: isInvitadoAuthenticated } = useInvitadoAuth()
   const { pastor } = useAuth()
-  const { data, isLoading, error, refetch, isRefetching } = useMisCredenciales()
+  const { data, isLoading, error, refetch, isRefetching } = useMisCredenciales() as {
+    data: CredencialesResponse | undefined
+    isLoading: boolean
+    error: Error | null
+    refetch: () => void
+    isRefetching: boolean
+  }
 
-  // Refetch cuando la app vuelve a estar activa (ej. volver de segundo plano)
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
-      if (nextAppState === 'active') {
-        refetch()
-      }
-    })
-
-    return () => {
-      subscription.remove()
-    }
-  }, [refetch])
+  // NO hacer refetch automático cuando la app vuelve a estar activa
+  // El usuario debe hacer pull-to-refresh manualmente si quiere actualizar
 
   // Invalidar caché y refetch para que tipo de pastor y demás cambios de AMVA Digital se vean al instante
+  // Solo si no hay error de sesión expirada
   const refreshCredenciales = React.useCallback(() => {
+    const errorObj = error as Error & { isSessionExpired?: boolean; requiresReauth?: boolean } | undefined
+    // Si hay error de sesión expirada, no hacer nada (sin logs repetitivos)
+    if (errorObj?.isSessionExpired || errorObj?.requiresReauth) {
+      return
+    }
     queryClient.invalidateQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
     refetch()
-  }, [queryClient, refetch])
+  }, [queryClient, refetch, error])
 
   // Al enfocar Credenciales: refrescar datos y permitir rotación (portrait + landscape)
+  // Solo si no hay error de sesión expirada
   useFocusEffect(
     React.useCallback(() => {
-      refreshCredenciales()
+      const errorObj = error as Error & { isSessionExpired?: boolean; requiresReauth?: boolean } | undefined
+      // Solo refrescar si no hay error de sesión expirada
+      if (!errorObj?.isSessionExpired && !errorObj?.requiresReauth) {
+        refreshCredenciales()
+      }
       ScreenOrientation.unlockAsync().catch(() => {})
       return () => {
         ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {})
       }
-    }, [refreshCredenciales])
+    }, [refreshCredenciales, error])
   )
 
   const isPastorAuthenticated = pastor !== null
@@ -311,40 +319,46 @@ export function CredentialsScreen() {
         )}
 
         {/* Error State completo: solo cuando no hay datos previos para mostrar */}
-        {error && !isLoading && (!data || credencialesList.length === 0) && (
-          <View style={styles.errorContainer}>
-            <AlertCircle size={48} color="#ef4444" />
-            <Text style={styles.errorTitle}>Error al cargar credenciales</Text>
-            <Text style={styles.errorText}>
-              {(() => {
-                const msg = error instanceof Error ? error.message : 'Error desconocido'
-                if (msg.includes('401') || msg.includes('Unauthorized') || msg.includes('No autorizado')) {
-                  return 'Sesión expirada o no autorizada.'
-                }
-                return msg
-              })()}
-            </Text>
-            {(error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthorized') || error.message.includes('No autorizado'))) ||
-            (typeof (error as { message?: string })?.message === 'string' &&
-              ((error as { message: string }).message.includes('401') ||
-                (error as { message: string }).message.includes('Unauthorized'))) ? (
-              <>
-                <Text style={styles.errorHint}>
-                  Tu sesión pudo haber expirado. Cierra sesión en Perfil y vuelve a iniciar con el mismo correo para ver tu credencial.
+        {/* NO mostrar error si es de sesión expirada - mostrar mensaje amigable sin botón de reintentar */}
+        {error && !isLoading && (!data || credencialesList.length === 0) && (() => {
+          const errorObj = error as Error & { isSessionExpired?: boolean; requiresReauth?: boolean }
+          const isSessionExpired = errorObj?.isSessionExpired || errorObj?.requiresReauth || 
+            (error instanceof Error && (
+              error.message.includes('401') || 
+              error.message.includes('Unauthorized') || 
+              error.message.includes('No autorizado') ||
+              error.message.includes('Sesión expirada') ||
+              error.message.includes('No hay tokens disponibles')
+            ))
+          
+          // Si es error de sesión expirada, mostrar mensaje amigable sin botón de reintentar
+          if (isSessionExpired) {
+            return (
+              <View style={styles.errorContainer}>
+                <AlertCircle size={48} color="#f59e0b" />
+                <Text style={styles.errorTitle}>Sesión expirada</Text>
+                <Text style={styles.errorText}>
+                  Por favor, cierra sesión en Perfil y vuelve a entrar con Google para ver tus credenciales.
                 </Text>
-                {!isInvitadoAuthenticated && !isPastorAuthenticated ? (
-                  <Text style={[styles.errorHint, { marginTop: 8 }]}>
-                    Si aún no has iniciado sesión, ve a Perfil e inicia sesión con Google.
-                  </Text>
-                ) : null}
-              </>
-            ) : null}
-            <TouchableOpacity style={styles.retryButton} onPress={refreshCredenciales}>
-              <RefreshCw size={20} color="#fff" />
-              <Text style={styles.retryButtonText}>Reintentar</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+              </View>
+            )
+          }
+          
+          // Para otros errores, mostrar el error normal con botón de reintentar
+          return (
+            <View style={styles.errorContainer}>
+              <AlertCircle size={48} color="#ef4444" />
+              <Text style={styles.errorTitle}>Error al cargar credenciales</Text>
+              <Text style={styles.errorText}>
+                {error instanceof Error ? error.message : 'Error desconocido'}
+              </Text>
+              <TouchableOpacity style={styles.retryButton} onPress={refreshCredenciales}>
+                <RefreshCw size={20} color="#fff" />
+                <Text style={styles.retryButtonText}>Reintentar</Text>
+              </TouchableOpacity>
+            </View>
+          )
+        })()}
 
         {/* Aviso: solicitud completada pero credencial no visible */}
         {!isLoading &&

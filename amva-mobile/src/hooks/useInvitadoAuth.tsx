@@ -3,6 +3,7 @@ import { Platform } from 'react-native'
 import Constants from 'expo-constants'
 import * as SecureStore from 'expo-secure-store'
 import { invitadoAuthApi, type Invitado } from '@api/invitado-auth'
+import { useQueryClient } from '@tanstack/react-query'
 
 // Importación condicional para evitar errores en Expo Go
 const isExpoGo = Constants.executionEnvironment === 'storeClient'
@@ -30,6 +31,7 @@ const InvitadoAuthContext = createContext<InvitadoAuthContextValue | undefined>(
 export function InvitadoAuthProvider({ children }: { children: React.ReactNode }) {
   const [invitado, setInvitado] = useState<Invitado | null>(null)
   const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
 
   const loadInvitado = useCallback(async () => {
     try {
@@ -160,6 +162,10 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
       await SecureStore.setItemAsync('invitado_token', result.access_token)
       await SecureStore.setItemAsync('invitado_refresh_token', result.refresh_token)
 
+      // Resetear flag de sesión expirada cuando el usuario vuelve a loguearse
+      const { resetSessionExpiredFlag } = await import('./use-credenciales')
+      resetSessionExpiredFlag(queryClient)
+
       setInvitado(result.invitado)
     } catch (error: unknown) {
       throw error
@@ -206,6 +212,10 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
       // Guardar tokens de forma segura
       await SecureStore.setItemAsync('invitado_token', result.access_token)
       await SecureStore.setItemAsync('invitado_refresh_token', result.refresh_token)
+
+      // Resetear flag de sesión expirada cuando el usuario vuelve a loguearse
+      const { resetSessionExpiredFlag } = await import('./use-credenciales')
+      resetSessionExpiredFlag(queryClient)
 
       // Establecer el invitado ANTES de setLoading(false) para que la navegación se actualice
       setInvitado(result.invitado)

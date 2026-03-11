@@ -224,7 +224,7 @@ export function Step2UnifiedForm({
       setUploadingDocument(true)
       const image = await pickImage()
       if (image) {
-        setSelectedImageUri(image.uri)
+        setSelectedImageUri(image)
         const response = await uploadApi.uploadInscripcionDocumento(image)
         setFormData(prev => ({ ...prev, documentoUrl: response.url }))
         Alert.alert('Éxito', 'Comprobante subido correctamente', undefined, 'success')
@@ -433,9 +433,24 @@ export function Step2UnifiedForm({
             </View>
           </View>
               <View style={styles.wizardNav}>
-                <TouchableOpacity style={styles.wizardButtonSecondary} onPress={onBack}>
-                  <ChevronLeft size={20} color="#22c55e" />
-                  <Text style={styles.wizardButtonSecondaryText}>Atrás</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.wizardButtonSecondary,
+                    wizardStep === 1 && styles.wizardButtonDisabled,
+                  ]}
+                  onPress={onBack}
+                  disabled={wizardStep === 1}
+                  activeOpacity={wizardStep === 1 ? 1 : 0.8}
+                >
+                  <ChevronLeft size={20} color={wizardStep === 1 ? 'rgba(34, 197, 94, 0.4)' : '#22c55e'} />
+                  <Text
+                    style={[
+                      styles.wizardButtonSecondaryText,
+                      wizardStep === 1 && styles.wizardButtonDisabledText,
+                    ]}
+                  >
+                    Atrás
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.wizardButtonPrimary}
@@ -649,7 +664,6 @@ export function Step2UnifiedForm({
                   placeholder="Selecciona tu provincia (convención AMVA)"
                   error={errors.provincia}
                 />
-                {errors.provincia && <Text style={styles.errorText}>{errors.provincia}</Text>}
               </View>
             )}
 
@@ -915,6 +929,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#22c55e',
+  },
+  wizardButtonDisabled: {
+    opacity: 0.5,
+    borderColor: 'rgba(34, 197, 94, 0.2)',
+  },
+  wizardButtonDisabledText: {
+    color: 'rgba(34, 197, 94, 0.4)',
   },
   wizardButtonPrimary: {
     flex: 1,
