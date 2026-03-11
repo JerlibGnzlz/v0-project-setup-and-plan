@@ -7,6 +7,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { credencialesApi, CredencialUnificada } from '../api/credenciales'
 import { useWebSocketSync } from './use-websocket-sync'
+import { useInvitadoAuth } from './useInvitadoAuth'
+import { useAuth } from './useAuth'
 import * as SecureStore from 'expo-secure-store'
 
 export interface CredencialesResponse {
@@ -44,10 +46,43 @@ export function useMisCredenciales() {
   const [isEnabled, setIsEnabled] = useState(false) // Iniciar como false hasta verificar tokens
   const hasCheckedTokensRef = useRef(false)
   
+  // Obtener estado de autenticación para reaccionar cuando el usuario hace login
+  const { invitado, isAuthenticated: isInvitadoAuthenticated } = useInvitadoAuth()
+  const { pastor } = useAuth()
+  
   // Conectar a WebSocket para sincronización en tiempo real
   const { isConnected } = useWebSocketSync()
 
-  // Verificar si hay tokens disponibles al montar el componente y cuando cambia el estado de autenticación
+  // Función para verificar tokens y habilitar/deshabilitar el query
+  const checkTokens = async () => {
+    try {
+      const invitadoToken = await SecureStore.getItemAsync('invitado_token')
+      const invitadoRefreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
+      const pastorToken = await SecureStore.getItemAsync('access_token')
+      const pastorRefreshToken = await SecureStore.getItemAsync('refresh_token')
+      
+      // Si hay algún token disponible (access o refresh), habilitar el query
+      const hasTokens = !!(invitadoToken || invitadoRefreshToken || pastorToken || pastorRefreshToken)
+      
+      if (hasTokens) {
+        // Si hay tokens, SIEMPRE resetear el flag y habilitar el query
+        // Esto permite que el interceptor maneje el refresh automáticamente si es necesario
+        globalSessionExpired = false
+        setIsEnabled(true)
+        logDebug('✅ Tokens encontrados, habilitando query (el interceptor manejará el refresh si es necesario)')
+      } else {
+        // Si no hay tokens, deshabilitar pero NO marcar como expirada
+        // (puede ser que el usuario simplemente no esté logueado)
+        setIsEnabled(false)
+        logDebug('ℹ️ No hay tokens disponibles, deshabilitando query')
+      }
+    } catch (error) {
+      console.error('❌ Error verificando tokens:', error)
+      setIsEnabled(false)
+    }
+  }
+
+  // Verificar tokens al montar el componente
   useEffect(() => {
     // Resetear el flag cuando el hook se monta (app se reinicia o componente se monta)
     if (!hasCheckedTokensRef.current) {
@@ -56,36 +91,24 @@ export function useMisCredenciales() {
       hasCheckedTokensRef.current = true
     }
     
-    const checkTokens = async () => {
-      try {
-        const invitadoToken = await SecureStore.getItemAsync('invitado_token')
-        const invitadoRefreshToken = await SecureStore.getItemAsync('invitado_refresh_token')
-        const pastorToken = await SecureStore.getItemAsync('access_token')
-        const pastorRefreshToken = await SecureStore.getItemAsync('refresh_token')
-        
-        // Si hay algún token disponible (access o refresh), habilitar el query
-        const hasTokens = !!(invitadoToken || invitadoRefreshToken || pastorToken || pastorRefreshToken)
-        
-        if (hasTokens) {
-          // Si hay tokens, SIEMPRE resetear el flag y habilitar el query
-          // Esto permite que el interceptor maneje el refresh automáticamente si es necesario
-          globalSessionExpired = false
-          setIsEnabled(true)
-          console.log('✅ Tokens encontrados, habilitando query (el interceptor manejará el refresh si es necesario)')
-        } else {
-          // Si no hay tokens, deshabilitar pero NO marcar como expirada
-          // (puede ser que el usuario simplemente no esté logueado)
-          setIsEnabled(false)
-          console.log('ℹ️ No hay tokens disponibles, deshabilitando query')
-        }
-      } catch (error) {
-        console.error('❌ Error verificando tokens:', error)
-        setIsEnabled(false)
-      }
-    }
-    
     void checkTokens()
   }, []) // Solo ejecutar una vez al montar
+
+  // Reaccionar cuando el usuario se autentica (hace login)
+  // Esto es crítico para que el hook detecte cuando el usuario hace login después de una sesión expirada
+  useEffect(() => {
+    // Si el usuario está autenticado (invitado o pastor), verificar tokens y habilitar query
+    if (isInvitadoAuthenticated || pastor) {
+      logDebug('🔄 Usuario autenticado detectado, verificando tokens y reseteando flag de sesión expirada')
+      globalSessionExpired = false // Resetear flag cuando el usuario se autentica
+      // Usar un pequeño delay para asegurar que los tokens se hayan guardado en SecureStore
+      const timeoutId = setTimeout(() => {
+        void checkTokens()
+      }, 300)
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [isInvitadoAuthenticated, pastor]) // Reaccionar cuando cambia el estado de autenticación
 
   const query = useQuery<CredencialesResponse, Error>({
     queryKey: ['credenciales', 'mis-credenciales'],
@@ -246,11 +269,15 @@ export function useMisCredenciales() {
 
 // Función para resetear el flag de sesión expirada cuando el usuario vuelve a loguearse
 export function resetSessionExpiredFlag(queryClient?: ReturnType<typeof useQueryClient>) {
-  console.log('🔄 Reseteando flag de sesión expirada (usuario volvió a loguearse)')
+  logDebug('🔄 Reseteando flag de sesión expirada (usuario volvió a loguearse)')
   globalSessionExpired = false
   // Invalidar queries de credenciales para que se vuelvan a cargar con los nuevos tokens
   if (queryClient) {
     queryClient.invalidateQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
+    // También forzar un refetch después de invalidar para asegurar que se carguen los datos
+    setTimeout(() => {
+      queryClient.refetchQueries({ queryKey: ['credenciales', 'mis-credenciales'] })
+    }, 500)
   }
 }
 

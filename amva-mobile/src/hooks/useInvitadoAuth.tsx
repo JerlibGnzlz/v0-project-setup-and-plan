@@ -162,11 +162,16 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
       await SecureStore.setItemAsync('invitado_token', result.access_token)
       await SecureStore.setItemAsync('invitado_refresh_token', result.refresh_token)
 
+      // Establecer el invitado ANTES de resetear flag para que el hook detecte el cambio de autenticación
+      setInvitado(result.invitado)
+
+      // Pequeño delay para asegurar que el estado se propague antes de resetear flag
+      await new Promise(resolve => setTimeout(resolve, 200))
+
       // Resetear flag de sesión expirada cuando el usuario vuelve a loguearse
+      // Esto debe hacerse DESPUÉS de establecer el invitado para que el hook reaccione
       const { resetSessionExpiredFlag } = await import('./use-credenciales')
       resetSessionExpiredFlag(queryClient)
-
-      setInvitado(result.invitado)
     } catch (error: unknown) {
       throw error
     } finally {
@@ -213,15 +218,16 @@ export function InvitadoAuthProvider({ children }: { children: React.ReactNode }
       await SecureStore.setItemAsync('invitado_token', result.access_token)
       await SecureStore.setItemAsync('invitado_refresh_token', result.refresh_token)
 
-      // Resetear flag de sesión expirada cuando el usuario vuelve a loguearse
-      const { resetSessionExpiredFlag } = await import('./use-credenciales')
-      resetSessionExpiredFlag(queryClient)
-
-      // Establecer el invitado ANTES de setLoading(false) para que la navegación se actualice
+      // Establecer el invitado ANTES de resetear flag para que el hook detecte el cambio de autenticación
       setInvitado(result.invitado)
 
-      // Pequeño delay para asegurar que el estado se propague antes de continuar
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // Pequeño delay para asegurar que el estado se propague antes de resetear flag
+      await new Promise(resolve => setTimeout(resolve, 200))
+
+      // Resetear flag de sesión expirada cuando el usuario vuelve a loguearse
+      // Esto debe hacerse DESPUÉS de establecer el invitado para que el hook reaccione
+      const { resetSessionExpiredFlag } = await import('./use-credenciales')
+      resetSessionExpiredFlag(queryClient)
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
 

@@ -41,7 +41,8 @@ const getApiUrl = () => {
   // ============================================
   // PRIORIDAD 2: API de Producción - POR DEFECTO
   // ============================================
-  const PRODUCTION_API_URL = 'https://amva.org.es/api'
+  // Usar www.amva.org.es para consistencia con EAS Build production
+  const PRODUCTION_API_URL = 'https://www.amva.org.es/api'
   console.log('🌐 Usando API de producción:', PRODUCTION_API_URL)
   return PRODUCTION_API_URL
 
