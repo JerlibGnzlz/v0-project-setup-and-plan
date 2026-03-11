@@ -8,7 +8,7 @@ import { Smartphone, Download } from 'lucide-react'
  * Por defecto usa el artefacto EAS. Los enlaces EAS expiran ~30 días.
  * Para no caducar: usa /downloads/amva-movil.apk o define NEXT_PUBLIC_APK_DOWNLOAD_URL.
  */
-const DEFAULT_APK_URL = 'https://expo.dev/artifacts/eas/oB3Vfxzjb9E7kbDUCxuCUt.apk'
+const DEFAULT_APK_URL = 'https://expo.dev/artifacts/eas/nPkFLroLyMgVMWJ9h6Wir5.apk'
 const APK_URL = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || DEFAULT_APK_URL
 
 interface DownloadAppButtonProps {
